@@ -1,0 +1,27 @@
+{
+    "model": "SystemBath",
+    "solver": "SQC",
+    "N": 300,
+    "F": 2,
+    "nbath": 1,
+    "Nb": 300,
+    "system_flag": "SB",
+    "coupling_flag": "SB",
+    "bath_flag": "Ohmic",
+    "strength_flag": "Alpha",
+    "strength": 0.4,
+    "omegac": 2.5,
+    "temperature": "5 auK^-1",
+    "occ": 0,
+    "dt": 0.01,
+    "tend": 15.0,
+    "sstep": 10,
+    "N_mc": 10000,
+    "dump": "null",
+    "BATH_FORCE_OPT": true,
+    "result": [
+        ["x"], ["p"], ["f"],
+        ["wK0occ", "Ktdia"], // time-correlation function
+    ]
+}
+

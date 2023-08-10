@@ -1,0 +1,7 @@
+py::class_<Kernel> PyKernel(m, "Kernel", py::dynamic_attr());
+
+PyKernel.def(py::init<bool>())
+    .def("push", &Kernel::push)
+    .def("param", &Kernel::param)
+    .def("state", &Kernel::state)
+    .def("run", &Kernel::run);

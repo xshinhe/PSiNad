@@ -1,0 +1,19 @@
+{
+    "model": "LVCM",
+    "solver": "CMM",
+    "N": 3,
+    "F": 2,
+    "occ": 1,
+    "dt": "0.1 fs",
+    "tend": "500.0 fs",
+    "unit_dt": "1.0 fs",
+    "sstep": 10,
+    "N_mc": 1000,
+    "dump": "null",
+    "BATH_FORCE_OPT": false,
+    "result": [
+        ["x"], ["p"], ["f"],
+        ["wK0occ", "Ktdia"],
+    ]
+}
+

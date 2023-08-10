@@ -1,0 +1,19 @@
+{
+    "model": "NAD1D",
+    "solver": "CMM",
+    "nad1d_flag": "NA_I",
+    "N": 1,
+    "F": 2,
+    "occ": 0,
+    "parm_E": 20.0,
+    "sstep": 100,
+    "N_mc": 1000,
+    "dump": "null",
+	"gamma0": 0.0,
+    "result": [
+        ["x"], ["p"], ["f"],
+        ["wK0occ", "Ktdia"],
+        // ["wK0occ", "C(Ktdia,p_sign)=Ktdia*p_sign"],
+    ]
+}
+

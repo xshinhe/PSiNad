@@ -1,0 +1,44 @@
+py::class_<State> PyState(m, "State", py::dynamic_attr());
+
+PyState.def(py::init<>())
+    .def("def_int32", &State::def<int>, py::arg("key") = "0", py::arg("size") = 1)
+    .def("def_float64", &State::def<double>, py::arg("key") = "0", py::arg("size") = 1)
+    .def("def_complex128", &State::def<std::complex<double>>, py::arg("key") = "0", py::arg("size") = 1)
+    .def("undef", &State::undef, py::arg("key") = "0");
+PyState.def("numpy", [](State& self, const std::string& key) {
+    details::NodeGeneric::NodeType n_type;
+    details::NodeGeneric::SizeType n_size;
+    details::NodeGeneric::DataType* n_data;
+    std::tie(n_type, n_size, n_data) = self.info(key);
+    switch (n_type) {
+        case details::NodeGeneric::Int: {
+            return py::array({n_size},                                          // shape
+                             {sizeof(int)},                                     // stride
+                             (int*) n_data,                                     // data pointer
+                             py::capsule(n_data, [](void* _void_n_data) { ; })  // zero-copy when pass to py::array
+            );
+            break;
+        }
+        case details::NodeGeneric::Real: {
+            return py::array({n_size},                                          // shape
+                             {sizeof(num_real)},                                // stride
+                             (num_real*) n_data,                                // data pointer
+                             py::capsule(n_data, [](void* _void_n_data) { ; })  // zero-copy when pass to py::array
+            );
+            break;
+        }
+        case details::NodeGeneric::Complex: {
+            return py::array({n_size},                                          // shape
+                             {sizeof(num_complex)},                             // stride
+                             (num_complex*) n_data,                             // data pointer
+                             py::capsule(n_data, [](void* _void_n_data) { ; })  // zero-copy when pass to py::array
+            );
+            break;
+        }
+        default:
+            throw std::runtime_error("can not converted to numpy!");
+    }
+    return py::array();
+});
+PyState.def("copy", [](State& self, bool withvalues = true) { return self.copy(withvalues); });
+PyState.def("__repr__", [](State& self) { return self.repr(details::NodeGeneric::Format::Json); });

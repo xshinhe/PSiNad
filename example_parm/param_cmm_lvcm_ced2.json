@@ -1,0 +1,18 @@
+{
+    "model": "LVCM",
+    "solver": "CMM",
+	"lvcm_flag": "CED2",
+    "N": 200,
+    "F": 2,
+    "occ": 1,
+    "dt": 0.1,
+    "tend": 2200.0,
+    "sstep": 100,
+    "N_mc": 1000,
+    "dump": "null",
+    "result": [
+        ["x"], ["p"], ["f"],
+        ["wK0occ", "Ktdia"],
+    ]
+}
+
