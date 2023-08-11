@@ -56,7 +56,7 @@ void ARRAY_MATMUL(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
     Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = MapB * MapC;
+    MapA = (MapB * MapC);  // .eval();
 }
 
 template <class TA, class TB, class TC>
@@ -64,7 +64,7 @@ void ARRAY_MATMUL_TRANS1(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
     Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
     Eigen::Map<EigMX<TB>> MapB(B, N2, N1);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = MapB.adjoint() * MapC;
+    MapA = (MapB.adjoint() * MapC);  //.eval();
 }
 
 template <class TA, class TB, class TC>
@@ -72,7 +72,7 @@ void ARRAY_MATMUL_TRANS2(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
     Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N3, N2);
-    MapA = MapB * MapC.adjoint();
+    MapA = (MapB * MapC.adjoint());  //.eval();
 }
 
 template <class T>
@@ -87,13 +87,13 @@ void ARRAY_MATMUL3_TRANS1(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t
         Eigen::Map<EigMX<T>> MapB(B, N2, N1);
         Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
         Eigen::Map<EigMX<T>> MapD(D, N2, N3);
-        MapA = MapB.adjoint() * (MapC.asDiagonal() * MapD);
+        MapA = (MapB.adjoint() * (MapC.asDiagonal() * MapD)).eval();
     } else {  // N0 == N2
         Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
         Eigen::Map<EigMX<T>> MapB(B, N2, N1);
         Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
         Eigen::Map<EigMX<T>> MapD(D, N2, N3);
-        MapA = MapB.adjoint() * (MapC * MapD);
+        MapA = (MapB.adjoint() * (MapC * MapD)).eval();
     }
 }
 
@@ -104,13 +104,13 @@ void ARRAY_MATMUL3_TRANS2(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t
         Eigen::Map<EigMX<T>> MapB(B, N1, N2);
         Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
         Eigen::Map<EigMX<T>> MapD(D, N3, N2);
-        MapA = MapB * (MapC.asDiagonal() * MapD.adjoint());
+        MapA = (MapB * (MapC.asDiagonal() * MapD.adjoint())).eval();
     } else {  // N0 == N2
         Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
         Eigen::Map<EigMX<T>> MapB(B, N1, N2);
         Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
         Eigen::Map<EigMX<T>> MapD(D, N3, N2);
-        MapA = MapB * (MapC * MapD.adjoint());
+        MapA = (MapB * (MapC * MapD.adjoint())).eval();
     }
 }
 

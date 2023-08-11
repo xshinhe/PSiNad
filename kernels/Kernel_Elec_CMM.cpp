@@ -52,7 +52,6 @@ void Kernel_Elec_CMM::init_calc_impl(int stat) {
     Kernel_Elec::w[0] = num_complex(Kernel_Dimension::F);
     c_sphere(Kernel_Elec::c, Kernel_Dimension::F);
 
-    *Kernel_Elec::occ_ele = Kernel_Elec::occ0;                                                 // useless
     *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                                 // useless
     Kernel_Elec::ker_from_c(Kernel_Elec::rho_ele, Kernel_Elec::c, 1, 0, Kernel_Dimension::F);  // single-rank
     Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, xi0, gamma0, Kernel_Dimension::F);
@@ -63,6 +62,7 @@ void Kernel_Elec_CMM::init_calc_impl(int stat) {
     }
 
     Kernel_Elec::ker_from_rho(Kernel_Elec::K0, Kernel_Elec::rho_ele, xi0, gamma0, Kernel_Dimension::F);
+    exec_kernel(stat);
 }
 
 int Kernel_Elec_CMM::exec_kernel_impl(int stat) {

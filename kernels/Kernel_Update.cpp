@@ -30,7 +30,7 @@ void Kernel_Declare::init_data_impl(DataSet* DS) {
 }
 
 void Kernel_Declare::init_calc_impl(int stat) {
-    for (auto& ker : _ref_kernels) ker->init_calc(stat);
+    // for (auto& ker : _ref_kernels) ker->init_calc(stat);
 }
 
 void Kernel_Iter::init_data_impl(DataSet* DS) {
@@ -172,28 +172,47 @@ void Kernel_Update_rho::init_data_impl(DataSet* S) {
 }
 
 int Kernel_Update_rho::exec_kernel_impl(int stat) {
-    switch (Kernel_Representation::representation_type) {
+    switch (Kernel_Representation::ele_repr_type) {
         case RepresentationPolicy::Diabatic: {
             for (int i = 0; i < Kernel_Dimension::F; ++i)
                 invexpiEdt[i] = cos(E[i] * dt) - phys::math::im * sin(E[i] * dt);
             ARRAY_MATMUL3_TRANS2(U, T, invexpiEdt, T, Kernel_Dimension::F, Kernel_Dimension::F, 0, Kernel_Dimension::F);
+            ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, U, Kernel_Elec::rho_ele, U, Kernel_Dimension::F,
+                                 Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
+            ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_nuc, U, Kernel_Elec::rho_nuc, U, Kernel_Dimension::F,
+                                 Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
             break;
         }
-        case RepresentationPolicy::Adiabatic:
-        case RepresentationPolicy::Onthefly: {
+        case RepresentationPolicy::Adiabatic: {
+            if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
+                ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T,  //
+                                     Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F,
+                                     Kernel_Dimension::F);
+                ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_nuc, T, Kernel_Elec::rho_nuc, T,  //
+                                     Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F,
+                                     Kernel_Dimension::F);
+            }
             for (int i = 0; i < Kernel_Dimension::F; ++i)
                 invexpiLdt[i] = cos(L[i] * dt) - phys::math::im * sin(L[i] * dt);
             ARRAY_MATMUL3_TRANS2(U, R, invexpiLdt, R, Kernel_Dimension::F, Kernel_Dimension::F, 0, Kernel_Dimension::F);
+            ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, U, Kernel_Elec::rho_ele, U, Kernel_Dimension::F,
+                                 Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
+            ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_nuc, U, Kernel_Elec::rho_nuc, U, Kernel_Dimension::F,
+                                 Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
+            if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
+                ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T,  //
+                                     Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F,
+                                     Kernel_Dimension::F);
+                ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_nuc, T, Kernel_Elec::rho_nuc, T,  //
+                                     Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F,
+                                     Kernel_Dimension::F);
+            }
             break;
         }
         default:  // representation_policy::force, representation_policy::density
                   // LOG(FATAL);
             break;
     }
-    ARRAY_MATMUL(Matr, U, Kernel_Elec::rho_ele, Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
-    ARRAY_MATMUL_TRANS2(Kernel_Elec::rho_ele, Matr, U, Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
-    ARRAY_MATMUL(Matr, U, Kernel_Elec::rho_nuc, Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
-    ARRAY_MATMUL_TRANS2(Kernel_Elec::rho_nuc, Matr, U, Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F);
     return 0;
 }
 

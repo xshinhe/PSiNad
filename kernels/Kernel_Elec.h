@@ -45,7 +45,6 @@ class Kernel_Elec final : public Kernel {
     static int occ0;
 
     // two densities for dynamic
-    static int* occ_ele;
     static int* occ_nuc;
     static num_complex* rho_ele;  // electronic density
     static num_complex* rho_nuc;  // nuclear weighting density

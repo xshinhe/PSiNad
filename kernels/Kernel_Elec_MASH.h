@@ -13,6 +13,8 @@
 #define Kernel_Elec_MASH_H
 
 #include "../core/Kernel.h"
+#include "../core/Policy.h"
+#include "Kernel_Elec.h"
 
 namespace PROJECT_NS {
 
@@ -23,37 +25,38 @@ class Kernel_Elec_MASH final : public Kernel {
    public:
     virtual const std::string name() { return "Kernel_Elec_MASH"; }
 
-    /**
-     * @brief function for gamma_wigner: gamma = (sqrt(1+F)-1)/F
-     */
-    static double gamma_wigner(int fdim);
+    Kernel_Elec_MASH() {
+        push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
+    }
 
-    /**
-     * @brief sampling mapping variables from uniform sphere distribution (i.e. uniform simplex for action)
-     */
-    static int mapvar_sphere(num_real *mapvar, num_real Rc2, int fdim);
+    // @brief: generate hopping state from iocc (but with change current state)
+    static int hopping_choose(num_complex* rho, num_complex* H, int from, num_real dt);
+
+    static void hopping_direction(num_real* direction, num_real* dE, int from, int to);
+
+    static int hopping_impulse(num_real* direction, num_real* np, num_real* nm, num_real* E,  //
+                               int from, int to, bool reflect);
 
    private:
-    num_complex *w;         // measure of phase point mu(dX) = w(X)dX
-    num_complex *c, *gmat;  // only used for check
-    num_complex *rho, *rho_nuc;
-    num_complex *K0, *wK0, *wK0occ, *wK0dia;
-    num_complex *Kt, *Ktdia;
+    MASHPolicy::_type sh_type;
+    bool reflect;
 
-    num_real *mapvar, *mapx, *mapp, *mapA, *mapQ;
+    double dt;
+    num_real* x;
+    num_real* p;
+    num_real* m;
+    num_real* direction;
+    num_real *E, *dE;
+    num_complex* H;
 
-    int occ;
-    num_real gamma0, gammat, xi0, xit, totact;
+    virtual void read_param_impl(Param* PM);
 
-    virtual void read_param_impl(Param *PM);
-
-    virtual void init_data_impl(DataSet *DS);
+    virtual void init_data_impl(DataSet* DS);
 
     virtual void init_calc_impl(int stat = -1);
 
     virtual int exec_kernel_impl(int stat = -1);
 };
-
 
 };  // namespace PROJECT_NS
 

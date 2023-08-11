@@ -61,6 +61,7 @@ struct Result {
     int size;
     int frame;
     std::vector<std::string> header;
+    std::vector<int> stat;
     std::vector<double> data;
     std::ofstream ofs;
 
@@ -70,7 +71,9 @@ struct Result {
         size   = res.size;
         frame  = res.frame;
         header = res.header;
+        stat.resize(frame);
         data.resize(frame * size);
+        memset(stat.data(), 0, frame * sizeof(int));
         memset(data.data(), 0, frame * size * sizeof(double));
     }
 

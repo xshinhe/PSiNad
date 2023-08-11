@@ -30,6 +30,7 @@ class Kernel_Elec_MMD final : public Kernel {
     MMDPolicy::_type mmd_type;
     num_real scale;
     num_real gamma_ou, gamma_uu;
+    int Fref;
     bool pure_phase;
     bool cont_phase;
     bool rand_act;

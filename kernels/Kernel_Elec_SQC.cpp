@@ -71,7 +71,6 @@ void Kernel_Elec_SQC::init_calc_impl(int stat) {
     Kernel_Elec::w[0] = num_complex(1);
     c_window(Kernel_Elec::c, Kernel_Elec::occ0, sqc_type, Kernel_Dimension::F);  // non-standard c
 
-    *Kernel_Elec::occ_ele = Kernel_Elec::occ0;                                                 // useless
     *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                                 // useless
     Kernel_Elec::ker_from_c(Kernel_Elec::rho_ele, Kernel_Elec::c, 1, 0, Kernel_Dimension::F);  // single-rank
     Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, gamma0, Kernel_Dimension::F);
@@ -86,6 +85,8 @@ void Kernel_Elec_SQC::init_calc_impl(int stat) {
             Kernel_Elec::K0[ik] = (i == Kernel_Elec::occ0 && k == Kernel_Elec::occ0) ? phys::math::iu : phys::math::iz;
         }
     }
+
+    exec_kernel(stat);
 }
 
 int Kernel_Elec_SQC::exec_kernel_impl(int stat) {

@@ -19,13 +19,15 @@ class Kernel_NADForce : public Kernel {
     inline virtual const std::string name() { return "Kernel_NADForce"; }
 
    private:
-    num_real *f, *grad, *dV, *dE, *Force;
+    num_real *f, *grad, *dV, *dE, *Force, *T;
 
     bool BATH_FORCE_OPT;
 
     virtual void read_param_impl(Param* PM);
 
     virtual void init_data_impl(DataSet* DS);
+
+    virtual void init_calc_impl(int stat = -1);
 
     virtual int exec_kernel_impl(int stat = -1);
 };

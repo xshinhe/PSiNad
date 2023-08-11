@@ -67,9 +67,10 @@ int Kernel_Elec_MMD::rho_focus(num_complex* rho, int iocc, double gamma_ou, doub
 void Kernel_Elec_MMD::read_param_impl(Param* PM) {
     mmd_type = MMDPolicy::_from(PM->get<std::string>("mmd_flag", LOC(), "MMF"));
     scale    = PM->get<num_real>("scale", LOC(), 1.0);
+    Fref     = PM->get<int>("Fref", LOC(), Kernel_Dimension::F);
     switch (mmd_type) {
         case MMDPolicy::MMF:
-            gamma_uu = (std::sqrt(scale * Kernel_Dimension::F + 1) - 1) / Kernel_Dimension::F;
+            gamma_uu = (std::sqrt(scale * Fref + 1) - 1) / Fref;
             gamma_ou = sqrt(gamma_uu * (1.0f + gamma_uu));
             break;
         case MMDPolicy::TWA:
@@ -78,18 +79,19 @@ void Kernel_Elec_MMD::read_param_impl(Param* PM) {
             break;
         case MMDPolicy::MID: {
             double scale_k = PM->get<num_real>("scale_k", LOC(), 1.0);
-            double r       = (Kernel_Dimension::F + 2 * scale_k) / (1 + scale_k);
+            double r       = (Fref + 2 * scale_k) / (1 + scale_k);
             gamma_uu       = (std::sqrt(r / (1 + scale_k) * scale + 1) - 1) / r;
             gamma_ou       = std::sqrt((1 + scale_k) * gamma_uu * (1 + gamma_uu));
             break;
         }
     }
     double gamma_uu_in = PM->get<num_real>("gamma_uu", LOC(), -1.0);
-    double gamma_ou_in = PM->get<num_real>("gamma_ou", LOC(), -1.0);
-    if (gamma_uu_in > 0 && gamma_ou_in > 0) {
-        gamma_uu = gamma_uu_in;
-        gamma_ou = gamma_ou_in;
+    if (gamma_uu_in >= 0) {
+        gamma_uu           = gamma_uu_in;
+        double gamma_ou_in = PM->get<num_real>("gamma_ou", LOC(), -1.0);
+        gamma_ou           = (gamma_uu_in >= 0) ? gamma_uu_in : sqrt((1 + gamma_uu) * gamma_uu);
     }
+
     pure_phase = PM->get<bool>("pure_phase", LOC(), true);
     cont_phase = PM->get<bool>("cont_phase", LOC(), true);
     rand_act   = PM->get<bool>("rand_act", LOC(), false);
@@ -98,13 +100,13 @@ void Kernel_Elec_MMD::read_param_impl(Param* PM) {
 void Kernel_Elec_MMD::init_calc_impl(int stat) {
     Kernel_Elec::w[0] = (rand_act) ? num_complex(Kernel_Dimension::F) : 1.0e0;
 
-    *Kernel_Elec::occ_ele = Kernel_Elec::occ0;                                                   // useless
     *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                                   // useless
     rho_focus(Kernel_Elec::rho_ele, Kernel_Elec::occ0, gamma_ou, gamma_uu, Kernel_Dimension::F,  //
               rand_act, pure_phase, cont_phase);
     Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, 0, Kernel_Dimension::F);
 
     Kernel_Elec::ker_from_rho(Kernel_Elec::K0, Kernel_Elec::rho_ele, 1, 0, Kernel_Dimension::F);
+    exec_kernel(stat);
 }
 
 int Kernel_Elec_MMD::exec_kernel_impl(int stat) {

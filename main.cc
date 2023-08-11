@@ -47,6 +47,16 @@ int main(int argc, char* argv[]) {
     }
     fs::create_directory(FLAGS_d);
 
+    auto&& j = *(P.pjson());
+    if (j.count("model_file") > 0 && j.count("model_id") > 0) {
+        Param TEMP(j["model_file"].as_string(), Param::fromFile);
+        j["model_param"] = (*(TEMP.pjson()))[j["model_id"].as_string()];
+    }
+    if (j.count("solver_file") > 0 && j.count("solver_id") > 0) {
+        Param TEMP(j["solver_file"].as_string(), Param::fromFile);
+        j["solver_param"] = (*(TEMP.pjson()))[j["solver_id"].as_string()];
+    }
+
     /* setup glog */
     google::InitGoogleLogging(argv[0]);
     google::SetStderrLogging(google::GLOG_INFO);

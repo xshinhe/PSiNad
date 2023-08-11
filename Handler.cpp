@@ -34,6 +34,7 @@ int Handler::run(Param* P) {
 }
 
 int Handler::run_single(Param* P) {
+    std::cout << P->repr();
     DataSet DS;
     auto begin = std::chrono::steady_clock::now();
     {
@@ -69,12 +70,13 @@ int Handler::run_multiple(Param* P) {
         double dt      = P->get<double>("dt", LOC(), phys::time_d);
         double unit_dt = P->get<double>("unit_dt", LOC(), phys::time_d, 1);
         int sstep      = P->get<int>("sstep", LOC(), 1);
-        std::cout << dt << ", " << unit_dt << "\n";
         int istart, iend;
 
         MPI_Guard gaurd{};
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Guard::range(0, N_mc, istart, iend);
+
+        if (MPI_Guard::rank == 0) std::cout << P->repr();
 
         std::cout << N_mc << ", " << istart << ", " << iend << "\n";
         for (int icycle = istart, icalc = 0; icycle < iend; ++icycle, ++icalc) {
@@ -91,6 +93,8 @@ int Handler::run_multiple(Param* P) {
                    MPI_COMM_WORLD);
         MPI_Barrier(MPI_COMM_WORLD);
 
+        for (int i = 0; i < total_size; ++i) corr_sum.data[i] /= (iend - istart);
+        corr_sum.save(utils::concat("corr-mpi", MPI_Guard::rank, ".dat"), 0, sstep * dt / unit_dt, true);
         if (MPI_Guard::isroot) {
             for (int i = 0; i < total_size; ++i) corr_mpi.data[i] /= N_mc;
             corr_mpi.save("corr.dat", 0, sstep * dt / unit_dt, true);

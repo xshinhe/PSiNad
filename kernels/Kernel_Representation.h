@@ -10,7 +10,6 @@ namespace PROJECT_NS {
 DEFINE_POLICY(RepresentationPolicy,
               Diabatic,   // diabatic representation
               Adiabatic,  // adiabtic representation
-              Onthefly,   // onthefly adiabtic representation
               Force,      // adiabtic representation
               Density     // adiabtic representation
 );
@@ -22,14 +21,19 @@ DEFINE_POLICY(RepresentationPolicy,
 class Kernel_Representation final : public Kernel {
    public:
     static RepresentationPolicy::_type representation_type;
+    static RepresentationPolicy::_type ini_repr_type;
+    static RepresentationPolicy::_type ele_repr_type;
+    static RepresentationPolicy::_type nuc_repr_type;
+    static RepresentationPolicy::_type tcf_repr_type;
+    static bool onthefly;
 
     inline virtual const std::string name() { return "Kernel_Representation"; }
 
    private:
-    // int Nc, N, F, FF, NFF, NNFF;
-    std::complex<double>* c;
-    std::complex<double>* rho;
+    bool do_refer;
+    bool phase_correction;
 
+    // int Nc, N, F, FF, NFF, NNFF;
     double *V, *dV, *ddV;
     double *E, *T, *dE, *ddE;
     double* L;
@@ -43,6 +47,8 @@ class Kernel_Representation final : public Kernel {
     virtual void read_param_impl(Param* PM);
 
     virtual void init_data_impl(DataSet* DS);
+
+    virtual void init_calc_impl(int stat = -1);
 
     virtual int exec_kernel_impl(int stat = -1);
 };

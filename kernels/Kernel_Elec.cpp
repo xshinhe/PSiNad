@@ -16,7 +16,6 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     c       = DS->reg<num_complex>("integrator.c", Kernel_Dimension::F);
     rho_ele = DS->reg<num_complex>("integrator.rho_ele", Kernel_Dimension::FF);
     rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Kernel_Dimension::FF);
-    occ_ele = DS->reg<int>("integrator.occ_ele");
     occ_nuc = DS->reg<int>("integrator.occ_nuc");
 
     w      = DS->reg<num_complex>("integrator.w");
@@ -36,6 +35,8 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     DS->set("init.wK0", wK0, Kernel_Dimension::FF);
     DS->set("init.wK0dia", wK0dia, Kernel_Dimension::F);
     DS->set("init.wK0occ", wK0occ);
+
+    *(DS->reg<num_real>("init.1")) = 1.0e0;
 }
 
 void Kernel_Elec::init_calc_impl(int stat) {
@@ -130,7 +131,6 @@ num_real* Kernel_Elec::mapQ;
 int Kernel_Elec::occ0;
 
 // two densities for dynamic
-int* Kernel_Elec::occ_ele;
 int* Kernel_Elec::occ_nuc;
 num_complex* Kernel_Elec::rho_ele;  // electronic density
 num_complex* Kernel_Elec::rho_nuc;  // nuclear weighting density

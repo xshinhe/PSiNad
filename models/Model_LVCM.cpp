@@ -272,6 +272,8 @@ void Model_LVCM::init_calc_impl(int stat) {
 
     _DataSet->set("init.x", x, Kernel_Dimension::N);
     _DataSet->set("init.p", p, Kernel_Dimension::N);
+
+    exec_kernel(stat);
 }
 
 int Model_LVCM::exec_kernel_impl(int stat) {

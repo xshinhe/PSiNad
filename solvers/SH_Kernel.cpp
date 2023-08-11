@@ -1,6 +1,6 @@
 #include "../kernels/Kernel_DataSetHandles.h"
 #include "../kernels/Kernel_Dimension.h"
-#include "../kernels/Kernel_Elec_CMM.h"
+#include "../kernels/Kernel_Elec_SH.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
@@ -10,12 +10,12 @@
 namespace PROJECT_NS {
 
 // CMM Solver Builder
-std::shared_ptr<Kernel> CMM_Kernel(std::shared_ptr<Kernel> kmodel) {
+std::shared_ptr<Kernel> SH_Kernel(std::shared_ptr<Kernel> kmodel) {
     bool take_ownership_false = false;
 
     // Root Kernel
-    std::shared_ptr<Kernel> ker(new Kernel("CMM"));
-    std::shared_ptr<Kernel_Elec_CMM> kele(new Kernel_Elec_CMM());
+    std::shared_ptr<Kernel> ker(new Kernel("SH"));
+    std::shared_ptr<Kernel_Elec_SH> kele(new Kernel_Elec_SH());
 
     // Timer
     std::shared_ptr<Kernel_Timer> ktime(new Kernel_Timer());

@@ -76,7 +76,6 @@ find_package(MPIMod REQUIRED)
 # ################################################################################
 
 # # thirdpart library
-add_definitions(-DUSE_PL=1)
 add_subdirectory(thirdpart)
 
 add_subdirectory(core)

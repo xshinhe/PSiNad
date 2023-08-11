@@ -25,19 +25,19 @@ void Kernel_NADForce::init_data_impl(DataSet* DS) {
     grad = DS->reg<double>("model.grad", Kernel_Dimension::N);
     dV   = DS->reg<double>("model.dV", Kernel_Dimension::NFF);
     dE   = DS->reg<double>("model.rep.dE", Kernel_Dimension::NFF);
-    // occ     = DS->reg<int>("integrator.occ");
-    // rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Kernel_Dimension::FF);
+    T    = DS->reg<double>("model.rep.T", Kernel_Dimension::FF);
 
-    switch (Kernel_Representation::representation_type) {
+    switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:
             Force = dV;
             break;
         case RepresentationPolicy::Adiabatic:
-        case RepresentationPolicy::Onthefly:
             Force = dE;
             break;
     }
 }
+
+void Kernel_NADForce::init_calc_impl(int stat) { exec_kernel(stat); }
 
 int Kernel_NADForce::exec_kernel_impl(int stat) {
     switch (NADForce_type) {
@@ -47,6 +47,13 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
             break;
         }
         case NADForcePolicy::EHR: {
+            if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic &&
+                Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
+                ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_nuc, T, Kernel_Elec::rho_nuc, T,  //
+                                     Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F,
+                                     Kernel_Dimension::F);
+            }
+
             if (BATH_FORCE_OPT) {
                 int nbath = Kernel_Dimension::F;
                 int Nb    = Kernel_Dimension::N / nbath;
@@ -67,6 +74,13 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                     double* dVj = Force + jFF;
                     f[j] = std::real(ARRAY_TRACE2(Kernel_Elec::rho_nuc, dVj, Kernel_Dimension::F, Kernel_Dimension::F));
                 }
+            }
+
+            if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic &&
+                Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
+                ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_nuc, T, Kernel_Elec::rho_nuc, T,  //
+                                     Kernel_Dimension::F, Kernel_Dimension::F, Kernel_Dimension::F,
+                                     Kernel_Dimension::F);
             }
             break;
         }

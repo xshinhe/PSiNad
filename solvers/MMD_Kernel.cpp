@@ -53,10 +53,6 @@ std::shared_ptr<Kernel> MMD_Kernel(std::shared_ptr<Kernel> kmodel) {
         .push(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
         .push(std::shared_ptr<Kernel_Dimension>(new Kernel_Dimension()))
         .push(std::shared_ptr<Kernel_Declare>(new Kernel_Declare({kmodel, ktime, kinte})))
-        .push(kmodel)
-        .push(krepr)
-        .push(kele)
-        .push(kforc)
         .push(kiter)
         .push(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
     return ker;

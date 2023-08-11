@@ -214,6 +214,7 @@ void Model_SystemBath::init_calc_impl(int stat) {
             p[idxR] = p_init[idxR];
         }
     }
+    exec_kernel(stat);
 }
 
 int Model_SystemBath::exec_kernel_impl(int stat) {
