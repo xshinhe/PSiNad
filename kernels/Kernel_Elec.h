@@ -31,6 +31,12 @@ class Kernel_Elec final : public Kernel {
     static int ker_from_rho(num_complex* ker, num_complex* rho, num_real xi, num_real gamma, int fdim);
 
     /**
+     * @brief convert c (electonic amplititude) to kernel (affine map of the density)
+     */
+    static int ker_from_rho_quantize(num_complex* ker, num_complex* rho, num_real xi, num_real gamma, int occt,
+                                     int fdim);
+
+    /**
      * @brief sampling mapping variables from focused condition (A & Q as inputs)
      */
     static int mapvar_focus(num_real* mapvar, int fdim);
@@ -52,6 +58,9 @@ class Kernel_Elec final : public Kernel {
     // time correlation function
     static num_complex *K0, *wK0, *wK0occ, *wK0dia;
     static num_complex *Kt, *Ktdia;
+    static num_complex* K0Q;  // quantized K0, or alternative K0
+    static num_complex* KtQ;  // quantized Kt, or alternative Kt
+
     static num_complex *OpA, *OpB, *TrK0A, *TrKtB;
     // friend class Kernel_Elec_CMM;
    private:

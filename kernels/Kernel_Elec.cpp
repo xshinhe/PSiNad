@@ -27,6 +27,9 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     Kt    = DS->reg<num_complex>("integrator.Kt", Kernel_Dimension::FF);
     Ktdia = DS->reg<num_complex>("integrator.Ktdia", Kernel_Dimension::F);
 
+    K0Q = DS->reg<num_complex>("integrator.K0Q", Kernel_Dimension::FF);
+    KtQ = DS->reg<num_complex>("integrator.KtQ", Kernel_Dimension::FF);
+
     mapvar = DS->reg<num_real>("integrator.mapvar", 2 * Kernel_Dimension::F);
 
     DS->set("init.c", c, Kernel_Dimension::F);
@@ -35,6 +38,8 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     DS->set("init.wK0", wK0, Kernel_Dimension::FF);
     DS->set("init.wK0dia", wK0dia, Kernel_Dimension::F);
     DS->set("init.wK0occ", wK0occ);
+    DS->set("init.K0Q", K0Q, Kernel_Dimension::FF);
+    DS->set("init.KtQ", KtQ, Kernel_Dimension::FF);
 
     *(DS->reg<num_real>("init.1")) = 1.0e0;
 }
@@ -50,6 +55,8 @@ void Kernel_Elec::init_calc_impl(int stat) {
     _DataSet->set("init.wK0", wK0, Kernel_Dimension::FF);
     _DataSet->set("init.wK0dia", wK0dia, Kernel_Dimension::F);
     _DataSet->set("init.wK0occ", wK0occ);
+    _DataSet->set("init.K0Q", K0Q, Kernel_Dimension::FF);
+    _DataSet->set("init.KtQ", KtQ, Kernel_Dimension::FF);
 }
 
 int Kernel_Elec::exec_kernel_impl(int stat) {
@@ -107,6 +114,20 @@ int Kernel_Elec::ker_from_rho(num_complex* ker, num_complex* rho, num_real xi, n
 }
 
 /**
+ * @brief convert c (electonic amplititude) to kernel (affine map of the density)
+ */
+int Kernel_Elec::ker_from_rho_quantize(num_complex* ker, num_complex* rho, num_real xi, num_real gamma, int occt,
+                                       int fdim) {
+    for (int i = 0, idx = 0; i < fdim; ++i) {
+        for (int j = 0; j < fdim; ++j, ++idx) {
+            ker[idx] = xi * rho[idx];
+            if (i == j) ker[idx] = (i == occt) ? 1.0e0 : 0.0e0;
+        }
+    }
+    return 0;
+}
+
+/**
  * @brief sampling mapping variables from focused condition (A & Q as inputs)
  */
 int Kernel_Elec::mapvar_focus(num_real* mapvar, int fdim) {
@@ -142,6 +163,8 @@ num_complex* Kernel_Elec::wK0occ;
 num_complex* Kernel_Elec::wK0dia;
 num_complex* Kernel_Elec::Kt;
 num_complex* Kernel_Elec::Ktdia;
+num_complex* Kernel_Elec::K0Q;
+num_complex* Kernel_Elec::KtQ;
 
 num_complex* Kernel_Elec::OpA;
 num_complex* Kernel_Elec::OpB;

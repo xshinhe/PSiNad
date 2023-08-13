@@ -130,16 +130,15 @@ void Kernel_Elec_SH::init_calc_impl(int stat) {
     if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Kernel_Dimension::F, Kernel_Dimension::F,
                              Kernel_Dimension::F, Kernel_Dimension::F);
-        *Kernel_Elec::occ_nuc = pop_choose(Kernel_Elec::rho_ele);
+    }
+    *Kernel_Elec::occ_nuc = pop_choose(Kernel_Elec::rho_ele);
+    if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Kernel_Dimension::F, Kernel_Dimension::F,
                              Kernel_Dimension::F, Kernel_Dimension::F);
-    } else {
-        *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;
     }
 
     for (int ik = 0; ik < Kernel_Dimension::FF; ++ik) Kernel_Elec::rho_nuc[ik] = Kernel_Elec::rho_ele[ik];
     for (int ik = 0; ik < Kernel_Dimension::FF; ++ik) Kernel_Elec::K0[ik] = Kernel_Elec::rho_ele[ik];
-
     exec_kernel(stat);
 }
 
@@ -160,12 +159,8 @@ int Kernel_Elec_SH::exec_kernel_impl(int stat) {
     // step 3: try hop
     *Kernel_Elec::occ_nuc = hopping_impulse(direction, p, m, E, *Kernel_Elec::occ_nuc, to, reflect);
 
-    for (int ik = 0; ik < Kernel_Dimension::FF; ++ik) Kernel_Elec::Kt[ik] = Kernel_Elec::rho_ele[ik];
-    for (int i = 0, ik = 0; i < Kernel_Dimension::F; ++i) {
-        for (int k = 0; k < Kernel_Dimension::F; ++k, ++ik) {
-            Kernel_Elec::Kt[ik] = (i == k) ? ((i == *Kernel_Elec::occ_nuc) ? 1.0e0 : 0.0e0) : Kernel_Elec::rho_ele[ik];
-        }
-    }
+    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::Kt, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
+                                       Kernel_Dimension::F);
 
     if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Kernel_Dimension::F, Kernel_Dimension::F,

@@ -6,6 +6,7 @@ extern std::shared_ptr<Kernel> CMM_Kernel(std::shared_ptr<Kernel> kmodel);
 extern std::shared_ptr<Kernel> SQC_Kernel(std::shared_ptr<Kernel> kmodel);
 extern std::shared_ptr<Kernel> MMD_Kernel(std::shared_ptr<Kernel> kmodel);
 extern std::shared_ptr<Kernel> SH_Kernel(std::shared_ptr<Kernel> kmodel);
+extern std::shared_ptr<Kernel> MMSH_Kernel(std::shared_ptr<Kernel> kmodel);
 
 std::shared_ptr<Kernel> SolverFactory(const std::string& name, std::shared_ptr<Kernel> kmodel) {
     if (false) {
@@ -19,6 +20,8 @@ std::shared_ptr<Kernel> SolverFactory(const std::string& name, std::shared_ptr<K
         return MMD_Kernel(kmodel);
     } else if (name == "SH") {
         return SH_Kernel(kmodel);
+    } else if (name == "MMSH") {
+        return MMSH_Kernel(kmodel);
     } else {
         throw std::runtime_error("unknown solver name");
     }

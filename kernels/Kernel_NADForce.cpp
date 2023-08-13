@@ -54,7 +54,7 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                                      Kernel_Dimension::F);
             }
 
-            if (BATH_FORCE_OPT) {
+            if (BATH_FORCE_OPT && Kernel_Representation::nuc_repr_type == RepresentationPolicy::Diabatic) {
                 int nbath = Kernel_Dimension::F;
                 int Nb    = Kernel_Dimension::N / nbath;
                 int NbFF  = Nb * Kernel_Dimension::FF;
