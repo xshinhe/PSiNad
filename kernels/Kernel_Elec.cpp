@@ -1,7 +1,7 @@
 #include "Kernel_Elec.h"
 
 #include "../core/linalg.h"
-#include "Kernel_Dimension.h"
+#include "Kernel_Declare.h"
 #include "Kernel_Random.h"
 
 namespace PROJECT_NS {
@@ -9,58 +9,58 @@ namespace PROJECT_NS {
 void Kernel_Elec::read_param_impl(Param* PM) {
     occ0 = PM->get<int>("occ", LOC(), -1);
     if (occ0 < 0) throw std::runtime_error("occ < 0");
-    if (occ0 >= Kernel_Dimension::F) throw std::runtime_error("occ >= F");
+    if (occ0 >= Dimension::F) throw std::runtime_error("occ >= F");
 }
 
 void Kernel_Elec::init_data_impl(DataSet* DS) {
-    c       = DS->reg<num_complex>("integrator.c", Kernel_Dimension::F);
-    rho_ele = DS->reg<num_complex>("integrator.rho_ele", Kernel_Dimension::FF);
-    rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Kernel_Dimension::FF);
+    c       = DS->reg<num_complex>("integrator.c", Dimension::F);
+    rho_ele = DS->reg<num_complex>("integrator.rho_ele", Dimension::FF);
+    rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Dimension::FF);
     occ_nuc = DS->reg<int>("integrator.occ_nuc");
 
     w      = DS->reg<num_complex>("integrator.w");
-    K0     = DS->reg<num_complex>("integrator.K0", Kernel_Dimension::FF);
-    wK0    = DS->reg<num_complex>("integrator.wK0", Kernel_Dimension::FF);
-    wK0dia = DS->reg<num_complex>("integrator.wK0dia", Kernel_Dimension::F);
+    K0     = DS->reg<num_complex>("integrator.K0", Dimension::FF);
+    wK0    = DS->reg<num_complex>("integrator.wK0", Dimension::FF);
+    wK0dia = DS->reg<num_complex>("integrator.wK0dia", Dimension::F);
     wK0occ = DS->reg<num_complex>("integrator.wK0occ");
 
-    Kt    = DS->reg<num_complex>("integrator.Kt", Kernel_Dimension::FF);
-    Ktdia = DS->reg<num_complex>("integrator.Ktdia", Kernel_Dimension::F);
+    Kt    = DS->reg<num_complex>("integrator.Kt", Dimension::FF);
+    Ktdia = DS->reg<num_complex>("integrator.Ktdia", Dimension::F);
 
-    K0Q = DS->reg<num_complex>("integrator.K0Q", Kernel_Dimension::FF);
-    KtQ = DS->reg<num_complex>("integrator.KtQ", Kernel_Dimension::FF);
+    K0Q = DS->reg<num_complex>("integrator.K0Q", Dimension::FF);
+    KtQ = DS->reg<num_complex>("integrator.KtQ", Dimension::FF);
 
-    mapvar = DS->reg<num_real>("integrator.mapvar", 2 * Kernel_Dimension::F);
+    mapvar = DS->reg<num_real>("integrator.mapvar", 2 * Dimension::F);
 
-    DS->set("init.c", c, Kernel_Dimension::F);
-    DS->set("init.rho_ele", rho_ele, Kernel_Dimension::FF);
-    DS->set("init.K0", K0, Kernel_Dimension::FF);
-    DS->set("init.wK0", wK0, Kernel_Dimension::FF);
-    DS->set("init.wK0dia", wK0dia, Kernel_Dimension::F);
+    DS->set("init.c", c, Dimension::F);
+    DS->set("init.rho_ele", rho_ele, Dimension::FF);
+    DS->set("init.K0", K0, Dimension::FF);
+    DS->set("init.wK0", wK0, Dimension::FF);
+    DS->set("init.wK0dia", wK0dia, Dimension::F);
     DS->set("init.wK0occ", wK0occ);
-    DS->set("init.K0Q", K0Q, Kernel_Dimension::FF);
-    DS->set("init.KtQ", KtQ, Kernel_Dimension::FF);
+    DS->set("init.K0Q", K0Q, Dimension::FF);
+    DS->set("init.KtQ", KtQ, Dimension::FF);
 
     *(DS->reg<num_real>("init.1")) = 1.0e0;
 }
 
 void Kernel_Elec::init_calc_impl(int stat) {
-    for (int i = 0; i < Kernel_Dimension::FF; ++i) wK0[i] = w[0] * K0[i];
-    for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1) wK0dia[i] = wK0[ii];
-    wK0occ[0] = wK0[occ0 * Kernel_Dimension::Fadd1];
+    for (int i = 0; i < Dimension::FF; ++i) wK0[i] = w[0] * K0[i];
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) wK0dia[i] = wK0[ii];
+    wK0occ[0] = wK0[occ0 * Dimension::Fadd1];
 
-    _DataSet->set("init.c", c, Kernel_Dimension::F);
-    _DataSet->set("init.rho_ele", rho_ele, Kernel_Dimension::FF);
-    _DataSet->set("init.K0", K0, Kernel_Dimension::FF);
-    _DataSet->set("init.wK0", wK0, Kernel_Dimension::FF);
-    _DataSet->set("init.wK0dia", wK0dia, Kernel_Dimension::F);
+    _DataSet->set("init.c", c, Dimension::F);
+    _DataSet->set("init.rho_ele", rho_ele, Dimension::FF);
+    _DataSet->set("init.K0", K0, Dimension::FF);
+    _DataSet->set("init.wK0", wK0, Dimension::FF);
+    _DataSet->set("init.wK0dia", wK0dia, Dimension::F);
     _DataSet->set("init.wK0occ", wK0occ);
-    _DataSet->set("init.K0Q", K0Q, Kernel_Dimension::FF);
-    _DataSet->set("init.KtQ", KtQ, Kernel_Dimension::FF);
+    _DataSet->set("init.K0Q", K0Q, Dimension::FF);
+    _DataSet->set("init.KtQ", KtQ, Dimension::FF);
 }
 
 int Kernel_Elec::exec_kernel_impl(int stat) {
-    for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1) Ktdia[i] = Kt[ii];
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Ktdia[i] = Kt[ii];
     return 0;
 }
 

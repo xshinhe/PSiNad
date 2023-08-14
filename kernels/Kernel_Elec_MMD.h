@@ -5,12 +5,13 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
+
+namespace PROJECT_NS {
+
 DEFINE_POLICY(MMDPolicy,  //
               MMF,        //
               TWA,        //
               MID);
-
-namespace PROJECT_NS {
 
 /**
  * @brief initialization kernel for electonic DOFs in MMD

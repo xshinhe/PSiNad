@@ -36,17 +36,19 @@ class Kernel_Representation final : public Kernel {
     // int Nc, N, F, FF, NFF, NNFF;
     double *V, *dV, *ddV;
     double *E, *T, *dE, *ddE;
-    double* L;
-    std::complex<double>*R, *dL, *ddL;
-    std::complex<double>*H, *dH, *ddH;
+    double *dEprime;
+    double *invdiffE, *vedE;
+    double *L;
+    std::complex<double> *R, *dL, *ddL;
+    std::complex<double> *H, *dH, *ddH;
 
-    double *x, *p, *m;
+    double *x, *p, *m, *ve;
     double *Told, *Tnew, *TtTold, *Enew;
-    double* Matr_tmp;
+    double *Matr_tmp;
 
-    virtual void read_param_impl(Param* PM);
+    virtual void read_param_impl(Param *PM);
 
-    virtual void init_data_impl(DataSet* DS);
+    virtual void init_data_impl(DataSet *DS);
 
     virtual void init_calc_impl(int stat = -1);
 

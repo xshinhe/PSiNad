@@ -1,6 +1,6 @@
 #include "Kernel_Elec_SQC.h"
 
-#include "../kernels/Kernel_Dimension.h"
+#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Elec.h"
 #include "../kernels/Kernel_Elec_CMM.h"
 #include "../kernels/Kernel_Random.h"
@@ -69,19 +69,19 @@ void Kernel_Elec_SQC::read_param_impl(Param *PM) {
 
 void Kernel_Elec_SQC::init_calc_impl(int stat) {
     Kernel_Elec::w[0] = num_complex(1);
-    c_window(Kernel_Elec::c, Kernel_Elec::occ0, sqc_type, Kernel_Dimension::F);  // non-standard c
+    c_window(Kernel_Elec::c, Kernel_Elec::occ0, sqc_type, Dimension::F);  // non-standard c
 
-    *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                                 // useless
-    Kernel_Elec::ker_from_c(Kernel_Elec::rho_ele, Kernel_Elec::c, 1, 0, Kernel_Dimension::F);  // single-rank
-    Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, gamma0, Kernel_Dimension::F);
+    *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                          // useless
+    Kernel_Elec::ker_from_c(Kernel_Elec::rho_ele, Kernel_Elec::c, 1, 0, Dimension::F);  // single-rank
+    Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, gamma0, Dimension::F);
     if (use_cv) {
-        for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1) {
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
             Kernel_Elec::rho_nuc[ii] = (i == Kernel_Elec::occ0) ? phys::math::iu : phys::math::iz;
         }
     }
 
-    for (int i = 0, ik = 0; i < Kernel_Dimension::F; ++i) {
-        for (int k = 0; k < Kernel_Dimension::F; ++k, ++ik) {
+    for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+        for (int k = 0; k < Dimension::F; ++k, ++ik) {
             Kernel_Elec::K0[ik] = (i == Kernel_Elec::occ0 && k == Kernel_Elec::occ0) ? phys::math::iu : phys::math::iz;
         }
     }
@@ -90,15 +90,15 @@ void Kernel_Elec_SQC::init_calc_impl(int stat) {
 }
 
 int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
-    for (int i = 0; i < Kernel_Dimension::FF; ++i)
+    for (int i = 0; i < Dimension::FF; ++i)
         Kernel_Elec::Kt[i] = Kernel_Elec::rho_ele[i] / std::abs(Kernel_Elec::rho_ele[i]);
 
     // then set zeros (quantize to zero by window function)
     switch (sqc_type) {
         case SQCPolicy::TRI: {
-            for (int i = 0, ij = 0; i < Kernel_Dimension::F; ++i) {
-                for (int j = 0; j < Kernel_Dimension::F; ++j, ++ij) {
-                    for (int k = 0, kk = 0; k < Kernel_Dimension::F; ++k, kk += Kernel_Dimension::Fadd1) {
+            for (int i = 0, ij = 0; i < Dimension::F; ++i) {
+                for (int j = 0; j < Dimension::F; ++j, ++ij) {
+                    for (int k = 0, kk = 0; k < Dimension::F; ++k, kk += Dimension::Fadd1) {
                         double vk = std::abs(Kernel_Elec::rho_ele[kk]);
                         if ((i == j && ((k != i && vk > 1) || (k == i && vk < 1))) ||  // diagonal
                             (i != j && ((k != i && k != j && vk > 1) || ((k == i || k == j) && vk < 0.5f)))) {
@@ -112,9 +112,9 @@ int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
         }
         case SQCPolicy::SQR: {
             const num_real gm0 = Kernel_Elec_CMM::gamma_wigner(2.0f), gm1 = 1 + gm0, gmh = 0.5f + gm0;
-            for (int i = 0, ij = 0; i < Kernel_Dimension::F; ++i) {
-                for (int j = 0; j < Kernel_Dimension::F; ++j, ++ij) {
-                    for (int k = 0, kk = 0; k < Kernel_Dimension::F; ++k, kk += Kernel_Dimension::Fadd1) {
+            for (int i = 0, ij = 0; i < Dimension::F; ++i) {
+                for (int j = 0; j < Dimension::F; ++j, ++ij) {
+                    for (int k = 0, kk = 0; k < Dimension::F; ++k, kk += Dimension::Fadd1) {
                         double vk = std::abs(Kernel_Elec::rho_ele[kk]);
                         if ((i == j && ((k != i && std::abs(vk - gm0) > gm0) ||
                                         (k == i && std::abs(vk - gm1) > gm0))) ||  // diagonal

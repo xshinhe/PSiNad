@@ -1,6 +1,6 @@
 #include "Model_NAD1D.h"
 
-#include "../kernels/Kernel_Dimension.h"
+#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 
 namespace PROJECT_NS {
@@ -476,29 +476,29 @@ void Model_NAD1D::read_param_impl(Param* PM) {
 };
 
 void Model_NAD1D::init_data_impl(DataSet* DS) {
-    Hsys = DS->reg<num_real>("model.Hsys", Kernel_Dimension::FF);
-    memset(Hsys, 0, Kernel_Dimension::FF * sizeof(num_real));
+    Hsys = DS->reg<num_real>("model.Hsys", Dimension::FF);
+    memset(Hsys, 0, Dimension::FF * sizeof(num_real));
 
     // model field
-    mass = DS->reg<double>("model.mass", Kernel_Dimension::N);
-    vpes = DS->reg<double>("model.vpes");                        // not used
-    grad = DS->reg<double>("model.grad", Kernel_Dimension::N);   // not used
-    hess = DS->reg<double>("model.hess", Kernel_Dimension::NN);  // not used
-    V    = DS->reg<double>("model.V", Kernel_Dimension::FF);
-    dV   = DS->reg<double>("model.dV", Kernel_Dimension::NFF);
-    // ddV  = DS->reg<double>("model.ddV", Kernel_Dimension::Kernel_Dimension::NNFF);
+    mass = DS->reg<double>("model.mass", Dimension::N);
+    vpes = DS->reg<double>("model.vpes");                 // not used
+    grad = DS->reg<double>("model.grad", Dimension::N);   // not used
+    hess = DS->reg<double>("model.hess", Dimension::NN);  // not used
+    V    = DS->reg<double>("model.V", Dimension::FF);
+    dV   = DS->reg<double>("model.dV", Dimension::NFF);
+    // ddV  = DS->reg<double>("model.ddV", Dimension::Dimension::NNFF);
 
-    x0      = DS->reg<double>("model.x0", Kernel_Dimension::N);
-    p0      = DS->reg<double>("model.p0", Kernel_Dimension::N);
-    x_sigma = DS->reg<double>("model.x_sigma", Kernel_Dimension::N);
-    p_sigma = DS->reg<double>("model.p_sigma", Kernel_Dimension::N);
+    x0      = DS->reg<double>("model.x0", Dimension::N);
+    p0      = DS->reg<double>("model.p0", Dimension::N);
+    x_sigma = DS->reg<double>("model.x_sigma", Dimension::N);
+    p_sigma = DS->reg<double>("model.p_sigma", Dimension::N);
 
     // init & integrator
-    x      = DS->reg<double>("integrator.x", Kernel_Dimension::N);
-    p      = DS->reg<double>("integrator.p", Kernel_Dimension::N);
+    x      = DS->reg<double>("integrator.x", Dimension::N);
+    p      = DS->reg<double>("integrator.p", Dimension::N);
     p_sign = DS->reg<num_complex>("integrator.p_sign", 2);
-    DS->reg<double>("init.x", Kernel_Dimension::N);
-    DS->reg<double>("init.p", Kernel_Dimension::N);
+    DS->reg<double>("init.x", Dimension::N);
+    DS->reg<double>("init.p", Dimension::N);
 
     mass[0]     = _Param->get<double>("m0", LOC(), 2000.0f);
     x0[0]       = _Param->get<double>("x0", LOC(), 100.0f);
@@ -584,16 +584,16 @@ void Model_NAD1D::init_calc_impl(int stat) {
             Kernel_Random::rand_uniform(&randu);
             double b      = sqrt(randu) * bmax;
             mspes_parm[1] = 2 * mass[0] * mspes_parm[0] * b * b;  // l^2 = 2 m E b^2
-            for (int j = 0; j < Kernel_Dimension::N; ++j) {
+            for (int j = 0; j < Dimension::N; ++j) {
                 x[j] = x0[j];
                 p[j] = p0[j];
             }
             break;
         }
         default: {
-            Kernel_Random::rand_gaussian(x, Kernel_Dimension::N);
-            Kernel_Random::rand_gaussian(p, Kernel_Dimension::N);
-            for (int j = 0; j < Kernel_Dimension::N; ++j) {
+            Kernel_Random::rand_gaussian(x, Dimension::N);
+            Kernel_Random::rand_gaussian(p, Dimension::N);
+            for (int j = 0; j < Dimension::N; ++j) {
                 x[j] = x0[j] + x[j] * x_sigma[j];
                 p[j] = p0[j] + p[j] * p_sigma[j];
             }
@@ -605,8 +605,8 @@ void Model_NAD1D::init_calc_impl(int stat) {
     } else {
         p_sign[0] = phys::math::iz, p_sign[1] = phys::math::iu;
     }
-    _DataSet->set("init.x", x, Kernel_Dimension::N);
-    _DataSet->set("init.p", p, Kernel_Dimension::N);
+    _DataSet->set("init.x", x, Dimension::N);
+    _DataSet->set("init.p", p, Dimension::N);
 
     exec_kernel(stat);
 }
@@ -614,46 +614,46 @@ void Model_NAD1D::init_calc_impl(int stat) {
 int Model_NAD1D::exec_kernel_impl(int stat) {
     switch (nad1d_type) {
         case NAD1DPolicy::SAC:
-            mspes_SAC(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_SAC(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::SAC2:
-            mspes_SAC2(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_SAC2(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::DAC:
-            mspes_DAC(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_DAC(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::ECR:
-            mspes_ECR(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_ECR(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::DBG:
-            mspes_DBG(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_DBG(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::DAG:
-            mspes_DAG(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_DAG(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::DRN:
-            mspes_DRN(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_DRN(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3A:
-            mspes_MORSE3A(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_MORSE3A(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3B:
-            mspes_MORSE3B(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_MORSE3B(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3C:
-            mspes_MORSE3C(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_MORSE3C(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::MORSE15:
-            mspes_MORSE15(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_MORSE15(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::JC1D:
-            mspes_JC1D(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_JC1D(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::CL1D:
-            mspes_CL1D(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_CL1D(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::NA_I:
-            mspes_NA_I(V, dV, ddV, x, 1, 1, Kernel_Dimension::F);
+            mspes_NA_I(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
     }
     if (p[0] >= 0) {

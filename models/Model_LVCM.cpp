@@ -1,6 +1,6 @@
 #include "Model_LVCM.h"
 
-#include "../kernels/Kernel_Dimension.h"
+#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
@@ -20,9 +20,9 @@ void Model_LVCM::read_param_impl(Param *PM) {
 }
 
 void Model_LVCM::init_data_impl(DataSet *DS) {
-    Hsys = DS->reg<num_real>("model.Hsys", Kernel_Dimension::FF);
-    w    = DS->reg<num_real>("model.w", Kernel_Dimension::N);
-    memset(Hsys, 0, Kernel_Dimension::FF * sizeof(num_real));
+    Hsys = DS->reg<num_real>("model.Hsys", Dimension::FF);
+    w    = DS->reg<num_real>("model.w", Dimension::N);
+    memset(Hsys, 0, Dimension::FF * sizeof(num_real));
     switch (lvcm_type) {
         case LVCMPolicy::PYR3:
         case LVCMPolicy::PYR24: {
@@ -71,20 +71,16 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
                     break;
             }
 
-            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Kernel_Dimension::F);
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Kernel_Dimension::FF);
+            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Dimension::F);
+            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
 
-            for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1) {
-                Hsys[ii] = E_data[i] / H_unit;
-            }
-            for (int j = 0; j < Kernel_Dimension::N; ++j) w[j] = w_data[j] / H_unit;
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i] / H_unit; }
+            for (int j = 0; j < Dimension::N; ++j) w[j] = w_data[j] / H_unit;
             for (int j = 0, ji = 0; j < N_mode; ++j) {
-                for (int i = 0; i < Kernel_Dimension::F; ++i, ++ji) {
-                    kcoeff[ji] = (kcoeff_data[ji] / H_unit) * sqrt(w[j]);
-                }
+                for (int i = 0; i < Dimension::F; ++i, ++ji) { kcoeff[ji] = (kcoeff_data[ji] / H_unit) * sqrt(w[j]); }
             }
-            for (int j = N_mode, j0ik = 0; j < Kernel_Dimension::N; ++j) {
-                for (int ik = 0; ik < Kernel_Dimension::FF; ++ik, ++j0ik) {
+            for (int j = N_mode, j0ik = 0; j < Dimension::N; ++j) {
+                for (int ik = 0; ik < Dimension::FF; ++ik, ++j0ik) {
                     lcoeff[j0ik] = (lcoeff_data[j0ik] / H_unit) * sqrt(w[j]);
                 }
             }
@@ -121,16 +117,14 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             }
 
             N_mode = 0;
-            N_coup = Kernel_Dimension::N;
+            N_coup = Dimension::N;
 
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Kernel_Dimension::FF);
+            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
 
-            for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1) {
-                Hsys[ii] = E_data[i];
-            }
-            for (int j = 0, jik = 0; j < Kernel_Dimension::N; ++j) {
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i]; }
+            for (int j = 0, jik = 0; j < Dimension::N; ++j) {
                 w[j] = (2 * j + 1) * lightspeed * phys::math::pi / Lcav;
-                for (int ik = 0; ik < Kernel_Dimension::FF; ++ik, ++jik) {
+                for (int ik = 0; ik < Dimension::FF; ++ik, ++jik) {
                     lcoeff[jik] = sqrt(2.0f / (epsilon0 * Lcav)) * sin((2 * j + 1) * phys::math::pi * Rcav / Lcav) *
                                   w[j] * mu_data[ik];
                 }
@@ -157,33 +151,33 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             double *kcoeff_data = kcoeff_data_PYR2;
             double *lcoeff_data = lcoeff_data_PYR2;
 
-            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Kernel_Dimension::F);
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Kernel_Dimension::FF);
+            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Dimension::F);
+            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
 
-            for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1) {
-                Hsys[ii] = i / (Kernel_Dimension::F / 2) * wcav + E_data[i % 2] / H_unit;
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+                Hsys[ii] = i / (Dimension::F / 2) * wcav + E_data[i % 2] / H_unit;
             }
             Hsys[0 * 4 + 3] = gcoup;
             Hsys[1 * 4 + 2] = gcoup;
             Hsys[2 * 4 + 1] = gcoup;
             Hsys[3 * 4 + 0] = gcoup;
-            for (int j = 0; j < Kernel_Dimension::N; ++j) w[j] = w_data[j] / H_unit;
+            for (int j = 0; j < Dimension::N; ++j) w[j] = w_data[j] / H_unit;
             for (int j = 0, ji = 0; j < N_mode; ++j) {
-                for (int i = 0; i < Kernel_Dimension::F; ++i, ++ji) {
+                for (int i = 0; i < Dimension::F; ++i, ++ji) {
                     kcoeff[ji] = (kcoeff_data[j * 2 + i % 2] / H_unit) * sqrt(w[j]);
                 }
             }
-            for (int j = N_mode, j0 = 0, j0ik = 0; j < Kernel_Dimension::N; ++j, ++j0) {
-                for (int i = 0, ik = 0; i < Kernel_Dimension::F; ++i) {
-                    for (int k = 0; k < Kernel_Dimension::F; ++k, ++ik, ++j0ik) {
-                        if (i / (Kernel_Dimension::F / 2) == k / (Kernel_Dimension::F / 2))
+            for (int j = N_mode, j0 = 0, j0ik = 0; j < Dimension::N; ++j, ++j0) {
+                for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+                    for (int k = 0; k < Dimension::F; ++k, ++ik, ++j0ik) {
+                        if (i / (Dimension::F / 2) == k / (Dimension::F / 2))
                             lcoeff[j0ik] = (lcoeff_data[j0 * 4 + (i % 2) * 2 + k % 2] / H_unit) * sqrt(w[j]);
                     }
                 }
             }
-            // ARRAY_SHOW(Hsys, Kernel_Dimension::F, Kernel_Dimension::F);
-            // ARRAY_SHOW(kcoeff, N_mode, Kernel_Dimension::F);
-            // ARRAY_SHOW(lcoeff, N_coup, Kernel_Dimension::FF);
+            // ARRAY_SHOW(Hsys, Dimension::F, Dimension::F);
+            // ARRAY_SHOW(kcoeff, N_mode, Dimension::F);
+            // ARRAY_SHOW(lcoeff, N_coup, Dimension::FF);
             break;
         }
         case LVCMPolicy::BEN5: {
@@ -204,124 +198,124 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             std::string flag;
             double val;
             ifs >> flag >> dsize;
-            for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1)
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1)
                 if (ifs >> val) Hsys[ii] = val / H_unit;
 
             // read kcoeff & lcoeff
-            for (int j = 0, ji = 0, j0ik = 0; j < Kernel_Dimension::N; ++j) {
+            for (int j = 0, ji = 0, j0ik = 0; j < Dimension::N; ++j) {
                 ifs >> flag >> dsize;
-                if (dsize == Kernel_Dimension::F) {
+                if (dsize == Dimension::F) {
                     if (ifs >> val) w[j] = val / H_unit;  // freq
-                    for (int i = 0; i < Kernel_Dimension::F; ++i, ++ji)
+                    for (int i = 0; i < Dimension::F; ++i, ++ji)
                         if (ifs >> val) kcoeff[ji] = val / H_unit;
-                } else if (dsize = Kernel_Dimension::FF) {
+                } else if (dsize = Dimension::FF) {
                     if (ifs >> val) w[j] = val / H_unit;  // freq
-                    for (int ik = 0; ik < Kernel_Dimension::FF; ++ik, ++j0ik)
+                    for (int ik = 0; ik < Dimension::FF; ++ik, ++j0ik)
                         if (ifs >> val) lcoeff[j0ik] = val / H_unit;
                 } else {
                     exit(-1);
                 }
             }
             ifs >> flag >> dsize;
-            for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ii += Kernel_Dimension::Fadd1)
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1)
                 if (ifs >> val) Hsys[ii] = val / H_unit;
 
-            for (int i = 0; i < Kernel_Dimension::FF; ++i)
+            for (int i = 0; i < Dimension::FF; ++i)
                 if (ifs >> val) Hsys[i] = val / H_unit;
             ifs.close();
         }
     }
 
     /// 2) init Bath sub-kernel (declaration & call)
-    x_sigma = DS->reg<double>("model.x_sigma", Kernel_Dimension::N);
-    p_sigma = DS->reg<double>("model.p_sigma", Kernel_Dimension::N);
-    for (int j = 0; j < Kernel_Dimension::N; ++j) {
+    x_sigma = DS->reg<double>("model.x_sigma", Dimension::N);
+    p_sigma = DS->reg<double>("model.p_sigma", Dimension::N);
+    for (int j = 0; j < Dimension::N; ++j) {
         x_sigma[j] = sqrt(0.5f / w[j]);
         p_sigma[j] = sqrt(0.5f * w[j]);
     }
 
     // model field
-    mass = DS->reg<double>("model.mass", Kernel_Dimension::N);
-    for (int j = 0; j < Kernel_Dimension::N; ++j) mass[j] = 1.0f;
+    mass = DS->reg<double>("model.mass", Dimension::N);
+    for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
     vpes = DS->reg<double>("model.vpes");
-    grad = DS->reg<double>("model.grad", Kernel_Dimension::N);
-    hess = DS->reg<double>("model.hess", Kernel_Dimension::NN);
-    V    = DS->reg<double>("model.V", Kernel_Dimension::FF);
-    dV   = DS->reg<double>("model.dV", Kernel_Dimension::NFF);
-    // ddV  = DS->reg<double>("model.ddV", Kernel_Dimension::NNFF);
+    grad = DS->reg<double>("model.grad", Dimension::N);
+    hess = DS->reg<double>("model.hess", Dimension::NN);
+    V    = DS->reg<double>("model.V", Dimension::FF);
+    dV   = DS->reg<double>("model.dV", Dimension::NFF);
+    // ddV  = DS->reg<double>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x = DS->reg<double>("integrator.x", Kernel_Dimension::N);
-    p = DS->reg<double>("integrator.p", Kernel_Dimension::N);
-    DS->reg<double>("init.x", Kernel_Dimension::N);
-    DS->reg<double>("init.p", Kernel_Dimension::N);
+    x = DS->reg<double>("integrator.x", Dimension::N);
+    p = DS->reg<double>("integrator.p", Dimension::N);
+    DS->reg<double>("init.x", Dimension::N);
+    DS->reg<double>("init.p", Dimension::N);
 }
 
 void Model_LVCM::init_calc_impl(int stat) {
-    Kernel_Random::rand_gaussian(x, Kernel_Dimension::N);
-    Kernel_Random::rand_gaussian(p, Kernel_Dimension::N);
+    Kernel_Random::rand_gaussian(x, Dimension::N);
+    Kernel_Random::rand_gaussian(p, Dimension::N);
 
-    for (int j = 0; j < Kernel_Dimension::N; ++j) {
+    for (int j = 0; j < Dimension::N; ++j) {
         x[j] = x[j] * x_sigma[j];
         p[j] = p[j] * p_sigma[j];
     }
 
-    // ARRAY_SHOW(x_sigma, 1, Kernel_Dimension::N);
-    // ARRAY_SHOW(p_sigma, 1, Kernel_Dimension::N);
-    // for (int i = 0; i < Kernel_Dimension::N; ++i) x[i] = 0.5f, p[i] = 0.5f;  // @debug
+    // ARRAY_SHOW(x_sigma, 1, Dimension::N);
+    // ARRAY_SHOW(p_sigma, 1, Dimension::N);
+    // for (int i = 0; i < Dimension::N; ++i) x[i] = 0.5f, p[i] = 0.5f;  // @debug
 
-    _DataSet->set("init.x", x, Kernel_Dimension::N);
-    _DataSet->set("init.p", p, Kernel_Dimension::N);
+    _DataSet->set("init.x", x, Dimension::N);
+    _DataSet->set("init.p", p, Dimension::N);
 
     exec_kernel(stat);
 }
 
 int Model_LVCM::exec_kernel_impl(int stat) {
-    // ARRAY_SHOW(x, 1, Kernel_Dimension::N);
+    // ARRAY_SHOW(x, 1, Dimension::N);
 
     // calculate nuclear vpes and grad
     double term = 0.0f;
-    for (int j = 0; j < Kernel_Dimension::N; ++j) {
+    for (int j = 0; j < Dimension::N; ++j) {
         term += w[j] * w[j] * x[j] * x[j];
         grad[j] = w[j] * w[j] * x[j];
     }
     vpes[0] = 0.5 * term;
 
     // electronic pes
-    memset(V, 0, Kernel_Dimension::FF * sizeof(num_real));
-    for (int ik = 0; ik < Kernel_Dimension::FF; ++ik) V[ik] = Hsys[ik];
-    // ARRAY_SHOW(V, Kernel_Dimension::F, Kernel_Dimension::F);
+    memset(V, 0, Dimension::FF * sizeof(num_real));
+    for (int ik = 0; ik < Dimension::FF; ++ik) V[ik] = Hsys[ik];
+    // ARRAY_SHOW(V, Dimension::F, Dimension::F);
 
     for (int j = 0, ji = 0; j < N_mode; ++j) {
-        for (int i = 0, ii = 0; i < Kernel_Dimension::F; ++i, ++ji, ii += Kernel_Dimension::Fadd1) {
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ++ji, ii += Dimension::Fadd1) {
             V[ii] += kcoeff[ji] * x[j];  //
         };
     }
-    for (int j = N_mode, j0ik = 0; j < Kernel_Dimension::N; ++j) {
-        for (int ik = 0; ik < Kernel_Dimension::FF; ++ik, ++j0ik) {
+    for (int j = N_mode, j0ik = 0; j < Dimension::N; ++j) {
+        for (int ik = 0; ik < Dimension::FF; ++ik, ++j0ik) {
             V[ik] += lcoeff[j0ik] * x[j];  // slow
         };
     }
 
-    // ARRAY_SHOW(V, Kernel_Dimension::F, Kernel_Dimension::F);
+    // ARRAY_SHOW(V, Dimension::F, Dimension::F);
 
     if (count_exec == 0) {
         // N_mode
-        for (int j = 0, ji = 0, jFF = 0; j < N_mode; ++j, jFF += Kernel_Dimension::FF) {
-            for (int i = 0, jii = jFF; i < Kernel_Dimension::F; ++i, ++ji, jii += Kernel_Dimension::Fadd1) {
+        for (int j = 0, ji = 0, jFF = 0; j < N_mode; ++j, jFF += Dimension::FF) {
+            for (int i = 0, jii = jFF; i < Dimension::F; ++i, ++ji, jii += Dimension::Fadd1) {
                 dV[jii] = kcoeff[ji];  //
             }
         }
         // N_coup
-        for (int j = N_mode, jFF = N_mode * Kernel_Dimension::FF, j0FF = 0; j < Kernel_Dimension::N;
-             ++j, jFF += Kernel_Dimension::FF, j0FF += Kernel_Dimension::FF) {
-            for (int ik = 0, jik = jFF, j0ik = j0FF; ik < Kernel_Dimension::FF; ++ik, ++jik, ++j0ik) {
+        for (int j = N_mode, jFF = N_mode * Dimension::FF, j0FF = 0; j < Dimension::N;
+             ++j, jFF += Dimension::FF, j0FF += Dimension::FF) {
+            for (int ik = 0, jik = jFF, j0ik = j0FF; ik < Dimension::FF; ++ik, ++jik, ++j0ik) {
                 dV[jik] = lcoeff[j0ik];
             }
         }
     }
 
-    // ARRAY_SHOW(dV, Kernel_Dimension::N, Kernel_Dimension::FF);
+    // ARRAY_SHOW(dV, Dimension::N, Dimension::FF);
     // exit(-1);
     return 0;
 }

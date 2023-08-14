@@ -5,32 +5,6 @@
 
 namespace PROJECT_NS {
 
-class Kernel_Declare final : public Kernel {
-   public:
-    Kernel_Declare(std::shared_ptr<Kernel> ker) : Kernel() { _ref_kernels.push_back(ker); }
-
-    Kernel_Declare(std::vector<std::shared_ptr<Kernel>> kers) : Kernel() {
-        for (auto& ker : kers) { _ref_kernels.push_back(ker); }
-    }
-
-    inline virtual const std::string name() {
-        std::stringstream ss;
-        ss << "Kernel_Declare";
-        for (auto& ker : _ref_kernels) ss << " #" << std::setfill('0') << std::setw(2) << ker->id();
-        return ss.str();
-    }
-
-   private:
-    // std::shared_ptr<Kernel> _ref_kernel;
-    std::vector<std::shared_ptr<Kernel>> _ref_kernels;
-
-    virtual void read_param_impl(Param* PM);
-
-    virtual void init_data_impl(DataSet* DS);
-
-    virtual void init_calc_impl(int stat = -1);
-};
-
 /**
  * @brief iterative kernel wrapper/(interface) for other kernels
  */

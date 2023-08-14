@@ -1,6 +1,6 @@
 #include "Kernel_Elec_MMD.h"
 
-#include "Kernel_Dimension.h"
+#include "Kernel_Declare.h"
 #include "Kernel_Random.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
@@ -67,7 +67,7 @@ int Kernel_Elec_MMD::rho_focus(num_complex* rho, int iocc, double gamma_ou, doub
 void Kernel_Elec_MMD::read_param_impl(Param* PM) {
     mmd_type = MMDPolicy::_from(PM->get<std::string>("mmd_flag", LOC(), "MMF"));
     scale    = PM->get<num_real>("scale", LOC(), 1.0);
-    Fref     = PM->get<int>("Fref", LOC(), Kernel_Dimension::F);
+    Fref     = PM->get<int>("Fref", LOC(), Dimension::F);
     switch (mmd_type) {
         case MMDPolicy::MMF:
             gamma_uu = (std::sqrt(scale * Fref + 1) - 1) / Fref;
@@ -98,19 +98,19 @@ void Kernel_Elec_MMD::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_MMD::init_calc_impl(int stat) {
-    Kernel_Elec::w[0] = (rand_act) ? num_complex(Kernel_Dimension::F) : 1.0e0;
+    Kernel_Elec::w[0] = (rand_act) ? num_complex(Dimension::F) : 1.0e0;
 
-    *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                                   // useless
-    rho_focus(Kernel_Elec::rho_ele, Kernel_Elec::occ0, gamma_ou, gamma_uu, Kernel_Dimension::F,  //
+    *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                            // useless
+    rho_focus(Kernel_Elec::rho_ele, Kernel_Elec::occ0, gamma_ou, gamma_uu, Dimension::F,  //
               rand_act, pure_phase, cont_phase);
-    Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, 0, Kernel_Dimension::F);
+    Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
 
-    Kernel_Elec::ker_from_rho(Kernel_Elec::K0, Kernel_Elec::rho_ele, 1, 0, Kernel_Dimension::F);
+    Kernel_Elec::ker_from_rho(Kernel_Elec::K0, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
     exec_kernel(stat);
 }
 
 int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
-    Kernel_Elec::ker_from_rho(Kernel_Elec::Kt, Kernel_Elec::rho_ele, 1, 0, Kernel_Dimension::F);
+    Kernel_Elec::ker_from_rho(Kernel_Elec::Kt, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
     return 0;
 }
 

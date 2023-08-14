@@ -1,6 +1,10 @@
 #include "../kernels/Kernel_DataSetHandles.h"
-#include "../kernels/Kernel_Dimension.h"
+#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Elec_CMM.h"
+#include "../kernels/Kernel_Elec_MMD.h"
+#include "../kernels/Kernel_Elec_MMSH.h"
+#include "../kernels/Kernel_Elec_SH.h"
+#include "../kernels/Kernel_Elec_SQC.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
@@ -10,12 +14,11 @@
 namespace PROJECT_NS {
 
 // CMM Solver Builder
-std::shared_ptr<Kernel> CMM_Kernel(std::shared_ptr<Kernel> kmodel) {
+std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string NAD_Kernel_name) {
     bool take_ownership_false = false;
 
     // Root Kernel
-    std::shared_ptr<Kernel> ker(new Kernel("CMM"));
-    std::shared_ptr<Kernel_Elec_CMM> kele(new Kernel_Elec_CMM());
+    std::shared_ptr<Kernel> ker(new Kernel(NAD_Kernel_name));
 
     // Timer
     std::shared_ptr<Kernel_Timer> ktime(new Kernel_Timer());
@@ -39,7 +42,20 @@ std::shared_ptr<Kernel> CMM_Kernel(std::shared_ptr<Kernel> kmodel) {
     kinte->push(kmodel);
     kinte->push(krepr);
     kinte->push(ku_rho);
-    kinte->push(kele);
+    if (false) {
+    } else if (NAD_Kernel_name == "CMM") {
+        kinte->push(std::shared_ptr<Kernel_Elec_CMM>(new Kernel_Elec_CMM()));
+    } else if (NAD_Kernel_name == "SQC") {
+        kinte->push(std::shared_ptr<Kernel_Elec_SQC>(new Kernel_Elec_SQC()));
+    } else if (NAD_Kernel_name == "MMD") {
+        kinte->push(std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD()));
+    } else if (NAD_Kernel_name == "SH") {
+        kinte->push(std::shared_ptr<Kernel_Elec_SH>(new Kernel_Elec_SH()));
+    } else if (NAD_Kernel_name == "MMSH") {
+        kinte->push(std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH()));
+    } else {
+        throw std::runtime_error("unknown Elec Kernel");
+    }
     kinte->push(kforc);
     kinte->push(ku_p);
     kinte->push(ktime);
@@ -51,7 +67,6 @@ std::shared_ptr<Kernel> CMM_Kernel(std::shared_ptr<Kernel> kmodel) {
     // /// CMM kernel
     ker->push(std::shared_ptr<Kernel_Load_DataSet>(new Kernel_Load_DataSet()))
         .push(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
-        .push(std::shared_ptr<Kernel_Dimension>(new Kernel_Dimension()))
         .push(std::shared_ptr<Kernel_Declare>(new Kernel_Declare({kmodel, ktime, kinte})))
         .push(kiter)
         .push(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));

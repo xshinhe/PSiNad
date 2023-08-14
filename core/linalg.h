@@ -56,7 +56,7 @@ void ARRAY_MATMUL(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
     Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = (MapB * MapC);  // .eval();
+    MapA = (MapB * MapC).eval();
 }
 
 template <class TA, class TB, class TC>
@@ -64,7 +64,7 @@ void ARRAY_MATMUL_TRANS1(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
     Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
     Eigen::Map<EigMX<TB>> MapB(B, N2, N1);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = (MapB.adjoint() * MapC);  //.eval();
+    MapA = (MapB.adjoint() * MapC).eval();
 }
 
 template <class TA, class TB, class TC>
@@ -72,7 +72,7 @@ void ARRAY_MATMUL_TRANS2(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
     Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N3, N2);
-    MapA = (MapB * MapC.adjoint());  //.eval();
+    MapA = (MapB * MapC.adjoint()).eval();
 }
 
 template <class T>
