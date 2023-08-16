@@ -35,6 +35,7 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
 
     double unit = 1.0e0;
     DS->set("init.1", &unit);
+    DS->set("init.w", w);
     DS->set("init.c", c, Dimension::F);
     DS->set("init.rho_ele", rho_ele, Dimension::FF);
     DS->set("init.K1", K1, Dimension::FF);
@@ -43,6 +44,7 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     DS->set("init.wK1occ", wK1occ);
     DS->set("init.K1Q", K1Q, Dimension::FF);
     DS->set("init.K2Q", K2Q, Dimension::FF);
+    DS->set("init.K2", K2, Dimension::FF);
 }
 
 void Kernel_Elec::init_calc_impl(int stat) {
@@ -50,6 +52,7 @@ void Kernel_Elec::init_calc_impl(int stat) {
     for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) wK1dia[i] = wK1[ii];
     wK1occ[0] = wK1[occ0 * Dimension::Fadd1];
 
+    _DataSet->set("init.w", w);
     _DataSet->set("init.c", c, Dimension::F);
     _DataSet->set("init.rho_ele", rho_ele, Dimension::FF);
     _DataSet->set("init.K1", K1, Dimension::FF);
@@ -58,6 +61,7 @@ void Kernel_Elec::init_calc_impl(int stat) {
     _DataSet->set("init.wK1occ", wK1occ);
     _DataSet->set("init.K1Q", K1Q, Dimension::FF);
     _DataSet->set("init.K2Q", K2Q, Dimension::FF);
+    _DataSet->set("init.K2", K2, Dimension::FF);
 }
 
 int Kernel_Elec::exec_kernel_impl(int stat) {

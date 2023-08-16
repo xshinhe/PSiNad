@@ -70,15 +70,19 @@ void Kernel_Elec_MMSH::init_data_impl(DataSet* DS) {
     w_AD = DS->reg<num_complex>("integrator.w_AD");
     w_DD = DS->reg<num_complex>("integrator.w_DD");
 
-    DS->set("init.w_CC", w_CC, 1);
-    DS->set("init.w_CP", w_CP, 1);
-    DS->set("init.w_PP", w_PP, 1);
-    DS->set("init.w_AA", w_AA, 1);
-    DS->set("init.w_AD", w_AD, 1);
-    DS->set("init.w_DD", w_DD, 1);
+    DS->set("init.w_CC", w_CC);
+    DS->set("init.w_CP", w_CP);
+    DS->set("init.w_PP", w_PP);
+    DS->set("init.w_AA", w_AA);
+    DS->set("init.w_AD", w_AD);
+    DS->set("init.w_DD", w_DD);
 }
 
 void Kernel_Elec_MMSH::init_calc_impl(int stat) {
+    /**
+     * 1) if do hopping dynamics, here adopt the strategy of MASH
+     * 2) otherwise, do mean-force dynamics acccording to
+     */
     Kernel_NADForce::NADForce_type = (hopping) ? NADForcePolicy::BO : NADForcePolicy::EHR;
 
     // sampling electonic DOFs in <ini_repr>
@@ -144,15 +148,8 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
     _DataSet->set("init.w_AD", w_AD, 1);
     _DataSet->set("init.w_DD", w_DD, 1);
 
-
     *Kernel_Elec::occ_nuc = Kernel_Elec_SH::max_choose(Kernel_Elec::rho_ele);
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
-                                       Dimension::F);
-    ARRAY_CLEAR(Kernel_Elec::K1Q, Dimension::FF);
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Kernel_Elec::K1Q[ii] = Kernel_Elec::K1[ii];
 
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
-                                       Dimension::F);
     if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
@@ -184,18 +181,34 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
     // step 3: try hop
     *Kernel_Elec::occ_nuc = Kernel_Elec_SH::hopping_impulse(direction, p, m, E, *Kernel_Elec::occ_nuc, to, reflect);
 
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
+    // K1 & K1Q
+    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
                                        Dimension::F);
-    ARRAY_CLEAR(Kernel_Elec::K2Q, Dimension::FF);
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Kernel_Elec::K2Q[ii] = Kernel_Elec::K2[ii];
+    ARRAY_CLEAR(Kernel_Elec::K1Q, Dimension::FF);
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Kernel_Elec::K1Q[ii] = Kernel_Elec::K1[ii];
+
+    // K2
+    Kernel_Elec::ker_from_rho(Kernel_Elec::K2, Kernel_Elec::rho_ele, xi, gamma, Dimension::F);
 
     if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
+        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K1, T, Kernel_Elec::K1, T, Dimension::F, Dimension::F, Dimension::F,
+                             Dimension::F);
+        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K1Q, T, Kernel_Elec::K1Q, T, Dimension::F, Dimension::F, Dimension::F,
+                             Dimension::F);
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::K2, T, Kernel_Elec::K2, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K2Q, T, Kernel_Elec::K2Q, T, Dimension::F, Dimension::F, Dimension::F,
-                             Dimension::F);
+    }
+
+    int imax_init_rep = Kernel_Elec_SH::max_choose(Kernel_Elec::rho_ele);
+    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K2Q, Kernel_Elec::rho_ele, xi, gamma, imax_init_rep, Dimension::F);
+
+    if (!hopping) {
+        for (int ik = 0; ik < Dimension::FF; ++ik) {
+            Kernel_Elec::rho_nuc[ik] = Kernel_Elec::K2[ik];  //
+            // Kernel_Elec::rho_nuc[ik] = Kernel_Elec::K2Q[ik];  //
+        }
     }
 
     return stat;

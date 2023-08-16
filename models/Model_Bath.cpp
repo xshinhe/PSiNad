@@ -46,10 +46,12 @@ int Model_Bath::fun_Cw(num_complex* Cw, double* w, int Nw, double* w_arr, double
 
 void Model_Bath::read_param_impl(Param* PM) {
     // size information
-    Nb            = _Param->get<int>("Nb", LOC());
-    bath_type     = BathPolicy::_from(_Param->get<std::string>("bath_flag", LOC(), "Debye"));
-    omegac        = _Param->get<double>("omegac", LOC(), phys::energy_d, 1.0f);
-    strength_type = StrengthPolicy::_from(_Param->get<std::string>("strength_flag", LOC(), "Lambda"));
+    Nb             = _Param->get<int>("Nb", LOC());
+    bath_type      = BathPolicy::_from(_Param->get<std::string>("bath_flag", LOC(), "Debye"));
+    omegac         = _Param->get<double>("omegac", LOC(), phys::energy_d, 1.0f);
+    strength_type  = StrengthPolicy::_from(_Param->get<std::string>("strength_flag", LOC(), "Lambda"));
+    classical_bath = _Param->get<bool>("classical_bath", LOC(), false);
+
     switch (strength_type) {
         case StrengthPolicy::Lambda: {
             double strength = _Param->get<double>("strength", LOC(), phys::energy_d, 1.0f);
@@ -149,7 +151,9 @@ void Model_Bath::init_data_impl(DataSet* DS) {
             for finite temperature: Qoverbeta = 0.5*freq / dtanh(0.5*beta*freq)
             for zero temperature:   Qoverbeta = 0.5*freq
          */
-        double Qoverbeta = 0.5f * omegas[j] / (beta > 0 ? std::tanh(0.5f * beta * omegas[j]) : 1.0f);
+        double Qoverbeta = (classical_bath)
+                               ? ((beta > 0) ? 1.0f / beta : 0.0f)
+                               : (0.5f * omegas[j] / (beta > 0 ? std::tanh(0.5f * beta * omegas[j]) : 1.0f));
         x_sigma[j]       = std::sqrt(Qoverbeta / (omegas[j] * omegas[j]));
         p_sigma[j]       = std::sqrt(Qoverbeta);
     }

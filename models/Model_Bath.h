@@ -28,6 +28,8 @@ class Model_Bath final : public Kernel {
    public:
     inline virtual const std::string name() { return "Model_Bath"; }
 
+    bool classical_bath = false;
+
     int Nb;
     BathPolicy::_type bath_type;
     StrengthPolicy::_type strength_type;
