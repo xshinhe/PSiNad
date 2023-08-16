@@ -21,7 +21,7 @@
     "BATH_FORCE_OPT": true,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK0occ", "Ktdia"], // time-correlation function
+        ["wK1occ", "K2dia"], // time-correlation function
     ]
 }
 

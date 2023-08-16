@@ -63,8 +63,8 @@ class Kernel_Elec_MMSH final : public Kernel {
     num_real *E, *dE, *T;
     num_complex* H;
 
-    num_complex* K0Q;
-    num_complex* KtQ;
+    num_complex* K1Q;
+    num_complex* K2Q;
 
     virtual void read_param_impl(Param* PM);
 

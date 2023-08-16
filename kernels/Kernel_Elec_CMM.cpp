@@ -41,11 +41,12 @@ int Kernel_Elec_CMM::c_sphere(num_complex* c, int fdim) {
 }
 
 void Kernel_Elec_CMM::read_param_impl(Param* PM) {
-    gamma0 = PM->get<num_real>("gamma0", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
-    gammat = (1 - gamma0) / (1.0f + Dimension::F * gamma0);
-    xi0    = (1 + Dimension::F * gamma0);
-    xit    = (1 + Dimension::F * gammat);
-    use_cv = PM->get<bool>("use_cv", LOC(), false);
+    gamma1  = PM->get<num_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
+    gamma2  = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
+    xi1     = (1 + Dimension::F * gamma1);
+    xi2     = (1 + Dimension::F * gamma2);
+    use_cv  = PM->get<bool>("use_cv", LOC(), false);
+    use_wmm = PM->get<bool>("use_wmm", LOC(), false);  // @disable
 }
 
 void Kernel_Elec_CMM::init_calc_impl(int stat) {
@@ -54,19 +55,21 @@ void Kernel_Elec_CMM::init_calc_impl(int stat) {
 
     *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                          // useless
     Kernel_Elec::ker_from_c(Kernel_Elec::rho_ele, Kernel_Elec::c, 1, 0, Dimension::F);  // single-rank
-    Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, xi0, gamma0, Dimension::F);
+
+    Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, xi1, gamma1, Dimension::F);
     if (use_cv) {
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
             Kernel_Elec::rho_nuc[ii] = (i == Kernel_Elec::occ0) ? phys::math::iu : phys::math::iz;
         }
     }
 
-    Kernel_Elec::ker_from_rho(Kernel_Elec::K0, Kernel_Elec::rho_ele, xi0, gamma0, Dimension::F);
     exec_kernel(stat);
 }
 
 int Kernel_Elec_CMM::exec_kernel_impl(int stat) {
-    Kernel_Elec::ker_from_rho(Kernel_Elec::Kt, Kernel_Elec::rho_ele, xit, gammat, Dimension::F);
+    // calc TCF kernels
+    Kernel_Elec::ker_from_rho(Kernel_Elec::K1, Kernel_Elec::rho_ele, xi1, gamma1, Dimension::F);
+    Kernel_Elec::ker_from_rho(Kernel_Elec::K2, Kernel_Elec::rho_ele, xi2, gamma2, Dimension::F);
     return 0;
 }
 

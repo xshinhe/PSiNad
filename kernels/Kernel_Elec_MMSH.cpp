@@ -146,19 +146,19 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
 
 
     *Kernel_Elec::occ_nuc = Kernel_Elec_SH::max_choose(Kernel_Elec::rho_ele);
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K0, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
+    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
                                        Dimension::F);
-    ARRAY_CLEAR(Kernel_Elec::K0Q, Dimension::FF);
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Kernel_Elec::K0Q[ii] = Kernel_Elec::K0[ii];
+    ARRAY_CLEAR(Kernel_Elec::K1Q, Dimension::FF);
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Kernel_Elec::K1Q[ii] = Kernel_Elec::K1[ii];
 
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K0, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
+    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
                                        Dimension::F);
     if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K0, T, Kernel_Elec::K0, T, Dimension::F, Dimension::F, Dimension::F,
+        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K1, T, Kernel_Elec::K1, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K0Q, T, Kernel_Elec::K0Q, T, Dimension::F, Dimension::F, Dimension::F,
+        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K1Q, T, Kernel_Elec::K1Q, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
     }
 
@@ -184,17 +184,17 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
     // step 3: try hop
     *Kernel_Elec::occ_nuc = Kernel_Elec_SH::hopping_impulse(direction, p, m, E, *Kernel_Elec::occ_nuc, to, reflect);
 
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::Kt, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
+    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
                                        Dimension::F);
-    ARRAY_CLEAR(Kernel_Elec::KtQ, Dimension::FF);
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Kernel_Elec::KtQ[ii] = Kernel_Elec::Kt[ii];
+    ARRAY_CLEAR(Kernel_Elec::K2Q, Dimension::FF);
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Kernel_Elec::K2Q[ii] = Kernel_Elec::K2[ii];
 
     if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::Kt, T, Kernel_Elec::Kt, T, Dimension::F, Dimension::F, Dimension::F,
+        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K2, T, Kernel_Elec::K2, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::KtQ, T, Kernel_Elec::KtQ, T, Dimension::F, Dimension::F, Dimension::F,
+        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K2Q, T, Kernel_Elec::K2Q, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
     }
 

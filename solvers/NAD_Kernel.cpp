@@ -34,7 +34,7 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     std::shared_ptr<Kernel_Update_rho> ku_rho(new Kernel_Update_rho(1.0));
 
     /// Result & Sampling & TCF
-    std::shared_ptr<Kernel_Record> krec(new Kernel_Record());
+    std::shared_ptr<Kernel_Record> krecd(new Kernel_Record());
 
     kinte->push(ku_p);
     kinte->push(ku_x);
@@ -42,26 +42,29 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     kinte->push(kmodel);
     kinte->push(krepr);
     kinte->push(ku_rho);
+
+    std::shared_ptr<Kernel> kele;
     if (false) {
     } else if (NAD_Kernel_name == "CMM") {
-        kinte->push(std::shared_ptr<Kernel_Elec_CMM>(new Kernel_Elec_CMM()));
+        kele = std::shared_ptr<Kernel_Elec_CMM>(new Kernel_Elec_CMM());
     } else if (NAD_Kernel_name == "SQC") {
-        kinte->push(std::shared_ptr<Kernel_Elec_SQC>(new Kernel_Elec_SQC()));
+        kele = std::shared_ptr<Kernel_Elec_SQC>(new Kernel_Elec_SQC());
     } else if (NAD_Kernel_name == "MMD") {
-        kinte->push(std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD()));
+        kele = std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD());
     } else if (NAD_Kernel_name == "SH") {
-        kinte->push(std::shared_ptr<Kernel_Elec_SH>(new Kernel_Elec_SH()));
+        kele = std::shared_ptr<Kernel_Elec_SH>(new Kernel_Elec_SH());
     } else if (NAD_Kernel_name == "MMSH") {
-        kinte->push(std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH()));
+        kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
     } else {
         throw std::runtime_error("unknown Elec Kernel");
     }
+    kinte->push(kele);
     kinte->push(kforc);
     kinte->push(ku_p);
     kinte->push(ktime);
 
     std::shared_ptr<Kernel_Iter> kiter(new Kernel_Iter());
-    kiter->push(krec);   // stacked in iteration
+    kiter->push(krecd);  // stacked in iteration
     kiter->push(kinte);  // stacked in iteration
 
     // /// CMM kernel

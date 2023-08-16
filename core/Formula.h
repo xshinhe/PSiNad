@@ -75,13 +75,27 @@ class Formula {
     std::string name() { return unique_name; }
 
    private:
-    Formula(const std::string& str, DataSet* DS, const std::string& field) : parsed_string{str}, field{field} {
-        auto ipos  = str.find("=");
+    Formula(const std::string& str, DataSet* DS, const std::string& field) : field{field} {
+        auto ipos      = str.find("#");
+        bool use_alias = (ipos != std::string::npos);
+
+        std::string str_alias = "";
+        if (use_alias) {
+            str_alias = str.substr(ipos + 1, str.size());
+            str_alias.erase(0, str_alias.find_first_not_of(" "));
+            str_alias.erase(str_alias.find_last_not_of(" ") + 1);
+        }
+
+        parsed_string = str.substr(0, ipos);
+        parsed_string.erase(0, parsed_string.find_first_not_of(" "));
+        parsed_string.erase(parsed_string.find_last_not_of(" ") + 1);
+
+        ipos       = parsed_string.find("=");
         FPARSER_ID = (ipos == std::string::npos) ? (-1) : 0;  // [single variable] or [function formula]
 
         if (FPARSER_ID == -1) {  ///< [single variable]
-            auto inode = std::get<3>(DS->info(utils::concat(field, ".", str)));
-            if (inode == nullptr) throw state_undefined_key_error(str);
+            auto inode = std::get<3>(DS->info(utils::concat(field, ".", parsed_string)));
+            if (inode == nullptr) throw state_undefined_key_error(parsed_string);
 
             res_type = inode->type();
 
@@ -91,10 +105,10 @@ class Formula {
 
             dims        = 1;
             size        = inode->size();
-            unique_name = str;
-        } else {                                                    ///< [function formula]
-            parsed_declaration = str.substr(0, ipos);               // such as R(x,y)
-            parsed_expression  = str.substr(ipos + 1, str.size());  // such as x^2 + cos(y)
+            unique_name = (str_alias == "") ? parsed_string : str_alias;
+        } else {                                                              ///< [function formula]
+            parsed_declaration = parsed_string.substr(0, ipos);               // such as R(x,y)
+            parsed_expression  = parsed_string.substr(ipos + 1, str.size());  // such as x^2 + cos(y)
 
             char type_char = parsed_declaration[0];  // from {'R', 'C'} for num_real and num_complex type
 
@@ -138,8 +152,7 @@ class Formula {
                     FPARSER_ID = FPARSER<num_complex>::regis_FPARSER(parsed_expression, parsed_varslist);
                     break;
             }
-
-            unique_name = utils::concat("[F", FPARSER_ID, "]");
+            unique_name = (str_alias == "") ? utils::concat("[F", FPARSER_ID, "]") : str_alias;
             std::cout << "Using Unique Name : " << unique_name << " = " << parsed_string << std::endl;
         }
 

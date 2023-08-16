@@ -53,15 +53,16 @@ class Kernel_Elec final : public Kernel {
     // two densities for dynamic
     static int* occ_nuc;
     static num_complex* rho_ele;  // electronic density
+    static num_complex* gmat;
     static num_complex* rho_nuc;  // nuclear weighting density
 
     // time correlation function
-    static num_complex *K0, *wK0, *wK0occ, *wK0dia;
-    static num_complex *Kt, *Ktdia;
-    static num_complex* K0Q;  // quantized K0, or alternative K0
-    static num_complex* KtQ;  // quantized Kt, or alternative Kt
+    static num_complex *K1, *wK1, *wK1occ, *wK1dia;
+    static num_complex *K2, *K2dia;
+    static num_complex* K1Q;  // quantized K1, or alternative K1
+    static num_complex* K2Q;  // quantized K2, or alternative K2
 
-    static num_complex *OpA, *OpB, *TrK0A, *TrKtB;
+    static num_complex *OpA, *OpB, *TrK1A, *TrK2B;
     // friend class Kernel_Elec_CMM;
    private:
     void read_param_impl(Param* PM);

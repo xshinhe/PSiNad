@@ -123,23 +123,35 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
                 // Map_dE = ((Map_dV * Map_T).transpose().reshaped(Dimension::NF, Dimension::F) * Map_T)
                 //              .reshaped(Dimension::F, Dimension::NF)
                 //              .transpose();
+                if (FORCE_OPT::BATH_FORCE_BILINEAR) {
+                    int& B       = FORCE_OPT::nbath;
+                    int& J       = FORCE_OPT::Nb;
+                    int JFF      = J * Dimension::FF;
+                    double* dVb0 = dV;
+                    double* dEb0 = dE;
+                    for (int b = 0, bb = 0; b < B; ++b, bb += Dimension::Fadd1, dVb0 += JFF, dEb0 += JFF) {
+                        ARRAY_MATMUL3_TRANS1(dEb0, T, dVb0, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+                        for (int j = 0, jik = 0, jbb = bb; j < J; ++j, jbb += Dimension::FF) {
+                            double scale = dVb0[jbb] / dVb0[bb];
+                            for (int ik = 0; ik < Dimension::FF; ++ik, ++jik) { dEb0[jik] = dEb0[ik] * scale; }
+                        }
+                    }
+                    // num_real *dEi = dE, *dVi = dV;
+                    // for (int i = 0; i < Dimension::N; ++i) {  // calc dEi = T^*dVi*T (time consuming)
+                    //     ARRAY_MATMUL3_TRANS1(dEi, T, dVi, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+                    //     dVi += Dimension::FF, dEi += Dimension::FF;
+                    // }
+                } else {
+                    Eigen::Map<EigMX<double>> Map_T(T, Dimension::F, Dimension::F);
+                    Eigen::Map<EigMX<double>> Map_dV(dV, Dimension::NF, Dimension::F);
+                    Eigen::Map<EigMX<double>> Map_dE1(dE, Dimension::NF, Dimension::F);
+                    Eigen::Map<EigMX<double>> Map_dE2(dE, Dimension::F, Dimension::NF);
 
-                Eigen::Map<EigMX<double>> Map_T(T, Dimension::F, Dimension::F);
-                Eigen::Map<EigMX<double>> Map_dV(dV, Dimension::NF, Dimension::F);
-                Eigen::Map<EigMX<double>> Map_dE1(dE, Dimension::NF, Dimension::F);
-                Eigen::Map<EigMX<double>> Map_dE2(dE, Dimension::F, Dimension::NF);
-
-                Map_dE2 = Map_dV.transpose();
-                Map_dE2 = (Map_T.adjoint() * Map_dE2).eval();
-                Map_dE1 = (Map_dE1 * Map_T).eval();
-                Map_dE1 = Map_dE2.transpose().eval();
-
-                // solve dE (time consuming)
-                // num_real *dEi = dE, *dVi = dV;
-                // for (int i = 0; i < Dimension::N; ++i) {  // calc dEi = T^*dVi*T
-                //     ARRAY_MATMUL3_TRANS1(dEi, T, dVi, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
-                //     dVi += Dimension::FF, dEi += Dimension::FF;
-                // }
+                    Map_dE2 = Map_dV.transpose();
+                    Map_dE2 = (Map_T.adjoint() * Map_dE2).eval();
+                    Map_dE1 = (Map_dE1 * Map_T).eval();
+                    Map_dE1 = Map_dE2.transpose().eval();
+                }
             }
 
             // calc H = E - im*nacv*np / nm in first step

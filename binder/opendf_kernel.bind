@@ -2,6 +2,10 @@ py::class_<Kernel> PyKernel(m, "Kernel", py::dynamic_attr());
 
 PyKernel.def(py::init<bool>())
     .def("push", &Kernel::push)
-    .def("param", &Kernel::param)
-    .def("state", &Kernel::state)
-    .def("run", &Kernel::run);
+    .def("param", &Kernel::read_param)
+    .def("data", &Kernel::init_data)
+    .def("init", &Kernel::init_calc)
+    .def("exec", &Kernel::exec_kernel);
+
+m.def("modelfactory", &ModelFactory);
+m.def("solverfactory", &SolverFactory);

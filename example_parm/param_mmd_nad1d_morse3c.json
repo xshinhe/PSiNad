@@ -1,7 +1,7 @@
 {
     "model": "NAD1D",
-    "solver": "CMM",
-    "nad1d_flag": "MORSE3B",
+    "solver": "MMD",
+    "nad1d_flag": "MORSE3C",
     "N": 1,
     "F": 3,
     "occ": 0,
@@ -10,7 +10,6 @@
 	"unit_dt": "1.0 fs",
     "sstep": 100,
     "N_mc": 1000,
-	"gamma": 0.0, // otherwise give NAN
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],

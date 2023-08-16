@@ -13,8 +13,8 @@
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK0occ", "Ktdia"],
-        // ["wK0occ", "C(Ktdia,p_sign)=Ktdia*p_sign"],
+        ["wK1occ", "K2dia"],
+        // ["wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
     ]
 }
 

@@ -122,6 +122,8 @@ class Kernel_Record final : public Kernel {
 
     virtual void init_data_impl(DataSet* DS);
 
+    virtual void init_calc_impl(int stat = -1);
+
     virtual int exec_kernel_impl(int stat = -1);
 };
 

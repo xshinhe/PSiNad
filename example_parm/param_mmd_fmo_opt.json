@@ -1,6 +1,6 @@
 {
     "model": "SystemBath",
-    "solver": "CMM",
+    "solver": "MMD",
     "N": 14,
     "F": 7,
     "nbath": 7,
@@ -18,8 +18,12 @@
     "unit_dt": "1.0 fs",
     "sstep": 10,
     "N_mc": 1000,
+	"gamma": 0.5,
     "dump": "null",
-    "BATH_FORCE_OPT": false,
+	// "representation_flag" : "Adiabatic",
+	// "ini_repr_flag" : "Diabatic",
+	// "ele_repr_flag" : "Diabatic",
+    "BATH_FORCE_OPT": true, //
     "result": [
         ["x"], ["p"], ["f"],
         ["wK1occ", "K2dia"],

@@ -1,19 +1,21 @@
 {
     "model": "NAD1D",
-    "solver": "CMM",
-    "nad1d_flag": "MORSE3B",
+    "solver": "SH",
+    "nad1d_flag": "MORSE3C",
     "N": 1,
     "F": 3,
     "occ": 0,
 	"dt": "0.01 fs",
 	"tend": "80.0 fs",
 	"unit_dt": "1.0 fs",
-    "sstep": 100,
-    "N_mc": 1000,
-	"gamma": 0.0, // otherwise give NAN
+    "sstep": 10,
+    "N_mc": 100,
+	"representation_flag": "Adiabatic",
+	"ini_repr_flag": "Diabatic",
     "dump": "null",
     "result": [
-        ["x"], ["p"], ["f"],
+		//["occ_ele"],
+        ["x"], ["p"], ["f"], ["K2"],
         ["wK1occ", "K2dia"],
         // ["wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
     ]

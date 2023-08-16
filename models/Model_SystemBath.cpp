@@ -26,6 +26,9 @@ void Model_SystemBath::read_param_impl(Param* PM) {
     nbath = _Param->get<int>("nbath", LOC());
     //// CHECK_EQ(Nb * nbath, N);  // Nb*nbath must be N
 
+    FORCE_OPT::nbath = nbath;
+    FORCE_OPT::Nb    = Nb;
+
     system_type   = SystemPolicy::_from(_Param->get<std::string>("system_flag", LOC(), "SB"));
     coupling_type = CouplingPolicy::_from(_Param->get<std::string>("coupling_flag", LOC(), "SB"));
 }

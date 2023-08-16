@@ -82,7 +82,7 @@ add_subdirectory(core)
 add_subdirectory(kernels)
 add_subdirectory(models)
 add_subdirectory(solvers)
-# add_subdirectory(python)
+# add_subdirectory(binder)
 
 add_executable(opendf main.cc Handler.cpp mpi_utils.cpp)
 target_link_libraries(opendf

@@ -45,7 +45,6 @@ int Model_Bath::fun_Cw(num_complex* Cw, double* w, int Nw, double* w_arr, double
 }
 
 void Model_Bath::read_param_impl(Param* PM) {
-    _Param = PM;
     // size information
     Nb            = _Param->get<int>("Nb", LOC());
     bath_type     = BathPolicy::_from(_Param->get<std::string>("bath_flag", LOC(), "Debye"));

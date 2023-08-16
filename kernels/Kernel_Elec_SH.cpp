@@ -135,7 +135,7 @@ void Kernel_Elec_SH::init_calc_impl(int stat) {
     }
 
     for (int ik = 0; ik < Dimension::FF; ++ik) Kernel_Elec::rho_nuc[ik] = Kernel_Elec::rho_ele[ik];
-    for (int ik = 0; ik < Dimension::FF; ++ik) Kernel_Elec::K0[ik] = Kernel_Elec::rho_ele[ik];
+    for (int ik = 0; ik < Dimension::FF; ++ik) Kernel_Elec::K1[ik] = Kernel_Elec::rho_ele[ik];
     exec_kernel(stat);
 }
 
@@ -156,13 +156,13 @@ int Kernel_Elec_SH::exec_kernel_impl(int stat) {
     // step 3: try hop
     *Kernel_Elec::occ_nuc = hopping_impulse(direction, p, m, E, *Kernel_Elec::occ_nuc, to, reflect);
 
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::Kt, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
+    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
                                        Dimension::F);
 
     if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
         ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::Kt, T, Kernel_Elec::Kt, T, Dimension::F, Dimension::F, Dimension::F,
+        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K2, T, Kernel_Elec::K2, T, Dimension::F, Dimension::F, Dimension::F,
                              Dimension::F);
     }
     return stat;

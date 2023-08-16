@@ -59,6 +59,7 @@ int Handler::run_multiple(Param* P) {
     {
         solver->read_param(P);   // parameter parser and secondary builder for model
         solver->init_data(&DS);  // associated with state
+        solver->init_calc(0);
 
         auto& corr     = Kernel_Record::get_correlation();
         int total_size = corr.size * corr.frame;
@@ -76,10 +77,11 @@ int Handler::run_multiple(Param* P) {
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Guard::range(0, N_mc, istart, iend);
 
-        if (MPI_Guard::rank == 0) std::cout << P->repr();
+        if (MPI_Guard::rank == 0) std::cout << P->repr() << std::endl;
 
-        std::cout << N_mc << ", " << istart << ", " << iend << "\n";
         for (int icycle = istart, icalc = 0; icycle < iend; ++icycle, ++icalc) {
+            auto mid1 = std::chrono::steady_clock::now();
+
             solver->init_calc(icycle);
             solver->exec_kernel(icycle);
 
@@ -87,6 +89,13 @@ int Handler::run_multiple(Param* P) {
             for (int i = 0; i < total_size; ++i) {
                 corr_sum.data[i] += corr.data[i];
                 corr.data[i] = 0.0f;
+            }
+
+            auto mid2 = std::chrono::steady_clock::now();
+            if (icycle == istart && MPI_Guard::rank == 0) {
+                std::cout << "expect time: "
+                          << static_cast<std::chrono::duration<double>>(mid2 - mid1).count() * (iend - istart)  //
+                          << std::endl;
             }
         }
         MPI_Reduce(corr_sum.data.data(), corr_mpi.data.data(), total_size, MPI::DOUBLE_PRECISION, MPI_SUM, 0,

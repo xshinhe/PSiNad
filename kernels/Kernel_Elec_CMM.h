@@ -39,8 +39,9 @@ class Kernel_Elec_CMM final : public Kernel {
     static int c_sphere(num_complex *c, int fdim);
 
    private:
-    num_real gamma0, gammat, xi0, xit;
-    bool use_cv = false;
+    num_real gamma1, gamma2, xi1, xi2;
+    bool use_cv  = false;
+    bool use_wmm = false;  // in this case, gamma1 will be used as delta in wMM
 
     virtual void read_param_impl(Param *PM);
 

@@ -43,7 +43,7 @@ class Kernel_Elec_SQC final : public Kernel {
 
    private:
     SQCPolicy::_type sqc_type;
-    num_real gamma0;
+    num_real gamma;
     bool use_cv;
 
     virtual void read_param_impl(Param *PM);

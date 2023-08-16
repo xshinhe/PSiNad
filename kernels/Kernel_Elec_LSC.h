@@ -37,17 +37,6 @@ class Kernel_Elec_LSC final : public Kernel {
     }
 
    private:
-    num_complex *w;         // measure of phase point mu(dX) = w(X)dX
-    num_complex *c, *gmat;  // only used for check
-    num_complex *rho, *rho_nuc;
-    num_complex *K0, *wK0, *wK0occ, *wK0dia;
-    num_complex *Kt, *Ktdia;
-
-    num_real *mapvar, *mapx, *mapp, *mapA, *mapQ;
-
-    int occ;
-    num_real gamma0, gammat, xi0, xit, totact;
-
     virtual void read_param_impl(Param *PM);
 
     virtual void init_data_impl(DataSet *DS);

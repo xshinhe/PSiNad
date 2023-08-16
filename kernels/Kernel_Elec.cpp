@@ -16,51 +16,52 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     c       = DS->reg<num_complex>("integrator.c", Dimension::F);
     rho_ele = DS->reg<num_complex>("integrator.rho_ele", Dimension::FF);
     rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Dimension::FF);
+    gmat    = DS->reg<num_complex>("integrator.gmat", Dimension::FF);
     occ_nuc = DS->reg<int>("integrator.occ_nuc");
 
     w      = DS->reg<num_complex>("integrator.w");
-    K0     = DS->reg<num_complex>("integrator.K0", Dimension::FF);
-    wK0    = DS->reg<num_complex>("integrator.wK0", Dimension::FF);
-    wK0dia = DS->reg<num_complex>("integrator.wK0dia", Dimension::F);
-    wK0occ = DS->reg<num_complex>("integrator.wK0occ");
+    K1     = DS->reg<num_complex>("integrator.K1", Dimension::FF);
+    wK1    = DS->reg<num_complex>("integrator.wK1", Dimension::FF);
+    wK1dia = DS->reg<num_complex>("integrator.wK1dia", Dimension::F);
+    wK1occ = DS->reg<num_complex>("integrator.wK1occ");
 
-    Kt    = DS->reg<num_complex>("integrator.Kt", Dimension::FF);
-    Ktdia = DS->reg<num_complex>("integrator.Ktdia", Dimension::F);
+    K2    = DS->reg<num_complex>("integrator.K2", Dimension::FF);
+    K2dia = DS->reg<num_complex>("integrator.K2dia", Dimension::F);
 
-    K0Q = DS->reg<num_complex>("integrator.K0Q", Dimension::FF);
-    KtQ = DS->reg<num_complex>("integrator.KtQ", Dimension::FF);
+    K1Q = DS->reg<num_complex>("integrator.K1Q", Dimension::FF);
+    K2Q = DS->reg<num_complex>("integrator.K2Q", Dimension::FF);
 
     mapvar = DS->reg<num_real>("integrator.mapvar", 2 * Dimension::F);
 
+    double unit = 1.0e0;
+    DS->set("init.1", &unit);
     DS->set("init.c", c, Dimension::F);
     DS->set("init.rho_ele", rho_ele, Dimension::FF);
-    DS->set("init.K0", K0, Dimension::FF);
-    DS->set("init.wK0", wK0, Dimension::FF);
-    DS->set("init.wK0dia", wK0dia, Dimension::F);
-    DS->set("init.wK0occ", wK0occ);
-    DS->set("init.K0Q", K0Q, Dimension::FF);
-    DS->set("init.KtQ", KtQ, Dimension::FF);
-
-    *(DS->reg<num_real>("init.1")) = 1.0e0;
+    DS->set("init.K1", K1, Dimension::FF);
+    DS->set("init.wK1", wK1, Dimension::FF);
+    DS->set("init.wK1dia", wK1dia, Dimension::F);
+    DS->set("init.wK1occ", wK1occ);
+    DS->set("init.K1Q", K1Q, Dimension::FF);
+    DS->set("init.K2Q", K2Q, Dimension::FF);
 }
 
 void Kernel_Elec::init_calc_impl(int stat) {
-    for (int i = 0; i < Dimension::FF; ++i) wK0[i] = w[0] * K0[i];
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) wK0dia[i] = wK0[ii];
-    wK0occ[0] = wK0[occ0 * Dimension::Fadd1];
+    for (int i = 0; i < Dimension::FF; ++i) wK1[i] = w[0] * K1[i];
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) wK1dia[i] = wK1[ii];
+    wK1occ[0] = wK1[occ0 * Dimension::Fadd1];
 
     _DataSet->set("init.c", c, Dimension::F);
     _DataSet->set("init.rho_ele", rho_ele, Dimension::FF);
-    _DataSet->set("init.K0", K0, Dimension::FF);
-    _DataSet->set("init.wK0", wK0, Dimension::FF);
-    _DataSet->set("init.wK0dia", wK0dia, Dimension::F);
-    _DataSet->set("init.wK0occ", wK0occ);
-    _DataSet->set("init.K0Q", K0Q, Dimension::FF);
-    _DataSet->set("init.KtQ", KtQ, Dimension::FF);
+    _DataSet->set("init.K1", K1, Dimension::FF);
+    _DataSet->set("init.wK1", wK1, Dimension::FF);
+    _DataSet->set("init.wK1dia", wK1dia, Dimension::F);
+    _DataSet->set("init.wK1occ", wK1occ);
+    _DataSet->set("init.K1Q", K1Q, Dimension::FF);
+    _DataSet->set("init.K2Q", K2Q, Dimension::FF);
 }
 
 int Kernel_Elec::exec_kernel_impl(int stat) {
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Ktdia[i] = Kt[ii];
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) K2dia[i] = K2[ii];
     return 0;
 }
 
@@ -155,21 +156,22 @@ int Kernel_Elec::occ0;
 int* Kernel_Elec::occ_nuc;
 num_complex* Kernel_Elec::rho_ele;  // electronic density
 num_complex* Kernel_Elec::rho_nuc;  // nuclear weighting density
+num_complex* Kernel_Elec::gmat;     // nuclear weighting density
 
 // time correlation function
-num_complex* Kernel_Elec::K0;
-num_complex* Kernel_Elec::wK0;
-num_complex* Kernel_Elec::wK0occ;
-num_complex* Kernel_Elec::wK0dia;
-num_complex* Kernel_Elec::Kt;
-num_complex* Kernel_Elec::Ktdia;
-num_complex* Kernel_Elec::K0Q;
-num_complex* Kernel_Elec::KtQ;
+num_complex* Kernel_Elec::K1;
+num_complex* Kernel_Elec::wK1;
+num_complex* Kernel_Elec::wK1occ;
+num_complex* Kernel_Elec::wK1dia;
+num_complex* Kernel_Elec::K2;
+num_complex* Kernel_Elec::K2dia;
+num_complex* Kernel_Elec::K1Q;
+num_complex* Kernel_Elec::K2Q;
 
 num_complex* Kernel_Elec::OpA;
 num_complex* Kernel_Elec::OpB;
-num_complex* Kernel_Elec::TrK0A;
-num_complex* Kernel_Elec::TrKtB;
+num_complex* Kernel_Elec::TrK1A;
+num_complex* Kernel_Elec::TrK2B;
 
 
 };  // namespace PROJECT_NS

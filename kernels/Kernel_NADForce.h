@@ -12,16 +12,19 @@ DEFINE_POLICY(NADForcePolicy,  //
               EHR,             //
               ELSE);           //
 
+namespace FORCE_OPT {
+extern bool BATH_FORCE_BILINEAR;
+extern int nbath;
+extern int Nb;
+};  // namespace FORCE_OPT
+
 class Kernel_NADForce : public Kernel {
    public:
     static NADForcePolicy::_type NADForce_type;
-
     inline virtual const std::string name() { return "Kernel_NADForce"; }
 
    private:
     num_real *f, *grad, *dV, *dE, *Force, *T;
-
-    bool BATH_FORCE_OPT;
 
     virtual void read_param_impl(Param* PM);
 

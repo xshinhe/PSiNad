@@ -85,7 +85,7 @@ void Kernel_Elec_MMD::read_param_impl(Param* PM) {
             break;
         }
     }
-    double gamma_uu_in = PM->get<num_real>("gamma_uu", LOC(), -1.0);
+    double gamma_uu_in = PM->get<num_real>("gamma", LOC(), -1.0);
     if (gamma_uu_in >= 0) {
         gamma_uu           = gamma_uu_in;
         double gamma_ou_in = PM->get<num_real>("gamma_ou", LOC(), -1.0);
@@ -105,12 +105,12 @@ void Kernel_Elec_MMD::init_calc_impl(int stat) {
               rand_act, pure_phase, cont_phase);
     Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
 
-    Kernel_Elec::ker_from_rho(Kernel_Elec::K0, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
     exec_kernel(stat);
 }
 
 int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
-    Kernel_Elec::ker_from_rho(Kernel_Elec::Kt, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
+    Kernel_Elec::ker_from_rho(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
+    Kernel_Elec::ker_from_rho(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
     return 0;
 }
 

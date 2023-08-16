@@ -17,7 +17,7 @@
 namespace PROJECT_NS {
 
 void Kernel_NADForce::read_param_impl(Param* PM) {
-    BATH_FORCE_OPT = _Param->get<bool>("BATH_FORCE_OPT", LOC(), false);
+    FORCE_OPT::BATH_FORCE_BILINEAR = _Param->get<bool>("BATH_FORCE_BILINEAR", LOC(), false);
 };
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
@@ -52,20 +52,15 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                 ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_nuc, T, Kernel_Elec::rho_nuc, T,  //
                                      Dimension::F, Dimension::F, Dimension::F, Dimension::F);
             }
-
-            if (BATH_FORCE_OPT && Kernel_Representation::nuc_repr_type == RepresentationPolicy::Diabatic) {
-                int nbath = Dimension::F;
-                int Nb    = Dimension::N / nbath;
-                int NbFF  = Nb * Dimension::FF;
-                for (int ibath = 0, ibj = 0, ib0FF = 0, ib0bb = 0; ibath < nbath;
-                     ++ibath, ib0FF += NbFF, ib0bb = (NbFF + Dimension::Fadd1)) {
-                    double fib0 = 0.0f;
-                    for (int i = 0, ii = 0, ib0ii = ib0FF; i < Dimension::F;
-                         ++i, ii += Dimension::Fadd1, ib0ii += Dimension::Fadd1) {
-                        fib0 += std::real(Kernel_Elec::rho_nuc[ii]) * Force[ib0ii];
-                    }
-                    for (int j = 0, ibjbb = ib0bb; j < Nb; ++j, ++ibj, ibjbb += Dimension::FF) {
-                        f[ibj] = fib0 * Force[ibjbb] / Force[ib0bb];
+            if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
+                int& B  = FORCE_OPT::nbath;
+                int& J  = FORCE_OPT::Nb;
+                int JFF = J * Dimension::FF;
+                for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B; ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
+                    double* Forceb0 = Force + b0FF;
+                    double fb0 = std::real(ARRAY_TRACE2(Kernel_Elec::rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                    for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
+                        f[bj] = fb0 * Force[bjbb] / Force[b0bb];
                     }
                 }
             } else {
@@ -92,5 +87,11 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
 }
 
 NADForcePolicy::_type Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
+
+namespace FORCE_OPT {
+int nbath                = 1;
+int Nb                   = 1;
+bool BATH_FORCE_BILINEAR = false;
+};  // namespace FORCE_OPT
 
 };  // namespace PROJECT_NS

@@ -1,5 +1,7 @@
 {
     "model": "SystemBath",
+	"model_file": "set.json",
+	"model_id": "A",
     "solver": "CMM",
     "N": 14,
     "F": 7,
@@ -17,9 +19,9 @@
     "tend": "1000.0 fs",
     "unit_dt": "1.0 fs",
     "sstep": 10,
-    "N_mc": 1000,
+    "N_mc": 1,
     "dump": "null",
-    "BATH_FORCE_OPT": false,
+    "BATH_FORCE_OPT": true,
     "result": [
         ["x"], ["p"], ["f"],
         ["wK1occ", "K2dia"],

@@ -1,6 +1,6 @@
 {
     "model": "SystemBath",
-    "solver": "MMD",
+    "solver": "MMSH",
     "N": 300,
     "F": 2,
     "nbath": 1,
@@ -9,20 +9,25 @@
     "coupling_flag": "SB",
     "bath_flag": "Ohmic",
     "strength_flag": "Alpha",
-    "strength": 0.4,
-    "omegac": 2.5,
+    "strength": 0.1,
+    "omegac": 1.0,
     "temperature": "5 auK^-1",
     "occ": 0,
     "dt": 0.01,
     "tend": 15.0,
-    "sstep": 10,
-    "N_mc": 10000,
-	"mmd_flag": "TWA",
+    "sstep": 1,
+    "N_mc": 1000,
     "dump": "null",
+	"representation_flag": "Adiabatic",
+	"ini_repr_flag": "Diabatic",
+	"ele_repr_flag": "Diabatic",
     "BATH_FORCE_OPT": true,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"], // time-correlation function
+		["C(w_AA,K1)=w_AA*K1 # KA",   "K2 # KA"],
+		["C(w_AD,K1Q)=w_AD*K1Q # KD", "K2 # KA"],
+		["C(w_AD,K1)=w_AD*K1 # KA",   "K2Q # KD"],
+		["C(w_DD,K1Q)=w_DD*K1Q # KD", "K2Q # KD"],
     ]
 }
 

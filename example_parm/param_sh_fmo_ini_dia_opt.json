@@ -1,10 +1,10 @@
 {
     "model": "SystemBath",
-    "solver": "CMM",
-    "N": 14,
+    "solver": "SH",
+    "N": 350,
     "F": 7,
     "nbath": 7,
-    "Nb": 2,
+    "Nb": 50,
     "system_flag": "FMO",
     "coupling_flag": "SE",
     "bath_flag": "Debye",
@@ -16,13 +16,17 @@
     "dt": "0.1 fs",
     "tend": "1000.0 fs",
     "unit_dt": "1.0 fs",
-    "sstep": 10,
-    "N_mc": 1000,
+	"representation_flag": "Adiabatic",
+	"ini_repr_flag": "Diabatic",
+	"ele_repr_flag": "Diabatic",
+	"BATH_FORCE_BILINEAR": true,
+    "sstep": 1,
+    "N_mc": 120,
     "dump": "null",
     "BATH_FORCE_OPT": false,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"],
+        ["wK1occ # A", "K2dia # B"],
     ]
 }
 
