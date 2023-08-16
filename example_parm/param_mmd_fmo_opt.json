@@ -23,7 +23,7 @@
 	// "representation_flag" : "Adiabatic",
 	// "ini_repr_flag" : "Diabatic",
 	// "ele_repr_flag" : "Diabatic",
-    "BATH_FORCE_OPT": true, //
+    "BATH_FORCE_BILINEAR": true, //
     "result": [
         ["x"], ["p"], ["f"],
         ["wK1occ", "K2dia"],

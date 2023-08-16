@@ -23,7 +23,7 @@
     "sstep": 1,
     "N_mc": 24,
     "dump": "null",
-    "BATH_FORCE_OPT": false,
+    "BATH_FORCE_BILINEAR": false,
     "result": [
         ["x"], ["p"], ["f"],
         ["wK1occ", "K2dia"],

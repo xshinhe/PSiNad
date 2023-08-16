@@ -1,6 +1,6 @@
 {
     "model": "SystemBath",
-    "solver": "SH",
+    "solver": "MMSH",
     "N": 350,
     "F": 7,
     "nbath": 7,
@@ -20,13 +20,16 @@
 	"ini_repr_flag": "Diabatic",
 	"ele_repr_flag": "Diabatic",
 	"BATH_FORCE_BILINEAR": true,
-    "sstep": 1,
-    "N_mc": 120,
+    "sstep": 50,
+    "N_mc": 1200,
     "dump": "null",
-    "BATH_FORCE_BILINEAR": false,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ # A", "K2dia # B"],
+		["C(w_AA,K1)=w_AA*K1 # KA", "K1 # KA"],
+		["C(w_AD,K1Q)=w_AD*K1Q # KD", "K1 # KA"], 
+		["C(w_AD,K1)=w_AD*K1 # KA", "K1Q # KD"], 
+		["C(w_DD,K1Q)=w_DD*K1Q # KD", "K1Q # KD"], 
+		["C(w,K2Q)=w*K2Q # KQ", "K2 # KA"],
     ]
 }
 

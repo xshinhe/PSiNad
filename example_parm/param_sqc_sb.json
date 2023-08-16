@@ -18,7 +18,7 @@
     "sstep": 10,
     "N_mc": 10000,
     "dump": "null",
-    "BATH_FORCE_OPT": true,
+    "BATH_FORCE_BILINEAR": true,
     "result": [
         ["x"], ["p"], ["f"],
         ["wK1occ", "K2dia"], // time-correlation function

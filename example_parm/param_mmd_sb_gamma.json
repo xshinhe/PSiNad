@@ -20,7 +20,7 @@
 	//"mmd_flag": "TWA",
 	"gamma": 0.5, // @change it 
     "dump": "null",
-    "BATH_FORCE_OPT": true,
+    "BATH_FORCE_BILINEAR": true,
     "result": [
         ["x"], ["p"], ["f"],
         ["wK1occ", "K2dia"], // time-correlation function
