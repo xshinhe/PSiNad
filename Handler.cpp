@@ -73,7 +73,7 @@ int Handler::run_multiple(Param* P) {
         int sstep      = P->get<int>("sstep", LOC(), 1);
         int istart, iend;
 
-        MPI_Guard gaurd{};
+        MPI_Guard guard{};
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Guard::range(0, N_mc, istart, iend);
 
