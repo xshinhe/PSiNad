@@ -1,5 +1,6 @@
 #include "Kernel_Elec_MMD.h"
 
+#include "../core/linalg.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Random.h"
 
@@ -20,14 +21,14 @@ namespace PROJECT_NS {
  */
 int Kernel_Elec_MMD::rho_focus(num_complex* rho, int iocc, double gamma_ou, double gamma_uu, int fdim, bool rand_act,
                                bool pure_phase, bool cont_phase) {
-    double randu;
+    double randu = 1.0e0;
     if (pure_phase) {
         for (int j = 0; j < fdim; ++j) {
             if (j == iocc) {
                 rho[iocc * fdim + j] = 1.0e0;
                 continue;
             }
-            Kernel_Random::rand_uniform(&randu);
+            // Kernel_Random::rand_uniform(&randu); // @debug
             randu = (cont_phase) ? phys::math::twopi * randu : phys::math::halfpi * (int(randu / 0.25f) + 1);
             rho[iocc * fdim + j] = cos(randu) + phys::math::im * sin(randu);
             rho[j * fdim + iocc] = std::conj(rho[iocc * fdim + j]);
@@ -41,14 +42,14 @@ int Kernel_Elec_MMD::rho_focus(num_complex* rho, int iocc, double gamma_ou, doub
     } else {
         for (int i = 0; i < fdim; ++i) {
             for (int j = i + 1; j < fdim; ++j) {
-                Kernel_Random::rand_uniform(&randu);
+                // Kernel_Random::rand_uniform(&randu); // @debug
                 randu = (cont_phase) ? phys::math::twopi * randu : phys::math::halfpi * (int(randu / 0.25f) + 1);
                 rho[i * fdim + j] = cos(randu) + phys::math::im * sin(randu);
                 rho[j * fdim + i] = std::conj(rho[i * fdim + j]);
             }
         }
     }
-    Kernel_Random::rand_uniform(&randu);
+    // Kernel_Random::rand_uniform(&randu); // @debug
     double occrand = (rand_act) ? int(randu * fdim) : iocc;
     for (int i = 0, ij = 0; i < fdim; ++i) {
         for (int j = 0; j < fdim; ++j, ++ij) {
@@ -98,19 +99,46 @@ void Kernel_Elec_MMD::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_MMD::init_calc_impl(int stat) {
-    Kernel_Elec::w[0] = (rand_act) ? num_complex(Dimension::F) : 1.0e0;
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_complex* w       = Kernel_Elec::w + iP;
+        num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
+        num_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
+        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
 
-    *Kernel_Elec::occ_nuc = Kernel_Elec::occ0;                                            // useless
-    rho_focus(Kernel_Elec::rho_ele, Kernel_Elec::occ0, gamma_ou, gamma_uu, Dimension::F,  //
-              rand_act, pure_phase, cont_phase);
-    Kernel_Elec::ker_from_rho(Kernel_Elec::rho_nuc, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
+        /////////////////////////////////////////////////////////////////
 
+        w[0]     = (rand_act) ? num_complex(Dimension::F) : 1.0e0;  ///< initial measure
+        *occ_nuc = Kernel_Elec::occ0;                               ///< initial occupation
+        c;                                                          ///< initial c (not used)
+        rho_focus(rho_ele, *occ_nuc, gamma_ou, gamma_uu, Dimension::F, rand_act, pure_phase, cont_phase);
+        rho_nuc;                     ///< initial rho_nuc (not used)
+        ARRAY_EYE(U, Dimension::F);  ///< initial propagator
+    }
+    // Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
+    // Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
     exec_kernel(stat);
 }
 
 int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
-    Kernel_Elec::ker_from_rho(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
-    Kernel_Elec::ker_from_rho(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        num_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        num_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        num_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
+        num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
+        num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
+
+        /////////////////////////////////////////////////////////////////
+
+        ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele_init, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+        for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_ele[ik];
+
+        Kernel_Elec::ker_from_rho(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
+        Kernel_Elec::ker_from_rho(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
+    }
     return 0;
 }
 

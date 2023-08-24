@@ -41,6 +41,8 @@ class Kernel_Elec_SQC final : public Kernel {
      */
     static int c_window(num_complex *c, int iocc, int type, int fdim);
 
+    static int ker_binning(num_complex *ker, num_complex *rho, int sqc_type);
+
    private:
     SQCPolicy::_type sqc_type;
     num_real gamma;

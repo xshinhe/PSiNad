@@ -53,9 +53,6 @@ class Model_SystemBath final : public Kernel {
     num_real* x_sigma;
     num_real* p_sigma;
 
-    // init
-    num_real *x_init, *p_init;
-
     // integrator
     num_real *x, *p, *m;
 

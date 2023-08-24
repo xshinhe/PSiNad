@@ -12,7 +12,7 @@
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
     ]
 }
 

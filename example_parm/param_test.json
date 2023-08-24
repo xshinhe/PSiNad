@@ -1,7 +1,7 @@
 {
     "model": "SystemBath",
-	"model_file": "set.json",
-	"model_id": "A",
+    "model_file": "set.json",
+    "model_id": "A",
     "solver": "CMM",
     "N": 14,
     "F": 7,
@@ -24,7 +24,7 @@
     "BATH_FORCE_BILINEAR": true,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
     ]
 }
 

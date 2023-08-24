@@ -103,67 +103,90 @@ void Kernel_Elec_SH::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_SH::init_data_impl(DataSet* DS) {
-    x         = DS->reg<num_real>("integrator.x", Dimension::N);
-    p         = DS->reg<num_real>("integrator.p", Dimension::N);
-    m         = DS->reg<num_real>("integrator.m", Dimension::N);
-    direction = DS->reg<num_real>("integrator.direction", Dimension::N);
-    E         = DS->reg<num_real>("model.rep.E", Dimension::F);
-    dE        = DS->reg<num_real>("model.rep.dE", Dimension::NFF);
-    T         = DS->reg<num_real>("model.rep.T", Dimension::FF);
-    H         = DS->reg<num_complex>("model.rep.H", Dimension::FF);
+    p  = DS->reg<num_real>("integrator.p", Dimension::PN);
+    m  = DS->reg<num_real>("integrator.m", Dimension::PN);
+    E  = DS->reg<num_real>("model.rep.E", Dimension::PF);
+    dE = DS->reg<num_real>("model.rep.dE", Dimension::PNFF);
+    T  = DS->reg<num_real>("model.rep.T", Dimension::PFF);
+    H  = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
+
+    direction = DS->reg<num_real>("integrator.tmp.direction", Dimension::N);
 }
 
 void Kernel_Elec_SH::init_calc_impl(int stat) {
     Kernel_NADForce::NADForce_type = NADForcePolicy::BO;  // set BO dynamics for SH
 
-    Kernel_Elec::w[0] = 1.0e0;
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_complex* w       = Kernel_Elec::w + iP;
+        num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
+        num_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        num_complex* K1      = Kernel_Elec::K1 + iP * Dimension::FF;
+        num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
+        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
 
-    for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-        for (int k = 0; k < Dimension::F; ++k, ++ik) {
-            Kernel_Elec::rho_ele[ik] = (i == Kernel_Elec::occ0 && k == Kernel_Elec::occ0) ? 1.0e0 : 0.0e0;
+        /////////////////////////////////////////////////////////////////
+
+        w[0]     = 1.0e0;                                                               ///< initial measure
+        *occ_nuc = Kernel_Elec::occ0;                                                   ///< initial occupation
+        for (int i = 0; i < Dimension::F; ++i) c[i] = (i == *occ_nuc) ? 1.0e0 : 0.0e0;  ///< initial c
+        Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);                        ///< initial rho_ele
+        rho_nuc;                                                                        /// not used
+        ARRAY_EYE(U, Dimension::F);                                                     ///< initial propagator
+
+        for (int ik = 0; ik < Dimension::FF; ++ik) K1[ik] = rho_ele[ik];
+
+        if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
+            ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F,
+                                 Dimension::F, Dimension::F);
+            *occ_nuc = pop_choose(Kernel_Elec::rho_ele);
+            ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F,
+                                 Dimension::F, Dimension::F);
         }
     }
-
-    if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
-        ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
-                             Dimension::F);
-    }
-    *Kernel_Elec::occ_nuc = pop_choose(Kernel_Elec::rho_ele);
-    if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
-                             Dimension::F);
-    }
-
-    for (int ik = 0; ik < Dimension::FF; ++ik) Kernel_Elec::rho_nuc[ik] = Kernel_Elec::rho_ele[ik];
-    for (int ik = 0; ik < Dimension::FF; ++ik) Kernel_Elec::K1[ik] = Kernel_Elec::rho_ele[ik];
+    Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
+    T_init                    = _DataSet->set("init.T", T, Dimension::PFF);
     exec_kernel(stat);
 }
 
 int Kernel_Elec_SH::exec_kernel_impl(int stat) {
-    /**
-     * additional evolution appended to Kernel_Update_rho (auxilrary variables)
-     */
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        int* occ_nuc              = Kernel_Elec::occ_nuc + iP;
+        num_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        num_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        num_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
+        num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
+        num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
 
-    if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
-        ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
-                             Dimension::F);
-    }
 
-    // step 1: determine where to hop
-    int to = hopping_choose(Kernel_Elec::rho_ele, H, *Kernel_Elec::occ_nuc, dt);
-    // step 2: determine direction to hop
-    hopping_direction(direction, dE, *Kernel_Elec::occ_nuc, to);
-    // step 3: try hop
-    *Kernel_Elec::occ_nuc = hopping_impulse(direction, p, m, E, *Kernel_Elec::occ_nuc, to, reflect);
+        num_real* E    = this->E + iP * Dimension::F;
+        num_real* dE   = this->dE + iP * Dimension::NFF;
+        num_real* T    = this->T + iP * Dimension::FF;
+        num_real* p    = this->p + iP * Dimension::N;
+        num_real* m    = this->m + iP * Dimension::N;
+        num_complex* H = this->H + iP * Dimension::FF;
 
-    Kernel_Elec::ker_from_rho_quantize(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, *Kernel_Elec::occ_nuc,
-                                       Dimension::F);
+        //////////////////////////////////////////////////////////////////////
 
-    if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic) {
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F, Dimension::F,
-                             Dimension::F);
-        ARRAY_MATMUL3_TRANS2(Kernel_Elec::K2, T, Kernel_Elec::K2, T, Dimension::F, Dimension::F, Dimension::F,
-                             Dimension::F);
+        // * additional evolution can be appended here
+
+        if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
+            ARRAY_MATMUL(U, T, U, Dimension::F, Dimension::F, Dimension::F);
+        }
+
+        ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele_init, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+
+        int to = hopping_choose(rho_ele, H, *occ_nuc, dt);                      // step 1: determine where to hop
+        hopping_direction(direction, dE, *occ_nuc, to);                         // step 2: determine direction to hop
+        *occ_nuc = hopping_impulse(direction, p, m, E, *occ_nuc, to, reflect);  // step 3: try hop
+
+        Kernel_Elec::ker_from_rho(K2, rho_ele, 1, 0, Dimension::F, true, *occ_nuc);
+
+        if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
+            ARRAY_MATMUL(U, T, U, Dimension::F, Dimension::F, Dimension::F);
+            ARRAY_MATMUL3_TRANS2(K2, T, K2, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+        }
     }
     return stat;
 }

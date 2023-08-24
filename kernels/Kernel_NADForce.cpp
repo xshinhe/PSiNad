@@ -40,49 +40,59 @@ void Kernel_NADForce::init_data_impl(DataSet* DS) {
 void Kernel_NADForce::init_calc_impl(int stat) { exec_kernel(stat); }
 
 int Kernel_NADForce::exec_kernel_impl(int stat) {
-    switch (NADForce_type) {
-        case NADForcePolicy::BO: {
-            for (int j = 0, idxdV0 = 0; j < Dimension::N; ++j, idxdV0 += Dimension::FF)
-                f[j] = Force[j * Dimension::FF + (*Kernel_Elec::occ_nuc) * Dimension::Fadd1];
-            break;
-        }
-        case NADForcePolicy::EHR: {
-            if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic &&
-                Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
-                ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_nuc, T, Kernel_Elec::rho_nuc, T,  //
-                                     Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
+        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+
+        num_real* f     = this->f + iP * Dimension::N;
+        num_real* grad  = this->grad + iP * Dimension::N;
+        num_real* Force = this->Force + iP * Dimension::NFF;
+        num_real* T     = this->T + iP * Dimension::FF;
+
+        /////////////////////////////////////////////////////////////////
+        switch (NADForce_type) {
+            case NADForcePolicy::BO: {
+                for (int j = 0, idxdV0 = 0; j < Dimension::N; ++j, idxdV0 += Dimension::FF)
+                    f[j] = Force[j * Dimension::FF + (*occ_nuc) * Dimension::Fadd1];
+                break;
             }
-            if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
-                int& B  = FORCE_OPT::nbath;
-                int& J  = FORCE_OPT::Nb;
-                int JFF = J * Dimension::FF;
-                for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B; ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
-                    double* Forceb0 = Force + b0FF;
-                    double fb0 = std::real(ARRAY_TRACE2(Kernel_Elec::rho_nuc, Forceb0, Dimension::F, Dimension::F));
-                    for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
-                        f[bj] = fb0 * Force[bjbb] / Force[b0bb];
+            case NADForcePolicy::EHR: {
+                if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic &&
+                    Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
+                    ARRAY_MATMUL3_TRANS1(rho_nuc, T, rho_nuc, T, Dimension::F, Dimension::F, Dimension::F,
+                                         Dimension::F);
+                }
+                if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
+                    int& B  = FORCE_OPT::nbath;
+                    int& J  = FORCE_OPT::Nb;
+                    int JFF = J * Dimension::FF;
+                    for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
+                         ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
+                        double* Forceb0 = Force + b0FF;
+                        double fb0 = std::real(ARRAY_TRACE2(Kernel_Elec::rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
+                            f[bj] = fb0 * Force[bjbb] / Force[b0bb];
+                        }
+                    }
+                } else {
+                    for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
+                        double* dVj = Force + jFF;
+                        f[j]        = std::real(ARRAY_TRACE2(rho_nuc, dVj, Dimension::F, Dimension::F));
                     }
                 }
-            } else {
-                for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
-                    double* dVj = Force + jFF;
-                    f[j]        = std::real(ARRAY_TRACE2(Kernel_Elec::rho_nuc, dVj, Dimension::F, Dimension::F));
+
+                if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic &&
+                    Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
+                    ARRAY_MATMUL3_TRANS2(rho_nuc, T, rho_nuc, T, Dimension::F, Dimension::F, Dimension::F,
+                                         Dimension::F);
                 }
+                break;
             }
-
-            if (Kernel_Representation::ini_repr_type == RepresentationPolicy::Diabatic &&
-                Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
-                ARRAY_MATMUL3_TRANS2(Kernel_Elec::rho_nuc, T, Kernel_Elec::rho_nuc, T,  //
-                                     Dimension::F, Dimension::F, Dimension::F, Dimension::F);
-            }
-            break;
         }
+        for (int j = 0; j < Dimension::N; ++j) f[j] += grad[j];
+
+        ARRAY_SHOW(f, 1, Dimension::N);
     }
-    // ARRAY_SHOW(f, 1, Dimension::N);
-
-    for (int j = 0; j < Dimension::N; ++j) f[j] += grad[j];
-
-    // ARRAY_SHOW(f, 1, Dimension::N);
     return 0;
 }
 

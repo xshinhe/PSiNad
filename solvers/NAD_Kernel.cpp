@@ -1,15 +1,16 @@
-#include "../kernels/Kernel_DataSetHandles.h"
 #include "../kernels/Kernel_Declare.h"
+#include "../kernels/Kernel_Dump_DataSet.h"
 #include "../kernels/Kernel_Elec_CMM.h"
 #include "../kernels/Kernel_Elec_MMD.h"
 #include "../kernels/Kernel_Elec_MMSH.h"
 #include "../kernels/Kernel_Elec_SH.h"
 #include "../kernels/Kernel_Elec_SQC.h"
+#include "../kernels/Kernel_Load_DataSet.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
+#include "../kernels/Kernel_Record.h"
 #include "../kernels/Kernel_Representation.h"
 #include "../kernels/Kernel_Update.h"
-#include "../kernels/some_Kernels.h"
 
 namespace PROJECT_NS {
 
@@ -31,7 +32,7 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
 
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5));
-    std::shared_ptr<Kernel_Update_rho> ku_rho(new Kernel_Update_rho(1.0));
+    std::shared_ptr<Kernel_Update_c> ku_c(new Kernel_Update_c(1.0));
 
     /// Result & Sampling & TCF
     std::shared_ptr<Kernel_Record> krecd(new Kernel_Record());
@@ -41,7 +42,7 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     kinte->push(ku_x);
     kinte->push(kmodel);
     kinte->push(krepr);
-    kinte->push(ku_rho);
+    kinte->push(ku_c);
 
     std::shared_ptr<Kernel> kele;
     if (false) {
@@ -71,6 +72,7 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     ker->push(std::shared_ptr<Kernel_Load_DataSet>(new Kernel_Load_DataSet()))
         .push(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
         .push(std::shared_ptr<Kernel_Declare>(new Kernel_Declare({kmodel, ktime, kinte})))
+        .push(std::shared_ptr<Kernel_Initialize>(new Kernel_Initialize({kmodel, krepr, kele, krecd})))
         .push(kiter)
         .push(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
     return ker;

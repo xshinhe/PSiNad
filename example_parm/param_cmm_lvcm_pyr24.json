@@ -1,7 +1,7 @@
 {
     "model": "LVCM",
     "solver": "CMM",
-	"lvcm_flag": "PYR24",
+    "lvcm_flag": "PYR24",
     "N": 24,
     "F": 2,
     "occ": 1,
@@ -13,7 +13,7 @@
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
     ]
 }
 

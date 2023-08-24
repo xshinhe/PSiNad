@@ -2,7 +2,7 @@
     "model": "NAD1D",
     "solver": "CMM",
     "nad1d_flag": "ECR",
-	"representation_flag": "Adiabatic",
+    "representation_flag": "Adiabatic",
     "N": 1,
     "F": 2,
     "occ": 0,
@@ -15,8 +15,8 @@
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],
-        //["wK1occ", "K2dia"],
-        ["wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
+        //["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
     ]
 }
 

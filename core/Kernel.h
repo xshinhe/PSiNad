@@ -45,6 +45,7 @@ class Kernel {
    public:
     static int TOTAL;
     static int TOTAL_ROOT;
+    static bool BREAK;
 
     inline virtual const std::string name() { return utils::concat("Kernel__", customized_name); }
 
@@ -104,6 +105,7 @@ class Kernel {
         init_calc_impl(stat);
         for (auto& pkernel : _kernel_vector) pkernel->init_calc(stat, count);
         count_calc++;
+        BREAK = false;
     };
 
     /**

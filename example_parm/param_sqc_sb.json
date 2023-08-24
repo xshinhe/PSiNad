@@ -21,7 +21,7 @@
     "BATH_FORCE_BILINEAR": true,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"], // time-correlation function
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"], // time-correlation function
     ]
 }
 

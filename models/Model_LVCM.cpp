@@ -247,8 +247,6 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
     // init & integrator
     x = DS->reg<double>("integrator.x", Dimension::N);
     p = DS->reg<double>("integrator.p", Dimension::N);
-    DS->reg<double>("init.x", Dimension::N);
-    DS->reg<double>("init.p", Dimension::N);
 }
 
 void Model_LVCM::init_calc_impl(int stat) {
@@ -259,10 +257,6 @@ void Model_LVCM::init_calc_impl(int stat) {
         x[j] = x[j] * x_sigma[j];
         p[j] = p[j] * p_sigma[j];
     }
-
-    // ARRAY_SHOW(x_sigma, 1, Dimension::N);
-    // ARRAY_SHOW(p_sigma, 1, Dimension::N);
-    // for (int i = 0; i < Dimension::N; ++i) x[i] = 0.5f, p[i] = 0.5f;  // @debug
 
     _DataSet->set("init.x", x, Dimension::N);
     _DataSet->set("init.p", p, Dimension::N);

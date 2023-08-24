@@ -16,17 +16,17 @@
     "dt": "0.1 fs",
     "tend": "1000.0 fs",
     "unit_dt": "1.0 fs",
-	"representation_flag": "Adiabatic",
-	"ini_repr_flag": "Diabatic",
-	"ele_repr_flag": "Diabatic",
-	"BATH_FORCE_BILINEAR": true,
+    "representation_flag": "Adiabatic",
+    "inp_repr_flag": "Diabatic",
+    "ele_repr_flag": "Diabatic",
+    "BATH_FORCE_BILINEAR": true,
     "sstep": 1,
     "N_mc": 120,
     "dump": "null",
     "BATH_FORCE_BILINEAR": false,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ # A", "K2dia # B"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
     ]
 }
 

@@ -13,79 +13,84 @@ void Kernel_Elec::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec::init_data_impl(DataSet* DS) {
-    c       = DS->reg<num_complex>("integrator.c", Dimension::F);
-    rho_ele = DS->reg<num_complex>("integrator.rho_ele", Dimension::FF);
-    rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Dimension::FF);
-    gmat    = DS->reg<num_complex>("integrator.gmat", Dimension::FF);
-    occ_nuc = DS->reg<int>("integrator.occ_nuc");
+    U       = DS->reg<num_complex>("integrator.U", Dimension::PFF);
+    c       = DS->reg<num_complex>("integrator.c", Dimension::PF);
+    rho_ele = DS->reg<num_complex>("integrator.rho_ele", Dimension::PFF);
 
-    w      = DS->reg<num_complex>("integrator.w");
-    K1     = DS->reg<num_complex>("integrator.K1", Dimension::FF);
-    wK1    = DS->reg<num_complex>("integrator.wK1", Dimension::FF);
-    wK1dia = DS->reg<num_complex>("integrator.wK1dia", Dimension::F);
-    wK1occ = DS->reg<num_complex>("integrator.wK1occ");
+    occ_nuc = DS->reg<int>("integrator.occ_nuc", Dimension::P);
+    rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Dimension::PFF);
 
-    K2    = DS->reg<num_complex>("integrator.K2", Dimension::FF);
-    K2dia = DS->reg<num_complex>("integrator.K2dia", Dimension::F);
+    w = DS->reg<num_complex>("integrator.w");
 
-    K1Q = DS->reg<num_complex>("integrator.K1Q", Dimension::FF);
-    K2Q = DS->reg<num_complex>("integrator.K2Q", Dimension::FF);
+    K1    = DS->reg<num_complex>("integrator.K1", Dimension::PFF);
+    K1dia = DS->reg<num_complex>("integrator.K1dia", Dimension::PF);
+    K1occ = DS->reg<num_complex>("integrator.K1occ", Dimension::P);
 
-    mapvar = DS->reg<num_real>("integrator.mapvar", 2 * Dimension::F);
+    K2    = DS->reg<num_complex>("integrator.K2", Dimension::PFF);
+    K2dia = DS->reg<num_complex>("integrator.K2dia", Dimension::PF);
+    K2occ = DS->reg<num_complex>("integrator.K2occ", Dimension::P);
 
-    double unit = 1.0e0;
-    DS->set("init.1", &unit);
-    DS->set("init.w", w);
-    DS->set("init.c", c, Dimension::F);
-    DS->set("init.rho_ele", rho_ele, Dimension::FF);
-    DS->set("init.K1", K1, Dimension::FF);
-    DS->set("init.wK1", wK1, Dimension::FF);
-    DS->set("init.wK1dia", wK1dia, Dimension::F);
-    DS->set("init.wK1occ", wK1occ);
-    DS->set("init.K1Q", K1Q, Dimension::FF);
-    DS->set("init.K2Q", K2Q, Dimension::FF);
-    DS->set("init.K2", K2, Dimension::FF);
+    K1D    = DS->reg<num_complex>("integrator.K1D", Dimension::PFF);
+    K1Ddia = DS->reg<num_complex>("integrator.K1Ddia", Dimension::PF);
+    K1Docc = DS->reg<num_complex>("integrator.K1Docc", Dimension::P);
+
+    K2D    = DS->reg<num_complex>("integrator.K2D", Dimension::PFF);
+    K2Ddia = DS->reg<num_complex>("integrator.K2Ddia", Dimension::PF);
+    K2Docc = DS->reg<num_complex>("integrator.K2Docc", Dimension::P);
+
+    // read input operator
+    OpA = DS->reg<num_complex>("integrator.OpA", Dimension::FF);
+    OpB = DS->reg<num_complex>("integrator.OpB", Dimension::FF);
 }
 
 void Kernel_Elec::init_calc_impl(int stat) {
-    for (int i = 0; i < Dimension::FF; ++i) wK1[i] = w[0] * K1[i];
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) wK1dia[i] = wK1[ii];
-    wK1occ[0] = wK1[occ0 * Dimension::Fadd1];
+    exec_kernel_impl(stat);
 
-    _DataSet->set("init.w", w);
-    _DataSet->set("init.c", c, Dimension::F);
-    _DataSet->set("init.rho_ele", rho_ele, Dimension::FF);
-    _DataSet->set("init.K1", K1, Dimension::FF);
-    _DataSet->set("init.wK1", wK1, Dimension::FF);
-    _DataSet->set("init.wK1dia", wK1dia, Dimension::F);
-    _DataSet->set("init.wK1occ", wK1occ);
-    _DataSet->set("init.K1Q", K1Q, Dimension::FF);
-    _DataSet->set("init.K2Q", K2Q, Dimension::FF);
-    _DataSet->set("init.K2", K2, Dimension::FF);
+    double unit = 1.0e0;
+    _DataSet->set("init.1", &unit);
+    _DataSet->set("init.w", w, Dimension::P);
+    _DataSet->set("init.K1", K1, Dimension::PFF);
+    _DataSet->set("init.K1dia", K1dia, Dimension::PF);
+    _DataSet->set("init.K1occ", K1occ, Dimension::P);
+    _DataSet->set("init.K2", K2, Dimension::PFF);
+    _DataSet->set("init.K2dia", K2dia, Dimension::PF);
+    _DataSet->set("init.K2occ", K2occ, Dimension::P);
+    _DataSet->set("init.K1D", K1D, Dimension::PFF);
+    _DataSet->set("init.K1Ddia", K1Ddia, Dimension::PF);
+    _DataSet->set("init.K1Docc", K1Docc, Dimension::P);
+    _DataSet->set("init.K2D", K2D, Dimension::PFF);
+    _DataSet->set("init.K2Ddia", K2Ddia, Dimension::PF);
+    _DataSet->set("init.K2Docc", K2Docc, Dimension::P);
 }
 
 int Kernel_Elec::exec_kernel_impl(int stat) {
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) K2dia[i] = K2[ii];
-    return 0;
-}
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_complex* K1occ  = this->K1occ + iP;
+        num_complex* K1dia  = this->K1dia + iP * Dimension::F;
+        num_complex* K1     = this->K1 + iP * Dimension::FF;
+        num_complex* K2occ  = this->K2occ + iP;
+        num_complex* K2dia  = this->K2dia + iP * Dimension::F;
+        num_complex* K2     = this->K2 + iP * Dimension::FF;
+        num_complex* K1Docc = this->K1Docc + iP;
+        num_complex* K1Ddia = this->K1Ddia + iP * Dimension::F;
+        num_complex* K1D    = this->K1D + iP * Dimension::FF;
+        num_complex* K2Docc = this->K2Docc + iP;
+        num_complex* K2Ddia = this->K2Ddia + iP * Dimension::F;
+        num_complex* K2D    = this->K2D + iP * Dimension::FF;
 
-/**
- * @brief convert mapping variables to c (electonic amplititude)
- */
-int Kernel_Elec::c_from_mapvar(num_complex* c, num_real* mapvar, int fdim) {
-    num_real *mapx = mapvar, *mapp = mapvar + fdim;
-    for (int i = 0; i < fdim; ++i) { c[i] = phys::math::sqrthalf * (mapx[i] + phys::math::im * mapp[i]); }
-    return 0;
-}
+        ///////////////////////////////////////////////////////
 
-/**
- * @brief convert c (electonic amplititude) to mapping variables
- */
-int Kernel_Elec::mapvar_from_c(num_real* mapvar, num_complex* c, int fdim) {
-    num_real *mapx = mapvar, *mapp = mapvar + fdim;
-    for (int i = 0; i < fdim; ++i) {
-        mapx[i] = phys::math::sqrttwo * std::real(c[i]);
-        mapp[i] = phys::math::sqrttwo * std::imag(c[i]);
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) K1dia[i] = K1[ii];
+        K1occ[0] = K1[occ0 * Dimension::Fadd1];
+
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) K2dia[i] = K2[ii];
+        K2occ[0] = K2[occ0 * Dimension::Fadd1];
+
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) K1Ddia[i] = K1D[ii];
+        K1Docc[0] = K1D[occ0 * Dimension::Fadd1];
+
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) K2Ddia[i] = K2D[ii];
+        K2Docc[0] = K2D[occ0 * Dimension::Fadd1];
     }
     return 0;
 }
@@ -108,74 +113,48 @@ int Kernel_Elec::ker_from_c(num_complex* ker, num_complex* c, num_real xi, num_r
 /**
  * @brief convert c (electonic amplititude) to kernel (affine map of the density)
  */
-int Kernel_Elec::ker_from_rho(num_complex* ker, num_complex* rho, num_real xi, num_real gamma, int fdim) {
-    for (int i = 0, idx = 0; i < fdim; ++i) {
-        for (int j = 0; j < fdim; ++j, ++idx) {
-            ker[idx] = xi * rho[idx];
-            if (i == j) ker[idx] -= phys::math::iu * gamma;
+int Kernel_Elec::ker_from_rho(num_complex* ker, num_complex* rho, num_real xi, num_real gamma, int fdim, bool quantize,
+                              int occ) {
+    for (int i = 0, ij = 0; i < fdim; ++i) {
+        for (int j = 0; j < fdim; ++j, ++ij) {
+            ker[ij] = xi * rho[ij];
+            if (i == j) ker[ij] = (quantize) ? (i == occ ? 1.0e0 : 0.0e0) : (ker[ij] - gamma);
         }
     }
     return 0;
 }
 
-/**
- * @brief convert c (electonic amplititude) to kernel (affine map of the density)
- */
-int Kernel_Elec::ker_from_rho_quantize(num_complex* ker, num_complex* rho, num_real xi, num_real gamma, int occt,
-                                       int fdim) {
-    for (int i = 0, idx = 0; i < fdim; ++i) {
-        for (int j = 0; j < fdim; ++j, ++idx) {
-            ker[idx] = xi * rho[idx];
-            if (i == j) ker[idx] = (i == occt) ? 1.0e0 : 0.0e0;
-        }
-    }
-    return 0;
-}
-
-/**
- * @brief sampling mapping variables from focused condition (A & Q as inputs)
- */
-int Kernel_Elec::mapvar_focus(num_real* mapvar, int fdim) {
-    num_real *mapA = mapvar, *mapQ = mapvar + fdim;  // actions and angles
-    num_real *mapx = mapvar, *mapp = mapvar + fdim;  // x and p
-    Kernel_Random::rand_uniform(mapQ, fdim, phys::math::twopi);
-    for (int i = 0; i < fdim; ++i) {
-        // conversion (A,Q) => (x, p)
-        mapx[i] = phys::math::sqrttwo * sqrt(mapA[i]) * cos(mapQ[i]);
-        mapp[i] = mapx[i] * tan(mapQ[i]);
-    }
-    return 0;
-}
-
-num_complex* Kernel_Elec::w;  // measure of phase point
-num_complex* Kernel_Elec::c;
-num_real* Kernel_Elec::mapvar;
-num_real* Kernel_Elec::mapx;
-num_real* Kernel_Elec::mapp;
-num_real* Kernel_Elec::mapA;
-num_real* Kernel_Elec::mapQ;
 int Kernel_Elec::occ0;
 
 // two densities for dynamic
+num_complex* Kernel_Elec::U;
+num_complex* Kernel_Elec::c;
+num_complex* Kernel_Elec::c_init;
+num_complex* Kernel_Elec::rho_ele;
+num_complex* Kernel_Elec::rho_ele_init;
+
 int* Kernel_Elec::occ_nuc;
-num_complex* Kernel_Elec::rho_ele;  // electronic density
-num_complex* Kernel_Elec::rho_nuc;  // nuclear weighting density
-num_complex* Kernel_Elec::gmat;     // nuclear weighting density
+num_complex* Kernel_Elec::rho_nuc;
+num_complex* Kernel_Elec::rho_nuc_init;
 
 // time correlation function
+num_complex* Kernel_Elec::w;
 num_complex* Kernel_Elec::K1;
-num_complex* Kernel_Elec::wK1;
-num_complex* Kernel_Elec::wK1occ;
-num_complex* Kernel_Elec::wK1dia;
+num_complex* Kernel_Elec::K1occ;
+num_complex* Kernel_Elec::K1dia;
 num_complex* Kernel_Elec::K2;
+num_complex* Kernel_Elec::K2occ;
 num_complex* Kernel_Elec::K2dia;
-num_complex* Kernel_Elec::K1Q;
-num_complex* Kernel_Elec::K2Q;
+num_complex* Kernel_Elec::K1D;
+num_complex* Kernel_Elec::K1Docc;
+num_complex* Kernel_Elec::K1Ddia;
+num_complex* Kernel_Elec::K2D;
+num_complex* Kernel_Elec::K2Docc;
+num_complex* Kernel_Elec::K2Ddia;
 
 num_complex* Kernel_Elec::OpA;
 num_complex* Kernel_Elec::OpB;
 num_complex* Kernel_Elec::TrK1A;
 num_complex* Kernel_Elec::TrK2B;
-
 
 };  // namespace PROJECT_NS

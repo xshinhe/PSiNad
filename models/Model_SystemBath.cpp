@@ -181,18 +181,17 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     // model field
     mass = DS->reg<double>("model.mass", Dimension::N);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
-    vpes = DS->reg<double>("model.vpes");
-    grad = DS->reg<double>("model.grad", Dimension::N);
-    hess = DS->reg<double>("model.hess", Dimension::NN);
-    V    = DS->reg<double>("model.V", Dimension::FF);
-    dV   = DS->reg<double>("model.dV", Dimension::NFF);
+
+    vpes = DS->reg<double>("model.vpes", Dimension::P);
+    grad = DS->reg<double>("model.grad", Dimension::PN);
+    hess = DS->reg<double>("model.hess", Dimension::PNN);
+    V    = DS->reg<double>("model.V", Dimension::PFF);
+    dV   = DS->reg<double>("model.dV", Dimension::PNFF);
     // ddV  = DS->reg<double>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x_init = DS->reg<double>("init.x", Dimension::N);
-    p_init = DS->reg<double>("init.p", Dimension::N);
-    x      = DS->reg<double>("integrator.x", Dimension::N);
-    p      = DS->reg<double>("integrator.p", Dimension::N);
+    x = DS->reg<double>("integrator.x", Dimension::PN);
+    p = DS->reg<double>("integrator.p", Dimension::PN);
 
     // ARRAY_SHOW(Hsys, Dimension::F, Dimension::F);
     // ARRAY_SHOW(omegas, 1, Nb);
@@ -203,83 +202,97 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
 }
 
 void Model_SystemBath::init_calc_impl(int stat) {
-    Kernel_Random::rand_gaussian(x_init, Dimension::N);
-    Kernel_Random::rand_gaussian(p_init, Dimension::N);
-    for (int ibath = 0, idxR = 0; ibath < nbath; ++ibath) {
-        for (int j = 0; j < Nb; ++j, ++idxR) {
-            x_init[idxR] = x_init[idxR] * x_sigma[j];
-            p_init[idxR] = p_init[idxR] * p_sigma[j];
-            // copy "init" field to "integrator"
-            x[idxR] = x_init[idxR];
-            p[idxR] = p_init[idxR];
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_real* x = this->x + iP * Dimension::N;
+        num_real* p = this->p + iP * Dimension::N;
+
+        Kernel_Random::rand_gaussian(x, Dimension::N);
+        Kernel_Random::rand_gaussian(p, Dimension::N);
+        for (int ibath = 0, idxR = 0; ibath < nbath; ++ibath) {
+            for (int j = 0; j < Nb; ++j, ++idxR) {
+                x[idxR] = x[idxR] * x_sigma[j];
+                p[idxR] = p[idxR] * p_sigma[j];
+            }
         }
     }
+
+    _DataSet->set("init.x", x, Dimension::PN);
+    _DataSet->set("init.p", p, Dimension::PN);
     exec_kernel(stat);
 }
 
 int Model_SystemBath::exec_kernel_impl(int stat) {
-    // note we implement mass = 1
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_real* x    = this->x + iP * Dimension::N;
+        num_real* vpes = this->vpes + iP;
+        num_real* grad = this->grad + iP * Dimension::N;
+        num_real* hess = this->hess + iP * Dimension::NN;
+        num_real* V    = this->V + iP * Dimension::FF;
+        num_real* dV   = this->dV + iP * Dimension::NFF;
 
-    // calculate nuclear vpes and grad
-    double term = 0.0f;
-    for (int ibath = 0, idxR = 0; ibath < nbath; ++ibath) {
-        for (int j = 0; j < Nb; ++j, ++idxR) {
-            term += omegas[j] * omegas[j] * x[idxR] * x[idxR];
-            grad[idxR] = omegas[j] * omegas[j] * x[idxR];
-        }
-    }
-    vpes[0] = 0.5 * term;
+        // note we implement mass = 1
 
-    // calculate electronic V and dV
-    for (int i = 0; i < Dimension::FF; ++i) V[i] = Hsys[i];
-    switch (coupling_type) {
-        case CouplingPolicy::SB: {
-            double term = 0;
-            for (int ibath = 0, idxR = 0; ibath < nbath; ++ibath) {
-                for (int j = 0; j < Nb; ++j, ++idxR) { term += coeffs[j] * x[idxR]; }
+        // calculate nuclear vpes and grad
+        double term = 0.0f;
+        for (int ibath = 0, idxR = 0; ibath < nbath; ++ibath) {
+            for (int j = 0; j < Nb; ++j, ++idxR) {
+                term += omegas[j] * omegas[j] * x[idxR] * x[idxR];
+                grad[idxR] = omegas[j] * omegas[j] * x[idxR];
             }
-            V[0] += term;
-            V[3] -= term;
-            break;
         }
-        case CouplingPolicy::SE: {
-            for (int ibath = 0, idxV = 0, idxR = 0; ibath < nbath; ++ibath, idxV += Dimension::Fadd1) {
-                for (int j = 0; j < Nb; ++j, ++idxR) { V[idxV] += coeffs[j] * x[idxR]; }
+        vpes[0] = 0.5 * term;
+
+        // calculate electronic V and dV
+        for (int i = 0; i < Dimension::FF; ++i) V[i] = Hsys[i];
+        switch (coupling_type) {
+            case CouplingPolicy::SB: {
+                double term = 0;
+                for (int ibath = 0, idxR = 0; ibath < nbath; ++ibath) {
+                    for (int j = 0; j < Nb; ++j, ++idxR) { term += coeffs[j] * x[idxR]; }
+                }
+                V[0] += term;
+                V[3] -= term;
+                break;
             }
-            break;
+            case CouplingPolicy::SE: {
+                for (int ibath = 0, idxV = 0, idxR = 0; ibath < nbath; ++ibath, idxV += Dimension::Fadd1) {
+                    for (int j = 0; j < Nb; ++j, ++idxR) { V[idxV] += coeffs[j] * x[idxR]; }
+                }
+                break;
+            }
+            default: {
+                for (int ibath = 0, idxR = 0, idxQ0 = 0; ibath < nbath; ++ibath, idxQ0 += Dimension::FF) {
+                    for (int j = 0; j < Nb; ++j, ++idxR) {
+                        double cxj = coeffs[j] * x[idxR];
+                        for (int i = 0, idxQ = idxQ0; i < Dimension::FF; ++i, ++idxQ) { V[i] += Q[idxQ] * cxj; }
+                    }
+                }
+                break;
+            }
         }
-        default: {
-            for (int ibath = 0, idxR = 0, idxQ0 = 0; ibath < nbath; ++ibath, idxQ0 += Dimension::FF) {
-                for (int j = 0; j < Nb; ++j, ++idxR) {
-                    double cxj = coeffs[j] * x[idxR];
-                    for (int i = 0, idxQ = idxQ0; i < Dimension::FF; ++i, ++idxQ) { V[i] += Q[idxQ] * cxj; }
+
+        if (count_exec == 0) {  // only calculate once time
+            ARRAY_CLEAR(dV, Dimension::NFF);
+            for (int ibath = 0, idxQ0 = 0, idxdV = 0; ibath < nbath; ++ibath, idxQ0 += Dimension::FF) {
+                for (int j = 0; j < Nb; ++j) {
+                    for (int i = 0, idxQ = idxQ0; i < Dimension::FF; ++i, ++idxQ, ++idxdV) {
+                        dV[idxdV] = Q[idxQ] * coeffs[j];
+                    }
                 }
             }
-            break;
+            // ARRAY_SHOW(dV, Dimension::N, Dimension::FF);
+            // exit(-1);
         }
-    }
 
-    if (count_exec == 0) {  // only calculate once time
-        ARRAY_CLEAR(dV, Dimension::NFF);
-        for (int ibath = 0, idxQ0 = 0, idxdV = 0; ibath < nbath; ++ibath, idxQ0 += Dimension::FF) {
-            for (int j = 0; j < Nb; ++j) {
-                for (int i = 0, idxQ = idxQ0; i < Dimension::FF; ++i, ++idxQ, ++idxdV) {
-                    dV[idxdV] = Q[idxQ] * coeffs[j];
-                }
+        // if (flag < 2) return 0;
+
+        if (count_exec == 0) {
+            ARRAY_CLEAR(hess, Dimension::NN);
+            for (int j = 0, idx = 0, Nadd1 = Dimension::N + 1; j < Dimension::N; ++j, idx += Nadd1) {
+                hess[idx] = omegas[j % Nb] * omegas[j % Nb];
             }
+            // for (int i = 0; i < NNFF; ++i) ddV[i] = 0;
         }
-        // ARRAY_SHOW(dV, Dimension::N, Dimension::FF);
-        // exit(-1);
-    }
-
-    // if (flag < 2) return 0;
-
-    if (count_exec == 0) {
-        ARRAY_CLEAR(hess, Dimension::NN);
-        for (int j = 0, idx = 0, Nadd1 = Dimension::N + 1; j < Dimension::N; ++j, idx += Nadd1) {
-            hess[idx] = omegas[j % Nb] * omegas[j % Nb];
-        }
-        // for (int i = 0; i < NNFF; ++i) ddV[i] = 0;
     }
     return 0;
 }

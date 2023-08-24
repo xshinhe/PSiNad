@@ -52,19 +52,20 @@ class Kernel_Elec_MMSH final : public Kernel {
 
     double xi;
     double gamma;
+    bool use_cv = false;
+
 
     double dt;
     num_complex *w_CC, *w_CP, *w_PP;
     num_complex *w_AA, *w_AD, *w_DD;
-    num_real* x;
     num_real* p;
     num_real* m;
     num_real* direction;
     num_real *E, *dE, *T;
     num_complex* H;
 
-    num_complex* K1Q;
-    num_complex* K2Q;
+    num_complex* K1D;
+    num_complex* K2D;
 
     virtual void read_param_impl(Param* PM);
 

@@ -9,11 +9,11 @@
     "sstep": 100,
     "N_mc": 1000,
     "dump": "null",
-	"gamma0": 0.0,
+    "gamma0": 0.0,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"],
-        // ["wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
+        // ["C(w,K1occ)=w*K1occ # wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
     ]
 }
 

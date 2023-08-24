@@ -5,18 +5,18 @@
     "N": 1,
     "F": 3,
     "occ": 0,
-	"dt": "0.01 fs",
-	"tend": "80.0 fs",
-	"unit_dt": "1.0 fs",
+    "dt": "0.01 fs",
+    "tend": "80.0 fs",
+    "unit_dt": "1.0 fs",
     "sstep": 100,
     "N_mc": 1000,
-	//"gamma": 0.0, // otherwise give NAN
-	"use_cv": true,
+    //"gamma": 0.0, // otherwise give NAN
+    "use_cv": true,
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"],
-        // ["wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
+        // ["C(w,K1occ)=w*K1occ # wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
     ]
 }
 

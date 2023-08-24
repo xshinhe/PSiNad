@@ -106,23 +106,25 @@ class Kernel_Update_T : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-class Kernel_Update_rho final : public Kernel {
+class Kernel_Update_c final : public Kernel {
    public:
-    Kernel_Update_rho(double scale) : Kernel(), scale{scale} {};
+    Kernel_Update_c(double scale) : Kernel(), scale{scale} {};
 
-    inline virtual const std::string name() { return "Kernel_Update_rho"; }
+    inline virtual const std::string name() { return "Kernel_Update_c"; }
 
    private:
-    num_complex* c;
-    num_complex* rho_ele;
-    num_complex *U, *invexpiEdt, *invexpiLdt;
+    num_complex* Udt;  ///< short time propagator
+    num_complex* U;    ///< full propagator along classical path approximation (CPA)
 
-    num_real *V, *dV, *ddV;
-    num_real *E, *T, *dE, *ddE;
-    num_real* L;
-    num_complex *R, *dL, *ddL;
-    num_complex *H, *dH, *ddH;
-    num_complex* Matr;
+    ///< solve Diabatic propagator
+    num_real* E;  ///< Eigenvalue for diabatic V
+    num_real* T;  ///< Eigenvector for diabatic V
+
+    ///< solve Adiabatic propagator
+    num_real* L;     ///< Eigenvalue for adiabatic effective Hamiltonian Heff = Eδ - id*P/M
+    num_complex* R;  ///< Eigenvector for adiabatic effective Hamiltonian Heff = Eδ - id*P/M
+
+    num_complex* invexpidiagdt;  ///< temporary variables
 
     double scale;
     double dt, sdt;

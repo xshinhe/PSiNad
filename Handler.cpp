@@ -1,7 +1,7 @@
 #include "Handler.h"
 
 #include "core/DataSet.h"
-#include "kernels/Kernel_DataSetHandles.h"
+#include "kernels/Kernel_Record.h"
 #include "models/ModelFactory.h"
 #include "solvers/SolverFactory.h"
 
@@ -62,6 +62,8 @@ int Handler::run_multiple(Param* P) {
         solver->init_calc(0);
 
         auto& corr     = Kernel_Record::get_correlation();
+        int nframe     = corr.frame;
+        int nsize      = corr.size;
         int total_size = corr.size * corr.frame;
 
         Result corr_sum(corr);
@@ -86,9 +88,14 @@ int Handler::run_multiple(Param* P) {
             solver->exec_kernel(icycle);
 
             // clear correlation information
-            for (int i = 0; i < total_size; ++i) {
-                corr_sum.data[i] += corr.data[i];
-                corr.data[i] = 0.0f;
+            for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {
+                bool valid = (corr.stat[iframe] == 1);
+                corr_sum.stat[iframe] += valid ? 1 : 0;
+                for (int isize = 0; isize < nsize; ++isize, ++i) {
+                    corr_sum.data[i] += valid ? corr.data[i] : 0.0e0;
+                    corr.data[i] = 0.0e0;
+                }
+                corr.stat[iframe] = 0;
             }
 
             auto mid2 = std::chrono::steady_clock::now();
@@ -98,14 +105,19 @@ int Handler::run_multiple(Param* P) {
                           << std::endl;
             }
         }
+        MPI_Reduce(corr_sum.stat.data(), corr_mpi.stat.data(), corr.frame, MPI::INT, MPI_SUM, 0, MPI_COMM_WORLD);
         MPI_Reduce(corr_sum.data.data(), corr_mpi.data.data(), total_size, MPI::DOUBLE_PRECISION, MPI_SUM, 0,
                    MPI_COMM_WORLD);
         MPI_Barrier(MPI_COMM_WORLD);
 
-        for (int i = 0; i < total_size; ++i) corr_sum.data[i] /= (iend - istart);
+        for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {
+            for (int isize = 0; isize < nsize; ++isize, ++i) corr_sum.data[i] /= corr_sum.stat[iframe];
+        }
         corr_sum.save(utils::concat("corr-mpi", MPI_Guard::rank, ".dat"), 0, sstep * dt / unit_dt, true);
         if (MPI_Guard::isroot) {
-            for (int i = 0; i < total_size; ++i) corr_mpi.data[i] /= N_mc;
+            for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {
+                for (int isize = 0; isize < nsize; ++isize, ++i) corr_mpi.data[i] /= corr_mpi.stat[iframe];
+            }
             corr_mpi.save("corr.dat", 0, sstep * dt / unit_dt, true);
         }
     }

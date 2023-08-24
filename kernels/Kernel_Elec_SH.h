@@ -55,12 +55,14 @@ class Kernel_Elec_SH final : public Kernel {
     bool reflect;
 
     double dt;
+    int* occ_nuc;
     num_real* x;
     num_real* p;
     num_real* m;
     num_real* direction;
-    num_real *E, *dE, *T;
+    num_real *E, *dE, *T, *T_init;
     num_complex* H;
+    num_complex* rho_ele;
 
     virtual void read_param_impl(Param* PM);
 

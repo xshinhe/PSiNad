@@ -303,13 +303,14 @@ class Tree : public NodeGeneric {
     };
 
     template <typename T>
-    void set(const std::string& key, T* array, std::size_t size_array = 1) {
+    T* set(const std::string& key, T* array, std::size_t size_array = 1) {
         if (!has_key(key)) def<T>(key, size_array);
         auto&& res = info(key);
         if (std::get<0>(NodeGeneric::TypeHelper<T>()) != std::get<0>(res)) throw state_mismatched_type_error(key);
         if (size_array > 0 && size_array != std::get<1>(res)) throw state_mismatched_size_error(key);
         T* ptr = (T*) std::get<2>(res);
         for (int i = 0; i < size_array; ++i) ptr[i] = array[i];
+        return ptr;
     };
 
     KeyNodeList flatten(bool indeep = false, const std::string& parent = "") {

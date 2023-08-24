@@ -14,6 +14,7 @@
 #ifndef LINALG_H
 #define LINALG_H
 
+#include <cmath>
 #include <complex>
 
 #include "../thirdpart/Eigen/Dense"
@@ -45,6 +46,13 @@ typedef Eigen::Map<EigMXr> MapMXr;
 typedef Eigen::Map<EigMXc> MapMXc;
 typedef Eigen::Map<EigAXr> MapAXr;
 typedef Eigen::Map<EigAXc> MapAXc;
+
+template <class T>
+bool ARRAY_ISFINITE(T* A, size_t n) {
+    for (int i = 0; i < n; ++i)
+        if (!std::isfinite(std::abs(A[i]))) return false;
+    return true;
+}
 
 template <class T>
 void ARRAY_CLEAR(T* A, size_t N) {
@@ -120,6 +128,21 @@ TB ARRAY_TRACE2(TB* B, TC* C, size_t N1, size_t N2) {
     Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
     TB res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
+}
+
+template <class TB, class TC>
+TB ARRAY_INNER_CONJ1(TB* B, TC* C, size_t N1) {
+    Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
+    Eigen::Map<EigMX<TC>> MapC(C, N1, 1);
+    return (MapB.adjoint() * MapC).sum();
+}
+
+template <class TB, class TC, class TD>
+TB ARRAY_INNER_VMV_CONJ1(TB* B, TC* C, TD* D, size_t N1, size_t N2) {
+    Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
+    Eigen::Map<EigMX<TC>> MapC(C, N1, N2);
+    Eigen::Map<EigMX<TD>> MapD(D, N2, 1);
+    return (MapB.adjoint() * MapC * MapD).sum();
 }
 
 template <class T>

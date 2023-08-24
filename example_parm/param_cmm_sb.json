@@ -16,12 +16,12 @@
     "dt": 0.01,
     "tend": 15.0,
     "sstep": 10,
-    "N_mc": 1000,
+    "N_mc": 10000,
     "dump": "null",
     "BATH_FORCE_BILINEAR": true,
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"], // time-correlation function
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"], // time-correlation function
     ]
 }
 

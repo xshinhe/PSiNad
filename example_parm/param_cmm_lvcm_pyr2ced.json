@@ -1,19 +1,19 @@
 {
     "model": "LVCM",
     "solver": "CMM",
-	"lvcm_flag": "PYR2CED",
+    "lvcm_flag": "PYR2CED",
     "N": 2,
     "F": 4,
     "occ": 1,
     "dt": "0.05 fs",
     "tend": "60.0 fs",
-	"unit_dt": "1.0 fs",
+    "unit_dt": "1.0 fs",
     "sstep": 10,
     "N_mc": 10000,
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],
-        ["wK1occ", "K2dia"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
         ["1", "x"],
     ]
 }
