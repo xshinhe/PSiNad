@@ -136,8 +136,6 @@ void Kernel_Elec_SH::init_calc_impl(int stat) {
         rho_nuc;                                                                        /// not used
         ARRAY_EYE(U, Dimension::F);                                                     ///< initial propagator
 
-        for (int ik = 0; ik < Dimension::FF; ++ik) K1[ik] = rho_ele[ik];
-
         if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
             ARRAY_MATMUL3_TRANS1(Kernel_Elec::rho_ele, T, Kernel_Elec::rho_ele, T, Dimension::F, Dimension::F,
                                  Dimension::F, Dimension::F);
@@ -174,10 +172,6 @@ int Kernel_Elec_SH::exec_kernel_impl(int stat) {
 
         // * additional evolution can be appended here
 
-        if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
-            ARRAY_MATMUL(U, T, U, Dimension::F, Dimension::F, Dimension::F);
-        }
-
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
         // 1) transform from inp_repr => ele_repr
         Kernel_Representation::transform(rho_ele, T_init, Dimension::F,         //
@@ -188,20 +182,25 @@ int Kernel_Elec_SH::exec_kernel_impl(int stat) {
         // 2) propagte along ele_repr
         ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
 
-        // 3) transform back from ele_repr => inp_repr
         Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
                                          Kernel_Representation::ele_repr_type,  //
-                                         Kernel_Representation::inp_repr_type,  //
+                                         RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
 
         int to = hopping_choose(rho_ele, H, *occ_nuc, dt);                      // step 1: determine where to hop
         hopping_direction(direction, dE, *occ_nuc, to);                         // step 2: determine direction to hop
         *occ_nuc = hopping_impulse(direction, p, m, E, *occ_nuc, to, reflect);  // step 3: try hop
-
+        Kernel_Elec::ker_from_rho(K1, rho_ele, 1, 0, Dimension::F);
         Kernel_Elec::ker_from_rho(K2, rho_ele, 1, 0, Dimension::F, true, *occ_nuc);
+
+
         // 3) transform back from ele_repr => inp_repr
+        Kernel_Representation::transform(K1, T, Dimension::F,                   //
+                                         RepresentationPolicy::Adiabatic,       //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         SpacePolicy::L);
         Kernel_Representation::transform(K2, T, Dimension::F,                   //
-                                         Kernel_Representation::ele_repr_type,  //
+                                         RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
     }

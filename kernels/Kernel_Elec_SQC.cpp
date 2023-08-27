@@ -75,7 +75,7 @@ int Kernel_Elec_SQC::ker_binning(num_complex* ker, num_complex* rho, int sqc_typ
                         break;
                     case SQCPolicy::SQR:  // @bug
                         Outlier = (i == j)
-                                      ? ((k != i && std::abs(vk - gm0) < gm0) || (k == i && std::abs(vk - gm1) > gm0))
+                                      ? ((k != i && std::abs(vk - gm0) < gm0) || (k == i && std::abs(vk - gm1) < gm0))
                                       : ((k != i && std::abs(vk - gm0) > gm0) ||  //
                                          (k == i && std::abs(vk - gmh) > gm0) ||  //
                                          (k == j && std::abs(vk - gmh) > gm0));
