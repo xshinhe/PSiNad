@@ -31,6 +31,7 @@ void Model_SystemBath::read_param_impl(Param* PM) {
 
     system_type   = SystemPolicy::_from(_Param->get<std::string>("system_flag", LOC(), "SB"));
     coupling_type = CouplingPolicy::_from(_Param->get<std::string>("coupling_flag", LOC(), "SB"));
+    nsamp_type    = NSampPolicy::_from(_Param->get<std::string>("nsamp_flag", LOC(), "Wigner"));
 }
 
 void Model_SystemBath::init_data_impl(DataSet* DS) {
@@ -212,6 +213,18 @@ void Model_SystemBath::init_calc_impl(int stat) {
             for (int j = 0; j < Nb; ++j, ++idxR) {
                 x[idxR] = x[idxR] * x_sigma[j];
                 p[idxR] = p[idxR] * p_sigma[j];
+            }
+        }
+
+        if (nsamp_type == NSampPolicy::QCT) {
+            for (int ibath = 0, idxR = 0; ibath < nbath; ++ibath) {
+                for (int j = 0; j < Nb; ++j, ++idxR) {
+                    double Eq    = omegas[j] * (0 + 0.5);
+                    double Ec    = 0.5 * p[idxR] * p[idxR] + 0.5 * omegas[j] * omegas[j] * x[idxR] * x[idxR];
+                    double scale = sqrt(Eq / Ec);
+                    x[idxR]      = x[idxR] * scale;
+                    p[idxR]      = p[idxR] * scale;
+                }
             }
         }
     }

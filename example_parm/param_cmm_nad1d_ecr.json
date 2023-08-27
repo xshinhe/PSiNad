@@ -2,7 +2,7 @@
     "model": "NAD1D",
     "solver": "CMM",
     "nad1d_flag": "ECR",
-    "representation_flag": "Adiabatic",
+	"representation_flag": "Adiabatic",
     "N": 1,
     "F": 2,
     "occ": 0,

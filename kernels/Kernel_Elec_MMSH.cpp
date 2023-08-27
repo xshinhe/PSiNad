@@ -1,10 +1,12 @@
 #include "Kernel_Elec_MMSH.h"
 
+#include "../core/linalg.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Elec_CMM.h"
 #include "Kernel_Elec_SH.h"
 #include "Kernel_NADForce.h"
 #include "Kernel_Random.h"
+#include "Kernel_Representation.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
     ({                                                                               \

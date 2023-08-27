@@ -16,6 +16,7 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     U       = DS->reg<num_complex>("integrator.U", Dimension::PFF);
     c       = DS->reg<num_complex>("integrator.c", Dimension::PF);
     rho_ele = DS->reg<num_complex>("integrator.rho_ele", Dimension::PFF);
+    T       = DS->reg<num_real>("model.rep.T", Dimension::PFF);
 
     occ_nuc = DS->reg<int>("integrator.occ_nuc", Dimension::P);
     rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Dimension::PFF);
@@ -99,7 +100,7 @@ int Kernel_Elec::exec_kernel_impl(int stat) {
  * @brief convert c (electonic amplititude) to kernel (affine map of the density)
  */
 int Kernel_Elec::ker_from_c(num_complex* ker, num_complex* c, num_real xi, num_real gamma, int fdim) {
-    ARRAY_OUTER_CONJ2(ker, c, c, fdim, fdim);
+    ARRAY_OUTER_TRANS2(ker, c, c, fdim, fdim);
     for (int i = 0, idx = 0; i < fdim; ++i) {
         for (int j = 0; j < fdim; ++j, ++idx) {
             ker[idx] *= xi;
@@ -132,6 +133,8 @@ num_complex* Kernel_Elec::c;
 num_complex* Kernel_Elec::c_init;
 num_complex* Kernel_Elec::rho_ele;
 num_complex* Kernel_Elec::rho_ele_init;
+num_real* Kernel_Elec::T;
+num_real* Kernel_Elec::T_init;
 
 int* Kernel_Elec::occ_nuc;
 num_complex* Kernel_Elec::rho_nuc;

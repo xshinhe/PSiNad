@@ -11,7 +11,7 @@
     "varp": 0.5,
     "sstep": 10,
     "N_mc": 1000,
-    "representation_flag": "Adiabatic",
+	"representation_flag": "Adiabatic",
     "dump": "null",
     "result": [
         ["x"], ["p"], ["f"],

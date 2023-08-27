@@ -84,7 +84,7 @@ void ARRAY_MATMUL_TRANS2(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
 }
 
 template <class T>
-void ARRAY_OUTER_CONJ2(T* A, T* B, T* C, size_t N1, size_t N2) {
+void ARRAY_OUTER_TRANS2(T* A, T* B, T* C, size_t N1, size_t N2) {
     ARRAY_MATMUL_TRANS2(A, B, C, N1, 1, N2);
 }
 
@@ -131,14 +131,14 @@ TB ARRAY_TRACE2(TB* B, TC* C, size_t N1, size_t N2) {
 }
 
 template <class TB, class TC>
-TB ARRAY_INNER_CONJ1(TB* B, TC* C, size_t N1) {
+TB ARRAY_INNER_TRANS1(TB* B, TC* C, size_t N1) {
     Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
     Eigen::Map<EigMX<TC>> MapC(C, N1, 1);
     return (MapB.adjoint() * MapC).sum();
 }
 
 template <class TB, class TC, class TD>
-TB ARRAY_INNER_VMV_CONJ1(TB* B, TC* C, TD* D, size_t N1, size_t N2) {
+TB ARRAY_INNER_VMV_TRANS1(TB* B, TC* C, TD* D, size_t N1, size_t N2) {
     Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
     Eigen::Map<EigMX<TC>> MapC(C, N1, N2);
     Eigen::Map<EigMX<TD>> MapD(D, N2, 1);

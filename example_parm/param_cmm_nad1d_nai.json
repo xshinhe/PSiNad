@@ -9,7 +9,7 @@
     "sstep": 100,
     "N_mc": 1000,
     "dump": "null",
-    "gamma0": 0.0,
+	"gamma0": 0.0,
     "result": [
         ["x"], ["p"], ["f"],
         ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],

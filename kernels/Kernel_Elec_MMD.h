@@ -5,7 +5,6 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-
 namespace PROJECT_NS {
 
 DEFINE_POLICY(MMDPolicy,  //

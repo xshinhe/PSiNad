@@ -1,7 +1,7 @@
 {
     "model": "LVCM",
     "solver": "CMM",
-    "lvcm_flag": "CED2",
+	"lvcm_flag": "CED2",
     "N": 200,
     "F": 2,
     "occ": 1,

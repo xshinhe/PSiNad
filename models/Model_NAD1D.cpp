@@ -535,10 +535,9 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
                     x0[0] = 2.1f;
                     break;
             }
-            x0[0]          = 3.4f;  //@debug
             p0[0]          = 0.0f;
             double wground = 5.0e-03;
-            x_sigma[0]     = 0.0;  // sqrt(0.5f / (mass[0] * wground)); // @debug
+            x_sigma[0]     = sqrt(0.5f / (mass[0] * wground));
             p_sigma[0]     = 0.0;  // 0.5f / x_sigma[0];
             break;
         }

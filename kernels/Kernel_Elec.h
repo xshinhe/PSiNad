@@ -38,6 +38,7 @@ class Kernel_Elec final : public Kernel {
     static num_complex *U;                       ///< propogator along classical path
     static num_complex *c, *c_init;              ///< electronic vector
     static num_complex *rho_ele, *rho_ele_init;  ///< electronic density
+    static num_real *T, *T_init;
 
     /**
      * weighting density for nuclear force

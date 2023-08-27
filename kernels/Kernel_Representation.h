@@ -3,7 +3,6 @@
 
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
-#include "../core/linalg.h"
 
 namespace PROJECT_NS {
 
@@ -12,6 +11,11 @@ DEFINE_POLICY(RepresentationPolicy,
               Adiabatic,  // adiabtic representation
               Force,      // @developing in future
               Density     // @developing in future
+);
+
+DEFINE_POLICY(SpacePolicy,
+              H,  // Hilbert space
+              L   // Liouvillian space
 );
 
 /**
@@ -28,6 +32,9 @@ class Kernel_Representation final : public Kernel {
     static bool onthefly;                                    ///< flag indicated the ab inition calculation
 
     inline virtual const std::string name() { return "Kernel_Representation"; }
+
+    static int transform(num_complex *A, num_real *T, int fdim,  //
+                         RepresentationPolicy::_type from, RepresentationPolicy::_type to, SpacePolicy::_type Stype);
 
    private:
     bool do_refer;

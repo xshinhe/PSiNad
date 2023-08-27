@@ -18,17 +18,17 @@
     "sstep": 1,
     "N_mc": 1000,
     "dump": "null",
-    "representation_flag": "Adiabatic",
-    "inp_repr_flag": "Diabatic",
-    "ele_repr_flag": "Diabatic",
+	"representation_flag": "Adiabatic",
+	"inp_repr_flag": "Diabatic",
+	"ele_repr_flag": "Diabatic",
     "BATH_FORCE_BILINEAR": true,
     "result": [
         ["x"], ["p"], ["f"],
-        ["C(w_AA,K1occ)=w_AA*K1occ # KA", "K1dia # KA"],
-        ["C(w_AD,K1Docc)=w_AD*K1Docc # KD", "K1dia # KA"], 
-        ["C(w_AD,K1occ)=w_AD*K1occ # KA", "K1Ddia # KD"], 
-        ["C(w_DD,K1Docc)=w_DD*K1Docc # KD", "K1Ddia # KD"], 
-        ["C(w,K2Docc)=w*K2Docc # KQ", "K2dia # KA"],
+		["C(w_AA,K1occ)=w_AA*K1occ # KA", "K1dia # KA"],
+		["C(w_AD,K1Docc)=w_AD*K1Docc # KD", "K1dia # KA"], 
+		["C(w_AD,K1occ)=w_AD*K1occ # KA", "K1Ddia # KD"], 
+		["C(w_DD,K1Docc)=w_DD*K1Docc # KD", "K1Ddia # KD"], 
+		["C(w,K2Docc)=w*K2Docc # KQ", "K2dia # KA"],
     ]
 }
 

@@ -25,6 +25,10 @@ DEFINE_POLICY(CouplingPolicy,  //
               SE,              //
               Read);           //
 
+DEFINE_POLICY(NSampPolicy,
+              Wigner,     //
+              Classical,  //
+              QCT);
 
 class Model_SystemBath final : public Kernel {
    public:
@@ -65,6 +69,7 @@ class Model_SystemBath final : public Kernel {
     SystemPolicy::_type system_type;
     BathPolicy::_type bath_type;
     CouplingPolicy::_type coupling_type;
+    NSampPolicy::_type nsamp_type;
 
     virtual void read_param_impl(Param* P);
     virtual void init_data_impl(DataSet* DS);

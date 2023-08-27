@@ -1,7 +1,9 @@
 #include "Kernel_NADForce.h"
 
+#include "../core/linalg.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Elec.h"
+#include "Kernel_Representation.h"
 #include "Kernel_Update.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
@@ -57,11 +59,8 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                 break;
             }
             case NADForcePolicy::EHR: {
-                if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic &&
-                    Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
-                    ARRAY_MATMUL3_TRANS1(rho_nuc, T, rho_nuc, T, Dimension::F, Dimension::F, Dimension::F,
-                                         Dimension::F);
-                }
+                Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::inp_repr_type,
+                                                 Kernel_Representation::nuc_repr_type, SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
                     int& B  = FORCE_OPT::nbath;
                     int& J  = FORCE_OPT::Nb;
@@ -80,18 +79,13 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                         f[j]        = std::real(ARRAY_TRACE2(rho_nuc, dVj, Dimension::F, Dimension::F));
                     }
                 }
-
-                if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic &&
-                    Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) {
-                    ARRAY_MATMUL3_TRANS2(rho_nuc, T, rho_nuc, T, Dimension::F, Dimension::F, Dimension::F,
-                                         Dimension::F);
-                }
+                Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::nuc_repr_type,
+                                                 Kernel_Representation::inp_repr_type,
+                                                 SpacePolicy::L);  // not need
                 break;
             }
         }
         for (int j = 0; j < Dimension::N; ++j) f[j] += grad[j];
-
-        ARRAY_SHOW(f, 1, Dimension::N);
     }
     return 0;
 }

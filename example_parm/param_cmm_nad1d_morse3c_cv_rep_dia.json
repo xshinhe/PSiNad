@@ -1,6 +1,6 @@
 {
     "model": "NAD1D",
-    "solver": "SH",
+    "solver": "CMM",
     "nad1d_flag": "MORSE3C",
     "N": 1,
     "F": 3,
@@ -8,13 +8,12 @@
 	"dt": "0.01 fs",
 	"tend": "80.0 fs",
 	"unit_dt": "1.0 fs",
-    "sstep": 10,
-    "N_mc": 100,
-	"representation_flag": "Adiabatic",
+    "sstep": 100,
+    "N_mc": 1000,
+	"use_cv": true,
     "dump": "null",
     "result": [
-		//["occ_ele"],
-        ["x"], ["p"], ["f"], ["K2"],
+        ["x"], ["p"], ["f"],
         ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
         // ["C(w,K1occ)=w*K1occ # wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
     ]

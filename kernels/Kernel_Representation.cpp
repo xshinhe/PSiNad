@@ -1,5 +1,6 @@
 #include "Kernel_Representation.h"
 
+#include "../core/linalg.h"
 #include "Kernel_Declare.h"
 #include "Kernel_NADForce.h"
 
@@ -14,6 +15,22 @@
     })
 
 namespace PROJECT_NS {
+
+int Kernel_Representation::transform(num_complex* A, num_real* T, int fdim,  //
+                                     RepresentationPolicy::_type from, RepresentationPolicy::_type to,
+                                     SpacePolicy::_type Stype) {
+    if (from == to) return 0;
+    int lda = (Stype == SpacePolicy::L) ? fdim : 1;
+    if (from == RepresentationPolicy::Diabatic && to == RepresentationPolicy::Adiabatic) {
+        ARRAY_MATMUL_TRANS1(A, T, A, fdim, fdim, lda);
+        if (Stype == SpacePolicy::L) ARRAY_MATMUL(A, A, T, fdim, fdim, fdim);
+    }
+    if (from == RepresentationPolicy::Adiabatic && to == RepresentationPolicy::Diabatic) {
+        ARRAY_MATMUL(A, T, A, fdim, fdim, lda);
+        if (Stype == SpacePolicy::L) ARRAY_MATMUL_TRANS2(A, A, T, fdim, fdim, fdim);
+    }
+    return 0;
+}
 
 void Kernel_Representation::read_param_impl(Param* PM) {
     std::string rep_string = PM->get<std::string>("representation_flag", LOC(), "Diabatic");
@@ -89,38 +106,52 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
                         // calculate permutation matrix = rountint(T^ * Told)
                         ARRAY_MATMUL_TRANS1(TtTold, T, Told, Dimension::F, Dimension::F, Dimension::F);
 
+
+                        // std::cout << *(_DataSet->reg<int>("timer.istep")) * 1 << "\n";
+
+                        // ARRAY_SHOW(E, 1, Dimension::F);
+                        // ARRAY_SHOW(T, Dimension::F, Dimension::F);
                         // ARRAY_SHOW(TtTold, Dimension::F, Dimension::F);
 
-                        double vset = 0.1 * std::sqrt(1.0e0 / Dimension::F);
-                        for (int i = 0; i < Dimension::F; ++i) {
-                            double maxnorm = 0;
-                            int csr1 = 0, csr2 = 0, csr12 = 0;
-                            for (int k1 = 0, k1k2 = 0; k1 < Dimension::F; ++k1) {
-                                for (int k2 = 0; k2 < Dimension::F; ++k2, ++k1k2) {
-                                    // vmax must be larger than sqrt(1/fdim)
-                                    if (std::abs(TtTold[k1k2]) > maxnorm) {
-                                        maxnorm = std::abs(TtTold[k1k2]);
-                                        csr1 = k1, csr2 = k2, csr12 = k1k2;
-                                    }
-                                }
+                        // ARRAY_SHOW(TtTold, Dimension::F, Dimension::F);
+                        for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+                            for (int k = 0; k < Dimension::F; ++k, ++ik) {
+                                TtTold[ik] = (i == k) ? copysign(1.0f, TtTold[ik]) : 0;
                             }
-                            double vsign = copysign(1.0f, TtTold[csr12]);
-                            for (int k2 = 0, k1k2 = csr1 * Dimension::F;  //
-                                 k2 < Dimension::F;                       //
-                                 ++k2, ++k1k2) {
-                                TtTold[k1k2] = 0;
-                            }
-                            for (int k1 = 0, k1k2 = csr2; k1 < Dimension::F; ++k1, k1k2 += Dimension::F) {
-                                TtTold[k1k2] = 0;
-                            }
-                            TtTold[csr12] = vsign * vset;
                         }
-                        for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = round(TtTold[i] / vset);
+
+                        // ARRAY_SHOW(TtTold, Dimension::F, Dimension::F);
+
+                        // double vset = 0.1 * std::sqrt(1.0e0 / Dimension::F);
+                        // for (int i = 0; i < Dimension::F; ++i) {
+                        //     double maxnorm = 0;
+                        //     int csr1 = 0, csr2 = 0, csr12 = 0;
+                        //     for (int k1 = 0, k1k2 = 0; k1 < Dimension::F; ++k1) {
+                        //         for (int k2 = 0; k2 < Dimension::F; ++k2, ++k1k2) {
+                        //             // vmax must be larger than sqrt(1/fdim)
+                        //             if (std::abs(TtTold[k1k2]) > maxnorm) {
+                        //                 maxnorm = std::abs(TtTold[k1k2]);
+                        //                 csr1 = k1, csr2 = k2, csr12 = k1k2;
+                        //             }
+                        //         }
+                        //     }
+                        //     double vsign = copysign(1.0f, TtTold[csr12]);
+                        //     for (int k2 = 0, k1k2 = csr1 * Dimension::F;  //
+                        //          k2 < Dimension::F;                       //
+                        //          ++k2, ++k1k2) {
+                        //         TtTold[k1k2] = 0;
+                        //     }
+                        //     for (int k1 = 0, k1k2 = csr2; k1 < Dimension::F; ++k1, k1k2 += Dimension::F) {
+                        //         TtTold[k1k2] = 0;
+                        //     }
+                        //     TtTold[csr12] = vsign * vset;
+                        // }
+                        // for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = round(TtTold[i] / vset);
 
                         // adjust order of eigenvectors & eigenvalues
                         ARRAY_MATMUL(T, T, TtTold, Dimension::F, Dimension::F, Dimension::F);
-                        for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = std::abs(TtTold[i]);
-                        ARRAY_MATMUL(E, E, TtTold, 1, Dimension::F, Dimension::F);
+                        // for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = std::abs(TtTold[i]);
+                        // ARRAY_MATMUL(E, E, TtTold, 1, Dimension::F, Dimension::F);
                     }
 
                     if (FORCE_OPT::BATH_FORCE_BILINEAR) {
@@ -174,9 +205,6 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
                         H[ii] = -2 * Ekin * sqrt(std::max<double>(1.0 + (Epes - E[i]) / Ekin, 0.0f));
                     }
                 }
-
-                ARRAY_SHOW(H, Dimension::F, Dimension::F);
-
                 EigenSolve(L, R, H, Dimension::F);  // R*L*R^ = H
                 break;
             }

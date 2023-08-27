@@ -164,20 +164,12 @@ int Kernel_Update_c::exec_kernel_impl(int stat) {
                 for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * E[i] * dt);
                 ARRAY_MATMUL3_TRANS2(Udt, T, invexpidiagdt, T, Dimension::F, Dimension::F, 0, Dimension::F);
                 ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
-                ARRAY_SHOW(U, Dimension::F, Dimension::F);
                 break;
             }
             case RepresentationPolicy::Adiabatic: {
-                if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
-                    ARRAY_MATMUL_TRANS1(U, T, U, Dimension::F, Dimension::F, Dimension::F);
-                }
                 for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * L[i] * dt);
                 ARRAY_MATMUL3_TRANS2(Udt, R, invexpidiagdt, R, Dimension::F, Dimension::F, 0, Dimension::F);
                 ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
-                if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
-                    ARRAY_MATMUL(U, T, U, Dimension::F, Dimension::F, Dimension::F);
-                }
-                ARRAY_SHOW(U, Dimension::F, Dimension::F);
                 break;
             }
             default:  // representation_policy::force, representation_policy::density

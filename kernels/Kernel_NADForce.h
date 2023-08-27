@@ -3,7 +3,6 @@
 
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
-#include "Kernel_Representation.h"
 
 namespace PROJECT_NS {
 

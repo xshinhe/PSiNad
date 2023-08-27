@@ -1,6 +1,7 @@
 #include "Model_Interf_MNDO.h"
 
 #include "../core/Element.h"
+#include "../core/linalg.h"
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
