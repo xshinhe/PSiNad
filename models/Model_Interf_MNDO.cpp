@@ -7,6 +7,16 @@
 #include "../kernels/Kernel_Representation.h"
 #include "../mpi_utils.h"
 
+#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
+    ({                                                                               \
+        std::cout << "Show Array <" << #_A << ">\n";                                 \
+        int _idxA = 0;                                                               \
+        for (int _i = 0; _i < (_n1); ++_i) {                                         \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
+            std::cout << std::endl;                                                  \
+        }                                                                            \
+    })
+
 inline int removeFile(std::string& filename) { return remove(filename.c_str()); }
 
 inline void clearFile(std::string& filename) { std::ofstream clear(filename, std::ios::trunc); }
@@ -154,6 +164,10 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
             x[i] = x[i] / std::sqrt(mass[i]) + x0[i];
             p[i] = p[i] * std::sqrt(mass[i]) + p0[i];
         }
+
+        ARRAY_SHOW(x, 1, Dimension::N);
+        ARRAY_SHOW(p, 1, Dimension::N);
+
     } else if (init_nuclinp == "#fix") {  // for initial md
         for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i], p[i] = 0.0f;
     } else {
@@ -198,6 +212,10 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     if (stat != 0) return stat;
 
     parse_standard(outfile);  // parse in MNDO's units
+
+    ARRAY_SHOW(E, 1, Dimension::F);
+    // ARRAY_SHOW(dE, 1, Dimension::F);
+    ARRAY_SHOW(nac, Dimension::N, Dimension::FF);
 
     track_nac_sign();  // @note track_nac_sign is important
     for (int i = 0, idx = 0; i < Dimension::N; ++i) {
@@ -462,7 +480,7 @@ int Model_Interf_MNDO::parse_standard(const std::string& log) {
         /**
          * @brief find gradients
          */
-        else if (eachline.find("CI CALCULATIODimension::N FOR STATE:") != eachline.npos) {
+        else if (eachline.find("CI CALCULATION FOR STATE:") != eachline.npos) {
             std::istringstream sstr(eachline);
             sstr >> stmp >> stmp >> stmp >> stmp >> istate;
             istate--;
@@ -492,7 +510,7 @@ int Model_Interf_MNDO::parse_standard(const std::string& log) {
          * @brief find non-adiabatic coupling(NAC) terms
          *  note we use the complete formalism (let `MPRINT=1`) in MNDO99
          */
-        else if (eachline.find("CI CALCULATIODimension::N FOR INTERSTATE "
+        else if (eachline.find("CI CALCULATION FOR INTERSTATE "
                                "COUPLING OF STATES:") != eachline.npos) {
             std::istringstream sstr(eachline);
             sstr >> stmp >> stmp >> stmp >> stmp >> stmp >> stmp >> stmp >> istate >> jstate;
@@ -501,15 +519,15 @@ int Model_Interf_MNDO::parse_standard(const std::string& log) {
                 int IJ = istate * Dimension::F + jstate;
                 int JI = jstate * Dimension::F + istate;
                 while (getline(ifs, eachline)) {
-                    if (eachline.find("COMPLETE EXPRESSIODimension::N.") != eachline.npos) {  // let `MPRINT=1`
-                        for (int i = 0, idx = 0; i < natom; ++i) {     ///< found nacv in 1/angstrom
-                            ifs >> stmp                                // skips
-                                >> nac[(idx++) * Dimension::FF + IJ]   // nac(Xk, i, j)
-                                >> nac[(idx++) * Dimension::FF + IJ]   // nac(Yk, i, j)
-                                >> nac[(idx++) * Dimension::FF + IJ];  // nac(Zk, i, j)
+                    if (eachline.find("COMPLETE EXPRESSION.") != eachline.npos) {  // let `MPRINT=1`
+                        for (int i = 0, idx = 0; i < natom; ++i) {                 ///< found nacv in 1/angstrom
+                            ifs >> stmp                                            // skips
+                                >> nac[(idx++) * Dimension::FF + IJ]               // nac(Xk, i, j)
+                                >> nac[(idx++) * Dimension::FF + IJ]               // nac(Yk, i, j)
+                                >> nac[(idx++) * Dimension::FF + IJ];              // nac(Zk, i, j)
                         }
                         for (int idx = 0; idx < Dimension::N; ++idx) {  // copy to the other half-side nacv
-                            dE[idx * Dimension::FF + JI] = -dE[idx * Dimension::FF + IJ];
+                            nac[idx * Dimension::FF + JI] = -nac[idx * Dimension::FF + IJ];
                         }
                         break;
                     }
