@@ -23,11 +23,11 @@ void Kernel_NADForce::read_param_impl(Param* PM) {
 };
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
-    f    = DS->reg<double>("integrator.f", Dimension::N);
-    grad = DS->reg<double>("model.grad", Dimension::N);
-    dV   = DS->reg<double>("model.dV", Dimension::NFF);
-    dE   = DS->reg<double>("model.rep.dE", Dimension::NFF);
-    T    = DS->reg<double>("model.rep.T", Dimension::FF);
+    f    = DS->reg<double>("integrator.f", Dimension::PN);
+    grad = DS->reg<double>("model.grad", Dimension::PN);
+    dV   = DS->reg<double>("model.dV", Dimension::PNFF);
+    dE   = DS->reg<double>("model.rep.dE", Dimension::PNFF);
+    T    = DS->reg<double>("model.rep.T", Dimension::PFF);
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:

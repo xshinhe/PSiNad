@@ -8,7 +8,7 @@ std::shared_ptr<Kernel> SolverFactory(const std::string& name, std::shared_ptr<K
     if (false) {
     } else if (name == "Hello") {
         // return Hello_SBuilder(kmodel);
-    } else if (name == "CMM" || name == "SQC" || name == "MMD" || name == "SH" || name == "MMSH") {
+    } else if (name == "CMM" || name == "SQC" || name == "MMD" || name == "SH" || name == "MMSH" || name == "MCE") {
         return NAD_Kernel(kmodel, name);
     } else {
         throw std::runtime_error("unknown solver name");

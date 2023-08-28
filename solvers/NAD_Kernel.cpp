@@ -5,6 +5,7 @@
 #include "../kernels/Kernel_Elec_MMSH.h"
 #include "../kernels/Kernel_Elec_SH.h"
 #include "../kernels/Kernel_Elec_SQC.h"
+#include "../kernels/Kernel_GWP.h"
 #include "../kernels/Kernel_Load_DataSet.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
@@ -56,6 +57,8 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
         kele = std::shared_ptr<Kernel_Elec_SH>(new Kernel_Elec_SH());
     } else if (NAD_Kernel_name == "MMSH") {
         kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
+    } else if (NAD_Kernel_name == "MCE") {
+        kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP());
     } else {
         throw std::runtime_error("unknown Elec Kernel");
     }

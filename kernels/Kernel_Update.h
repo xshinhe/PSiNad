@@ -113,8 +113,9 @@ class Kernel_Update_c final : public Kernel {
     inline virtual const std::string name() { return "Kernel_Update_c"; }
 
    private:
-    num_complex* Udt;  ///< short time propagator
-    num_complex* U;    ///< full propagator along classical path approximation (CPA)
+    num_complex* Udt;   ///< short time propagator
+    num_complex* U;     ///< full propagator along classical path approximation (CPA)
+    num_complex* dUdt;  ///< (Udt - I)/dt
 
     ///< solve Diabatic propagator
     num_real* E;  ///< Eigenvalue for diabatic V

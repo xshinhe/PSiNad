@@ -112,7 +112,7 @@ void Kernel_Elec_MMD::init_calc_impl(int stat) {
 
         w[0]     = (rand_act) ? num_complex(Dimension::F) : 1.0e0;  ///< initial measure
         *occ_nuc = Kernel_Elec::occ0;                               ///< initial occupation
-        c;                                                          ///< initial c (not used)
+        c;
         rho_focus(rho_ele, *occ_nuc, gamma_ou, gamma_uu, Dimension::F, rand_act, pure_phase, cont_phase);
         rho_nuc;                     ///< initial rho_nuc (not used)
         ARRAY_EYE(U, Dimension::F);  ///< initial propagator
@@ -156,8 +156,8 @@ int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
 
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_ele[ik];
 
-        Kernel_Elec::ker_from_rho(Kernel_Elec::K1, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
-        Kernel_Elec::ker_from_rho(Kernel_Elec::K2, Kernel_Elec::rho_ele, 1, 0, Dimension::F);
+        Kernel_Elec::ker_from_rho(K1, rho_ele, 1, 0, Dimension::F);
+        Kernel_Elec::ker_from_rho(K2, rho_ele, 1, 0, Dimension::F);
     }
     return 0;
 }

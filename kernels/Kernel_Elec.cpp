@@ -21,7 +21,7 @@ void Kernel_Elec::init_data_impl(DataSet* DS) {
     occ_nuc = DS->reg<int>("integrator.occ_nuc", Dimension::P);
     rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Dimension::PFF);
 
-    w = DS->reg<num_complex>("integrator.w");
+    w = DS->reg<num_complex>("integrator.w", Dimension::P);
 
     K1    = DS->reg<num_complex>("integrator.K1", Dimension::PFF);
     K1dia = DS->reg<num_complex>("integrator.K1dia", Dimension::PF);
