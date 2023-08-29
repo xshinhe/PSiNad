@@ -144,13 +144,12 @@ void Kernel_Update_c::read_param_impl(Param* PM) {
 }
 
 void Kernel_Update_c::init_data_impl(DataSet* S) {
-    E    = S->reg<num_real>("model.rep.E", Dimension::PF);
-    T    = S->reg<num_real>("model.rep.T", Dimension::PFF);
-    L    = S->reg<num_real>("model.rep.L", Dimension::PF);
-    R    = S->reg<num_complex>("model.rep.R", Dimension::PFF);
-    U    = S->reg<num_complex>("integrator.U", Dimension::PFF);
-    Udt  = S->reg<num_complex>("integrator.Udt", Dimension::PFF);
-    dUdt = S->reg<num_complex>("integrator.dUdt", Dimension::PFF);
+    E   = S->reg<num_real>("model.rep.E", Dimension::PF);
+    T   = S->reg<num_real>("model.rep.T", Dimension::PFF);
+    L   = S->reg<num_real>("model.rep.L", Dimension::PF);
+    R   = S->reg<num_complex>("model.rep.R", Dimension::PFF);
+    U   = S->reg<num_complex>("integrator.U", Dimension::PFF);
+    Udt = S->reg<num_complex>("integrator.Udt", Dimension::PFF);
 
     invexpidiagdt = S->reg<num_complex>("integrator.tmp.invexpidiagdt", Dimension::F);
 }
@@ -158,13 +157,12 @@ void Kernel_Update_c::init_data_impl(DataSet* S) {
 int Kernel_Update_c::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm
-        num_real* E       = this->E + iP * Dimension::F;
-        num_real* T       = this->T + iP * Dimension::FF;
-        num_real* L       = this->L + iP * Dimension::F;
-        num_complex* R    = this->R + iP * Dimension::FF;
-        num_complex* U    = this->U + iP * Dimension::FF;
-        num_complex* Udt  = this->Udt + iP * Dimension::FF;
-        num_complex* dUdt = this->dUdt + iP * Dimension::FF;
+        num_real* E      = this->E + iP * Dimension::F;
+        num_real* T      = this->T + iP * Dimension::FF;
+        num_real* L      = this->L + iP * Dimension::F;
+        num_complex* R   = this->R + iP * Dimension::FF;
+        num_complex* U   = this->U + iP * Dimension::FF;
+        num_complex* Udt = this->Udt + iP * Dimension::FF;
 
         switch (Kernel_Representation::ele_repr_type) {
             case RepresentationPolicy::Diabatic: {
@@ -182,10 +180,6 @@ int Kernel_Update_c::exec_kernel_impl(int stat) {
             default:  // representation_policy::force, representation_policy::density
                       // LOG(FATAL);
                 break;
-        }
-
-        for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-            for (int k = 0; k < Dimension::F; ++k) { dUdt[ik] = (i == k) ? (Udt[ik] - 1.0e0) / dt : Udt[ik] / dt; }
         }
     }
     return 0;

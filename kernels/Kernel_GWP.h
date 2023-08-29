@@ -29,10 +29,11 @@ class Kernel_GWP final : public Kernel {
                              num_real* alpha,        // [N]
                              int P, int N);
 
-    static int calc_dtlnSele(num_complex* dtlnSele,  // [P,P]
-                             num_complex* c,         // [P,F]
-                             num_complex* dUdt,      // [P,F,F]
-                             int P, int F);
+    static int calc_dtSele(num_complex* dtlnSele,  // [P,P]
+                           num_complex* c,         // [P,F]
+                           num_complex* H,         // [P,F,F]
+                           num_real* vpes,         // [P]
+                           int P, int F);
 
     static int calc_invS(num_complex* invS, num_complex* S, int P);
 
@@ -40,15 +41,18 @@ class Kernel_GWP final : public Kernel {
                                num_complex* Acoeff,  // [P]
                                num_complex* Snuc,    // [P,P]
                                num_complex* c,       // [P,F]
-                               int P, int F);
+                               num_real xi, num_real gamma, int P, int F);
 
     static int calc_Hbasis(num_complex* Hbasis,  // [P,P]
+                           num_real* vpes,       // [P]
+                           num_real* grad,       // [P,N]
                            num_real* V,          // [P,F,F]
                            num_real* dV,         // [P,N,F,F]
                            num_real* x,          // [P,N]
                            num_real* p,          // [P,N]
                            num_real* m,          // [P,N]
                            num_real* alpha,      // [N]
+                           num_complex* Sele,    // [P,P]
                            num_complex* c,       // [P,F]
                            int P, int N, int F   // Dimensions
     );
@@ -68,12 +72,13 @@ class Kernel_GWP final : public Kernel {
     num_real dt;
     num_real xi, gamma, alpha0;
     num_real *alpha, *x, *p, *m, *f;
+    num_real *vpes, *grad;
     num_real *V, *dV, *E, *dE;
-    num_complex *c, *dUdt;
+    num_complex *c, *Udt, *H;
 
     num_complex *S, *invS;
     num_complex *Snuc, *Sele;
-    num_complex *dtlnSnuc, *dtlnSele;
+    num_complex *dtlnSnuc, *dtSele;
     num_complex *S1, *S2;
 
     num_complex* Hbasis;

@@ -94,6 +94,7 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
         switch (representation_type) {
             case RepresentationPolicy::Diabatic: {
                 EigenSolve(E, T, V, Dimension::F);
+                for (int ik = 0; ik < Dimension::FF; ++ik) H[ik] = V[ik];
                 break;
             }
             case RepresentationPolicy::Adiabatic: {
