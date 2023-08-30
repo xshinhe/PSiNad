@@ -69,15 +69,13 @@ int Handler::run_multiple(Param* P) {
         Result corr_sum(corr);
         Result corr_mpi(corr);
 
-        int N_mc       = P->get<int>("N_mc", LOC(), 1);
-        double dt      = P->get<double>("dt", LOC(), phys::time_d);
-        double unit_dt = P->get<double>("unit_dt", LOC(), phys::time_d, 1);
-        int sstep      = P->get<int>("sstep", LOC(), 1);
+        int M = P->get<int>("M", LOC(), 1);
         int istart, iend;
+        std::string directory = P->get<std::string>("directory", LOC(), "default");
 
         MPI_Guard guard{};
         MPI_Barrier(MPI_COMM_WORLD);
-        MPI_Guard::range(0, N_mc, istart, iend);
+        MPI_Guard::range(0, M, istart, iend);
 
         if (MPI_Guard::rank == 0) std::cout << P->repr() << std::endl;
 
@@ -113,12 +111,12 @@ int Handler::run_multiple(Param* P) {
         for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {
             for (int isize = 0; isize < nsize; ++isize, ++i) corr_sum.data[i] /= corr_sum.stat[iframe];
         }
-        corr_sum.save(utils::concat("corr-mpi", MPI_Guard::rank, ".dat"), 0, sstep * dt / unit_dt, true);
+        corr_sum.save(utils::concat(directory, "/corr-mpi", MPI_Guard::rank, ".dat"), 0, -1, true);
         if (MPI_Guard::isroot) {
             for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {
                 for (int isize = 0; isize < nsize; ++isize, ++i) corr_mpi.data[i] /= corr_mpi.stat[iframe];
             }
-            corr_mpi.save("corr.dat", 0, sstep * dt / unit_dt, true);
+            corr_mpi.save(utils::concat(directory, "/corr.dat"), 0, -1, true);
         }
     }
     auto end          = std::chrono::steady_clock::now();

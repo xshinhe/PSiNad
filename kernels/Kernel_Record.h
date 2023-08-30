@@ -7,6 +7,7 @@ namespace PROJECT_NS {
 
 struct Result {
    public:
+    double t0, dt;
     int size;
     int frame;
     std::vector<std::string> header;
@@ -17,6 +18,8 @@ struct Result {
     Result(){};
 
     Result(Result& res) {
+        t0     = res.t0;
+        dt     = res.dt;
         size   = res.size;
         frame  = res.frame;
         header = res.header;
@@ -26,7 +29,7 @@ struct Result {
         memset(data.data(), 0, frame * size * sizeof(double));
     }
 
-    void save(const std::string& fname, double t0, double dt, bool with_header = false);
+    void save(const std::string& fname, int ibegin, int length = -1, bool with_header = false);
     virtual ~Result();
 };
 
@@ -62,7 +65,8 @@ class Kernel_Record final : public Kernel {
     std::vector<std::string> Correlation_STR2;
 
     bool trace;
-    double dt;
+    double t0, dt, time_unit;
+    std::string directory;
 
     virtual void read_param_impl(Param* P);
 

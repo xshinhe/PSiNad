@@ -78,6 +78,7 @@ int main(int argc, char* argv[]) {
 
     (*P.pjson())["trace"]     = FLAGS_trace;
     (*P.pjson())["is_timing"] = FLAGS_timing;
+    (*P.pjson())["directory"] = FLAGS_d;
 
     Handler myhandler = Handler(Handler::multiple, solver_name, model_name);
 

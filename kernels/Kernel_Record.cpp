@@ -5,7 +5,7 @@
 
 namespace PROJECT_NS {
 
-void Result::save(const std::string& fname, double t0, double dt, bool with_header) {
+void Result::save(const std::string& fname, int ibegin, int length, bool with_header) {
     if (size <= 0) return;
     if (with_header) {  // print header
         if (ofs.is_open()) ofs.close();
@@ -15,13 +15,19 @@ void Result::save(const std::string& fname, double t0, double dt, bool with_head
         for (auto& v : header) ofs << FMT(8) << v;
         ofs << std::endl;
     }
+
     // ofs must has been open in this case
-    for (int iframe = 0, idata = 0; iframe < frame; ++iframe) {
+    if (!ofs.is_open()) throw std::runtime_error("result ofs is not open!");
+
+    ibegin   = std::max({ibegin, 0});
+    int iend = (length < 0) ? frame : std::min({ibegin + length, frame});
+    for (int iframe = ibegin, idata = ibegin * size; iframe < iend; ++iframe) {
         ofs << FMT(8) << t0 + iframe * dt;
         ofs << FMT(8) << stat[iframe];
         for (int i = 0; i < size; ++i, ++idata) { ofs << FMT(8) << data[idata]; }
         ofs << std::endl;
     }
+    ofs.flush();
 }
 
 Result::~Result() {
@@ -33,9 +39,12 @@ Kernel_Record::~Kernel_Record() {
     if (ofs_corr.is_open()) ofs_corr.close();
 }
 
-void Kernel_Record::read_param_impl(Param* P) {
-    dt    = P->get<double>("dt", LOC(), phys::time_d);
-    trace = P->get<bool>("trace", LOC(), false);
+void Kernel_Record::read_param_impl(Param* PM) {
+    dt        = PM->get<double>("dt", LOC(), phys::time_d);
+    t0        = PM->get<double>("t0", LOC(), phys::time_d, 0.0f);
+    time_unit = PM->get<double>("time_unit", LOC(), phys::time_d, 1.0f);
+    trace     = PM->get<bool>("trace", LOC(), false);
+    directory = PM->get<std::string>("directory", LOC(), "default");
 }
 
 void Kernel_Record::init_data_impl(DataSet* DS) {
@@ -52,9 +61,9 @@ void Kernel_Record::init_calc_impl(int stat) {
         Result& sampling    = get_sampling();
         Result& correlation = get_correlation();
         sampling.size       = 0;
-        sampling.frame      = (trace) ? 1 : (*nsamp_ptr);
+        sampling.frame      = 1;
         correlation.size    = 0;
-        correlation.frame   = (trace) ? 1 : (*nsamp_ptr);
+        correlation.frame   = (*nsamp_ptr);
 
         for (auto& j : (json["result"])) {
             if (!j.is_array()) continue;
@@ -104,8 +113,12 @@ void Kernel_Record::init_calc_impl(int stat) {
                 }
             }
         }
+        sampling.t0 = t0;
+        sampling.dt = dt * (*sstep_ptr) / time_unit;
         sampling.stat.resize(sampling.frame);
         sampling.data.resize(sampling.size * sampling.frame);
+        correlation.t0 = t0;
+        correlation.dt = dt * (*sstep_ptr) / time_unit;
         correlation.stat.resize(correlation.frame);
         correlation.data.resize(correlation.size * correlation.frame);
     }
@@ -118,7 +131,6 @@ int Kernel_Record::exec_kernel_impl(int stat) {
     bool do_record_header = ((*istep_ptr) == 0);
 
     if (do_record) {
-        double time          = (*istep_ptr) * dt;
         int sampling_idx0    = ((*isamp_ptr) % sampling.frame) * sampling.size;
         int correlation_idx0 = ((*isamp_ptr) % correlation.frame) * correlation.size;
 
@@ -198,8 +210,9 @@ int Kernel_Record::exec_kernel_impl(int stat) {
             Kernel::BREAK                                      = true;
         }
 
-        if (trace) sampling.save(utils::concat("samp", stat, ".dat"), time, 0, do_record_header);
-        if (trace) correlation.save(utils::concat("corr", stat, ".dat"), time, 0, do_record_header);
+        if (trace) sampling.save(utils::concat(directory, "/samp", stat, ".dat"), 0, 1, do_record_header);
+        // if (trace) correlation.save(utils::concat("corr", stat, ".dat"), *isamp_ptr, *isamp_ptr + 1,
+        // do_record_header);
     }
     return 0;
 }
