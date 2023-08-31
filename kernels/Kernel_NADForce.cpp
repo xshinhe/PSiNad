@@ -68,7 +68,7 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
                         double* Forceb0 = Force + b0FF;
-                        double fb0 = std::real(ARRAY_TRACE2(Kernel_Elec::rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double fb0      = std::real(ARRAY_TRACE2(rho_nuc, Forceb0, Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj] = fb0 * Force[bjbb] / Force[b0bb];
                         }
