@@ -58,7 +58,7 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     } else if (NAD_Kernel_name == "MMSH") {
         kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
     } else if (NAD_Kernel_name == "MCE") {
-        kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP());
+        kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, kforc));
     } else {
         throw std::runtime_error("unknown Elec Kernel");
     }

@@ -117,7 +117,7 @@ void Kernel_Elec_MMD::init_calc_impl(int stat) {
         rho_nuc;                     ///< initial rho_nuc (not used)
         ARRAY_EYE(U, Dimension::F);  ///< initial propagator
     }
-    // Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
     Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
     // Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
     Kernel_Elec::T_init = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
@@ -127,9 +127,11 @@ void Kernel_Elec_MMD::init_calc_impl(int stat) {
 int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
         num_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        num_complex* c            = Kernel_Elec::c + iP * Dimension::F;
+        num_complex* c_init       = Kernel_Elec::c_init + iP * Dimension::F;
         num_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
         num_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
+        num_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
         num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
         num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
 
@@ -138,17 +140,27 @@ int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
 
         /////////////////////////////////////////////////////////////////
 
+        for (int i = 0; i < Dimension::F; ++i) c[i] = c_init[i];
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
 
         // 1) transform from inp_repr => ele_repr
+        Kernel_Representation::transform(c, T_init, Dimension::F,               //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         Kernel_Representation::ele_repr_type,  //
+                                         SpacePolicy::H);
         Kernel_Representation::transform(rho_ele, T_init, Dimension::F,         //
                                          Kernel_Representation::inp_repr_type,  //
                                          Kernel_Representation::ele_repr_type,  //
                                          SpacePolicy::L);
         // 2) propagte along ele_repr
+        ARRAY_MATMUL(c, U, c, Dimension::F, Dimension::F, 1);
         ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
 
         // 3) transform back from ele_repr => inp_repr
+        Kernel_Representation::transform(c, T, Dimension::F,                    //
+                                         Kernel_Representation::ele_repr_type,  //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         SpacePolicy::H);
         Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
                                          Kernel_Representation::ele_repr_type,  //
                                          Kernel_Representation::inp_repr_type,  //

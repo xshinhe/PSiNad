@@ -13,10 +13,11 @@ void Kernel_Elec::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec::init_data_impl(DataSet* DS) {
-    U       = DS->reg<num_complex>("integrator.U", Dimension::PFF);
-    c       = DS->reg<num_complex>("integrator.c", Dimension::PF);
-    rho_ele = DS->reg<num_complex>("integrator.rho_ele", Dimension::PFF);
-    T       = DS->reg<num_real>("model.rep.T", Dimension::PFF);
+    U        = DS->reg<num_complex>("integrator.U", Dimension::PFF);
+    c        = DS->reg<num_complex>("integrator.c", Dimension::PF);
+    rho_ele  = DS->reg<num_complex>("integrator.rho_ele", Dimension::PFF);
+    rho_dual = DS->reg<num_complex>("integrator.rho_dual", Dimension::PFF);
+    T        = DS->reg<num_real>("model.rep.T", Dimension::PFF);
 
     occ_nuc = DS->reg<int>("integrator.occ_nuc", Dimension::P);
     rho_nuc = DS->reg<num_complex>("integrator.rho_nuc", Dimension::PFF);
@@ -133,6 +134,8 @@ num_complex* Kernel_Elec::c;
 num_complex* Kernel_Elec::c_init;
 num_complex* Kernel_Elec::rho_ele;
 num_complex* Kernel_Elec::rho_ele_init;
+num_complex* Kernel_Elec::rho_dual;
+num_complex* Kernel_Elec::rho_dual_init;
 num_real* Kernel_Elec::T;
 num_real* Kernel_Elec::T_init;
 

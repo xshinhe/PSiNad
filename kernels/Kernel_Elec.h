@@ -35,9 +35,10 @@ class Kernel_Elec final : public Kernel {
      *   c = U*c_init
      *   rho_ele = U*rho_ele*U^
      */
-    static num_complex *U;                       ///< propogator along classical path
-    static num_complex *c, *c_init;              ///< electronic vector
-    static num_complex *rho_ele, *rho_ele_init;  ///< electronic density
+    static num_complex *U;                         ///< propogator along classical path
+    static num_complex *c, *c_init;                ///< electronic vector
+    static num_complex *rho_ele, *rho_ele_init;    ///< electronic density
+    static num_complex *rho_dual, *rho_dual_init;  ///< electronic density
     static num_real *T, *T_init;
 
     /**
