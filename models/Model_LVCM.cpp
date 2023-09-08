@@ -37,8 +37,8 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             // parameter for PYR24
             double E_data_PYR24[2]       = {-0.4617f, 0.4617f};
             double w_data_PYR24[24]      = {0.0740f, 0.1273f, 0.1568f, 0.1347f, 0.3431f, 0.1157f, 0.3242f, 0.3621f,
-                                            0.2673f, 0.3052f, 0.0968f, 0.0589f, 0.0400f, 0.1726f, 0.2863f, 0.2484f,
-                                            0.1536f, 0.2105f, 0.0778f, 0.2294f, 0.1915f, 0.4000f, 0.3810f, 0.0936f};
+                                       0.2673f, 0.3052f, 0.0968f, 0.0589f, 0.0400f, 0.1726f, 0.2863f, 0.2484f,
+                                       0.1536f, 0.2105f, 0.0778f, 0.2294f, 0.1915f, 0.4000f, 0.3810f, 0.0936f};
             double kcoeff_data_PYR24[46] = {-0.0964f, 0.1194f,  0.0470f, 0.2012f,  0.1594f, 0.0484f,  0.0308f, -0.0308f,
                                             0.0782f,  -0.0782f, 0.0261f, -0.0261f, 0.0717f, -0.0717f, 0.0780f, -0.0780f,
                                             0.0560f,  -0.0560f, 0.0625f, -0.0625f, 0.0188f, -0.0188f, 0.0112f, -0.0112f,
@@ -237,80 +237,91 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
     // model field
     mass = DS->reg<double>("model.mass", Dimension::N);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
-    vpes = DS->reg<double>("model.vpes");
-    grad = DS->reg<double>("model.grad", Dimension::N);
-    hess = DS->reg<double>("model.hess", Dimension::NN);
-    V    = DS->reg<double>("model.V", Dimension::FF);
-    dV   = DS->reg<double>("model.dV", Dimension::NFF);
+    vpes = DS->reg<double>("model.vpes", Dimension::P);
+    grad = DS->reg<double>("model.grad", Dimension::PN);
+    hess = DS->reg<double>("model.hess", Dimension::PNN);
+    V    = DS->reg<double>("model.V", Dimension::PFF);
+    dV   = DS->reg<double>("model.dV", Dimension::PNFF);
     // ddV  = DS->reg<double>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x = DS->reg<double>("integrator.x", Dimension::N);
-    p = DS->reg<double>("integrator.p", Dimension::N);
+    x = DS->reg<double>("integrator.x", Dimension::PN);
+    p = DS->reg<double>("integrator.p", Dimension::PN);
 }
 
 void Model_LVCM::init_calc_impl(int stat) {
-    Kernel_Random::rand_gaussian(x, Dimension::N);
-    Kernel_Random::rand_gaussian(p, Dimension::N);
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_real *x = this->x + iP * Dimension::N;
+        num_real *p = this->p + iP * Dimension::N;
 
-    for (int j = 0; j < Dimension::N; ++j) {
-        x[j] = x[j] * x_sigma[j];
-        p[j] = p[j] * p_sigma[j];
+        Kernel_Random::rand_gaussian(x, Dimension::N);
+        Kernel_Random::rand_gaussian(p, Dimension::N);
+        for (int j = 0; j < Dimension::N; ++j) {
+            x[j] = x[j] * x_sigma[j];
+            p[j] = p[j] * p_sigma[j];
+        }
     }
 
-    _DataSet->set("init.x", x, Dimension::N);
-    _DataSet->set("init.p", p, Dimension::N);
-
+    _DataSet->set("init.x", x, Dimension::PN);
+    _DataSet->set("init.p", p, Dimension::PN);
     exec_kernel(stat);
 }
 
 int Model_LVCM::exec_kernel_impl(int stat) {
-    // ARRAY_SHOW(x, 1, Dimension::N);
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_real *x    = this->x + iP * Dimension::N;
+        num_real *vpes = this->vpes + iP;
+        num_real *grad = this->grad + iP * Dimension::N;
+        num_real *hess = this->hess + iP * Dimension::NN;
+        num_real *V    = this->V + iP * Dimension::FF;
+        num_real *dV   = this->dV + iP * Dimension::NFF;
+        // ARRAY_SHOW(x, 1, Dimension::N);
 
-    // calculate nuclear vpes and grad
-    double term = 0.0f;
-    for (int j = 0; j < Dimension::N; ++j) {
-        term += w[j] * w[j] * x[j] * x[j];
-        grad[j] = w[j] * w[j] * x[j];
-    }
-    vpes[0] = 0.5 * term;
+        // calculate nuclear vpes and grad
+        double term = 0.0f;
+        for (int j = 0; j < Dimension::N; ++j) {
+            term += w[j] * w[j] * x[j] * x[j];
+            grad[j] = w[j] * w[j] * x[j];
+        }
+        vpes[0] = 0.5 * term;
 
-    // electronic pes
-    memset(V, 0, Dimension::FF * sizeof(num_real));
-    for (int ik = 0; ik < Dimension::FF; ++ik) V[ik] = Hsys[ik];
-    // ARRAY_SHOW(V, Dimension::F, Dimension::F);
+        // electronic pes
+        memset(V, 0, Dimension::FF * sizeof(num_real));
+        for (int ik = 0; ik < Dimension::FF; ++ik) V[ik] = Hsys[ik];
+        // ARRAY_SHOW(V, Dimension::F, Dimension::F);
 
-    for (int j = 0, ji = 0; j < N_mode; ++j) {
-        for (int i = 0, ii = 0; i < Dimension::F; ++i, ++ji, ii += Dimension::Fadd1) {
-            V[ii] += kcoeff[ji] * x[j];  //
-        };
-    }
-    for (int j = N_mode, j0ik = 0; j < Dimension::N; ++j) {
-        for (int ik = 0; ik < Dimension::FF; ++ik, ++j0ik) {
-            V[ik] += lcoeff[j0ik] * x[j];  // slow
-        };
-    }
+        for (int j = 0, ji = 0; j < N_mode; ++j) {
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ++ji, ii += Dimension::Fadd1) {
+                V[ii] += kcoeff[ji] * x[j];  //
+            };
+        }
+        for (int j = N_mode, j0ik = 0; j < Dimension::N; ++j) {
+            for (int ik = 0; ik < Dimension::FF; ++ik, ++j0ik) {
+                V[ik] += lcoeff[j0ik] * x[j];  // slow
+            };
+        }
 
-    // ARRAY_SHOW(V, Dimension::F, Dimension::F);
+        // ARRAY_SHOW(V, Dimension::F, Dimension::F);
 
-    if (count_exec == 0) {
-        // N_mode
-        for (int j = 0, ji = 0, jFF = 0; j < N_mode; ++j, jFF += Dimension::FF) {
-            for (int i = 0, jii = jFF; i < Dimension::F; ++i, ++ji, jii += Dimension::Fadd1) {
-                dV[jii] = kcoeff[ji];  //
+        if (count_exec == 0) {
+            // N_mode
+            for (int j = 0, ji = 0, jFF = 0; j < N_mode; ++j, jFF += Dimension::FF) {
+                for (int i = 0, jii = jFF; i < Dimension::F; ++i, ++ji, jii += Dimension::Fadd1) {
+                    dV[jii] = kcoeff[ji];  //
+                }
+            }
+            // N_coup
+            for (int j = N_mode, jFF = N_mode * Dimension::FF, j0FF = 0; j < Dimension::N;
+                 ++j, jFF += Dimension::FF, j0FF += Dimension::FF) {
+                for (int ik = 0, jik = jFF, j0ik = j0FF; ik < Dimension::FF; ++ik, ++jik, ++j0ik) {
+                    dV[jik] = lcoeff[j0ik];
+                }
             }
         }
-        // N_coup
-        for (int j = N_mode, jFF = N_mode * Dimension::FF, j0FF = 0; j < Dimension::N;
-             ++j, jFF += Dimension::FF, j0FF += Dimension::FF) {
-            for (int ik = 0, jik = jFF, j0ik = j0FF; ik < Dimension::FF; ++ik, ++jik, ++j0ik) {
-                dV[jik] = lcoeff[j0ik];
-            }
-        }
-    }
 
-    // ARRAY_SHOW(dV, Dimension::N, Dimension::FF);
-    // exit(-1);
+        // ARRAY_SHOW(dV, Dimension::N, Dimension::FF);
+        // exit(-1);
+    }
     return 0;
 }
 

@@ -32,6 +32,8 @@ class Kernel_GWP final : public Kernel {
     static int calc_Sele(num_complex* S,   // [P,P]
                          num_complex* c1,  // [P,F]
                          num_complex* c2,  // [P,F]
+                         num_real xi,      //
+                         num_real gamma,   //
                          int P, int F);
 
     static int calc_dtlnSnuc(num_complex* dtlnSnuc,  // [P,P]
@@ -95,11 +97,13 @@ class Kernel_GWP final : public Kernel {
     num_real break_thres;
     int time_displace_step;
     num_real dt;
-    num_real xi, gamma;              // for mapping kernel
+    num_real xi, gamma;  // for mapping kernel
+    num_real* gammat_ptr;
     num_real alpha0, width_scaling;  // for initial width
     num_real *x, *p, *m, *f, *g;
     num_real* alpha;
     num_real* ekin;
+    num_real* veF;
 
     num_real *vpes, *grad;
     num_real *V, *dV, *E, *dE, *T;
@@ -130,6 +134,7 @@ class Kernel_GWP final : public Kernel {
     num_complex* I_PP;
     num_complex* fun_diag_P;
     num_complex* fun_diag_F;
+    num_complex* Ubranch;
 
     ///
     num_real *x_last, *p_last, *grad_last, *dV_last, *g_last;
@@ -137,7 +142,7 @@ class Kernel_GWP final : public Kernel {
 
     // bool* pf_cross;
     int P_used, P_used0;
-    int* P_used_ptr;
+    num_real* P_used_ptr;
     int max_clone;
     int* clone_account;
     num_real* norm_ptr;

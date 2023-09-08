@@ -106,11 +106,13 @@ int Kernel_GWP::calc_Snuc(num_complex* Snuc,  // [P,P]
 int Kernel_GWP::calc_Sele(num_complex* Sele,  // [P,P]
                           num_complex* c1,    // [P,F]
                           num_complex* c2,    // [P,F]
+                          num_real xi,        //
+                          num_real gamma,     //
                           int P, int F) {
     Eigen::Map<EigMX<num_complex>> Map_S(Sele, P, P);
     Eigen::Map<EigMX<num_complex>> Map_c1(c1, P, F);
     Eigen::Map<EigMX<num_complex>> Map_c2(c2, P, F);
-    Map_S = Map_c1.conjugate() * Map_c2.transpose();
+    Map_S = xi * Map_c1.conjugate() * Map_c2.transpose() - F * gamma * EigMXc::Identity(P, P);  // or Ones(P, P) @BAD!!!
     return 0;
 }
 
@@ -395,6 +397,7 @@ void Kernel_GWP::init_data_impl(DataSet* DS) {
     MatR_PP    = DS->reg<num_real>("integrator.tmp.MatR_PP", Dimension::PP);
     MatC_PP    = DS->reg<num_complex>("integrator.tmp.MatC_PP", Dimension::PP);
     I_PP       = DS->reg<num_complex>("integrator.tmp.I_PP", Dimension::PP);
+    Ubranch    = DS->reg<num_complex>("integrator.Ubranch", Dimension::FF);
 
     x_last    = DS->reg<num_real>("integrator.x_last", Dimension::PN);
     p_last    = DS->reg<num_real>("integrator.p_last", Dimension::PN);
@@ -403,8 +406,10 @@ void Kernel_GWP::init_data_impl(DataSet* DS) {
     g_last    = DS->reg<num_real>("integrator.g_last", Dimension::P);
     c_last    = DS->reg<num_complex>("integrator.c_last", Dimension::PF);
 
-    P_used_ptr = DS->reg<int>("integrator.P_used");
+    P_used_ptr = DS->reg<num_real>("integrator.P_used");
     norm_ptr   = DS->reg<num_real>("integrator.norm");
+    gammat_ptr = DS->reg<num_real>("integrator.gammat");
+    veF        = DS->reg<num_real>("integrator.veF", Dimension::FF);
 }
 
 void Kernel_GWP::init_calc_impl(int stat) {
@@ -539,7 +544,7 @@ void Kernel_GWP::init_calc_impl(int stat) {
     if (aset_type == 0) {
         for (int a = 0; a < Dimension::P; ++a) Acoeff[a] = (a == 0) ? 1.0e0 : 0.0e0;
     } else if (aset_type == 1) {
-        for (int a = 0; a < Dimension::P; ++a) Acoeff[a] = 1.0e0;
+        for (int a = 0; a < Dimension::P; ++a) Acoeff[a] = 1.0e0;  // @only for test
     }
 
     // normalization of A
@@ -548,9 +553,14 @@ void Kernel_GWP::init_calc_impl(int stat) {
     // std::cout << "P_used_INIT = " << P_used << "\n";
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     calc_Snuc(Snuc, x, p, m, g, x, p, m, g, alpha, Dimension::P, Dimension::N);
-    num_real scale = calc_density(rhored, Acoeff, Snuc, c, xi, gamma, P_used, Dimension::P, Dimension::F);
-    scale          = sqrt(scale);
-    for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= scale;
+    calc_Sele(Sele, c, c, 1, 0, Dimension::P, Dimension::F);
+    for (int ab = 0; ab < Dimension::PP; ++ab) { S[ab] = Snuc[ab] * Sele[ab]; }
+    num_complex scale;
+    ARRAY_MATMUL3_TRANS1(&scale, Acoeff, S, Acoeff, 1, Dimension::P, Dimension::P, 1);
+    for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= sqrt(abs(scale));
+    ARRAY_MATMUL3_TRANS1(&scale, Acoeff, Snuc, Acoeff, 1, Dimension::P, Dimension::P, 1);
+    xi = 1.0e0 + Dimension::F * gamma * abs(scale);
+
     norm_ptr[0] = 1.0e0;
 
     // ARRAY_SHOW(Acoeff, 1, Dimension::P);
@@ -572,9 +582,14 @@ void Kernel_GWP::init_calc_impl(int stat) {
 int Kernel_GWP::impl_0(int stat) {
     // calculate overlap integral & time derivative of overlap integral
 
+    // ARRAY_SHOW(p, Dimension::P, Dimension::N);
+    // ARRAY_SHOW(x, Dimension::P, Dimension::N);
+    // ARRAY_SHOW(c, Dimension::P, Dimension::F);
+    // ARRAY_SHOW(g, 1, Dimension::P);
+
     calc_ekin(ekin, p, m, Dimension::P, Dimension::N);
     calc_Snuc(Snuc, x, p, m, g, x, p, m, g, alpha, Dimension::P, Dimension::N);
-    calc_Sele(Sele, c, c, Dimension::P, Dimension::F);
+    calc_Sele(Sele, c, c, 1, 0, Dimension::P, Dimension::F);
     calc_dtlnSnuc(dtlnSnuc, x, p, m, f, alpha, ekin, Dimension::P, Dimension::N);
     calc_dtSele(dtSele, Sele, c, H, vpes, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) { S[ab] = Snuc[ab] * Sele[ab]; }
@@ -583,6 +598,8 @@ int Kernel_GWP::impl_0(int stat) {
     for (int a = 0; a < Dimension::P; ++a) fun_diag_P[a] = 1.0e0 / L1[a];
     ARRAY_MATMUL3_TRANS2(invS, R1, fun_diag_P, R1, Dimension::P, Dimension::P, 0, Dimension::P);
 
+    // ARRAY_SHOW(Snuc, Dimension::P, Dimension::P);
+    // ARRAY_SHOW(Sele, Dimension::P, Dimension::P);
     // ARRAY_SHOW(S, Dimension::P, Dimension::P);
     // ARRAY_SHOW(invS, Dimension::P, Dimension::P);
 
@@ -614,39 +631,38 @@ int Kernel_GWP::impl_0(int stat) {
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     ARRAY_MATMUL(Acoeff, UXdt, Acoeff, Dimension::P, Dimension::P, 1);
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
+    num_complex scale;
+    ARRAY_MATMUL3_TRANS1(&scale, Acoeff, S, Acoeff, 1, Dimension::P, Dimension::P, 1);
+    norm_ptr[0] *= abs(scale);
+    for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= sqrt(abs(scale));
 
-    // ARRAY_SHOW(Acoeff, 1, Dimension::P);
+    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
 
     cloning();
     death();
-
-    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
     return 0;
 }
 
 int Kernel_GWP::impl_1(int stat) {
-    // update phase
-    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
-
     // ARRAY_SHOW(x_last, Dimension::P, Dimension::N);
     // ARRAY_SHOW(x, Dimension::P, Dimension::N);
 
     // calculate overlap integral
     calc_ekin(ekin, p, m, Dimension::P, Dimension::N);
     calc_Snuc(Snuc, x_last, p_last, m, g_last, x_last, p_last, m, g_last, alpha, Dimension::P, Dimension::N);
-    calc_Sele(Sele, c_last, c_last, Dimension::P, Dimension::F);
+    calc_Sele(Sele, c_last, c_last, 1, 0, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) S1[ab] = Snuc[ab] * Sele[ab];
 
     // ARRAY_SHOW(S1, Dimension::P, Dimension::P);
 
     calc_Snuc(Snuc, x, p, m, g, x_last, p_last, m, g_last, alpha, Dimension::P, Dimension::N);
-    calc_Sele(Sele, c, c_last, Dimension::P, Dimension::F);
+    calc_Sele(Sele, c, c_last, 1, 0, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) Sx[ab] = Snuc[ab] * Sele[ab];
 
     // ARRAY_SHOW(Sx, Dimension::P, Dimension::P);
 
     calc_Snuc(Snuc, x, p, m, g, x, p, m, g, alpha, Dimension::P, Dimension::N);
-    calc_Sele(Sele, c, c, Dimension::P, Dimension::F);
+    calc_Sele(Sele, c, c, 1, 0, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) S2[ab] = Snuc[ab] * Sele[ab];
     for (int ab = 0; ab < Dimension::PP; ++ab) S[ab] = S2[ab];
 
@@ -690,6 +706,13 @@ int Kernel_GWP::impl_1(int stat) {
     ARRAY_MATMUL(Xcoeff, invS2h, Xcoeff, Dimension::P, Dimension::P, 1);
 
     ARRAY_MATMUL(Acoeff, invS2h, Xcoeff, Dimension::P, Dimension::P, 1);
+
+    num_complex scale;
+    ARRAY_MATMUL3_TRANS1(&scale, Acoeff, S, Acoeff, 1, Dimension::P, Dimension::P, 1);
+    norm_ptr[0] *= abs(scale);
+
+    // update phase
+    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
 
     cloning();
     death();
@@ -742,11 +765,10 @@ int Kernel_GWP::exec_kernel_impl(int stat) {
             break;
         }
     }
-    num_real scale = calc_density(rhored, Acoeff, Snuc, c, xi, gamma, P_used, Dimension::P, Dimension::F);
-    for (int ik = 0; ik < Dimension::FF; ++ik) rhored[ik] /= scale;
-    norm_ptr[0] *= scale;
-    scale = sqrt(scale);
-    for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= scale;
+    num_complex scale;
+    ARRAY_MATMUL3_TRANS1(&scale, Acoeff, Snuc, Acoeff, 1, Dimension::P, Dimension::P, 1);
+    xi = 1.0e0 + Dimension::F * gamma * abs(scale);
+    calc_density(rhored, Acoeff, Snuc, c, xi, gamma, P_used, Dimension::P, Dimension::F);
 
     ARRAY_CLEAR(rhored2, Dimension::FF);
     for (int a = 0, aik = 0; a < P_used; ++a) {
@@ -760,45 +782,71 @@ int Kernel_GWP::cloning() {
     P_used_ptr[0] = P_used;
     if (P_used >= Dimension::P) return 0;
     int P_increase = P_used;
+
+    // calc_Snuc(Snuc, this->x, this->p, this->m, this->g, this->x, this->p, this->m, this->g, alpha, Dimension::P,
+    //           Dimension::N);
+    // calc_density(rhored, Acoeff, Snuc, c, xi, gamma, P_used, Dimension::P, Dimension::F);
+    // ARRAY_SHOW(Snuc, Dimension::P, Dimension::P);
+    // ARRAY_SHOW(c, Dimension::P, Dimension::F);
+    // ARRAY_SHOW(Acoeff, Dimension::P, 1);
+    // ARRAY_SHOW(rhored, Dimension::F, Dimension::F);
+
+    // calc_density(rhored, Acoeff, Snuc, c, 1, 0, P_used, Dimension::P, Dimension::F);
+    // ARRAY_SHOW(rhored, Dimension::F, Dimension::F);
+
     for (int iP = 0; iP < P_used; ++iP) {
-        num_real* g    = this->g + iP;
-        num_real* x    = this->x + iP * Dimension::N;
-        num_real* p    = this->p + iP * Dimension::N;
-        num_real* f    = this->f + iP * Dimension::N;
-        num_real* grad = this->grad + iP * Dimension::N;
-        num_real* dV   = this->dV + iP * Dimension::NFF;
-        num_complex* c = this->c + iP * Dimension::F;
+        num_real* g         = this->g + iP;
+        num_real* x         = this->x + iP * Dimension::N;
+        num_real* p         = this->p + iP * Dimension::N;
+        num_real* f         = this->f + iP * Dimension::N;
+        num_real* grad      = this->grad + iP * Dimension::N;
+        num_real* V         = this->V + iP * Dimension::FF;
+        num_real* dV        = this->dV + iP * Dimension::NFF;
+        num_complex* c      = this->c + iP * Dimension::F;
+        num_complex* c_init = Kernel_Elec::c_init + iP * Dimension::F;
+        num_complex* U      = Kernel_Elec::U + iP * Dimension::FF;
 
         /////////////////////////////////////////////////
 
         double max_break_val = 0.0e0;
-        int break_state      = 0;
+        int break_state_i = -1, break_state_k = -1;
+        Eigen::Map<EigMXr> Map_veF(veF, Dimension::FF, 1);
+        Eigen::Map<EigMXr> Map_dV(dV, Dimension::N, Dimension::FF);
+        Eigen::Map<EigMXr> Map_p(p, Dimension::N, 1);
+        Eigen::Map<EigMXr> Map_m(m, Dimension::N, 1);
+        Map_veF = Map_dV.transpose() * (Map_p.array() / Map_m.array()).matrix();
+
         for (int i = 0; i < Dimension::F; ++i) {
-            double break_val = 0.0e0;
-            double rhoii     = std::abs(c[i] * c[i]);
-            for (int j = 0; j < Dimension::N; ++j) {
-                break_val += rhoii * abs(grad[j] + dV[j * Dimension::FF + i * Dimension::Fadd1] - f[j]) / m[j];
-            }
-            if (break_val > max_break_val) {
-                break_state   = i;
-                max_break_val = break_val;
+            for (int k = i + 1; k < Dimension::F; ++k) {
+                double break_val =
+                    std::abs(c[i] * c[i] * c[k] * c[k] * (veF[i * Dimension::Fadd1] - veF[k * Dimension::Fadd1]) /
+                             (1e-6 + abs(V[i * Dimension::Fadd1] - V[k * Dimension::Fadd1])));
+                if (break_val > max_break_val) {
+                    max_break_val = break_val;
+                    break_state_i = i;
+                    break_state_k = k;
+                }
             }
         }
-
         if (max_break_val > break_thres) {
-            double norm_b = abs(c[break_state]);
-            double norm_a = sqrt(1 - norm_b * norm_b);
+            int break_state = (std::abs(c[break_state_i]) > std::abs(c[break_state_k])) ? break_state_i : break_state_k;
+            double norm_b   = abs(c[break_state]);
+            double norm_a   = sqrt(1 - norm_b * norm_b);
+            num_complex norm_phase_a = norm_a * (norm_a + phys::math::im * norm_b);
+            num_complex norm_phase_b = norm_b * (norm_b - phys::math::im * norm_a);
 
-            // std::cout << "norm_a, norm_b, P_used, P_increase: " << norm_a << ", " << norm_b << ", " << P_used << ", "
-            //           << P_increase << "\n";
+            // std::cout << "norm_a, norm_b, iP, P_used, P_increase: " << norm_a << ", " << norm_b << ", " << iP << ","
+            //           << P_used << ", " << P_increase << "\n";
 
-            num_real* g_new    = this->g + P_increase;
-            num_real* x_new    = this->x + P_increase * Dimension::N;
-            num_real* p_new    = this->p + P_increase * Dimension::N;
-            num_real* f_new    = this->f + P_increase * Dimension::N;
-            num_real* grad_new = this->grad + P_increase * Dimension::N;
-            num_real* dV_new   = this->dV + P_increase * Dimension::NFF;
-            num_complex* c_new = this->c + P_increase * Dimension::F;
+            num_real* g_new         = this->g + P_increase;
+            num_real* x_new         = this->x + P_increase * Dimension::N;
+            num_real* p_new         = this->p + P_increase * Dimension::N;
+            num_real* f_new         = this->f + P_increase * Dimension::N;
+            num_real* grad_new      = this->grad + P_increase * Dimension::N;
+            num_real* dV_new        = this->dV + P_increase * Dimension::NFF;
+            num_complex* c_new      = this->c + P_increase * Dimension::F;
+            num_complex* c_init_new = Kernel_Elec::c_init + P_increase * Dimension::F;
+            num_complex* U_new      = Kernel_Elec::U + P_increase * Dimension::FF;
 
             g_new[0] = g[0];
             for (int j = 0; j < Dimension::N; ++j) x_new[j] = x[j];
@@ -807,13 +855,18 @@ int Kernel_GWP::cloning() {
             for (int j = 0; j < Dimension::N; ++j) grad_new[j] = grad[j];
             for (int j = 0; j < Dimension::NFF; ++j) dV_new[j] = dV[j];
 
-            for (int i = 0; i < Dimension::F; ++i) c[i] = ((i == break_state) ? 0.0e0 : c[i]) / norm_a;
-            for (int i = 0; i < Dimension::F; ++i) c_new[i] = ((i == break_state) ? 1.0e0 : 0.0e0);
+            for (int i = 0; i < Dimension::F; ++i) fun_diag_F[i] = c[i];
+            for (int i = 0; i < Dimension::F; ++i) c_new[i] = ((i == break_state) ? 0.0e0 : (c[i] / norm_phase_a));
+            for (int i = 0; i < Dimension::F; ++i) c_init_new[i] = c_init[i];
+            ARRAY_MATMUL_TRANS2(Ubranch, c_new, fun_diag_F, Dimension::F, 1, Dimension::F);
+            ARRAY_MATMUL(U_new, Ubranch, U, Dimension::F, Dimension::F, Dimension::F);
 
-            // ARRAY_SHOW(Acoeff, 1, Dimension::P);
-            Acoeff[P_increase] = Acoeff[iP] * norm_b;
-            Acoeff[iP] *= norm_a;
-            // ARRAY_SHOW(Acoeff, 1, Dimension::P);
+            for (int i = 0; i < Dimension::F; ++i) c[i] = ((i == break_state) ? c[i] / norm_phase_b : 0.0e0);
+            ARRAY_MATMUL_TRANS2(Ubranch, c, fun_diag_F, Dimension::F, 1, Dimension::F);
+            ARRAY_MATMUL(U, Ubranch, U, Dimension::F, Dimension::F, Dimension::F);
+
+            Acoeff[P_increase] = Acoeff[iP] * norm_phase_a;
+            Acoeff[iP] *= norm_phase_b;
 
             P_increase++;
 
@@ -824,7 +877,21 @@ int Kernel_GWP::cloning() {
     // std::cout << "cloning " << P_increase - P_used << " trajs\n";
     // std::cout << "P_used = " << P_used << "\n";
 
-    P_used = P_increase;
+    if (P_increase > P_used) {
+        // std::cout << "\n#############################################\n\n";
+
+        P_used = P_increase;
+        // calc_Snuc(Snuc, this->x, this->p, this->m, this->g, this->x, this->p, this->m, this->g, alpha, Dimension::P,
+        //           Dimension::N);
+        // calc_density(rhored, Acoeff, Snuc, c, xi, gamma, P_used, Dimension::P, Dimension::F);
+        // ARRAY_SHOW(Snuc, Dimension::P, Dimension::P);
+        // ARRAY_SHOW(c, Dimension::P, Dimension::F);
+        // ARRAY_SHOW(Acoeff, Dimension::P, 1);
+        // ARRAY_SHOW(rhored, Dimension::F, Dimension::F);
+        // calc_density(rhored, Acoeff, Snuc, c, 1, 0, P_used, Dimension::P, Dimension::F);
+        // ARRAY_SHOW(rhored, Dimension::F, Dimension::F);
+    }
+
 
     // std::cout << "after P_used = " << P_used << "\n";
     return 0;
