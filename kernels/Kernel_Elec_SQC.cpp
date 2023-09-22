@@ -51,6 +51,7 @@ int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
         num_real randu;
         Kernel_Random::rand_uniform(&randu);
         randu *= phys::math::twopi;
+        c[i] = sqrt(c[i]);
         c[i] *= (cos(randu) + phys::math::im * sin(randu));
     }
     return 0;
@@ -66,8 +67,8 @@ int Kernel_Elec_SQC::ker_binning(num_complex* ker, num_complex* rho, int sqc_typ
     for (int i = 0, ij = 0; i < Dimension::F; ++i) {
         for (int j = 0; j < Dimension::F; ++j, ++ij) {
             for (int k = 0, kk = 0; k < Dimension::F; ++k, kk += Dimension::Fadd1) {
-                double vk = std::abs(rho[kk]);
-                bool Outlier;
+                double vk    = std::abs(rho[kk]);
+                bool Outlier = false;
                 switch (sqc_type) {
                     case SQCPolicy::TRI:
                         Outlier = (i == j) ? ((k != i && vk > 1) || (k == i && vk < 1))
@@ -141,11 +142,9 @@ int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
         num_real* T               = Kernel_Elec::T + iP * Dimension::FF;
         num_real* T_init          = Kernel_Elec::T_init + iP * Dimension::FF;
 
-
+        // 1) transform from inp_repr => ele_repr
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_nuc_init[ik];
-
-        // 1) transform from inp_repr => ele_repr
         Kernel_Representation::transform(rho_ele, T_init, Dimension::F,         //
                                          Kernel_Representation::inp_repr_type,  //
                                          Kernel_Representation::ele_repr_type,  //
