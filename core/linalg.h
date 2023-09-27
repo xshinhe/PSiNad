@@ -151,6 +151,23 @@ void ARRAY_EYE(T* A, size_t n) {
     MapA = EigMX<T>::Identity(n, n);
 }
 
+template <class TA, class TB>
+void ARRAY_MAT_DIAG(TA* A, TB* B, size_t N1) {
+    Eigen::Map<EigMX<TA>> MapA(A, N1, N1);
+    Eigen::Map<EigMX<TB>> MapB(B, N1, N1);
+    ARRAY_CLEAR(A, N1 * N1);
+    // MapA.array()    = TA(0);
+    MapA.diagonal() = MapB.diagonal();
+}
+
+template <class TA, class TB>
+void ARRAY_MAT_OFFD(TA* A, TB* B, size_t N1) {
+    Eigen::Map<EigMX<TA>> MapA(A, N1, N1);
+    Eigen::Map<EigMX<TB>> MapB(B, N1, N1);
+    MapA                    = MapB;
+    MapA.diagonal().array() = TA(0);
+}
+
 /*===========================================================
 =            realize interface of linear algebra            =
 ===========================================================*/

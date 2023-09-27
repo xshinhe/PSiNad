@@ -1,0 +1,108 @@
+#ifndef MODEL_BASIC_H
+#define MODEL_BASIC_H
+
+#include "model.h"
+
+enum ForceFieldType {
+    ForceFieldModel,
+    ForceFieldOnTheFly,
+};
+
+class ForceField : public Model {
+   public:
+    ForceField(const Param& iparm);
+
+    virtual ~ForceField();
+
+    int type = ForceFieldModel;
+};
+
+class BO_ForceField : public ForceField {
+   public:
+    BO_ForceField(const Param& iparm);
+    virtual ~BO_ForceField();
+    int get_N();
+    double Suggest_dt();
+    double Suggest_tend();
+
+    virtual int ForceField_init(double* nr, double* np, double* nm, const int& rdim, const int& itraj);
+
+    virtual int ForceField_spec(double* nr, double* np, double* nm, const int& rdim);
+
+    virtual int nspec();
+
+    virtual int ForceField_npes(double* V, double* dV, double* ddV, double* R, double* P, const int& flag,
+                                const int& rdim);
+
+    virtual int ForceField_npes(double* V, double* dV, double* ddV, double* R, double* P, const int& flag,
+                                const int& rdim, const int& itraj, const int& isamp);
+
+
+    int ForceField_init_default_build(const double& beta, const int& rdim);
+
+    // Harmonic Wigner/Wavepacket sampling.
+    int ForceField_init_default(double* nr, double* np, double* nm, const int& rdim, const int& itraj);
+
+
+    virtual int CheckForceField();
+
+    virtual int ForceField_write(std::ofstream& ofs0, double* nr, double* np, double* nm, const int& rdim,
+                                 const int& itraj, const int& isamp);
+
+   public:
+    num_real *mod_M, *mod_W, *mod_R0, *mod_P0, *mod_sigmaR, *mod_sigmaP;  // for nuclear sampling
+
+   protected:
+    int N, NN;                  // for size
+    num_real mod_dt, mod_tend;  // for numerical
+};
+
+class Nad_ForceField : public BO_ForceField {
+   public:
+    Nad_ForceField(const Param& iparm);
+    virtual ~Nad_ForceField();
+    int get_F();
+
+    virtual int ForceField_spec(double* nr, double* np, double* nm, const int& rdim, const int& fdim);
+
+    virtual int nspec();
+
+    virtual int ForceField_npes(double* V, double* dV, double* ddV, double* R, double* P, const int& flag,
+                                const int& rdim);
+
+    virtual int ForceField_npes(double* V, double* dV, double* ddV, double* R, double* P, const int& flag,
+                                const int& rdim, const int& itraj, const int& isamp);
+
+    virtual int ForceField_init(double* nr, double* np, double* nm, num_complex* erho, num_complex* eeac, int& eocc,
+                                const int& rdim, const int& fdim, const int& itraj);
+
+    virtual int ForceField_epes(double* V, double* dV, double* ddV, double* R, const int& flag, const int& rdim,
+                                const int& fdim);
+
+    virtual int ForceField_epes(double* V, double* dV, double* ddV, double* R, const int& flag, const int& rdim,
+                                const int& fdim, const int& itraj, const int& isamp);
+
+
+    // Harmonic Wigner/Wavepacket sampling.
+    int ForceField_init_default(double* nr, double* np, double* nm, num_complex* erho, num_complex* eeac, int& eocc,
+                                const int& rdim, const int& fdim, const int& itraj);
+
+    int ForceField_init_elec(num_complex* erho, num_complex* eeac, int& eocc, const int& fdim, const int& itraj);
+
+    virtual int CheckForceField();
+
+    virtual int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, double* nr, double* np, double* nm,
+                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+                                 const int& itraj, const int& isamp);
+
+    virtual int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim);
+
+   public:
+    num_complex *mod_eac, *mod_rho;  // for electronic sampling
+
+   protected:
+    int F, FF, NF, NFF, NNF, NNFF;  // for size
+    int mod_occ;
+};
+
+#endif  // MODEL_BASIC_H

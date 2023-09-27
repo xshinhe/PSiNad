@@ -1,0 +1,22 @@
+{ 
+    "model" : "canoninter",
+    "model_parm": {
+        "ffflag": "ben5",
+        "rdim": 5,
+        "fdim": 3,
+        "tend": "300 fs",
+        "dt": "0.01 fs",
+        "occ": 2,
+    },
+    // meyer-miller dynamics
+    "solver": "hopping",
+    "solver_parm": {
+        "type": "dish",
+        "dishw": 10.0,
+        "rep_flag": "#adia",
+        "ini_flag": "#d2a",
+        "sstep" : 50,
+        "ntraj": 100,
+   },
+}
+

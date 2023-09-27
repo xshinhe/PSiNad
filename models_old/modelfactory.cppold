@@ -1,0 +1,96 @@
+#include <string>
+
+#include "../utils/definitions.h"
+#include "bo_forcefield/liquidne_model.h"
+#include "bo_forcefield/md1d_models.h"
+#include "bo_forcefield/sctest_models.h"
+#include "bo_forcefield/smallmol_models.h"
+#include "bo_forcefield/water_models.h"
+#include "forcefieldbase.h"
+#include "interface/interf_gausstddft.h"
+#include "interface/interf_mndo99mrci.h"
+#include "nad_forcefield/ZnPc.h"
+#include "nad_forcefield/atomced.h"
+#include "nad_forcefield/lvcm_model.h"
+#include "nad_forcefield/nad1d_models.h"
+#include "nad_forcefield/pyrincavity_models.h"
+#include "nad_forcefield/scatter1d_models.h"
+#include "nad_forcefield/spectrum_nadmodels.h"
+#include "nad_forcefield/systembath.h"
+// #include "sanderapi/interf_sander.h"
+
+//
+#include "py_interface/interf_pythonff.h"
+
+// ManySite Models (TEST)
+#include "nad_forcefield/manysite_models.h"
+
+// #include "electransfer.h"
+// #include "morse2pes.h"
+// #include "morse3pes.h"
+// #include "morsedps.h"
+// #include "tully.h"
+// #include "pyrazine.h"
+// #include "b850.h"
+// #include "cavity.h"
+// #include "ivp.h"
+// #include "potlib.h"
+
+#include "model.h"
+#include "modelfactory.h"
+
+Model* init_model(const std::string& model_name, const Param& parm) {
+    Model* mymodel = NULL;
+    if (model_name == SystemBath_ForceField::name()) {
+        mymodel = new SystemBath_ForceField(parm);
+    } else if (model_name == ZnPc_ForceField::name()) {
+        mymodel = new ZnPc_ForceField(parm);
+    } else if (model_name == NAD1D_ForceField::name()) {
+        mymodel = new NAD1D_ForceField(parm);
+    } else if (model_name == Scatter1D_ForceField::name()) {
+        mymodel = new Scatter1D_ForceField(parm);
+    } else if (model_name == AtomCED_ForceField::name()) {
+        mymodel = new AtomCED_ForceField(parm);
+    } else if (model_name == LVCM_ForceField::name()) {
+        mymodel = new LVCM_ForceField(parm);
+    } else if (model_name == MD1D_ForceField::name()) {
+        mymodel = new MD1D_ForceField(parm);
+    } else if (model_name == SCTEST_ForceField::name()) {
+        mymodel = new SCTEST_ForceField(parm);
+    } else if (model_name == SmallMol_ForceField::name()) {
+        mymodel = new SmallMol_ForceField(parm);
+    } else if (model_name == Water_ForceField::name()) {
+        mymodel = new Water_ForceField(parm);
+    } else if (model_name == Spectrum_NAD_ForceField::name()) {
+        mymodel = new Spectrum_NAD_ForceField(parm);
+    } else if (model_name == PyrCav_ForceField::name()) {
+        mymodel = new PyrCav_ForceField(parm);
+    } else if (model_name == ManySite_ForceField::name()) {
+        mymodel = new ManySite_ForceField(parm);
+    } else if (model_name == MNDO99_ForceField::name()) {
+        mymodel = new MNDO99_ForceField(parm);
+    } else if (model_name == GAUSS16_ForceField::name()) {
+        mymodel = new GAUSS16_ForceField(parm);
+    }
+    // else if (model_name == sander_ForceField::name()) {
+    //     mymodel = new sander_ForceField(parm);
+    // }
+    else if (model_name == LiquidNe_ForceField::name()) {
+        mymodel = new LiquidNe_ForceField(parm);
+    }
+    // else if (model_name == AMBER_ForceField::name()) {
+    //     mymodel = new AMBER_ForceField(parm);
+    // }
+    // else if (model_name == GROMACS_ForceField::name()) {
+    //     mymodel = new GROMACS_ForceField(parm);
+    // }
+    // else if (model_name == OPENMM_ForceField::name()) {
+    //     mymodel = new OPENMM_ForceField(parm);
+    // }
+    else if (model_name == PythonFF_ForceField::name()) {
+        mymodel = new PythonFF_ForceField(parm);
+    } else {
+        LOG(FATAL) << "Cannot parse <forcefield> " << model_name << std::endl;
+    }
+    return mymodel;
+}

@@ -1,0 +1,27 @@
+{ 
+	// 这是model的名字
+    "model" : "smallmol",
+    // model的传入参数表
+    "model_parm": {
+        "rdim": 12,
+		"type": "#h2o2",
+    },
+    // 调用solver的名字
+    "solver": "pimd",
+    // solver的传入参数表
+    "solver_parm": {
+    "gammal": 0.0076,
+    "ntraj":8,
+		"temp": "300 K",
+		"nbead": 128,
+		"dt": "0.001 fs",
+		"tend": "1 fs",
+		"nthstp": 1,
+		"sstep": 1000,
+		"not used": 0, // 用不到的参数会跳过
+    },
+}
+
+
+
+

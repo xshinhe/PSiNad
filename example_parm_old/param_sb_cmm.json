@@ -1,0 +1,28 @@
+{
+    "model": "SystemBath",
+    "solver": "CMM",
+    "N": 300,
+    "F": 2,
+    "nbath": 1,
+    "Nb": 300,
+    "system_flag": "SB",
+    "coupling_flag": "SB",
+    "bath_flag": "Ohmic",
+    "strength_flag": "Alpha",
+    "strength": 0.1,
+    "omegac": 2.5,
+    "temperature": "5.0 auK^-1",
+    "occ": 0,
+    "dt": 0.01,
+    "tend": 15.0,
+    "sstep": 10,
+    // "gamma0": 0.366,
+    "N_mc": 10000,
+    "dump": "null",
+    "result": [
+        ["x"], ["p"], ["f"],
+        ["C(ker0)=2*ker0", "kert"],
+        //["R(x)=x^2"],
+    ]
+}
+

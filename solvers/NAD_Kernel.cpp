@@ -1,6 +1,7 @@
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Dump_DataSet.h"
 #include "../kernels/Kernel_Elec_CMM.h"
+#include "../kernels/Kernel_Elec_CMSH.h"
 #include "../kernels/Kernel_Elec_MMD.h"
 #include "../kernels/Kernel_Elec_MMSH.h"
 #include "../kernels/Kernel_Elec_SH.h"
@@ -57,6 +58,8 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
         kele = std::shared_ptr<Kernel_Elec_SH>(new Kernel_Elec_SH());
     } else if (NAD_Kernel_name == "MMSH") {
         kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
+    } else if (NAD_Kernel_name == "CMSH") {
+        kele = std::shared_ptr<Kernel_Elec_CMSH>(new Kernel_Elec_CMSH());
     } else if (NAD_Kernel_name == "MCE") {
         kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, kforc));
     } else {

@@ -1,0 +1,29 @@
+{ 
+	// 这是model的名字
+    "model" : "smallmol",
+    // model的传入参数表
+    "model_parm": {
+        "rdim": 375,
+		"type": "#parah2",
+    "dens": "0.07875 g/cm^3",
+    },
+    // 调用solver的名字
+    "solver": "pimd",
+    // solver的传入参数表
+    "solver_parm": {
+    "pimd_flag": "#stag",
+    "gammal": 0.0076,
+    "ntraj":4,
+		"temp": "14 K",
+		"nbead":96 ,
+		"dt": "1 fs",
+		"tend": "10 ps",
+		"nthstp": 1,
+		"sstep": 100,
+		"not used": 0, // 用不到的参数会跳过
+    },
+}
+
+
+
+

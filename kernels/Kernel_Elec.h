@@ -50,11 +50,25 @@ class Kernel_Elec final : public Kernel {
     /**
      * kernels for time correlation function
      */
-    static num_complex *w;                   ///< initial measurement of the phase point
-    static num_complex *K1, *K1occ, *K1dia;  ///< partial version of K1
-    static num_complex *K2, *K2occ, *K2dia;  ///< partial version of K2
-    static num_complex *K1D, *K1Docc, *K1Ddia;
-    static num_complex *K2D, *K2Docc, *K2Ddia;
+    static num_complex *w;  ///< initial measurement of the phase point
+    static num_complex *wz_A;
+    static num_complex *wz_D;
+    static num_complex *ww_A;
+    static num_complex *ww_D;
+    static num_complex *ww_A_init;
+    static num_complex *ww_D_init;
+    static num_complex *w_AA, *w_AD, *w_DD, *w_CC, *w_CP, *w_PP;
+    static num_complex *K0, *K0occ, *K0dia;        ///< partial version of K0
+    static num_complex *K1, *K1occ, *K1dia;        ///< partial version of K1
+    static num_complex *K2, *K2occ, *K2dia;        ///< partial version of K2
+    static num_complex *K1QA, *K1QAocc, *K1QAdia;  ///< Simplex Quantization
+    static num_complex *K2QA, *K2QAocc, *K2QAdia;  ///< Heaviside Quantization
+    static num_complex *K1DA, *K1DAocc, *K1DAdia;
+    static num_complex *K2DA, *K2DAocc, *K2DAdia;
+    static num_complex *K1QD, *K1QDocc, *K1QDdia;  ///< Simplex Quantization
+    static num_complex *K2QD, *K2QDocc, *K2QDdia;  ///< Heaviside Quantization
+    static num_complex *K1DD, *K1DDocc, *K1DDdia;
+    static num_complex *K2DD, *K2DDocc, *K2DDdia;
 
     static num_complex *OpA, *OpB;
     static num_complex *TrK1A, *TrK2B;

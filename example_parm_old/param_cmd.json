@@ -1,0 +1,30 @@
+{ 
+	// 这是model的名字
+    "model" : "smallmol",
+    // model的传入参数表
+    "model_parm": {
+        "rdim": 12,
+		"type": "#h2o2",
+    },
+    // 调用solver的名字
+    "solver": "cmd",
+    // solver的传入参数表
+    "solver_parm": {
+    "cmd_flag":"#CMD",
+    "integrator":"BCOCB",
+    "gammal": 0.0076,
+    "gamma_ad": 0.01,
+		"temp": "300 K",
+		"nbead": 128,
+		"dt": "0.001 fs",
+		"tend": "2 ps",
+		"nthstp": 1,
+		"sstep": 1000,
+		"not used": 0, // 用不到的参数会跳过
+        "constrain_rotation": true,
+    },
+}
+
+
+
+

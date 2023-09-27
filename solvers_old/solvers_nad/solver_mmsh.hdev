@@ -1,0 +1,66 @@
+#ifndef SOLVER_MMSH_H
+#define SOLVER_MMSH_H
+
+/**
+ * @brief realization & modification from Jonathan R. Mannouch, Jeremy O. Richardson
+ * see details in https://arxiv-export-lb.library.cornell.edu/abs/2212.11773v1
+ */
+
+class MMSH_Solver : public NadTraj_Solver {
+   public:
+    MMSH_Solver(Param iparm, Model* pM);
+    MMSH_Solver(const std::string& iparm_str, Model* pM) : MMSH_Solver(Param::parse(iparm_str), pM){};
+
+    virtual ~MMSH_Solver();
+
+    static inline std::string name() { return "mmsh"; }
+
+    virtual int init_occ2eac(const int& itraj);
+
+    virtual int init(const int& itraj);
+
+    virtual inline num_real nucl_Ekin() {
+        num_real res = 0;
+        for (int j = 0; j < N; ++j) res += 0.5f * np[j] * np[j] / nm[j];
+        return res;
+    }
+
+    virtual int SE_Hamiltonian(const bool& refered);
+
+    virtual int phase_correction();
+
+    virtual int hopping_direction(num_real* direction, const int& to);
+
+    virtual int hopping_impulse(num_real* direction, const int& occ_to);
+
+    virtual int time_calc();
+
+    virtual int coherent_evolve(const num_real& dt);
+
+    virtual int ff_calc1(const int& level, const bool& refered = false);
+
+    virtual int kernel_active(num_complex* rhox, const int& F);
+
+    virtual int kernel0(num_complex* rhox, const int& F);
+
+    virtual int kernelt(num_complex* rhox, const int& F);
+
+    virtual int check_break(int& succ);
+
+    virtual int ff_calc2();
+
+    virtual int traj(NAD_TCFer& tcfer, const int& N, const int& F);
+
+   protected:
+    bool reflect;
+    bool pcorrect;
+
+    num_real xi0, xit, gamma0, gammat, totact;
+
+    num_real weight_CC = 3.0f;
+    num_real weight_CP = 2.0f;
+    num_real weight_PP = 0.0f;  // needed to be init
+};
+
+
+#endif  // SOLVER_MMSH_H

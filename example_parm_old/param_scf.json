@@ -1,0 +1,18 @@
+{ 
+    // useless but occupy blank
+    "model" : "nad1d",
+    "model_parm": {
+        "rdim" : 1,
+        "fdim" : 3,
+    },
+    // naive Hartree-Fock
+    "solver": "scf",
+    "solver_parm": {
+        "bsname" : "6-31g.dat",
+        "xyzfile": "example.xyz", // HeH+ 
+        "Natom": 2,
+        "Q": 1,
+        "S": 1,
+    },
+}
+

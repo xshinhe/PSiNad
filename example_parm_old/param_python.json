@@ -1,0 +1,29 @@
+{ 
+    "model" : "pyff",
+    "model_parm": {
+        "pymod_file": "py_force.py",
+        "Nb": 100,
+		"nbath": 1,
+        "rdim": 100,
+        "fdim": 2,
+        "Hsys_flag":"#sb",
+        "coup_flag":"#sb",
+        "spec_flag":"ohmic",
+        "lamb_flag":"alpha",
+        "strength": 0.1, // \alpha = 0.1
+        "bias": 1.0,
+        "delta": 1.0,
+        "omegac": 2.5,
+        "temp": "5.0 auK^-1", // i.e., \beta = 5 a.u,
+        "occ": 0,
+        "tend": 15,
+        "dt": 0.01
+    },
+    // meyer-miller dynamics
+    "solver": "mmd",
+    "solver_parm": {
+	"scale" : 1.0,  // \gamma = 0.1 * gwigner
+    "ntraj": 1000,
+   },
+}
+

@@ -347,6 +347,7 @@ void Kernel_GWP::init_data_impl(DataSet* DS) {
     Hcoeff   = DS->reg<num_complex>("integrator.Hcoeff", Dimension::PP);
     Hbasis   = DS->reg<num_complex>("integrator.Hbasis", Dimension::PP);
     UXdt     = DS->reg<num_complex>("integrator.UXdt", Dimension::PP);
+    UYdt     = DS->reg<num_complex>("integrator.UYdt", Dimension::PP);
     rhored   = DS->reg<num_complex>("integrator.rhored", Dimension::FF);
     rhored2  = DS->reg<num_complex>("integrator.rhored2", Dimension::FF);
     rhored3  = DS->reg<num_complex>("integrator.rhored3", Dimension::FF);
@@ -413,18 +414,17 @@ void Kernel_GWP::init_data_impl(DataSet* DS) {
 }
 
 void Kernel_GWP::init_calc_impl(int stat) {
-    // switch (samp_type) {
-    //     case 0: {
-    //         break;
-    //     }
-    //     case 1:
-    //     case 2: {
-    //         break;
-    //     }
-    //     case 3: {
-    //         break;
-    //     }
-    // }
+    // @begin debug
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        num_real* x = this->x + iP * Dimension::N;
+        num_real* p = this->p + iP * Dimension::N;
+        for (int j = 0; j < Dimension::N; ++j) {
+            x[j] = iP * 0.02 * (iP % 2 - 0.5) + 0.1 * j;
+            p[j] = -iP * 0.02 * (iP % 2 - 0.5) + 0.2 * j;
+        }
+    }
+    // @end debug
+
     if (samp_type < 3) {  // overlap or neighbourhood re-sampling
         for (int iP = 0; iP < Dimension::P; ++iP) {
             num_complex* w = Kernel_Elec::w + iP;
@@ -446,9 +446,11 @@ void Kernel_GWP::init_calc_impl(int stat) {
                 for (int j = 0; j < Dimension::N; ++j) {
                     double randu;
                     Kernel_Random::rand_gaussian(&randu);
-                    x[j] = this->x[j] + width_scaling * randu / sqrt(Dimension::N * alpha0);
+                    randu = sqrt(iP * iP % (j + 1));
+                    x[j]  = this->x[j] + width_scaling * randu / sqrt(Dimension::N * alpha0);
                     Kernel_Random::rand_gaussian(&randu);
-                    p[j] = this->p[j] + width_scaling * randu * sqrt(alpha0 / Dimension::N);
+                    randu = sqrt(iP % (j + 1));
+                    p[j]  = this->p[j] + width_scaling * randu * sqrt(alpha0 / Dimension::N);
                 }
             }
 
@@ -538,6 +540,9 @@ void Kernel_GWP::init_calc_impl(int stat) {
             ARRAY_EYE(U, Dimension::F);  ///< initial propagator reset to identity
         }
     }
+
+    _kmodel->exec_kernel();
+    _krepr->exec_kernel();
 
     for (int i = 0; i < Dimension::N; ++i) alpha[i] = alpha0;
     for (int a = 0; a < Dimension::P; ++a) g[a] = 0.0e0;
@@ -644,14 +649,14 @@ int Kernel_GWP::impl_0(int stat) {
 }
 
 int Kernel_GWP::impl_1(int stat) {
-    // ARRAY_SHOW(x_last, Dimension::P, Dimension::N);
-    // ARRAY_SHOW(x, Dimension::P, Dimension::N);
-
     // calculate overlap integral
     calc_ekin(ekin, p, m, Dimension::P, Dimension::N);
     calc_Snuc(Snuc, x_last, p_last, m, g_last, x_last, p_last, m, g_last, alpha, Dimension::P, Dimension::N);
     calc_Sele(Sele, c_last, c_last, 1, 0, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) S1[ab] = Snuc[ab] * Sele[ab];
+
+    ARRAY_SHOW(Acoeff, 1, Dimension::P);
+    ARRAY_SHOW(S1, Dimension::P, Dimension::P);
 
     // ARRAY_SHOW(S1, Dimension::P, Dimension::P);
 
@@ -680,13 +685,6 @@ int Kernel_GWP::impl_1(int stat) {
     for (int a = 0; a < Dimension::P; ++a) fun_diag_P[a] = 1.0e0 / sqrt(L2[a]);
     ARRAY_MATMUL3_TRANS2(invS2h, R2, fun_diag_P, R2, Dimension::P, Dimension::P, 0, Dimension::P);
 
-    ARRAY_MATMUL(MatC_PP, invS2h, invS2h, Dimension::P, Dimension::P, Dimension::P);
-    ARRAY_MATMUL3_TRANS1(MatC_PP, Sx, MatC_PP, Sx, Dimension::P, Dimension::P, Dimension::P, Dimension::P);
-    double error = 0.0e0;
-    for (int ab = 0; ab < Dimension::PP; ++ab) MatC_PP[ab] -= S1[ab], error += abs(MatC_PP[ab]);
-    // ARRAY_SHOW(MatC_PP, Dimension::P, Dimension::P);
-    std::cout << "test_dt2: " << error << "\n";
-
     // calculate Hamiltonian between two configurations basis
     calc_Hbasis(Hbasis, vpes, grad, V, dV, x, p, m, alpha, Sele, c, Dimension::P, Dimension::N, Dimension::F);
     ARRAY_MATMUL(Hcoeff, invS1h, Hbasis, Dimension::P, Dimension::P, Dimension::P);
@@ -698,22 +696,42 @@ int Kernel_GWP::impl_1(int stat) {
     for (int a = 0; a < Dimension::P; ++a) fun_diag_P[a] = exp(-phys::math::im * L[a] * dt);
     ARRAY_MATMUL3_TRANS2(UXdt, R, fun_diag_P, R, Dimension::P, Dimension::P, 0, Dimension::P);
 
+    Eigen::Map<EigMXc> Map_invS1h(invS1h, Dimension::P, Dimension::P);
+    Eigen::Map<EigMXc> Map_invS2h(invS2h, Dimension::P, Dimension::P);
+    Eigen::Map<EigMXc> Map_Sx(Sx, Dimension::P, Dimension::P);
+    Eigen::Map<EigMXc> Map_UYdt(UYdt, Dimension::P, Dimension::P);
+    auto bad_UYdt = Map_invS2h * Map_Sx * Map_invS1h;
+    auto eigr     = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * phys::math::im * (bad_UYdt - bad_UYdt.adjoint()));
+    auto Er       = eigr.eigenvalues().real();
+    auto Vr       = eigr.eigenvectors();
+    Map_UYdt      = Vr * ((phys::math::im * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
+
+    for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     ARRAY_MATMUL(Xcoeff, S1h, Acoeff, Dimension::P, Dimension::P, 1);
 
+    num_complex cnorm;
+    ARRAY_MATMUL_TRANS1(&cnorm, Xcoeff, Xcoeff, 1, Dimension::P, 1);
+    std::cout << "norm 1 = " << cnorm << "\n";
+
     ARRAY_MATMUL(Xcoeff, UXdt, Xcoeff, Dimension::P, Dimension::P, 1);
-    ARRAY_MATMUL(Xcoeff, invS1h, Xcoeff, Dimension::P, Dimension::P, 1);
-    ARRAY_MATMUL(Xcoeff, Sx, Xcoeff, Dimension::P, Dimension::P, 1);
-    ARRAY_MATMUL(Xcoeff, invS2h, Xcoeff, Dimension::P, Dimension::P, 1);
 
+    ARRAY_MATMUL_TRANS1(&cnorm, Xcoeff, Xcoeff, 1, Dimension::P, 1);
+    std::cout << "norm 2 = " << cnorm << "\n";
+
+    ARRAY_MATMUL(Xcoeff, UYdt, Xcoeff, Dimension::P, Dimension::P, 1);
+
+    ARRAY_MATMUL_TRANS1(&cnorm, Xcoeff, Xcoeff, 1, Dimension::P, 1);
+    std::cout << "norm 3 = " << cnorm << "\n";
+
+    // ARRAY_MATMUL(Xcoeff, invS1h, Xcoeff, Dimension::P, Dimension::P, 1);
+    // ARRAY_MATMUL(Xcoeff, Sx, Xcoeff, Dimension::P, Dimension::P, 1);
+    // ARRAY_MATMUL(Xcoeff, invS2h, Xcoeff, Dimension::P, Dimension::P, 1);
     ARRAY_MATMUL(Acoeff, invS2h, Xcoeff, Dimension::P, Dimension::P, 1);
+    for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
 
-    num_complex scale;
-    ARRAY_MATMUL3_TRANS1(&scale, Acoeff, S, Acoeff, 1, Dimension::P, Dimension::P, 1);
-    norm_ptr[0] *= abs(scale);
-
-    // update phase
-    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
-
+    std::cout << "P_used = " << P_used << "\n";
+    ARRAY_SHOW(Acoeff, 1, Dimension::P);
+    ARRAY_SHOW(S2, Dimension::P, Dimension::P);
     cloning();
     death();
 
@@ -721,6 +739,8 @@ int Kernel_GWP::impl_1(int stat) {
     for (int aj = 0; aj < Dimension::PN; ++aj) x_last[aj] = x[aj];
     for (int aj = 0; aj < Dimension::PN; ++aj) p_last[aj] = p[aj];
     for (int ai = 0; ai < Dimension::PF; ++ai) c_last[ai] = c[ai];
+    // update phase
+    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
     return 0;
 }
 int Kernel_GWP::exec_kernel_impl(int stat) {

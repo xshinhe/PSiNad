@@ -1,0 +1,22 @@
+{ 
+    "model" : "znpc",
+    "model_parm": {
+        "nmol" : 4,
+        "nbath" : 4,
+        "Nb" : 165,
+        "fdim" : 32,
+        "rdim" : 660,
+        "temp" : "300 K",
+        "tend" : "10 fs",
+        "dt": "0.1 fs",
+        "unit" : {
+            "time" : "fs",
+        },
+    },
+    "solver": "sse",
+    "solver_parm": {
+        "sstep": 2,
+        "ntraj": 100,
+    }
+}
+

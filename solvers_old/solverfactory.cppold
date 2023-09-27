@@ -1,0 +1,114 @@
+#include "solverfactory.h"
+
+#include "../solvers/solver.h"
+#include "../utils/commonflags.h"
+#include "../utils/param_wrapper.h"
+// supporting methods
+//----------------------------------------------------
+
+
+/*----------  MD solvers  ----------*/
+#include "../solvers_md/traj.h"
+// #include "../solvers_md/md_solver.h"
+#include "../solvers_PI/cmd_solver.h"
+#include "../solvers_PI/pild_solver.h"
+#include "../solvers_md/mbpimd_solver.h"
+#include "../solvers_md/mespimd_solver.h"
+#include "../solvers_md/pimd_solver.h"
+#include "../solvers_md/ppimd_solver.h"
+
+/*----------  NAD solvers ----------*/
+#include "../solvers_nad/solver_cmm.h"
+#include "../solvers_nad/solver_lsc.h"
+#include "../solvers_nad/solver_mmd.h"
+#include "../solvers_nad/solver_pmm.h"
+#include "../solvers_nad/solver_prodmps.h"
+#include "../solvers_nad/solver_qcpi.h"
+#include "../solvers_nad/solver_sh.h"
+#include "../solvers_nad/solver_smm.h"
+#include "../solvers_nad/solver_sqc.h"
+#include "../solvers_nad/solver_wmm.h"
+
+/*----------  Reduced Dynamics solvers  ----------*/
+#include "../solvers_rd/solver_heom.h"
+#include "../solvers_rd/solver_redfield.h"
+#include "../solvers_rd/solver_sse.h"
+
+/*----------  semi-classical Dynamics solvers  ----------*/
+// #include "../solvers_sc/solver_mqcivr.h" //< (lscivr/hkivr)
+
+/*----------  wavepacket Dynamics solvers  ----------*/
+// #include "../solvers_wp/solvers_mctdh.h"
+// #include "../solvers_wp/solvers_aims.h"
+
+//----------------------------------------------------
+// repeat others works
+// #include "../solvers_nad/solver_bcmf.h"
+
+/*----------  on-develop solvers  ----------*/
+
+
+#include "../solvers_el/solver_scf.h"
+#include "../solvers_nad/solver_sh.h"
+
+/**
+ * if you want to add a new solver, please add new directory `dev_xxxxx` and realize it there.
+ * Finally include it to this file.
+ *
+ * #include "../dev_xxxxx/solver_customed.h"
+ *
+ */
+
+Solver* init_solver(const std::string& solver_name, const Param& parm, Model* pM) {
+    Solver* mysolver;
+    if (solver_name == CMM_Solver::name()) {
+        mysolver = new CMM_Solver(parm, pM);
+    } else if (solver_name == SQC_Solver::name()) {
+        mysolver = new SQC_Solver(parm, pM);
+    } else if (solver_name == MMD_Solver::name()) {
+        mysolver = new MMD_Solver(parm, pM);
+    } else if (solver_name == LSC_Solver::name()) {
+        mysolver = new LSC_Solver(parm, pM);
+    }
+    // else if (solver_name == BCMF_Solver::name()) {
+    //     mysolver = new BCMF_Solver(parm, pM);
+    // }
+    else if (solver_name == HEOM_Solver::name()) {
+        mysolver = new HEOM_Solver(parm, pM);
+    } else if (solver_name == RedField_Solver::name()) {
+        mysolver = new RedField_Solver(parm, pM);
+    } else if (solver_name == SSE_Solver::name()) {
+        mysolver = new SSE_Solver(parm, pM);
+    } else if (solver_name == QCPI_Solver::name()) {
+        mysolver = new QCPI_Solver(parm, pM);
+    } else if (solver_name == Hopping_Solver::name()) {
+        mysolver = new Hopping_Solver(parm, pM);
+    } else if (solver_name == ProductMPS_Solver::name()) {
+        mysolver = new ProductMPS_Solver(parm, pM);
+    } else if (solver_name == WMM_Solver::name()) {
+        mysolver = new WMM_Solver(parm, pM);
+    } else if (solver_name == SMM_Solver::name()) {
+        mysolver = new SMM_Solver(parm, pM);
+    } else if (solver_name == PMM_Solver::name()) {
+        mysolver = new PMM_Solver(parm, pM);
+    } else if (solver_name == Traj_Solver::name()) {
+        mysolver = new Traj_Solver(parm, pM);
+    } else if (solver_name == PIMDTraj_Solver::name()) {
+        mysolver = new PIMDTraj_Solver(parm, pM);
+    } else if (solver_name == PPIMDTraj_Solver::name()) {
+        mysolver = new PPIMDTraj_Solver(parm, pM);
+    } else if (solver_name == CentroidMD_Solver::name()) {
+        mysolver = new CentroidMD_Solver(parm, pM);
+    } else if (solver_name == SCF_Solver::name()) {
+        mysolver = new SCF_Solver(parm, pM);
+    } else if (solver_name == PILD_Solver::name()) {
+        mysolver = new PILD_Solver(parm, pM);
+    } else if (solver_name == MESPIMDTraj_Solver::name()) {
+        mysolver = new MESPIMDTraj_Solver(parm, pM);
+    } else if (solver_name == MBPIMDTraj_Solver::name()) {
+        mysolver = new MBPIMDTraj_Solver(parm, pM);
+    } else {
+        LOG(FATAL) << "Cannot parse method name: " << solver_name << std::endl;
+    }
+    return mysolver;
+}

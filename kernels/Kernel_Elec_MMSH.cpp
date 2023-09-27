@@ -65,13 +65,6 @@ void Kernel_Elec_MMSH::init_data_impl(DataSet* DS) {
     H  = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
 
     direction = DS->reg<num_real>("integrator.tmp.direction", Dimension::N);
-
-    w_CC = DS->reg<num_complex>("integrator.w_CC", Dimension::P);
-    w_CP = DS->reg<num_complex>("integrator.w_CP", Dimension::P);
-    w_PP = DS->reg<num_complex>("integrator.w_PP", Dimension::P);
-    w_AA = DS->reg<num_complex>("integrator.w_AA", Dimension::P);
-    w_AD = DS->reg<num_complex>("integrator.w_AD", Dimension::P);
-    w_DD = DS->reg<num_complex>("integrator.w_DD", Dimension::P);
 }
 
 void Kernel_Elec_MMSH::init_calc_impl(int stat) {
@@ -79,12 +72,12 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         num_complex* w       = Kernel_Elec::w + iP;
-        num_complex* w_CC    = this->w_CC + iP;
-        num_complex* w_CP    = this->w_CP + iP;
-        num_complex* w_PP    = this->w_PP + iP;
-        num_complex* w_AA    = this->w_AA + iP;
-        num_complex* w_AD    = this->w_AD + iP;
-        num_complex* w_DD    = this->w_DD + iP;
+        num_complex* w_CC    = Kernel_Elec::w_CC + iP;
+        num_complex* w_CP    = Kernel_Elec::w_CP + iP;
+        num_complex* w_PP    = Kernel_Elec::w_PP + iP;
+        num_complex* w_AA    = Kernel_Elec::w_AA + iP;
+        num_complex* w_AD    = Kernel_Elec::w_AD + iP;
+        num_complex* w_DD    = Kernel_Elec::w_DD + iP;
         num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
         num_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
         num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
@@ -145,12 +138,12 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
         }
     }
 
-    _DataSet->set("init.w_CC", w_CC, Dimension::P);
-    _DataSet->set("init.w_CP", w_CP, Dimension::P);
-    _DataSet->set("init.w_PP", w_PP, Dimension::P);
-    _DataSet->set("init.w_AA", w_AA, Dimension::P);
-    _DataSet->set("init.w_AD", w_AD, Dimension::P);
-    _DataSet->set("init.w_DD", w_DD, Dimension::P);
+    _DataSet->set("init.w_CC", Kernel_Elec::w_CC, Dimension::P);
+    _DataSet->set("init.w_CP", Kernel_Elec::w_CP, Dimension::P);
+    _DataSet->set("init.w_PP", Kernel_Elec::w_PP, Dimension::P);
+    _DataSet->set("init.w_AA", Kernel_Elec::w_AA, Dimension::P);
+    _DataSet->set("init.w_AD", Kernel_Elec::w_AD, Dimension::P);
+    _DataSet->set("init.w_DD", Kernel_Elec::w_DD, Dimension::P);
     Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
     Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
     Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
@@ -167,8 +160,8 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
         num_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
         num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
         num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
-        num_complex* K1D          = Kernel_Elec::K1D + iP * Dimension::FF;
-        num_complex* K2D          = Kernel_Elec::K2D + iP * Dimension::FF;
+        num_complex* K1DA         = Kernel_Elec::K1DA + iP * Dimension::FF;
+        num_complex* K2DA         = Kernel_Elec::K2DA + iP * Dimension::FF;
 
         num_real* E    = this->E + iP * Dimension::F;
         num_real* T    = this->T + iP * Dimension::FF;
@@ -193,19 +186,18 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
         *occ_nuc = Kernel_Elec_SH::hopping_impulse(direction, p, m, E, *occ_nuc, to, reflect);  // step 3: try hop
 
         Kernel_Elec::ker_from_rho(K1, rho_ele, 1, 0, Dimension::F, true, *occ_nuc);
-        ARRAY_CLEAR(K1D, Dimension::FF);
-        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) K1D[ii] = K1[ii];
+        ARRAY_MAT_DIAG(K1DA, K1, Dimension::F);
         Kernel_Elec::ker_from_rho(K2, rho_ele, xi, gamma, Dimension::F);
 
         if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
             ARRAY_MATMUL(U, T, U, Dimension::F, Dimension::F, Dimension::F);
             ARRAY_MATMUL3_TRANS2(rho_ele, T, rho_ele, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
             ARRAY_MATMUL3_TRANS2(K1, T, K1, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
-            ARRAY_MATMUL3_TRANS2(K1D, T, K1D, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+            ARRAY_MATMUL3_TRANS2(K1DA, T, K1DA, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
             ARRAY_MATMUL3_TRANS2(K2, T, K2, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
         }
         int imax_init_rep = Kernel_Elec_SH::max_choose(rho_ele);
-        Kernel_Elec::ker_from_rho(K2D, rho_ele, xi, gamma, Dimension::F, true, imax_init_rep);
+        Kernel_Elec::ker_from_rho(K2DA, rho_ele, xi, gamma, Dimension::F, true, imax_init_rep);
     }
     return stat;
 }

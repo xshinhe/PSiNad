@@ -1,0 +1,104 @@
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+
+#include "../core/Kernel.h"
+#include "../core/Model.h"
+#include "../core/Param.h"
+#include "../core/State.h"
+#include "../core/some_Kernels.h"
+
+using namespace PROJECT_NS;
+
+template <typename K>
+class Test1_Fixture {
+   protected:
+    K* pK;
+
+   protected:
+    int test() {
+        State SS;
+        Param PP("{\"N\": 10}", Param::fromString);
+        try {
+            pK = new K();
+            pK->param(&PP);
+            pK->state(&SS);
+            pK->run();
+        } catch (std::runtime_error& e) { return 1; }
+
+        try {
+            delete pK;
+        } catch (std::runtime_error& e) { return 1; }
+
+        return 0;
+    }
+};
+
+TEMPLATE_TEST_CASE_METHOD(Test1_Fixture, "Check Kernel 1 : test run", "[class][template]",
+                          Kernel,                            //
+                          Kernel_StateDump,                  //
+                          Kernel_StateLoad,                  //
+                          Kernel_Random,                     //
+                          Kernel_Iter,                       //
+                          Kernel_Samp_Set,                   //
+                          Kernel_Init_Nucl_Wigner_Gaussian,  //
+                          Kernel_Init_Elec_CMM               //
+) {
+    REQUIRE(Test1_Fixture<TestType>::test() == 0);
+}
+
+
+template <typename K>
+class Test2_Fixture {
+   protected:
+    K* pK;
+
+   protected:
+    int test() {
+        State SS;
+        Param PP("{\"N\": 10}", Param::fromString);
+        try {
+            pK = new K(1);
+            pK->param(&PP);
+            pK->state(&SS);
+            pK->run();
+        } catch (std::runtime_error& e) { return 1; }
+
+        try {
+            delete pK;
+        } catch (std::runtime_error& e) { return 1; }
+
+        return 0;
+    }
+};
+
+TEMPLATE_TEST_CASE_METHOD(Test2_Fixture, "Check Kernel 2 : test run", "[class][template]",
+                          Kernel_Update_x,  //
+                          Kernel_Update_p,  //
+                          Kernel_Update_T,  //
+                          Kernel_Update_c) {
+    REQUIRE(Test2_Fixture<TestType>::test() == 0);
+}
+
+template <typename T>
+class Test3_Fixture {
+   protected:
+    Kernel_Samp<T>* pK;
+
+   protected:
+    int test() {
+        Param PP("{\"N\": 10}", Param::fromString);
+        State SS;
+        SS.def<T>("integrator.test");     // first define the variables
+        pK = new Kernel_Samp<T>("test");  // must based on defined variables
+        pK->param(&PP);
+        pK->state(&SS);
+        pK->run();
+        delete pK;
+        return 0;
+    }
+};
+
+TEMPLATE_TEST_CASE_METHOD(Test3_Fixture, "Check Kernel_Samp :", "[class][template]", int, double,
+                          std::complex<double>) {
+    REQUIRE(Test3_Fixture<TestType>::test() == 0);
+}

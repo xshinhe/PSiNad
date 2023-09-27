@@ -1,0 +1,27 @@
+{ 
+    "model" : "systembath",
+    "model_parm": {
+        "Nb": 200,
+		"nbath": 1,
+        "rdim": 200,
+        "fdim":2,
+        "Hsys_flag": "#sb",
+        "coup_flag": "#sb",
+        "spec_flag": "spectrum.dat",
+        "bias": 0.0,
+        "delta": "32 wn",
+        "temp": "300 K",
+        "occ": 0,
+        "tend": "5 ps",
+        "dt": "0.1 fs",
+        "unit" : {
+            "time" : "fs",
+        },
+    },
+    "solver": "sse",
+    "solver_parm": {
+        "sstep": 20,
+        "ntraj": 100,
+    }
+}
+

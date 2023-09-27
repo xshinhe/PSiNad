@@ -1,0 +1,67 @@
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+
+#include "../core/Kernel.h"
+#include "../core/Model.h"
+#include "../core/Param.h"
+#include "../core/Solver.h"
+#include "../core/State.h"
+#include "../core/some_Kernels.h"
+
+using namespace PROJECT_NS;
+
+void MM_Kernel_Builder(Kernel* ker) {
+    // BAOAB integrator
+    Kernel* kiter = new Kernel_Iter();
+
+    Kernel* ksamp = new Kernel_Samp_Set();
+    ksamp->push(new Kernel_Samp<double>("x"));
+    ksamp->push(new Kernel_Samp<double>("p"));
+    ksamp->push(new Kernel_Samp<std::complex<double>>("rho"));
+    kiter->push(ksamp);
+
+    // integrator
+    kiter->push(new Kernel_Update_p(0.5));
+    kiter->push(new Kernel_Update_x(0.5));
+    kiter->push(new Kernel_Update_x(0.5));  // DON'T USE REFERENCE, Roaming pointer
+    kiter->push(new Model_Builder());
+    kiter->push(new Kernel_Update_c(1.0));  // DON'T USE REFERENCE, Roaming pointer
+    kiter->push(new Kernel_Update_p(0.5));    // DON'T USE REFERENCE
+
+    // CMM kernel
+    ker->push(new Kernel_StateLoad())
+        .push(new Kernel_Random())
+        .push(new Kernel_Init_Nucl_Wigner_Gaussian())  //
+        .push(new Kernel_Init_Elec_CMM())              //
+        .push(new Model_Builder())
+        .push(kiter)
+        .push(new Kernel_StateDump());
+}
+
+int test_run_md_kernel() {
+    try {
+        std::string param_str =
+            "{\"N\": 10, \"model_name\": \"HO\", \"niter\": 100, \"beta\": 5, \"gammal\": 0.1, \"dt\": 0.1, \"ssamp\": "
+            "10}";
+
+        // load parameter file
+        Param P(param_str, Param::fromString);
+        // set a state
+        State S;
+
+        // build a MM solver
+        Solver sol = Solver(&MM_Kernel_Builder);  // first builder for solver
+
+        sol.param(&P);  // parameter parser and secondary builder for model
+
+        sol.state(&S);  // associated with state
+
+        sol.run();
+
+    } catch (std::runtime_error& e) { return 1; }
+    return 0;
+}
+
+TEST_CASE("Check Solver : Molecular Dynamic Demo", "[Kernel]") {
+    REQUIRE(test_run_md_kernel() == 0);  //
+}

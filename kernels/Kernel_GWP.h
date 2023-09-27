@@ -122,7 +122,7 @@ class Kernel_GWP final : public Kernel {
     num_complex* Hcoeff;
     num_complex *Acoeff, *dtAcoeff;
     num_real* L;
-    num_complex *R, *UXdt, *Xcoeff;  // help for Acoeff
+    num_complex *R, *UXdt, *UYdt, *Xcoeff;  // help for Acoeff
     num_complex* rhored;
     num_complex* rhored2;
     num_complex* rhored3;

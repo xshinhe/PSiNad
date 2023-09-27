@@ -45,7 +45,9 @@ int main(int argc, char* argv[]) {
         throw std::runtime_error(
             utils::concat("Working directory = [", FLAGS_d, "] already exists. Please specify -w to force start.\n"));
     }
-    fs::create_directory(FLAGS_d);
+    try {
+        fs::create_directory(FLAGS_d);
+    } catch (std::runtime_error& e) { std::cout << "some error!!\n"; }
 
     auto&& j = *(P.pjson());
     if (j.count("model_file") > 0 && j.count("model_id") > 0) {

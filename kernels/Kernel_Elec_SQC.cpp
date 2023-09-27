@@ -73,6 +73,14 @@ int Kernel_Elec_SQC::ker_binning(num_complex* ker, num_complex* rho, int sqc_typ
                     case SQCPolicy::TRI:
                         Outlier = (i == j) ? ((k != i && vk > 1) || (k == i && vk < 1))
                                            : ((k != i && k != j && vk > 1) || ((k == i || k == j) && vk < 0.5f));
+
+                        if (i != j) Outlier = false;
+
+                        // if (abs(rho[i * Dimension::Fadd1] - rho[j * Dimension::Fadd1]) > 1.0f) Outlier = true;
+
+                        // Outlier =
+                        //     (i == j) ? ((k != i && vk > 1) || (k == i && vk < 1)) : (((k == i || k == j) && vk
+                        //     > 1.0f));
                         break;
                     case SQCPolicy::SQR:  // @bug
                         Outlier = (i == j)
