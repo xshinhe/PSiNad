@@ -1,1 +1,0 @@
-add_library(fparser fparser.cc fpoptimizer.cc)
