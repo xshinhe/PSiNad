@@ -1,0 +1,28 @@
+{
+    "model": "SystemBath",
+    "solver": "CMM",
+    "N": 300,
+    "F": 3,
+    "nbath": 3,
+    "Nb": 100,
+    "system_flag": "SF3a",
+    "coupling_flag": "SE",
+    "bath_flag": "Debye",
+    "strength_flag": "Lambda",
+    "strength": "0.1 eV",
+    "omegac": "0.18 eV",
+    "temperature": "300 K",
+    "occ": 0,
+    "dt": "0.1 fs",
+    "tend": "2000.0 fs",
+    "time_unit": "1.0 fs",
+    "sstep": 10,
+    "M": 1000,
+    "dump": "null",
+    "BATH_FORCE_BILINEAR": true,
+    "result": [
+        ["x"], ["p"], ["f"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
+    ]
+}
+

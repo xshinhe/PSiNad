@@ -1,0 +1,38 @@
+#include "Kernel_Update_T.h"
+
+#include "Kernel_Declare.h"
+#include "Kernel_Random.h"
+
+namespace PROJECT_NS {
+
+void Kernel_Update_T::read_param_impl(Param* PM) {
+    dt     = PM->get<double>("dt", LOC(), phys::time_d);
+    gammal = PM->get<double>("gammal", LOC(), 0.1);
+    sdt    = scale * dt;
+}
+
+void Kernel_Update_T::init_data_impl(DataSet* S) {
+    m = S->reg<num_real>("integrator.m", Dimension::PN);
+    p = S->reg<num_real>("integrator.p", Dimension::PN);
+
+    // if Langevin dynamics, set optimal c1 & c2p
+    c1  = S->reg<num_real>("integrator.c1", Dimension::PN);
+    c2p = S->reg<num_real>("integrator.c2p", Dimension::PN);
+    for (int i = 0; i < Dimension::PN; ++i) {
+        c1[i]  = exp(-gammal * dt);
+        c2p[i] = sqrt(1.0 - c1[i] * c1[i]);
+    }
+
+    // if for NHC; registeration for auxiliary variables
+    // ...
+}
+
+int Kernel_Update_T::exec_kernel_impl(int stat) {
+    for (int i = 0; i < Dimension::PN; ++i) {
+        Kernel_Random::rand_gaussian(&randu);
+        p[i] = c1[i] * p[i] + c2p[i] * sqrt(m[i] / beta) * randu;
+    }
+    return 0;
+}
+
+};  // namespace PROJECT_NS

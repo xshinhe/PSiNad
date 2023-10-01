@@ -50,11 +50,12 @@ int Kernel_Elec_CMSH::hopping_impulse(num_real* direction, num_real* np, num_rea
 }
 
 void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
-    gamma1  = PM->get<num_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
+    gamma1 = PM->get<num_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
+    if (gamma1 < -0.5) gamma1 = Kernel_Elec_CMM::gamma_wigner(Dimension::F);
     gamma2  = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
     xi1     = (1 + Dimension::F * gamma1);
     xi2     = (1 + Dimension::F * gamma2);
-    use_cv  = PM->get<bool>("use_cv", LOC(), true);
+    use_cv  = PM->get<bool>("use_cv", LOC(), false);
     use_wmm = PM->get<bool>("use_wmm", LOC(), false);
     reflect = PM->get<bool>("reflect", LOC(), true);  ///< reflect scheme in hopping dynamics
 
@@ -75,7 +76,7 @@ void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
-    Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
+    Kernel_NADForce::NADForce_type = (hopping_type3 >= 0) ? NADForcePolicy::BO : NADForcePolicy::EHR;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         num_complex* w       = Kernel_Elec::w + iP;
@@ -260,12 +261,18 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         }
         // step 3: try hop
         switch (hopping_type3) {
+            case -1: {
+                Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
+                to                             = *occ_nuc;
+                Eto                            = Efrom;
+                break;
+            }
             case 0: {  // always BO
                 Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
                 Eto                            = E[to];
                 break;
             }
-            case 1: {  // always EHR
+            case 1: {  // always EHR-CV
                 Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
                 Kernel_Elec::ker_from_rho(rho_nuc, rho_ele_init, xi1, gamma1, Dimension::F, use_cv,
                                           to);                                          ///< re-initial rho_nuc
