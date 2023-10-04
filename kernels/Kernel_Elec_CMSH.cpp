@@ -51,7 +51,10 @@ int Kernel_Elec_CMSH::hopping_impulse(num_real* direction, num_real* np, num_rea
 
 void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     gamma1 = PM->get<num_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
+
     if (gamma1 < -0.5) gamma1 = Kernel_Elec_CMM::gamma_wigner(Dimension::F);
+    if (gamma1 < -1.5) gamma1 = Kernel_Elec_MMSH::gamma_opt(Dimension::F);
+
     gamma2  = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
     xi1     = (1 + Dimension::F * gamma1);
     xi2     = (1 + Dimension::F * gamma2);
@@ -341,8 +344,10 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         ww_D[0] = std::min({abs(ww_D[0]), abs(ww_D_init[0])});
 
         Kernel_Elec::ker_from_rho(K1QD, rho_ele, 1, 0, Dimension::F, true, max_pop);
-        Kernel_Elec::ker_from_rho(K2QD, rho_ele, 1, 0, Dimension::F, true, max_pop);
-        if (abs(rho_ele[max_pop * Dimension::Fadd1]) < 1 / xi1) K2QD[max_pop * Dimension::Fadd1] = 0.0e0;
+        Kernel_Elec::ker_from_rho(K2QD, rho_ele, 1, 0, Dimension::F);
+        for (int i = 0; i < Dimension::F; ++i) {
+            K2QD[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
+        }
 
         ARRAY_MAT_DIAG(K1DD, K1QD, Dimension::F);
         ARRAY_MAT_DIAG(K2DD, K2QD, Dimension::F);
