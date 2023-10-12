@@ -12,7 +12,8 @@ class Kernel_Update_p : public Kernel {
     inline virtual const std::string name() { return "Kernel_Update_p"; }
 
    private:
-    double *p, *f;
+    double *p, *f, *minv;
+    double* Ekin;
 
     double scale;
     double dt, sdt;
@@ -20,6 +21,8 @@ class Kernel_Update_p : public Kernel {
     virtual void read_param_impl(Param* PM);
 
     virtual void init_data_impl(DataSet* DS);
+
+    virtual void init_calc_impl(int stat = -1);
 
     virtual int exec_kernel_impl(int stat = -1);
 };

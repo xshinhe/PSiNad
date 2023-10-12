@@ -24,6 +24,7 @@ class Kernel_NADForce : public Kernel {
 
    private:
     num_real *f, *grad, *dV, *dE, *Force, *T;
+    num_real* fadd;
 
     virtual void read_param_impl(Param* PM);
 

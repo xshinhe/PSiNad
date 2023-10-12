@@ -72,6 +72,8 @@ int Handler::run_multiple(Param* P) {
         int M = P->get<int>("M", LOC(), 1);
         int istart, iend;
         std::string directory = P->get<std::string>("directory", LOC(), "default");
+        bool write_init       = P->get<bool>("write_init", LOC(), false);
+        bool write_final      = P->get<bool>("write_final", LOC(), false);
 
         MPI_Guard guard{};
         MPI_Barrier(MPI_COMM_WORLD);
@@ -79,11 +81,40 @@ int Handler::run_multiple(Param* P) {
 
         if (MPI_Guard::rank == 0) std::cout << P->repr() << std::endl;
 
+        // collect init
+        if (write_init) {
+            std::ofstream ofs(utils::concat(directory, "/init-mpi", MPI_Guard::rank, ".dat"));
+            for (auto& v : corr.header) ofs << FMT(8) << v;
+            ofs << std::endl;
+        }
+        // collect final
+        if (write_final) {
+            std::ofstream ofs(utils::concat(directory, "/final-mpi", MPI_Guard::rank, ".dat"));
+            for (auto& v : corr.header) ofs << FMT(8) << v;
+            ofs << std::endl;
+        }
+
         for (int icycle = istart, icalc = 0; icycle < iend; ++icycle, ++icalc) {
             auto mid1 = std::chrono::steady_clock::now();
 
             solver->init_calc(icycle);
             solver->exec_kernel(icycle);
+
+            // collect init
+            if (write_init) {
+                std::ofstream ofs(utils::concat(directory, "/init-mpi", MPI_Guard::rank, ".dat"), std::ios::app);
+                for (int i = 0; i < nsize; ++i) ofs << FMT(8) << corr.data[i];
+                ofs << std::endl;
+                ofs.close();
+            }
+
+            // collect final
+            if (write_final) {
+                std::ofstream ofs(utils::concat(directory, "/final-mpi", MPI_Guard::rank, ".dat"), std::ios::app);
+                for (int i = 0; i < nsize; ++i) ofs << FMT(8) << corr.data[(nframe - 1) * nsize + i];
+                ofs << std::endl;
+                ofs.close();
+            }
 
             // clear correlation information
             for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {

@@ -65,9 +65,10 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     } else {
         throw std::runtime_error("unknown Elec Kernel");
     }
-    kinte->push(kele);
     kinte->push(kforc);
     kinte->push(ku_p);
+    kinte->push(kele);
+
     kinte->push(ktime);
 
     std::shared_ptr<Kernel_Iter> kiter(new Kernel_Iter());

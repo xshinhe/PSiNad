@@ -24,6 +24,7 @@ void Kernel_NADForce::read_param_impl(Param* PM) {
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
     f    = DS->reg<double>("integrator.f", Dimension::PN);
+    fadd = DS->reg<double>("integrator.fadd", Dimension::PN);
     grad = DS->reg<double>("model.grad", Dimension::PN);
     dV   = DS->reg<double>("model.dV", Dimension::PNFF);
     dE   = DS->reg<double>("model.rep.dE", Dimension::PNFF);
@@ -47,6 +48,7 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
         num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
 
         num_real* f     = this->f + iP * Dimension::N;
+        num_real* fadd  = this->fadd + iP * Dimension::N;
         num_real* grad  = this->grad + iP * Dimension::N;
         num_real* Force = this->Force + iP * Dimension::NFF;
         num_real* T     = this->T + iP * Dimension::FF;
@@ -86,6 +88,7 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
             }
         }
         for (int j = 0; j < Dimension::N; ++j) f[j] += grad[j];
+        for (int j = 0; j < Dimension::N; ++j) f[j] += fadd[j];  // additional force
     }
     return 0;
 }

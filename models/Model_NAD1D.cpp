@@ -497,6 +497,13 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
     x      = DS->reg<double>("integrator.x", Dimension::N);
     p      = DS->reg<double>("integrator.p", Dimension::N);
     p_sign = DS->reg<num_complex>("integrator.p_sign", 2);
+
+    double x0_read = _Param->get<double>("x0grid", LOC(), -10.0f);
+    int Nxgird     = _Param->get<int>("Nxgrid", LOC(), 101);
+    double dx      = (2 * abs(x0_read)) / (Nxgird - 1);
+    double* xgrid  = DS->reg<double>("integrator.xgrid", Nxgird);
+    for (int i = 0; i < Nxgird; ++i) xgrid[i] = -abs(x0_read) + i * dx;
+
     DS->reg<double>("init.x", Dimension::N);
     DS->reg<double>("init.p", Dimension::N);
 
