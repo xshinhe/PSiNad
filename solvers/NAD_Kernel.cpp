@@ -1,3 +1,4 @@
+#include "../kernels/Kernel_Conserve.h"
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Dump_DataSet.h"
 #include "../kernels/Kernel_Elec_CMM.h"
@@ -46,6 +47,7 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     kinte->push(krepr);
     kinte->push(ku_c);
 
+
     std::shared_ptr<Kernel> kele;
     if (false) {
     } else if (NAD_Kernel_name == "CMM") {
@@ -65,9 +67,11 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     } else {
         throw std::runtime_error("unknown Elec Kernel");
     }
+    kinte->push(kele);
+
     kinte->push(kforc);
     kinte->push(ku_p);
-    kinte->push(kele);
+    kinte->push(std::shared_ptr<Kernel_Conserve>(new Kernel_Conserve()));
 
     kinte->push(ktime);
 

@@ -95,7 +95,7 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     use_cv         = PM->get<bool>("use_cv", LOC(), false);
     use_wmm        = PM->get<bool>("use_wmm", LOC(), false);
     reflect        = PM->get<bool>("reflect", LOC(), true);  ///< reflect scheme in hopping dynamics
-    conserve_scale = PM->get<bool>("conserve_scale", LOC(), false);
+    conserve_scale = false;                                  // see Kernel_Conserve
 
     dt            = PM->get<double>("dt", LOC(), phys::time_d);
     alpha         = PM->get<double>("alpha", LOC(), 0.5);
@@ -120,10 +120,10 @@ void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
-    Kernel_NADForce::NADForce_type = (hopping_type3 >= 0) ? NADForcePolicy::BO : NADForcePolicy::EHR;
-
-    if (hopping_type3 == 1) Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;  // CCSH
-    if (hopping_type3 == 2) Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;  // CVSH
+    Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
+    if (hopping_type3 == -1) Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
+    if (hopping_type3 == 0) Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
+    if (hopping_type3 == 4) Kernel_NADForce::NADForce_type = NADForcePolicy::CV;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         num_complex* w       = Kernel_Elec::w + iP;
@@ -144,6 +144,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
         *occ_nuc = Kernel_Elec::occ0;                             ///< initial occupation
         Kernel_Elec_CMM::c_sphere(c, Dimension::F);               ///< initial c on standard sphere
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
+
         Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, *occ_nuc);  ///< initial rho_nuc
         ARRAY_EYE(U, Dimension::F);  ///< initial propagator
 
@@ -267,59 +268,21 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
 
-        if (hopping_type3 == 0) {  // BOSH
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-            for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                    if (i == *occ_nuc && k == *occ_nuc) {
-                        rho_nuc[ik] = 1.0e0;
-                    } else {
-                        rho_nuc[ik] = 0.0e0;
-                    }
-                }
-            }
-        }
-        if (hopping_type3 == 1) {  // CCSH
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-            for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                    if (i == *occ_nuc && k == *occ_nuc) {
-                        rho_nuc[ik] = 1.0e0;
-                    } else if (i == *occ_nuc || k == *occ_nuc) {
-                        rho_nuc[ik] = rho_nuc[ik];
-                    } else {
-                        rho_nuc[ik] = 0.0e0;
-                    }
-                }
-            }
-        }
-        if (hopping_type3 == 4) {  // CVSH
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, true, *occ_nuc);
-        }
+        // Win is for calculate energy
         if (hopping_type3 == 10) {                                      // alpha dynamics
             force1(fadd, E, dE, rho_nuc, rho_ele, xi1, gamma1, alpha);  // calculate fadd & rho_nuc
         }
-        if (hopping_type3 == 11) {  // alpha dynamics 2
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-            for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                    if (i == *occ_nuc && k == *occ_nuc) {
-                        rho_nuc[ik] = alpha * rho_nuc[ik] + (1 - alpha);
-                    } else {
-                        rho_nuc[ik] = alpha * rho_nuc[ik];
-                    }
-                }
-            }
-        }
 
         // step 1: determine where to hop
+        /// 1.1 calc Efrom
         num_real Efrom, Eto;
         switch (Kernel_NADForce::NADForce_type) {
-            case NADForcePolicy::BO: {
+            case NADForcePolicy::BO:
+            case NADForcePolicy::CV: {
                 Efrom = E[*occ_nuc];
                 break;
             }
-            default: {
+            default: {  // EHR and mix-Ehr
                 // Efrom = std::real(ARRAY_TRACE2(rho_nuc, H, Dimension::F, Dimension::F));  // @bug
                 Efrom = 0.0e0;
                 for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
@@ -328,13 +291,9 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 break;
             }
         }
-        if (hopping_type3 == 11) {
-            Efrom = 0.0e0;
-            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                Efrom += std::real(rho_nuc[ii] * E[i]);
-            }
-        }
+        if (hopping_type3 == 11) Efrom = alpha * Efrom + (1 - alpha) * E[*occ_nuc];  // mix-Ehr with BO energy
 
+        /// 1.2 calc to
         int to;
         switch (hopping_type1) {
             case 0: {
@@ -354,6 +313,19 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 break;
             }
         }
+        /// 1.3 calc Eto
+        switch (Kernel_NADForce::NADForce_type) {
+            case NADForcePolicy::BO:
+            case NADForcePolicy::CV: {
+                Eto = E[to];
+                break;
+            }
+            default: {  // EHR & mix-EHR
+                Eto = Efrom;
+                break;
+            }
+        }
+        if (hopping_type3 == 11) Eto = alpha * Eto + (1 - alpha) * E[to];  // mix-Ehr with BO energy
 
         // step 2: determine direction to hop
         switch (hopping_type2) {
@@ -376,110 +348,10 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 break;
             }
         }
+
         // step 3: try hop
-        switch (hopping_type3) {
-            case -1: {
-                Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
-                to                             = *occ_nuc;
-                Eto                            = Efrom;
-                break;
-            }
-            case 0: {  // always BO
-                Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
-                Eto                            = E[to];
-                break;
-            }
-            case 1: {  // always CC
-                Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
-
-                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-                for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                    for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                        if (i == to && k == to) {
-                            rho_nuc[ik] = 1.0e0;
-                        } else if (i == to || k == to) {
-                            rho_nuc[ik] = rho_nuc[ik];
-                        } else {
-                            rho_nuc[ik] = 0.0e0;
-                        }
-                    }
-                }
-                // Eto = std::real(ARRAY_TRACE2(rho_nuc, H, Dimension::F, Dimension::F));
-                //
-                Eto = 0.0e0;
-                for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                    Eto += std::real(rho_nuc[ii] * E[i]);
-                }
-                break;
-            }
-            case 4: {  // always EHR-CV
-                Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
-                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, true, to);
-                // Eto = std::real(ARRAY_TRACE2(rho_nuc, H, Dimension::F, Dimension::F));
-                //
-                Eto = 0.0e0;
-                for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                    Eto += std::real(rho_nuc[ii] * E[i]);
-                }
-                break;
-            }
-            case 10: {  // alpha 1
-                Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
-                Eto                            = Efrom;
-                break;
-            }
-            case 11: {  // alpha 2
-                Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
-                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-                int max_pop = Kernel_Elec_SH::max_choose(rho_ele);
-                for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                    for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                        if (i == max_pop && k == max_pop) {
-                            rho_nuc[ik] = alpha * rho_nuc[ik] + (1 - alpha);
-                        } else {
-                            rho_nuc[ik] = alpha * rho_nuc[ik];
-                        }
-                    }
-                }
-                Eto = 0.0e0;
-                for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                    Eto += std::real(rho_nuc[ii] * E[i]);
-                }
-                break;
-            }
-        }
         *occ_nuc = hopping_impulse(direction, p, m, Efrom, Eto, *occ_nuc, to, reflect);
-
-        if (hopping_type3 == 0) {  // BOSH
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-            for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                    if (i == *occ_nuc && k == *occ_nuc) {
-                        rho_nuc[ik] = 1.0e0;
-                    } else {
-                        rho_nuc[ik] = 0.0e0;
-                    }
-                }
-            }
-        }
-        if (hopping_type3 == 1) {  // CCSH
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-            for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                    if (i == *occ_nuc && k == *occ_nuc) {
-                        rho_nuc[ik] = 1.0e0;
-                    } else if (i == *occ_nuc || k == *occ_nuc) {
-                        rho_nuc[ik] = rho_nuc[ik];
-                    } else {
-                        rho_nuc[ik] = 0.0e0;
-                    }
-                }
-            }
-        }
-        if (hopping_type3 == 4) {  // CVSH
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, true, *occ_nuc);
-        }
-        if (hopping_type3 == 11) {
+        if (hopping_type3 == 11) {  // revise for mix
             Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
                 for (int k = 0; k < Dimension::F; ++k, ++ik) {
@@ -490,18 +362,6 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                     }
                 }
             }
-        }
-
-        Epot[0] = vpes[0];
-        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-            Epot[0] += E[i] * std::real(rho_nuc[ii]);  //
-        }
-        if (conserve_scale) {
-            Ekin[0] = 0.0e0;
-            for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
-            double scale = std::sqrt(std::max({Etot_init[0] - Epot[0], 0.0e0}) / Ekin[0]);
-            for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
-            Ekin[0] = Etot_init[0] - Epot[0];
         }
 
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //

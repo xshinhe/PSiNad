@@ -1,0 +1,75 @@
+#ifndef Kernel_Conserve_H
+#define Kernel_Conserve_H
+
+#include "../core/Kernel.h"
+#include "Kernel_Declare.h"
+#include "Kernel_Elec.h"
+
+namespace PROJECT_NS {
+
+class Kernel_Conserve final : public Kernel {
+   public:
+    inline virtual const std::string name() { return "Kernel_Conserve"; }
+
+   private:
+    num_real* E;
+    num_real* p;
+    num_real* m;
+    num_real* Etot;
+    num_real* Etot_init;
+    num_real* Ekin;
+    num_real* Epot;
+    num_real* vpes;
+    double conserve_scale;
+
+    virtual void read_param_impl(Param* PM) { conserve_scale = PM->get<bool>("conserve_scale", LOC(), false); }
+
+    virtual void init_data_impl(DataSet* DS) {
+        vpes = DS->reg<num_real>("model.vpes", Dimension::P);
+        Ekin = DS->reg<num_real>("integrator.Ekin", Dimension::P);
+        Epot = DS->reg<num_real>("integrator.Epot", Dimension::P);
+        Etot = DS->reg<num_real>("integrator.Etot", Dimension::P);
+        E    = DS->reg<num_real>("model.rep.E", Dimension::PF);
+        m    = DS->reg<num_real>("integrator.m", Dimension::PN);
+        p    = DS->reg<num_real>("integrator.p", Dimension::PN);
+    }
+
+    virtual void init_calc_impl(int stat = -1) {
+        Etot_init = _DataSet->set("init.Etot", Etot, Dimension::P);
+
+        bool conserve_scale_bak = conserve_scale;
+        conserve_scale          = false;
+        exec_kernel(stat);  // calc Epot
+        conserve_scale = conserve_scale_bak;
+
+        for (int iP = 0; iP < Dimension::P; ++iP) Etot[iP] = Ekin[iP] + Epot[iP], Etot_init[iP] = Etot[iP];
+    };
+
+    virtual int exec_kernel_impl(int stat = -1) {
+        for (int iP = 0; iP < Dimension::P; ++iP) {
+            num_real* E         = this->E + iP * Dimension::F;
+            num_real* p         = this->p + iP * Dimension::N;
+            num_real* m         = this->m + iP * Dimension::N;
+            num_real* Etot      = this->Etot + iP;
+            num_real* Etot_init = this->Etot_init + iP;
+            num_real* Ekin      = this->Ekin + iP;
+            num_real* Epot      = this->Epot + iP;
+            num_real* vpes      = this->vpes + iP;
+
+            Epot[0] = vpes[0] + E[(*Kernel_Elec::occ_nuc) * Dimension::Fadd1];  // @debug
+            Ekin[0] = 0.0e0;
+            for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
+            if (conserve_scale) {
+                double scale = std::sqrt(std::max({Etot_init[0] - Epot[0], 0.0e0}) / Ekin[0]);
+                for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
+                Ekin[0] = Etot_init[0] - Epot[0];
+            }
+        }
+        return 0;
+    }
+};
+
+};  // namespace PROJECT_NS
+
+
+#endif  // Kernel_Conserve_H

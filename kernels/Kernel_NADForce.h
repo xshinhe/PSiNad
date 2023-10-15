@@ -9,6 +9,8 @@ namespace PROJECT_NS {
 DEFINE_POLICY(NADForcePolicy,  //
               BO,              //
               EHR,             //
+              MIX,             //
+              CV,              //
               ELSE);           //
 
 namespace FORCE_OPT {

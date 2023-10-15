@@ -22,8 +22,8 @@ int Kernel_Elec_SH::max_choose(num_complex* rho) {
     int imax      = 0;
     num_real vmax = 0.0f;
     for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-        if (std::abs(rho[ii]) > vmax) {
-            vmax = std::abs(rho[ii]);
+        if (std::real(rho[ii]) > vmax) {
+            vmax = std::real(rho[ii]);
             imax = i;
         }
     }
