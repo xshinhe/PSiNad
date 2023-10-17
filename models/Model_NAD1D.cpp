@@ -48,6 +48,27 @@ int mspes_SAC2(double* V, double* dV, double* ddV, double* R, int flag, int rdim
     return 0;
 }
 
+int mspes_SAC3(double* V, double* dV, double* ddV, double* R, int flag, int rdim, int fdim) {
+    const double V1 = 0.04f, V2 = 0.01f, Vc = 0.005f, a = 1.0f, b = 1.0f, Rc = 0.7;
+
+    V[0] = V1 * (1.0e0 + tanh(a * R[0]));
+    V[3] = V2 * (1.0e0 - tanh(a * R[0]));
+    V[1] = Vc * exp(-b * (R[0] + Rc) * (R[0] + Rc));
+    V[2] = V[1];
+    if (flag < 1) return 0;
+
+    double tmp = cosh(a * R[0]);
+    dV[0]      = +V1 * a / (tmp * tmp);
+    dV[3]      = -V2 * a / (tmp * tmp);
+    dV[1]      = -2 * b * (R[0] + Rc) * V[1];
+    dV[2]      = dV[1];
+    if (flag < 2) return 0;
+
+    // ddV
+    // for (int i = 0; i < 4; ++i) ddV[i] = 0;
+    return 0;
+}
+
 
 int mspes_DAC(double* V, double* dV, double* ddV, double* R, int flag, int rdim, int fdim) {
     const double V0 = 0.10f, V1 = 0.015f, E0 = 0.05f, a = 0.28f, b = 0.06f;
@@ -435,6 +456,7 @@ void Model_NAD1D::read_param_impl(Param* PM) {
     switch (nad1d_type) {
         case NAD1DPolicy::SAC:
         case NAD1DPolicy::SAC2:
+        case NAD1DPolicy::SAC3:
         case NAD1DPolicy::DAC:
         case NAD1DPolicy::ECR:
         case NAD1DPolicy::DBG:
@@ -518,6 +540,7 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
     switch (nad1d_type) {
         case NAD1DPolicy::SAC:
         case NAD1DPolicy::SAC2:
+        case NAD1DPolicy::SAC3:  // asymmetrical SAC
         case NAD1DPolicy::DAC:
         case NAD1DPolicy::ECR:
         case NAD1DPolicy::DBG:
@@ -545,7 +568,7 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
             p0[0]          = 0.0f;
             double wground = 5.0e-03;
             x_sigma[0]     = sqrt(0.5f / (mass[0] * wground));
-            p_sigma[0]     = 0.0;  // 0.5f / x_sigma[0];
+            p_sigma[0]     = 0.5f / x_sigma[0];
             break;
         }
         case NAD1DPolicy::MORSE15: {
@@ -624,6 +647,9 @@ int Model_NAD1D::exec_kernel_impl(int stat) {
             mspes_SAC(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::SAC2:
+            mspes_SAC2(V, dV, ddV, x, 1, 1, Dimension::F);
+            break;
+        case NAD1DPolicy::SAC3:
             mspes_SAC2(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::DAC:

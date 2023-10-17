@@ -9,6 +9,7 @@ namespace PROJECT_NS {
 DEFINE_POLICY(NAD1DPolicy,
               SAC,      // Tully's Single Avoid Crossing Model
               SAC2,     // Tully's Single Avoid Crossing Model (with slight revision)
+              SAC3,     // asymmertical Tully's Single Avoid Crossing Model
               DAC,      // Tully's Doubly Avoid Crossing Model
               ECR,      // Tully's Extend Coupling Region Model
               DBG,      // (double)
@@ -25,7 +26,6 @@ DEFINE_POLICY(NAD1DPolicy,
               IVP2,     // iverted potential model 2
               IVP3,     // iverted potential model 3
               IVP4);    // iverted potential model 4
-
 
 class Model_NAD1D final : public Kernel {
    public:
