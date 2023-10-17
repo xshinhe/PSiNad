@@ -89,13 +89,12 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     if (gamma1 < -1.5) gamma1 = Kernel_Elec_MMSH::gamma_opt(Dimension::F);
     if (gamma1 < -0.5) gamma1 = Kernel_Elec_CMM::gamma_wigner(Dimension::F);
 
-    gamma2         = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
-    xi1            = (1 + Dimension::F * gamma1);
-    xi2            = (1 + Dimension::F * gamma2);
-    use_cv         = PM->get<bool>("use_cv", LOC(), false);
-    use_wmm        = PM->get<bool>("use_wmm", LOC(), false);
-    reflect        = PM->get<bool>("reflect", LOC(), true);  ///< reflect scheme in hopping dynamics
-    conserve_scale = false;                                  // see Kernel_Conserve
+    gamma2  = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
+    xi1     = (1 + Dimension::F * gamma1);
+    xi2     = (1 + Dimension::F * gamma2);
+    use_cv  = PM->get<bool>("use_cv", LOC(), false);
+    use_wmm = PM->get<bool>("use_wmm", LOC(), false);
+    reflect = PM->get<bool>("reflect", LOC(), true);  ///< reflect scheme in hopping dynamics
 
     dt            = PM->get<double>("dt", LOC(), phys::time_d);
     alpha         = PM->get<double>("alpha", LOC(), 0.5);
@@ -108,15 +107,11 @@ void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
     p         = DS->reg<num_real>("integrator.p", Dimension::PN);
     m         = DS->reg<num_real>("integrator.m", Dimension::PN);
     fadd      = DS->reg<num_real>("integrator.fadd", Dimension::PN);
-    vpes      = DS->reg<num_real>("model.vpes", Dimension::P);
     E         = DS->reg<num_real>("model.rep.E", Dimension::PF);
     dE        = DS->reg<num_real>("model.rep.dE", Dimension::PNFF);
     T         = DS->reg<num_real>("model.rep.T", Dimension::PFF);
     H         = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
     direction = DS->reg<num_real>("integrator.tmp.direction", Dimension::N);
-    Ekin      = DS->reg<num_real>("integrator.Ekin", Dimension::P);
-    Epot      = DS->reg<num_real>("integrator.Epot", Dimension::P);
-    Etot      = DS->reg<num_real>("integrator.Etot", Dimension::P);
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
@@ -124,6 +119,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     if (hopping_type3 == -1) Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
     if (hopping_type3 == 0) Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
     if (hopping_type3 == 4) Kernel_NADForce::NADForce_type = NADForcePolicy::CV;
+    if (hopping_type3 == 5) Kernel_NADForce::NADForce_type = NADForcePolicy::CV2;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         num_complex* w       = Kernel_Elec::w + iP;
@@ -144,7 +140,6 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
         *occ_nuc = Kernel_Elec::occ0;                             ///< initial occupation
         Kernel_Elec_CMM::c_sphere(c, Dimension::F);               ///< initial c on standard sphere
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
-
         Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, *occ_nuc);  ///< initial rho_nuc
         ARRAY_EYE(U, Dimension::F);  ///< initial propagator
 
@@ -190,14 +185,8 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
     Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
     Kernel_Elec::T_init       = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
-    Etot_init                 = _DataSet->set("init.Etot", Etot, Dimension::P);
 
-    bool conserve_scale_bak = conserve_scale;
-    conserve_scale          = false;
-    exec_kernel(stat);  // calc Epot
-    conserve_scale = conserve_scale_bak;
-
-    for (int iP = 0; iP < Dimension::P; ++iP) Etot[iP] = Ekin[iP] + Epot[iP], Etot_init[iP] = Etot[iP];
+    exec_kernel(stat);
 }
 
 int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
@@ -226,17 +215,12 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         num_complex* ww_A         = Kernel_Elec::ww_A + iP;
         num_complex* ww_D         = Kernel_Elec::ww_D + iP;
 
-        num_real* E         = this->E + iP * Dimension::F;
-        num_real* dE        = this->dE + iP * Dimension::NFF;
-        num_real* p         = this->p + iP * Dimension::N;
-        num_real* m         = this->m + iP * Dimension::N;
-        num_real* Etot      = this->Etot + iP;
-        num_real* Etot_init = this->Etot_init + iP;
-        num_real* Ekin      = this->Ekin + iP;
-        num_real* Epot      = this->Epot + iP;
-        num_real* vpes      = this->vpes + iP;
-        num_real* fadd      = this->fadd + iP * Dimension::N;
-        num_complex* H      = this->H + iP * Dimension::FF;
+        num_real* E    = this->E + iP * Dimension::F;
+        num_real* dE   = this->dE + iP * Dimension::NFF;
+        num_real* p    = this->p + iP * Dimension::N;
+        num_real* m    = this->m + iP * Dimension::N;
+        num_real* fadd = this->fadd + iP * Dimension::N;
+        num_complex* H = this->H + iP * Dimension::FF;
 
         //////////////////////////////////////////////////////////////////////
 
@@ -278,7 +262,8 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         num_real Efrom, Eto;
         switch (Kernel_NADForce::NADForce_type) {
             case NADForcePolicy::BO:
-            case NADForcePolicy::CV: {
+            case NADForcePolicy::CV:
+            case NADForcePolicy::CV2: {
                 Efrom = E[*occ_nuc];
                 break;
             }
@@ -316,7 +301,8 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         /// 1.3 calc Eto
         switch (Kernel_NADForce::NADForce_type) {
             case NADForcePolicy::BO:
-            case NADForcePolicy::CV: {
+            case NADForcePolicy::CV:
+            case NADForcePolicy::CV2: {
                 Eto = E[to];
                 break;
             }

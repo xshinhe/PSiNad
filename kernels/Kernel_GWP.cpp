@@ -566,6 +566,9 @@ void Kernel_GWP::init_calc_impl(int stat) {
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, Snuc, Acoeff, 1, Dimension::P, Dimension::P, 1);
     xi = 1.0e0 + Dimension::F * gamma * abs(scale);
 
+    std::cout << "init scale: " << scale << "\n";
+    std::cout << "init xi: " << xi << "\n";
+
     norm_ptr[0] = 1.0e0;
 
     // ARRAY_SHOW(Acoeff, 1, Dimension::P);
@@ -787,6 +790,7 @@ int Kernel_GWP::exec_kernel_impl(int stat) {
     }
     num_complex scale;
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, Snuc, Acoeff, 1, Dimension::P, Dimension::P, 1);
+    std::cout << "t scale : " << scale << "\n";
     xi = 1.0e0 + Dimension::F * gamma * abs(scale);
     calc_density(rhored, Acoeff, Snuc, c, xi, gamma, P_used, Dimension::P, Dimension::F);
 

@@ -11,6 +11,7 @@ DEFINE_POLICY(NADForcePolicy,  //
               EHR,             //
               MIX,             //
               CV,              //
+              CV2,             //
               ELSE);           //
 
 namespace FORCE_OPT {
@@ -26,6 +27,7 @@ class Kernel_NADForce : public Kernel {
 
    private:
     num_real *f, *grad, *dV, *dE, *Force, *T;
+    num_real *p, *m;
     num_real* fadd;
 
     virtual void read_param_impl(Param* PM);
