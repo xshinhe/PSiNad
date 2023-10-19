@@ -44,14 +44,6 @@ int Kernel_Conserve::exec_kernel_impl(int stat) {
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
         if (conserve_scale) {
             double scale = std::sqrt(std::max({Etot_init[0] - Epot[0], 0.0e0}) / Ekin[0]);
-
-            if (Etot_init[0] - Epot[0] < 0.0e0) {
-                std::cout << "#####################\n";
-                std::cout << "Etot_init = " << Etot_init[0] << "\n";
-                std::cout << "Epot = " << Epot[0] << "\n";
-                std::cout << "Ekin = " << Ekin[0] << "\n";
-            }
-
             for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
             Ekin[0] = Etot_init[0] - Epot[0];
         }

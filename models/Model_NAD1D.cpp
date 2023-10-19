@@ -650,7 +650,7 @@ int Model_NAD1D::exec_kernel_impl(int stat) {
             mspes_SAC2(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::SAC3:
-            mspes_SAC2(V, dV, ddV, x, 1, 1, Dimension::F);
+            mspes_SAC3(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::DAC:
             mspes_DAC(V, dV, ddV, x, 1, 1, Dimension::F);

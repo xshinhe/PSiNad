@@ -81,6 +81,7 @@ void Kernel_Elec::init_calc_impl(int stat) {
     exec_kernel_impl(stat);
 
     double unit = 1.0e0;
+    _DataSet->set("integrator.1", &unit);
     _DataSet->set("init.1", &unit);
     _DataSet->set("init.w", w, Dimension::P);
     _DataSet->set("init.K0", K0, Dimension::PFF);
