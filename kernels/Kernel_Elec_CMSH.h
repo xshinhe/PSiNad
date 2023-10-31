@@ -18,6 +18,13 @@
 
 namespace PROJECT_NS {
 
+DEFINE_POLICY(CMSHPolicy,
+              EHR,    // Ehrenfest Dynamics
+              BOSH,   // BO dynamics & hopping according to W(\rho)
+              CVSH,   // CV dynamics & hopping acoording to W(\rho)
+              BOSD,   // BO dynamics & smoothing acoording to W(\rho)
+              CVSD);  // CV dynamics & smoothing acoording to W(\rho)
+
 /**
  * @brief initialization kernel for electonic DOFs in CMSH
  */
@@ -30,26 +37,29 @@ class Kernel_Elec_CMSH final : public Kernel {
     }
 
    private:
+    CMSHPolicy::_type cmsh_type;
+
     num_real gamma1, gamma2, xi1, xi2;
-    num_real alpha;
-    bool use_cv  = true;
+    bool use_cv  = true;   // adapt cv in rho_nuc
     bool use_wmm = false;  // in this case, gamma1 will be used as delta in wMM
-    bool reflect = true;
+    bool reflect = true;   // treatment in hopping
     int hopping_type1;
     int hopping_type2;
-    int hopping_type3;
+
+    bool dynamic_alpha;
 
     double dt;
+    num_real alpha0;
+    num_real* alpha;
     num_real* p;
     num_real* m;
     num_real* fadd;
+    num_real* ftmp;
     num_real* direction;
-    num_real *E, *dE, *T;
+    num_real *vpes, *V, *E, *dE, *T;
+    num_real* Epot;
     num_complex* H;
-
-
-    int hopping_impulse(num_real* direction, num_real* np, num_real* nm,  //
-                        num_real Efrom, num_real Eto, int from, int to, bool reflect);
+    num_complex* wrho;
 
     virtual void read_param_impl(Param* PM);
 

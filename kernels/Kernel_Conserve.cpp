@@ -5,7 +5,9 @@
 
 namespace PROJECT_NS {
 
-void Kernel_Conserve::read_param_impl(Param* PM) { conserve_scale = PM->get<bool>("conserve_scale", LOC(), false); }
+void Kernel_Conserve::read_param_impl(Param* PM) {
+    conserve_scale = PM->get<bool>("conserve_scale", LOC(), false);  // default as false
+}
 
 void Kernel_Conserve::init_data_impl(DataSet* DS) {
     vpes = DS->reg<num_real>("model.vpes", Dimension::P);
@@ -39,7 +41,7 @@ int Kernel_Conserve::exec_kernel_impl(int stat) {
         num_real* Epot      = this->Epot + iP;
         num_real* vpes      = this->vpes + iP;
 
-        Epot[0] = vpes[0] + E[(*Kernel_Elec::occ_nuc)];  // @debug
+        // Epot[0] = vpes[0] + E[(*Kernel_Elec::occ_nuc)];  // @onlly read
         Ekin[0] = 0.0e0;
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
         if (conserve_scale) {

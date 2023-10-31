@@ -20,17 +20,19 @@ namespace PROJECT_NS {
 
 void Kernel_NADForce::read_param_impl(Param* PM) {
     FORCE_OPT::BATH_FORCE_BILINEAR = _Param->get<bool>("BATH_FORCE_BILINEAR", LOC(), false);
+    offd_projected                 = _Param->get<bool>("offd_projected", LOC(), true);
 };
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
-    f    = DS->reg<double>("integrator.f", Dimension::PN);
-    p    = DS->reg<double>("integrator.p", Dimension::PN);
-    m    = DS->reg<double>("integrator.m", Dimension::PN);
-    fadd = DS->reg<double>("integrator.fadd", Dimension::PN);
-    grad = DS->reg<double>("model.grad", Dimension::PN);
-    dV   = DS->reg<double>("model.dV", Dimension::PNFF);
-    dE   = DS->reg<double>("model.rep.dE", Dimension::PNFF);
-    T    = DS->reg<double>("model.rep.T", Dimension::PFF);
+    f     = DS->reg<double>("integrator.f", Dimension::PN);
+    p     = DS->reg<double>("integrator.p", Dimension::PN);
+    m     = DS->reg<double>("integrator.m", Dimension::PN);
+    fadd  = DS->reg<double>("integrator.fadd", Dimension::PN);
+    fproj = DS->reg<double>("integrator.tmp.fporj", Dimension::N);
+    grad  = DS->reg<double>("model.grad", Dimension::PN);
+    dV    = DS->reg<double>("model.dV", Dimension::PNFF);
+    dE    = DS->reg<double>("model.rep.dE", Dimension::PNFF);
+    T     = DS->reg<double>("model.rep.T", Dimension::PFF);
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:
@@ -64,8 +66,7 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                     f[j] = Force[j * Dimension::FF + (*occ_nuc) * Dimension::Fadd1];
                 break;
             }
-            case NADForcePolicy::EHR:
-            case NADForcePolicy::MIX: {
+            case NADForcePolicy::EHR: {
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::inp_repr_type,
                                                  Kernel_Representation::nuc_repr_type, SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
@@ -102,24 +103,33 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
                         double* Forceb0 = Force + b0FF;
                         double fb0      = Forceb0[(*occ_nuc) * Dimension::Fadd1];
-                        fb0 += std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double fprojb0  = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
-                            f[bj] = fb0 * Force[bjbb] / Force[b0bb];
+                            f[bj]     = fb0 * Force[bjbb] / Force[b0bb];
+                            fproj[bj] = fprojb0 * Force[bjbb] / Force[b0bb];
                         }
                     }
                 } else {
                     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
                         double* dVj = Force + jFF;
-                        f[j]        = dVj[(*occ_nuc) * Dimension::Fadd1] +
-                               std::real(ARRAY_TRACE2_OFFD(rho_nuc, dVj, Dimension::F, Dimension::F));
+                        f[j]        = dVj[(*occ_nuc) * Dimension::Fadd1];
+                        fproj[j]    = std::real(ARRAY_TRACE2_OFFD(rho_nuc, dVj, Dimension::F, Dimension::F));
                     }
                 }
+                if (offd_projected) {  // then the offdiagonal force is projected
+                    double fdotR = 0.0e0, vnorm2 = 0.0e0;
+                    for (int j = 0; j < Dimension::N; ++j) fdotR += fproj[j] * p[j], vnorm2 += p[j] * p[j];
+                    for (int j = 0; j < Dimension::N; ++j) fproj[j] -= fdotR / vnorm2 * p[j];
+                }
+                for (int j = 0; j < Dimension::N; ++j) f[j] += fproj[j];
+
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::nuc_repr_type,
                                                  Kernel_Representation::inp_repr_type,
                                                  SpacePolicy::L);  // not need
                 break;
             }
-            case NADForcePolicy::CV2: {
+            case NADForcePolicy::BOSD:
+            case NADForcePolicy::CVSD: {  // smooth dynamics
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::inp_repr_type,
                                                  Kernel_Representation::nuc_repr_type, SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
@@ -129,24 +139,32 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
                         double* Forceb0 = Force + b0FF;
-                        double fb0      = Forceb0[(*occ_nuc) * Dimension::Fadd1];
-                        double faddb0   = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double fb0      = std::real(ARRAY_TRACE2_DIAG(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double fprojb0  = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
-                            f[bj]    = fb0 * Force[bjbb] / Force[b0bb];
-                            fadd[bj] = faddb0 * Force[bjbb] / Force[b0bb];
+                            f[bj]     = fb0 * Force[bjbb] / Force[b0bb];
+                            fproj[bj] = fprojb0 * Force[bjbb] / Force[b0bb];
                         }
                     }
                 } else {
                     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
                         double* dVj = Force + jFF;
-                        f[j]        = dVj[(*occ_nuc) * Dimension::Fadd1];
-                        fadd[j]     = std::real(ARRAY_TRACE2_OFFD(rho_nuc, dVj, Dimension::F, Dimension::F));
+                        f[j]        = std::real(ARRAY_TRACE2_DIAG(rho_nuc, dVj, Dimension::F, Dimension::F));
+                        fproj[j]    = std::real(ARRAY_TRACE2_OFFD(rho_nuc, dVj, Dimension::F, Dimension::F));
                     }
                 }
-                // modify fadd
-                double fdotR = 0.0e0, vnorm2 = 0.0e0;
-                for (int j = 0; j < Dimension::N; ++j) fdotR += fadd[j] * p[j], vnorm2 += p[j] * p[j];
-                for (int j = 0; j < Dimension::N; ++j) fadd[j] -= fdotR / vnorm2 * p[j];
+
+                if (NADForce_type == NADForcePolicy::CVSD) {
+                    if (offd_projected) {
+                        double fdotR = 0.0e0, vnorm2 = 0.0e0;
+                        for (int j = 0; j < Dimension::N; ++j) fdotR += fproj[j] * p[j], vnorm2 += p[j] * p[j];
+                        for (int j = 0; j < Dimension::N; ++j) fproj[j] += (fproj[j] - fdotR / vnorm2 * p[j]);
+                    } else {
+                        for (int j = 0; j < Dimension::N; ++j) fproj[j] += fproj[j];
+                    }
+                }
+
+                for (int j = 0; j < Dimension::N; ++j) f[j] += fproj[j];
 
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::nuc_repr_type,
                                                  Kernel_Representation::inp_repr_type,

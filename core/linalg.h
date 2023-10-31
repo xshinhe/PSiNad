@@ -131,6 +131,14 @@ TB ARRAY_TRACE2(TB* B, TC* C, size_t N1, size_t N2) {
 }
 
 template <class TB, class TC>
+TB ARRAY_TRACE2_DIAG(TB* B, TC* C, size_t N1, size_t N2) {
+    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
+    Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
+    TB res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    return res;
+}
+
+template <class TB, class TC>
 TB ARRAY_TRACE2_OFFD(TB* B, TC* C, size_t N1, size_t N2) {
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N1);

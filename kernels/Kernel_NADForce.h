@@ -7,11 +7,11 @@
 namespace PROJECT_NS {
 
 DEFINE_POLICY(NADForcePolicy,  //
-              BO,              //
               EHR,             //
-              MIX,             //
+              BO,              //
               CV,              //
-              CV2,             //
+              BOSD,            //
+              CVSD,            //
               ELSE);           //
 
 namespace FORCE_OPT {
@@ -26,13 +26,15 @@ class Kernel_NADForce : public Kernel {
     inline virtual const std::string name() { return "Kernel_NADForce"; }
 
    private:
+    bool offd_projected;
+
     num_real *f, *grad, *dV, *dE, *Force, *T;
     num_real *p, *m;
-    num_real* fadd;
+    num_real *fadd, *fproj;
 
-    virtual void read_param_impl(Param* PM);
+    virtual void read_param_impl(Param *PM);
 
-    virtual void init_data_impl(DataSet* DS);
+    virtual void init_data_impl(DataSet *DS);
 
     virtual void init_calc_impl(int stat = -1);
 

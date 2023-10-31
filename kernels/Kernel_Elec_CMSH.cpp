@@ -21,32 +21,89 @@
 
 namespace PROJECT_NS {
 
-int force1(num_real* f1,       // to be calculated
-           num_real* E,        //
-           num_real* dE,       //
-           num_complex* wrho,  // rho_nuc
-           num_complex* rho,   // rho_ele
-           double xi,          // xi must be 1
-           double gamma,       // gamma must be 0
-           double alpha) {
-    num_real L      = 1.0e0 / alpha;
-    num_complex sum = 0.0e0;
-    for (int i = 0, ik = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-        for (int k = 0; k < Dimension::F; ++k, ++ik) wrho[ik] = (i == k) ? std::pow(rho[ik], L) : xi * rho[ik];
-        sum += wrho[ii];
+double calc_alpha(num_real* V, int i = 0, int k = 1, int F = 2) {  // acoording to mix angle
+    int ii = i * (F + 1), kk = k * (F + 1), ik = i * F + k;
+    if (V[ii] == V[kk]) return 1.0e0;
+    double res = 2.0e0 / phys::math::pi * atan(2 * V[ik] / (V[ii] - V[kk]));
+    if (abs(res) < 1.0e-8) res = copysign(1.0e-8, res);
+    return res;
+}
+
+int calc_wrho(num_complex* wrho,  // distorted rho
+              num_complex* rho,   // rho_ele
+              double xi,          // xi must be 1
+              double gamma,       // gamma must be 0
+              double alpha) {
+    // initialize distorted-density
+    num_real L       = 1.0e0 - log(abs(alpha));  // @NOTE
+    num_complex norm = 0.0e0;
+    for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+        for (int k = 0; k < Dimension::F; ++k, ++ik) {
+            if (i == k) {
+                wrho[ik] = copysign(1.0, std::real(rho[ik])) * std::pow(std::abs(rho[ik]), L);
+                norm += wrho[ik];
+            } else {
+                wrho[ik] = xi * rho[ik];
+            }
+        }
     }
-    double Epot = 0.0e0;
-    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-        wrho[ii] /= sum;
-        Epot += std::real(wrho[ii] * E[i]);
+    // normalization of distorted-density
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) wrho[ii] /= norm;
+    return 0;
+}
+
+double calc_Ew(num_real* E, num_complex* wrho, int occ) {
+    double Ecalc = 0.0e0;
+    switch (Kernel_NADForce::NADForce_type) {
+        case NADForcePolicy::BO:
+        case NADForcePolicy::CV: {
+            Ecalc = E[occ];
+            break;
+        }
+        default: {  // EGR, MIX, SD (Eto == Efrom will skip hopping procedure)
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+                Ecalc += std::real(wrho[ii] * E[i]);
+            }
+            break;
+        }
     }
+    return Ecalc;
+}
+
+/**
+ * @brief      the force driven from the shape of distorted-density W(\rho)
+ *
+ * @param      f1     The result
+ * @param      E      adiabatic PES
+ * @param      dE     The gradients of adiabatic PES
+ * @param      wrho   The distorted-density W(\rho)
+ * @param      rho    The density rho
+ * @param[in]  xi     affine coefficient
+ * @param[in]  gamma  affine coefficient
+ * @param[in]  alpha  The distortion parameter
+ *
+ * @return     { description_of_the_return_value }
+ */
+int calc_distforce(num_real* f1,       // to be calculated
+                   num_real* E,        // (input)
+                   num_real* dE,       // (input)
+                   num_complex* wrho,  // distorted rho
+                   num_complex* rho,   // rho_ele
+                   double alpha) {
+    // initialize distorted-density
+    num_real L = 1.0e0 - log(abs(alpha));  // @NOTE
+    // averaged adiabatic energy by distorted-density
+    double Ew = 0.0e0;
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Ew += std::real(wrho[ii] * E[i]);
+
+    // distortion force (when L= 1 [EHR], the distortion force is zero)
     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
         num_real* dEj = dE + jFF;
         f1[j]         = 0.0e0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
             for (int k = 0; k < Dimension::F; ++k) {
                 if (i == k) continue;
-                f1[j] += (E[i] - (E[i] - Epot) * L * std::real(wrho[ii] / rho[ii])) *
+                f1[j] += (E[i] - (E[i] - Ew) * L * std::real(wrho[ii] / rho[ii])) *
                          std::real(dEj[i * Dimension::F + k] / (E[k] - E[i]) * wrho[k * Dimension::F + i] -
                                    dEj[k * Dimension::F + i] / (E[i] - E[k]) * wrho[i * Dimension::F + k]);
             }
@@ -55,8 +112,8 @@ int force1(num_real* f1,       // to be calculated
     return 0;
 }
 
-int Kernel_Elec_CMSH::hopping_impulse(num_real* direction, num_real* np, num_real* nm,  //
-                                      num_real Efrom, num_real Eto, int from, int to, bool reflect) {
+int hopping_impulse(num_real* direction, num_real* np, num_real* nm,  //
+                    num_real Efrom, num_real Eto, int from, int to, bool reflect) {
     if (to == from) return from;
 
     // solve x: Ef + P**2 / (2*M) = Et + (P + direction*x)**2 / (2*M)
@@ -84,6 +141,9 @@ int Kernel_Elec_CMSH::hopping_impulse(num_real* direction, num_real* np, num_rea
 }
 
 void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
+    cmsh_type = CMSHPolicy::_from(PM->get<std::string>("cmsh_flag", LOC(), "CVSH"));
+
+    alpha0 = PM->get<num_real>("alpha0", LOC(), 0.5);
     gamma1 = PM->get<num_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
 
     if (gamma1 < -1.5) gamma1 = Kernel_Elec_MMSH::gamma_opt(Dimension::F);
@@ -92,21 +152,57 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     gamma2  = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
     xi1     = (1 + Dimension::F * gamma1);
     xi2     = (1 + Dimension::F * gamma2);
-    use_cv  = PM->get<bool>("use_cv", LOC(), false);
     use_wmm = PM->get<bool>("use_wmm", LOC(), false);
-    reflect = PM->get<bool>("reflect", LOC(), true);  ///< reflect scheme in hopping dynamics
+    dt      = PM->get<double>("dt", LOC(), phys::time_d);
 
-    dt            = PM->get<double>("dt", LOC(), phys::time_d);
-    alpha         = PM->get<double>("alpha", LOC(), 0.5);
-    hopping_type1 = PM->get<int>("hopping_type1", LOC(), 0);
-    hopping_type2 = PM->get<int>("hopping_type2", LOC(), 0);
-    hopping_type3 = PM->get<int>("hopping_type3", LOC(), 0);
+    hopping_type1 = 0;
+    hopping_type2 = 0;
+    reflect       = true;
+    use_cv        = false;
+    dynamic_alpha = false;
+    switch (cmsh_type) {
+        case CMSHPolicy::EHR:
+            Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
+            break;
+        case CMSHPolicy::BOSH:
+            Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
+            hopping_type1                  = 0;  // max(rho_ele)
+            hopping_type2                  = 0;  // MASH direction
+            reflect                        = true;
+            break;
+        case CMSHPolicy::CVSH:
+            Kernel_NADForce::NADForce_type = NADForcePolicy::CV;
+            hopping_type1                  = 1;  // max(rho_nuc)
+            hopping_type2                  = 2;  // P direction
+            reflect                        = false;
+            use_cv                         = true;
+            break;
+        case CMSHPolicy::BOSD:
+            Kernel_NADForce::NADForce_type = NADForcePolicy::BOSD;
+            dynamic_alpha                  = true;
+            break;
+        case CMSHPolicy::CVSD:
+            Kernel_NADForce::NADForce_type = NADForcePolicy::CVSD;
+            dynamic_alpha                  = true;
+            break;
+    }
+    hopping_type1 = PM->get<int>("hopping_type1", LOC(), hopping_type1);
+    hopping_type2 = PM->get<int>("hopping_type1", LOC(), hopping_type2);
+    use_cv        = PM->get<bool>("use_cv", LOC(), use_cv);
+    reflect       = PM->get<bool>("reflect", LOC(), reflect);
+    dynamic_alpha = PM->get<bool>("dynamic_alpha", LOC(), dynamic_alpha);
 }
 
 void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
+    alpha     = DS->reg<num_real>("integrator.alpha", Dimension::P);
+    Epot      = DS->reg<num_real>("integrator.Epot", Dimension::P);
     p         = DS->reg<num_real>("integrator.p", Dimension::PN);
     m         = DS->reg<num_real>("integrator.m", Dimension::PN);
     fadd      = DS->reg<num_real>("integrator.fadd", Dimension::PN);
+    ftmp      = DS->reg<num_real>("integrator.tmp.ftmp", Dimension::N);
+    wrho      = DS->reg<num_complex>("integrator.tmp.wrho", Dimension::FF);
+    vpes      = DS->reg<num_real>("model.vpes", Dimension::P);
+    V         = DS->reg<num_real>("model.V", Dimension::PFF);
     E         = DS->reg<num_real>("model.rep.E", Dimension::PF);
     dE        = DS->reg<num_real>("model.rep.dE", Dimension::PNFF);
     T         = DS->reg<num_real>("model.rep.T", Dimension::PFF);
@@ -115,12 +211,6 @@ void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
-    Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
-    if (hopping_type3 == -1) Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
-    if (hopping_type3 == 0) Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
-    if (hopping_type3 == 4) Kernel_NADForce::NADForce_type = NADForcePolicy::CV;
-    if (hopping_type3 == 5) Kernel_NADForce::NADForce_type = NADForcePolicy::CV2;
-
     for (int iP = 0; iP < Dimension::P; ++iP) {
         num_complex* w       = Kernel_Elec::w + iP;
         num_complex* wz_A    = Kernel_Elec::wz_A + iP;
@@ -133,8 +223,11 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
         num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
         num_real* T          = Kernel_Elec::T + iP * Dimension::FF;
         int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
+        num_real* alpha      = this->alpha + iP;
+        num_real* V          = this->V + iP * Dimension::FF;
 
         /////////////////////////////////////////////////////////////////
+        alpha[0] = (dynamic_alpha) ? calc_alpha(V) : alpha0;
 
         w[0]     = num_complex(Dimension::F);                     ///< initial measure
         *occ_nuc = Kernel_Elec::occ0;                             ///< initial occupation
@@ -187,6 +280,21 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     Kernel_Elec::T_init       = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
 
     exec_kernel(stat);
+    for (int iP = 0; iP < Dimension::P; ++iP) {  // @debug
+        num_real* vpes = this->vpes + iP;
+        num_real* E    = this->E + iP;
+        num_real* Epot = this->Epot + iP;
+        num_real* p    = this->p + iP;
+        num_real* m    = this->m + iP;
+
+        double Ekin = 0.0e0;
+        for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5e0 * p[j] * p[j] / m[j];
+
+        double Ekin2 = Ekin + E[Kernel_Elec::occ0] - Epot[0];
+        double scale = sqrt(std::max({0.0e0, Ekin2 / Ekin}));
+
+        for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
+    }
 }
 
 int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
@@ -215,12 +323,16 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         num_complex* ww_A         = Kernel_Elec::ww_A + iP;
         num_complex* ww_D         = Kernel_Elec::ww_D + iP;
 
-        num_real* E    = this->E + iP * Dimension::F;
-        num_real* dE   = this->dE + iP * Dimension::NFF;
-        num_real* p    = this->p + iP * Dimension::N;
-        num_real* m    = this->m + iP * Dimension::N;
-        num_real* fadd = this->fadd + iP * Dimension::N;
-        num_complex* H = this->H + iP * Dimension::FF;
+        num_real* alpha = this->alpha + iP;
+        num_real* Epot  = this->Epot + iP;
+        num_real* vpes  = this->vpes + iP;
+        num_real* V     = this->V + iP * Dimension::FF;
+        num_real* E     = this->E + iP * Dimension::F;
+        num_real* dE    = this->dE + iP * Dimension::NFF;
+        num_real* p     = this->p + iP * Dimension::N;
+        num_real* m     = this->m + iP * Dimension::N;
+        num_real* fadd  = this->fadd + iP * Dimension::N;
+        num_complex* H  = this->H + iP * Dimension::FF;
 
         //////////////////////////////////////////////////////////////////////
 
@@ -252,32 +364,10 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
 
-        // Win is for calculate energy
-        if (hopping_type3 == 10) {                                      // alpha dynamics
-            force1(fadd, E, dE, rho_nuc, rho_ele, xi1, gamma1, alpha);  // calculate fadd & rho_nuc
-        }
-
-        // step 1: determine where to hop
+        // step 1: determine where to hop (BOSH & CVSH)
         /// 1.1 calc Efrom
         num_real Efrom, Eto;
-        switch (Kernel_NADForce::NADForce_type) {
-            case NADForcePolicy::BO:
-            case NADForcePolicy::CV:
-            case NADForcePolicy::CV2: {
-                Efrom = E[*occ_nuc];
-                break;
-            }
-            default: {  // EHR and mix-Ehr
-                // Efrom = std::real(ARRAY_TRACE2(rho_nuc, H, Dimension::F, Dimension::F));  // @bug
-                Efrom = 0.0e0;
-                for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                    Efrom += std::real(rho_nuc[ii] * E[i]);
-                }
-                break;
-            }
-        }
-        if (hopping_type3 == 11) Efrom = alpha * Efrom + (1 - alpha) * E[*occ_nuc];  // mix-Ehr with BO energy
-
+        Efrom = calc_Ew(E, rho_nuc, *occ_nuc);
         /// 1.2 calc to
         int to;
         switch (hopping_type1) {
@@ -298,21 +388,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 break;
             }
         }
-        /// 1.3 calc Eto
-        switch (Kernel_NADForce::NADForce_type) {
-            case NADForcePolicy::BO:
-            case NADForcePolicy::CV:
-            case NADForcePolicy::CV2: {
-                Eto = E[to];
-                break;
-            }
-            default: {  // EHR & mix-EHR
-                Eto = Efrom;
-                break;
-            }
-        }
-        if (hopping_type3 == 11) Eto = alpha * Eto + (1 - alpha) * E[to];  // mix-Ehr with BO energy
-
+        Eto = calc_Ew(E, rho_nuc, to);
         // step 2: determine direction to hop
         switch (hopping_type2) {
             case 0: {
@@ -334,20 +410,35 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 break;
             }
         }
-
         // step 3: try hop
         *occ_nuc = hopping_impulse(direction, p, m, Efrom, Eto, *occ_nuc, to, reflect);
-        if (hopping_type3 == 11) {  // revise for mix
-            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F);
-            for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                    if (i == *occ_nuc && k == *occ_nuc) {
-                        rho_nuc[ik] = alpha * rho_nuc[ik] + (1 - alpha);
-                    } else {
-                        rho_nuc[ik] = alpha * rho_nuc[ik];
-                    }
-                }
+        Epot[0]  = vpes[0] + ((*occ_nuc == to) ? Eto : Efrom);
+
+        // smooth dynamics (BOSD & CVSD)
+        if (cmsh_type == CMSHPolicy::BOSD || cmsh_type == CMSHPolicy::CVSD) {
+            ARRAY_CLEAR(fadd, Dimension::N);
+
+            // Win is for calculate energy
+            calc_wrho(wrho, rho_ele, xi1, gamma1, alpha[0]);
+            double Ew_old = calc_Ew(E, wrho, *occ_nuc);
+            calc_distforce(ftmp, E, dE, wrho, rho_ele, alpha[0]);
+
+            if (dynamic_alpha) alpha[0] = calc_alpha(V);
+            calc_wrho(wrho, rho_ele, xi1, gamma1, alpha[0]);
+            double Ew_new = calc_Ew(E, wrho, *occ_nuc);
+            calc_distforce(ftmp, E, dE, wrho, rho_ele, alpha[0]);
+            // non-linear force
+            for (int j = 0; j < Dimension::N; ++j) fadd[j] += ftmp[j];
+            Epot[0] = vpes[0] + Ew_new;
+
+            // region force
+            if (Ew_new != Ew_old) {
+                double vdotd = 0.0e0;
+                for (int j = 0; j < Dimension::N; ++j) vdotd += p[j] / m[j] * dE[j * Dimension::FF + 1];
+                double xsolve = (Ew_new - Ew_old) / dt / vdotd;
+                for (int j = 0; j < Dimension::N; ++j) fadd[j] += xsolve * dE[j * Dimension::FF + 1];
             }
+            for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = wrho[ik];
         }
 
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
