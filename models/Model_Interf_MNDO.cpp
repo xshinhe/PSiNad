@@ -5,7 +5,7 @@
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
-#include "../mpi_utils.h"
+// #include "../mpi_utils.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
     ({                                                                               \
@@ -202,8 +202,8 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     ARRAY_CLEAR(dE, Dimension::NFF);
 
     // prepare a mndo99 input file
-    std::string inpfile = utils::concat(".mndo99inp.", MPI_Guard::rank);
-    std::string outfile = utils::concat(".mndo99out.", MPI_Guard::rank);
+    std::string inpfile = utils::concat(".mndo99inp.", stat_in);
+    std::string outfile = utils::concat(".mndo99out.", stat_in);
 
     new_task(inpfile, "def");  ///< generate a default task
 
