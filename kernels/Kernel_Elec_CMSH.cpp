@@ -92,6 +92,8 @@ int calc_distforce(num_real* f1,       // to be calculated
                    double alpha) {
     // initialize distorted-density
     num_real L = 1.0e0 - log(abs(alpha));  // @NOTE
+    num_real rate_default = (L == 1.0e0) ? 1.0e0 : 0.0e0;
+
     // averaged adiabatic energy by distorted-density
     double Ew = 0.0e0;
     for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) Ew += std::real(wrho[ii] * E[i]);
@@ -101,11 +103,12 @@ int calc_distforce(num_real* f1,       // to be calculated
         num_real* dEj = dE + jFF;
         f1[j]         = 0.0e0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+            double rate = ((std::real(rho[ii])==0.0e0) ? rate_default : std::real(wrho[ii] / rho[ii]));
+            double coeff = (E[i] - (E[i] - Ew) * L * rate);
             for (int k = 0; k < Dimension::F; ++k) {
                 if (i == k) continue;
-                f1[j] += (E[i] - (E[i] - Ew) * L * std::real(wrho[ii] / rho[ii])) *
-                         std::real(dEj[i * Dimension::F + k] / (E[k] - E[i]) * wrho[k * Dimension::F + i] -
-                                   dEj[k * Dimension::F + i] / (E[i] - E[k]) * wrho[i * Dimension::F + k]);
+                f1[j] += coeff * std::real(dEj[i * Dimension::F + k] / (E[k] - E[i]) * wrho[k * Dimension::F + i] -
+                        dEj[k * Dimension::F + i] / (E[i] - E[k]) * wrho[i * Dimension::F + k]);
             }
         }
     }
@@ -149,11 +152,12 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     if (gamma1 < -1.5) gamma1 = Kernel_Elec_MMSH::gamma_opt(Dimension::F);
     if (gamma1 < -0.5) gamma1 = Kernel_Elec_CMM::gamma_wigner(Dimension::F);
 
-    gamma2  = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
-    xi1     = (1 + Dimension::F * gamma1);
-    xi2     = (1 + Dimension::F * gamma2);
-    use_wmm = PM->get<bool>("use_wmm", LOC(), false);
-    dt      = PM->get<double>("dt", LOC(), phys::time_d);
+    gamma2    = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
+    xi1       = (1 + Dimension::F * gamma1);
+    xi2       = (1 + Dimension::F * gamma2);
+    use_wmm   = PM->get<bool>("use_wmm", LOC(), false);
+    use_focus = PM->get<bool>("use_focus", LOC(), false);
+    dt        = PM->get<double>("dt", LOC(), phys::time_d);
 
     hopping_type1 = 0;
     hopping_type2 = 0;
@@ -231,7 +235,11 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
 
         w[0]     = num_complex(Dimension::F);                     ///< initial measure
         *occ_nuc = Kernel_Elec::occ0;                             ///< initial occupation
-        Kernel_Elec_CMM::c_sphere(c, Dimension::F);               ///< initial c on standard sphere
+        if(use_focus){
+            Kernel_Elec_CMM::c_focus(c, xi1, gamma1, Kernel_Elec::occ0, Dimension::F);
+        }else{
+            Kernel_Elec_CMM::c_sphere(c, Dimension::F);               ///< initial c on standard sphere            
+        }
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
         Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, *occ_nuc);  ///< initial rho_nuc
         ARRAY_EYE(U, Dimension::F);  ///< initial propagator
@@ -280,21 +288,18 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     Kernel_Elec::T_init       = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
 
     exec_kernel(stat);
-    for (int iP = 0; iP < Dimension::P; ++iP) {  // @debug
-        num_real* vpes = this->vpes + iP;
-        num_real* E    = this->E + iP;
-        num_real* Epot = this->Epot + iP;
-        num_real* p    = this->p + iP;
-        num_real* m    = this->m + iP;
-
-        double Ekin = 0.0e0;
-        for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5e0 * p[j] * p[j] / m[j];
-
-        double Ekin2 = Ekin + E[Kernel_Elec::occ0] - Epot[0];
-        double scale = sqrt(std::max({0.0e0, Ekin2 / Ekin}));
-
-        for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
-    }
+    // for (int iP = 0; iP < Dimension::P; ++iP) {  // @debug only for scattering problem
+    //     num_real* vpes = this->vpes + iP;
+    //     num_real* E    = this->E + iP;
+    //     num_real* Epot = this->Epot + iP;
+    //     num_real* p    = this->p + iP;
+    //     num_real* m    = this->m + iP;
+    //     double Ekin = 0.0e0;
+    //     for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5e0 * p[j] * p[j] / m[j];
+    //     double Ekin2 = Ekin + E[Kernel_Elec::occ0] - Epot[0];
+    //     double scale = sqrt(std::max({0.0e0, Ekin2 / Ekin}));
+    //     for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
+    // }
 }
 
 int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {

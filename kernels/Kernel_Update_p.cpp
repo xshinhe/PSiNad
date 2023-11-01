@@ -2,6 +2,16 @@
 
 #include "Kernel_Declare.h"
 
+#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
+    ({                                                                               \
+        std::cout << "Show Array <" << #_A << ">\n";                                 \
+        int _idxA = 0;                                                               \
+        for (int _i = 0; _i < (_n1); ++_i) {                                         \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
+            std::cout << std::endl;                                                  \
+        }                                                                            \
+    })
+
 namespace PROJECT_NS {
 
 void Kernel_Update_p::read_param_impl(Param* PM) {

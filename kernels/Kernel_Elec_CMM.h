@@ -38,6 +38,8 @@ class Kernel_Elec_CMM final : public Kernel {
      */
     static int c_sphere(num_complex *c, int fdim);
 
+    static int c_focus(num_complex *c, double xi, double gamma, int occ, int fdim);
+
    private:
     num_real gamma1, gamma2, xi1, xi2;
     bool use_cv  = false;

@@ -40,9 +40,10 @@ class Kernel_Elec_CMSH final : public Kernel {
     CMSHPolicy::_type cmsh_type;
 
     num_real gamma1, gamma2, xi1, xi2;
-    bool use_cv  = true;   // adapt cv in rho_nuc
-    bool use_wmm = false;  // in this case, gamma1 will be used as delta in wMM
-    bool reflect = true;   // treatment in hopping
+    bool use_focus = false;
+    bool use_cv    = true;   // adapt cv in rho_nuc
+    bool use_wmm   = false;  // in this case, gamma1 will be used as delta in wMM
+    bool reflect   = true;   // treatment in hopping
     int hopping_type1;
     int hopping_type2;
 

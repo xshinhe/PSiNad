@@ -32,6 +32,17 @@ int Kernel_Elec_CMM::c_sphere(num_complex* c, int fdim) {
     return 0;
 }
 
+int Kernel_Elec_CMM::c_focus(num_complex *c, double xi, double gamma, int occ, int fdim){
+    for(int i=0; i<fdim; ++i) c[i] = ((i==occ? 1.0e0 : 0.0e0) + gamma) / xi; // gamma should > 0
+    double randu;
+    for(int i=0; i<fdim; ++i){
+        Kernel_Random::rand_uniform(&randu);
+        randu *= phys::math::twopi;
+        c[i] = std::sqrt(std::abs(c[i])) * (cos(randu) + phys::math::im * sin(randu));
+    }
+    return 0;
+}
+
 void Kernel_Elec_CMM::read_param_impl(Param* PM) {
     gamma1  = PM->get<num_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
     gamma2  = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
