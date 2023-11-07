@@ -5,6 +5,7 @@
 #include "Kernel_Elec_CMM.h"
 #include "Kernel_Elec_MMSH.h"
 #include "Kernel_Elec_SH.h"
+#include "Kernel_Elec_SQC.h"
 #include "Kernel_NADForce.h"
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
@@ -91,7 +92,7 @@ int calc_distforce(num_real* f1,       // to be calculated
                    num_complex* rho,   // rho_ele
                    double alpha) {
     // initialize distorted-density
-    num_real L = 1.0e0 - log(abs(alpha));  // @NOTE
+    num_real L            = 1.0e0 - log(abs(alpha));  // @NOTE
     num_real rate_default = (L == 1.0e0) ? 1.0e0 : 0.0e0;
 
     // averaged adiabatic energy by distorted-density
@@ -103,12 +104,12 @@ int calc_distforce(num_real* f1,       // to be calculated
         num_real* dEj = dE + jFF;
         f1[j]         = 0.0e0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-            double rate = ((std::real(rho[ii])==0.0e0) ? rate_default : std::real(wrho[ii] / rho[ii]));
+            double rate  = ((std::real(rho[ii]) == 0.0e0) ? rate_default : std::real(wrho[ii] / rho[ii]));
             double coeff = (E[i] - (E[i] - Ew) * L * rate);
             for (int k = 0; k < Dimension::F; ++k) {
                 if (i == k) continue;
                 f1[j] += coeff * std::real(dEj[i * Dimension::F + k] / (E[k] - E[i]) * wrho[k * Dimension::F + i] -
-                        dEj[k * Dimension::F + i] / (E[i] - E[k]) * wrho[i * Dimension::F + k]);
+                                           dEj[k * Dimension::F + i] / (E[i] - E[k]) * wrho[i * Dimension::F + k]);
             }
         }
     }
@@ -152,12 +153,14 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     if (gamma1 < -1.5) gamma1 = Kernel_Elec_MMSH::gamma_opt(Dimension::F);
     if (gamma1 < -0.5) gamma1 = Kernel_Elec_CMM::gamma_wigner(Dimension::F);
 
-    gamma2    = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
-    xi1       = (1 + Dimension::F * gamma1);
-    xi2       = (1 + Dimension::F * gamma2);
-    use_wmm   = PM->get<bool>("use_wmm", LOC(), false);
-    use_focus = PM->get<bool>("use_focus", LOC(), false);
-    dt        = PM->get<double>("dt", LOC(), phys::time_d);
+    gamma2          = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
+    xi1             = (1 + Dimension::F * gamma1);
+    xi2             = (1 + Dimension::F * gamma2);
+    use_wmm         = PM->get<bool>("use_wmm", LOC(), false);
+    use_sqc         = PM->get<bool>("use_sqc", LOC(), false);
+    use_strange_win = PM->get<bool>("use_strange_win", LOC(), false);
+    use_focus       = PM->get<bool>("use_focus", LOC(), false);
+    dt              = PM->get<double>("dt", LOC(), phys::time_d);
 
     hopping_type1 = 0;
     hopping_type2 = 0;
@@ -191,7 +194,7 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
             break;
     }
     hopping_type1 = PM->get<int>("hopping_type1", LOC(), hopping_type1);
-    hopping_type2 = PM->get<int>("hopping_type1", LOC(), hopping_type2);
+    hopping_type2 = PM->get<int>("hopping_type2", LOC(), hopping_type2);
     use_cv        = PM->get<bool>("use_cv", LOC(), use_cv);
     reflect       = PM->get<bool>("reflect", LOC(), reflect);
     dynamic_alpha = PM->get<bool>("dynamic_alpha", LOC(), dynamic_alpha);
@@ -233,16 +236,20 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
         /////////////////////////////////////////////////////////////////
         alpha[0] = (dynamic_alpha) ? calc_alpha(V) : alpha0;
 
-        w[0]     = num_complex(Dimension::F);                     ///< initial measure
-        *occ_nuc = Kernel_Elec::occ0;                             ///< initial occupation
-        if(use_focus){
+        w[0]     = num_complex(Dimension::F);  ///< initial measure
+        *occ_nuc = Kernel_Elec::occ0;          ///< initial occupation
+        if (use_focus) {
             Kernel_Elec_CMM::c_focus(c, xi1, gamma1, Kernel_Elec::occ0, Dimension::F);
-        }else{
-            Kernel_Elec_CMM::c_sphere(c, Dimension::F);               ///< initial c on standard sphere            
+        } else if (use_sqc) {
+            Kernel_Elec_SQC::c_window(c, Kernel_Elec::occ0, SQCPolicy::TRI,
+                                      Dimension::F);  ///< initial c: non-standard c
+        } else {
+            Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
         }
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
-        Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, *occ_nuc);  ///< initial rho_nuc
-        ARRAY_EYE(U, Dimension::F);  ///< initial propagator
+        Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, (use_sqc ? 1.0e0 : xi1), gamma1, Dimension::F, use_cv,
+                                  *occ_nuc);  ///< initial rho_nuc
+        ARRAY_EYE(U, Dimension::F);           ///< initial propagator
 
         // BO occupation in adiabatic representation
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
@@ -460,7 +467,9 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
 
         Kernel_Elec::ker_from_rho(K1QA, rho_ele, 1, 0, Dimension::F, true, max_pop);
         Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, max_pop);
-        if (abs(rho_ele[max_pop * Dimension::Fadd1]) < 1) K2QA[max_pop * Dimension::Fadd1] = 0.0e0;
+        for (int i = 0; i < Dimension::F; ++i) {
+            K2QA[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
+        }
 
         ARRAY_MAT_DIAG(K1DA, K1QA, Dimension::F);
         ARRAY_MAT_DIAG(K2DA, K2QA, Dimension::F);
@@ -501,6 +510,8 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         for (int i = 0; i < Dimension::F; ++i) {
             K2QD[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
+        if (use_strange_win) calc_wrho(K2QD, rho_ele, 1, 0, 0.2);
+        if (use_sqc) { Kernel_Elec_SQC::ker_binning(K2QD, rho_ele, SQCPolicy::TRI); }
 
         ARRAY_MAT_DIAG(K1DD, K1QD, Dimension::F);
         ARRAY_MAT_DIAG(K2DD, K2QD, Dimension::F);

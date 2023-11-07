@@ -62,6 +62,10 @@ class Kernel_Elec_CMSH final : public Kernel {
     num_complex* H;
     num_complex* wrho;
 
+    //
+    bool use_sqc;
+    bool use_strange_win;
+
     virtual void read_param_impl(Param* PM);
 
     virtual void init_data_impl(DataSet* DS);

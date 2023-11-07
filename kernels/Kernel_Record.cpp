@@ -5,6 +5,15 @@
 
 namespace PROJECT_NS {
 
+
+struct rec_term {
+    std::string name;
+    std::string v0;
+    std::string vt;
+    std::string save;
+    std::string policy;
+};
+
 void Result::save(const std::string& fname, int ibegin, int length, bool with_header) {
     if (size <= 0) return;
     if (with_header) {  // print header
