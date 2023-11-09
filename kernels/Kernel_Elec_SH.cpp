@@ -35,7 +35,7 @@ int Kernel_Elec_SH::pop_choose(num_complex* rho) {
     num_real sum = 0.0f;
     Kernel_Random::rand_uniform(&rand_tmp);
     for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-        sum += std::abs(rho[ii]);
+        sum += std::min({std::max({std::real(rho[ii]), 0}), 1});
         if (rand_tmp < sum) return i;
     }
     return 0;
