@@ -158,6 +158,7 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     xi2             = (1 + Dimension::F * gamma2);
     use_wmm         = PM->get<bool>("use_wmm", LOC(), false);
     use_sqc         = PM->get<bool>("use_sqc", LOC(), false);
+    use_fssh        = PM->get<bool>("use_fssh", LOC(), false);
     use_strange_win = PM->get<bool>("use_strange_win", LOC(), false);
     use_focus       = PM->get<bool>("use_focus", LOC(), false);
     dt              = PM->get<double>("dt", LOC(), phys::time_d);
@@ -257,6 +258,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
         *occ_nuc = Kernel_Elec_SH::max_choose(rho_nuc);
+        if (use_fssh) *occ_nuc = Kernel_Elec_SH::pop_choose(rho_nuc);
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
@@ -470,6 +472,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         for (int i = 0; i < Dimension::F; ++i) {
             K2QA[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
+        if (use_fssh) { Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, *occ_nuc); }
 
         ARRAY_MAT_DIAG(K1DA, K1QA, Dimension::F);
         ARRAY_MAT_DIAG(K2DA, K2QA, Dimension::F);

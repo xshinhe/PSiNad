@@ -64,6 +64,7 @@ class Kernel_Elec_CMSH final : public Kernel {
 
     //
     bool use_sqc;
+    bool use_fssh;
     bool use_strange_win;
 
     virtual void read_param_impl(Param* PM);

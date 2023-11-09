@@ -7,11 +7,11 @@ namespace PROJECT_NS {
 
 
 struct rec_term {
-    std::string name;
-    std::string v0;
-    std::string vt;
-    std::string save;
-    std::string policy;
+    std::string name   = "NAME";
+    std::string v0     = "1";
+    std::string vt     = "";
+    std::string save   = "corr.dat";
+    std::string policy = "";
 };
 
 void Result::save(const std::string& fname, int ibegin, int length, bool with_header) {
