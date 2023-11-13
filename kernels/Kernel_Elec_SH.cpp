@@ -41,6 +41,20 @@ int Kernel_Elec_SH::pop_choose(num_complex* rho) {
     return 0;
 }
 
+int Kernel_Elec_SH::pop_neg_choose(num_complex* rho) {
+    num_real rand_tmp;
+    num_real sum = 0.0f;
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) sum += std::abs(rho[ii]);
+    Kernel_Random::rand_uniform(&rand_tmp);
+    rand_tmp *= sum;
+    sum = 0.0e0;
+    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+        sum += std::abs(rho[ii]);
+        if (rand_tmp < sum) return i;
+    }
+    return 0;
+}
+
 int Kernel_Elec_SH::hopping_choose(num_complex* rho, num_complex* H, int from, num_real dt) {
     int to = from;
     num_real rand_tmp, sumprob = 0.0f;

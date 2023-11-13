@@ -42,6 +42,8 @@ class Kernel_Elec_SH final : public Kernel {
 
     static int pop_choose(num_complex* rho);
 
+    static int pop_neg_choose(num_complex* rho);
+
     // @brief: generate hopping state from iocc (but with change current state)
     static int hopping_choose(num_complex* rho, num_complex* H, int from, num_real dt);
 

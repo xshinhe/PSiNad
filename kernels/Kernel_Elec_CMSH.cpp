@@ -405,6 +405,10 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 to = Kernel_Elec_SH::pop_choose(rho_nuc);
                 break;
             }
+            case 5: {
+                to = Kernel_Elec_SH::pop_neg_choose(rho_nuc);
+                break;
+            }
         }
         Eto = calc_Ew(E, rho_nuc, to);
         // step 2: determine direction to hop
