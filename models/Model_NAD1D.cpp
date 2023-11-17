@@ -289,6 +289,8 @@ int mspes_MORSE3C(double* V, double* dV, double* ddV, double* R, int flag, int r
     V[6] = V[2];                                                            // V(2,0)
     V[7] = V[5];                                                            // V(2,1)
 
+    // if (R[0] < 0) P[0] = abs(P[0]);
+
     if (flag < 1) return 0;
 
     dV[0] = De[0] * (1.0f - exp(-Be[0] * (R[0] - Re[0]))) * exp(-Be[0] * (R[0] - Re[0])) * 2 * Be[0];
@@ -329,6 +331,64 @@ int mspes_MORSE15(double* V, double* dV, double* ddV, double* R, int flag, int r
     for (int i = 1; i < 15; ++i) {
         dV[i * 16] = -alpha * exp(-alpha * R[0]);
         dV[i]      = V[i] * (-2 * lambda * (R[0] - Re[i]));
+        dV[i * 15] = dV[i];
+    }
+
+    if (flag < 2) return 0;
+    // for (int i = 0; i < 225; ++i) ddV[i] = 0;
+    return 0;
+}
+
+int mspes_MORSE15C(double* V, double* dV, double* ddV, double* R, int flag, int rdim, int fdim) {
+    // V
+    const double Dg = 0.2f, De = 0.05f, Dc = 0.05f, alpha = 0.4f, lambda = 1.0f, eta = 0.004f;
+    const double Re[15] = {3.0000000000000f,    6.8335793401926175f, 6.909940519903887f, 6.988372712202933f,
+                           7.0690037103879675f, 7.151973244334301f,  7.237434522736795f, 7.325556032471846f,
+                           7.416523648311893f,  7.5105431195440095f, 7.607843017311827f, 7.708678249086644f,
+                           7.813334276495011f,  7.922132212503321f,  8.035435027584366};
+    for (int i = 0; i < 225; ++i) V[i] = 0.0f;
+    V[0] = Dg * (1 - exp(-alpha * (R[0] - Re[0]))) * (1 - exp(-alpha * (R[0] - Re[0])));
+    for (int i = 1; i < 15; ++i) {
+        V[i * 16] = exp(-alpha * R[0]) + eta * (i + 1) + De;
+        V[i]      = 0.25f * Dc;
+        V[i * 15] = V[i];
+    }
+    if (flag < 1) return 0;
+
+    for (int i = 0; i < 225; ++i) dV[i] = 0.0f;
+    dV[0] = Dg * (1 - exp(-alpha * (R[0] - Re[0]))) * exp(-alpha * (R[0] - Re[0])) * 2 * alpha;
+    for (int i = 1; i < 15; ++i) {
+        dV[i * 16] = -alpha * exp(-alpha * R[0]);
+        dV[i]      = 0.0f;
+        dV[i * 15] = dV[i];
+    }
+
+    if (flag < 2) return 0;
+    // for (int i = 0; i < 225; ++i) ddV[i] = 0;
+    return 0;
+}
+
+int mspes_MORSE15E(double* V, double* dV, double* ddV, double* R, int flag, int rdim, int fdim) {
+    // V
+    const double Dg = 0.2f, De = 0.05f, Dc = 0.05f, alpha = 0.4f, lambda = 1.0f, eta = 0.004f;
+    const double Re[15] = {3.0000000000000f,    6.8335793401926175f, 6.909940519903887f, 6.988372712202933f,
+                           7.0690037103879675f, 7.151973244334301f,  7.237434522736795f, 7.325556032471846f,
+                           7.416523648311893f,  7.5105431195440095f, 7.607843017311827f, 7.708678249086644f,
+                           7.813334276495011f,  7.922132212503321f,  8.035435027584366};
+    for (int i = 0; i < 225; ++i) V[i] = 0.0f;
+    V[0] = Dg * (1 - exp(-alpha * (R[0] - Re[0]))) * (1 - exp(-alpha * (R[0] - Re[0])));
+    for (int i = 1; i < 15; ++i) {
+        V[i * 16] = exp(-alpha * R[0]) + eta * (i + 1) + De;
+        V[i]      = Dc * exp(-0.2 * R[0]);
+        V[i * 15] = V[i];
+    }
+    if (flag < 1) return 0;
+
+    for (int i = 0; i < 225; ++i) dV[i] = 0.0f;
+    dV[0] = Dg * (1 - exp(-alpha * (R[0] - Re[0]))) * exp(-alpha * (R[0] - Re[0])) * 2 * alpha;
+    for (int i = 1; i < 15; ++i) {
+        dV[i * 16] = -alpha * exp(-alpha * R[0]);
+        dV[i]      = -0.2 * V[i];
         dV[i * 15] = dV[i];
     }
 
@@ -540,13 +600,19 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
     switch (nad1d_type) {
         case NAD1DPolicy::SAC:
         case NAD1DPolicy::SAC2:
-        case NAD1DPolicy::SAC3:  // asymmetrical SAC
         case NAD1DPolicy::DAC:
         case NAD1DPolicy::ECR:
         case NAD1DPolicy::DBG:
         case NAD1DPolicy::DAG:
         case NAD1DPolicy::DRN: {
             mass[0] = 2000.0f;
+            break;
+        }
+        case NAD1DPolicy::SAC3: {  // asymmetrical SAC
+            mass[0]           = 1980.0f;
+            double gammawidth = 0.25f;
+            x_sigma[0]        = 0.5f / gammawidth;
+            p_sigma[0]        = 0.5f * gammawidth;
             break;
         }
         case NAD1DPolicy::MORSE3A:
@@ -571,7 +637,9 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
             p_sigma[0]     = 0.5f / x_sigma[0];
             break;
         }
-        case NAD1DPolicy::MORSE15: {
+        case NAD1DPolicy::MORSE15:
+        case NAD1DPolicy::MORSE15C:
+        case NAD1DPolicy::MORSE15E: {
             // CHECK_EQ(F, 15);
             mass[0]   = 2000.0f;
             x0[0]     = 13.0f;
@@ -674,10 +742,16 @@ int Model_NAD1D::exec_kernel_impl(int stat) {
             mspes_MORSE3B(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3C:
-            mspes_MORSE3C(V, dV, ddV, x, 1, 1, Dimension::F);
+            mspes_MORSE3C(V, dV, ddV, x, 1, 1, Dimension::F);  // @debug
             break;
         case NAD1DPolicy::MORSE15:
             mspes_MORSE15(V, dV, ddV, x, 1, 1, Dimension::F);
+            break;
+        case NAD1DPolicy::MORSE15C:
+            mspes_MORSE15C(V, dV, ddV, x, 1, 1, Dimension::F);
+            break;
+        case NAD1DPolicy::MORSE15E:
+            mspes_MORSE15E(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::JC1D:
             mspes_JC1D(V, dV, ddV, x, 1, 1, Dimension::F);

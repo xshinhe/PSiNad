@@ -37,6 +37,8 @@ class Model_LVCM final : public Kernel {
 
     num_real* x_sigma;
     num_real* p_sigma;
+    num_real* x_0;
+    num_real* p_0;
 
     // integrator
     num_real *x, *p, *m, *w;

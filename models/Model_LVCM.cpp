@@ -86,6 +86,62 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             }
             break;
         }
+        case LVCMPolicy::CRC2:
+        case LVCMPolicy::CRC5: {
+            double H_unit = phys::au_2_ev;
+
+            N_mode = 0;
+            N_coup = Dimension::N;
+
+            const double kappa1   = -0.0169f;
+            const double kappa3   = -0.0272f;
+            const double lambda1a = 0.0328f;
+            const double lambda1b = -0.0978f;
+            const double lambda2a = 0.0095f;
+            const double lambda2b = 0.1014f;
+
+            double E_data_CRC5[3]       = {0.0424f, 0.0424f, 0.4344f};
+            double w_data_CRC5[5]       = {0.0129f, 0.0129f, 0.0342f, 0.0561f, 0.0561f};
+            double kcoeff_data_CRC5[1]  = {0.0f};
+            double lcoeff_data_CRC5[45] = {
+                // data
+                0.0f,      lambda1a, 0.0f,      // x0
+                lambda1a,  0.0f,     lambda1b,  //
+                0.0f,      lambda1b, 0.0f,      //
+                -lambda1a, 0.0f,     lambda1b,  // x1
+                0.0f,      lambda1a, 0.0f,      //
+                lambda1b,  0.0f,     0.0f,      //
+                kappa1,    0.0f,     0.0f,      // x2
+                0.0f,      kappa1,   0.0f,      //
+                0.0f,      0.0f,     kappa3,    //
+                -lambda2a, 0.0f,     lambda2b,  // x3
+                0.0f,      lambda2a, 0.0f,      //
+                lambda2b,  0.0f,     0.0f,      //
+                0.0f,      lambda2a, 0.0f,      // x4
+                lambda2a,  0.0f,     lambda2b,  //
+                0.0f,      lambda2b, 0.0f       //
+            };
+
+            double *E_data      = E_data_CRC5;
+            double *w_data      = w_data_CRC5;
+            double *kcoeff_data = kcoeff_data_CRC5;
+            double *lcoeff_data = lcoeff_data_CRC5;
+
+            kcoeff = DS->reg<num_real>("model.kcoeff");
+            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
+
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i] / H_unit; }
+            for (int j = 0; j < Dimension::N; ++j) w[j] = w_data[j] / H_unit;
+            for (int j = 0, ji = 0; j < N_mode; ++j) {
+                for (int i = 0; i < Dimension::F; ++i, ++ji) { kcoeff[ji] = (kcoeff_data[ji] / H_unit) * sqrt(w[j]); }
+            }
+            for (int j = N_mode, j0ik = 0; j < Dimension::N; ++j) {
+                for (int ik = 0; ik < Dimension::FF; ++ik, ++j0ik) {
+                    lcoeff[j0ik] = (lcoeff_data[j0ik] / H_unit) * sqrt(w[j]);
+                }
+            }
+            break;
+        }
         case LVCMPolicy::CED2:
         case LVCMPolicy::CED3: {
             const double lightspeed = 137.03599907444f;
@@ -227,11 +283,32 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
     }
 
     /// 2) init Bath sub-kernel (declaration & call)
+    x_0     = DS->reg<num_real>("model.x_0", Dimension::N);
+    p_0     = DS->reg<num_real>("model.p_0", Dimension::N);
     x_sigma = DS->reg<double>("model.x_sigma", Dimension::N);
     p_sigma = DS->reg<double>("model.p_sigma", Dimension::N);
-    for (int j = 0; j < Dimension::N; ++j) {
-        x_sigma[j] = sqrt(0.5f / w[j]);
-        p_sigma[j] = sqrt(0.5f * w[j]);
+    switch (lvcm_type) {
+        case LVCMPolicy::CRC2:
+        case LVCMPolicy::CRC5: {
+            double reqb[5] = {0.0f, 14.3514f, -9.9699f, -7.0189f, 0.0f};
+            double alpw[5] = {0.4501f, 0.4286f, 0.6204f, 0.4535f, 0.5539f};
+            for (int j = 0; j < Dimension::N; ++j) {
+                x_0[j]     = reqb[j] / sqrt(w[j]);
+                p_0[j]     = 0.0f;
+                x_sigma[j] = alpw[j] / sqrt(w[j]);
+                p_sigma[j] = 0.5f * sqrt(w[j]) / alpw[j];
+            }
+            break;
+        }
+        default: {
+            for (int j = 0; j < Dimension::N; ++j) {
+                x_0[j]     = 0.0f;
+                p_0[j]     = 0.0f;
+                x_sigma[j] = sqrt(0.5f / w[j]);
+                p_sigma[j] = sqrt(0.5f * w[j]);
+            }
+            break;
+        }
     }
 
     // model field
@@ -257,8 +334,8 @@ void Model_LVCM::init_calc_impl(int stat) {
         Kernel_Random::rand_gaussian(x, Dimension::N);
         Kernel_Random::rand_gaussian(p, Dimension::N);
         for (int j = 0; j < Dimension::N; ++j) {
-            x[j] = x[j] * x_sigma[j];
-            p[j] = p[j] * p_sigma[j];
+            x[j] = x_0[j] + x[j] * x_sigma[j];
+            p[j] = p_0[j] + p[j] * p_sigma[j];
         }
     }
 
