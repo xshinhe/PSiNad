@@ -39,6 +39,49 @@ class FPARSER {
 // template <typename T>
 // std::vector<FPARSER<T>> FPARSER<T>::GLOBAL;
 
+template <class T>
+inline T convert_from_Int(void* data, int ID = 0);
+template <class T>
+inline T convert_from_Real(void* data, int ID = 0);
+template <class T>
+inline T convert_from_Complex(void* data, int ID = 0);
+
+template <>
+inline int convert_from_Int(void* data, int ID) {
+    return *((int*) data + ID);
+}
+template <>
+inline num_real convert_from_Int(void* data, int ID) {
+    return *((int*) data + ID);
+}
+template <>
+inline num_complex convert_from_Int(void* data, int ID) {
+    return 1.0e0 * (*((int*) data + ID));
+}
+template <>
+inline int convert_from_Real(void* data, int ID) {
+    return (int) (*((num_real*) data + ID));
+}
+template <>
+inline num_real convert_from_Real(void* data, int ID) {
+    return (*((num_real*) data + ID));
+}
+template <>
+inline num_complex convert_from_Real(void* data, int ID) {
+    return 1.0e0 * (*((num_real*) data + ID));
+}
+template <>
+inline int convert_from_Complex(void* data, int ID) {
+    return (int) std::real(*((num_complex*) data + ID));
+}
+template <>
+inline num_real convert_from_Complex(void* data, int ID) {
+    return std::real(*((num_complex*) data + ID));
+}
+template <>
+inline num_complex convert_from_Complex(void* data, int ID) {
+    return (*((num_complex*) data + ID));
+}
 
 class Formula {
    public:
@@ -61,9 +104,20 @@ class Formula {
         // [function formula]
         std::vector<T> value_list(dims);
         for (int i = 0, ID0 = 0; i < dims; ++i) {
-            ID0           = idx / variables_ldims[i];
-            idx           = idx % variables_ldims[i];
-            value_list[i] = *((T*) variables_nodes[i]->data() + ID0);
+            ID0 = idx / variables_ldims[i];
+            idx = idx % variables_ldims[i];
+            // value_list[i] = *((T*) variables_nodes[i]->data() + ID0);
+            switch (variables_types[i]) {
+                case DataSet::Type::Int:
+                    value_list[i] = convert_from_Int<T>(variables_nodes[i]->data(), ID0);
+                    break;
+                case DataSet::Type::Real:
+                    value_list[i] = convert_from_Real<T>(variables_nodes[i]->data(), ID0);
+                    break;
+                case DataSet::Type::Complex:
+                    value_list[i] = convert_from_Complex<T>(variables_nodes[i]->data(), ID0);
+                    break;
+            }
         }
         return FPARSER<T>::GLOBAL[FPARSER_ID].eval(value_list.data());
     }
