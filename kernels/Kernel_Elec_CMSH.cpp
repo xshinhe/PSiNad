@@ -61,7 +61,7 @@ double calc_Ew(num_real* E, num_complex* wrho, int occ) {
             Ecalc = E[occ];
             break;
         }
-        default: {  // EGR, MIX, SD (Eto == Efrom will skip hopping procedure)
+        default: {  // EHR, MIX, SD (Eto == Efrom will skip hopping procedure)
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
                 Ecalc += std::real(wrho[ii] * E[i]);
             }
