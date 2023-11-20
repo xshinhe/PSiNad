@@ -12,7 +12,7 @@ class Kernel_GWP final : public Kernel {
         push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
     }
 
-    static int calc_ekin(num_real* ekin,  // [P]
+    static int calc_Ekin(num_real* Ekin,  // [P]
                          num_real* p,     // [P,N]
                          num_real* m,     // [P,N]
                          int P, int N);
@@ -42,7 +42,7 @@ class Kernel_GWP final : public Kernel {
                              num_real* m,            // [P,N]
                              num_real* f,            // [P,N]
                              num_real* alpha,        // [N]
-                             num_real* ekin,         // [P]
+                             num_real* Ekin,         // [P]
                              int P, int N);
 
     static int calc_dtSele(num_complex* dtlnSele,  // [P,P]
@@ -97,12 +97,11 @@ class Kernel_GWP final : public Kernel {
     num_real break_thres;
     int time_displace_step;
     num_real dt;
-    num_real xi, gamma;  // for mapping kernel
-    num_real* gammat_ptr;
+    num_real xi, gamma;              // for mapping kernel
     num_real alpha0, width_scaling;  // for initial width
     num_real *x, *p, *m, *f, *g;
     num_real* alpha;
-    num_real* ekin;
+    num_real* Ekin;
     num_real* veF;
 
     num_real *vpes, *grad;

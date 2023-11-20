@@ -18,14 +18,14 @@
 
 namespace PROJECT_NS {
 
-int Kernel_GWP::calc_ekin(num_real* ekin,  // [P]
+int Kernel_GWP::calc_Ekin(num_real* Ekin,  // [P]
                           num_real* p,     // [P,N]
                           num_real* m,     // [P,N]
                           int P, int N) {
-    Eigen::Map<EigMX<num_real>> Map_ekin(ekin, P, 1);
+    Eigen::Map<EigMX<num_real>> Map_Ekin(Ekin, P, 1);
     Eigen::Map<EigMX<num_real>> Map_p(p, P, N);
     Eigen::Map<EigMX<num_real>> Map_m(m, P, N);
-    Map_ekin = (Map_p.array() * Map_p.array() / (2.0e0 * Map_m.array())).matrix().rowwise().sum();
+    Map_Ekin = (Map_p.array() * Map_p.array() / (2.0e0 * Map_m.array())).matrix().rowwise().sum();
     return 0;
 }
 
@@ -122,14 +122,14 @@ int Kernel_GWP::calc_dtlnSnuc(num_complex* dtlnSnuc,  // [P,P]
                               num_real* m,            // [P,N]
                               num_real* f,            // [P,N]
                               num_real* alpha,        // [N]
-                              num_real* ekin,         // [P]
+                              num_real* Ekin,         // [P]
                               int P, int N) {
     Eigen::Map<EigMX<num_complex>> Map_dtlnSnuc(dtlnSnuc, P, P);
     Eigen::Map<EigMX<num_real>> Map_x(x, P, N);
     Eigen::Map<EigMX<num_real>> Map_p(p, P, N);
     Eigen::Map<EigMX<num_real>> Map_m(m, P, N);
     Eigen::Map<EigMX<num_real>> Map_f(f, P, N);
-    Eigen::Map<EigMX<num_real>> Map_ekin(ekin, P, 1);
+    Eigen::Map<EigMX<num_real>> Map_Ekin(Ekin, P, 1);
     Eigen::Map<EigMX<num_real>> Map_a(alpha, N, 1);
 
     auto O_NP = EigMX<num_real>::Ones(N, P);
@@ -149,11 +149,11 @@ int Kernel_GWP::calc_dtlnSnuc(num_complex* dtlnSnuc,  // [P,P]
     auto x_f   = Map_x * Map_f.transpose();
     auto I_xf  = O_NP.transpose() * (Map_x.array() * Map_f.array()).matrix().transpose();
 
-    auto I_ekin = O_P1 * Map_ekin.transpose();
+    auto I_Ekin = O_P1 * Map_Ekin.transpose();
 
     auto term1 = 0.5e0 * (ax_ve - I_axve) - 0.5e0 * phys::math::im * (p_ve + I_pve);
     auto term2 = -(0.5e0 * (bp_f - I_bpf) + 0.5e0 * phys::math::im * (x_f - I_xf));
-    auto term3 = phys::math::im * I_ekin;
+    auto term3 = phys::math::im * I_Ekin;
 
     Map_dtlnSnuc = term1 + term2 + term3;
 
@@ -372,7 +372,7 @@ void Kernel_GWP::init_data_impl(DataSet* DS) {
     invS2h   = DS->reg<num_complex>("integrator.GWP.invS2h", Dimension::PP);
     Sx       = DS->reg<num_complex>("integrator.GWP.Sx", Dimension::PP);
 
-    ekin          = DS->reg<num_real>("integrator.ekin", Dimension::P);
+    Ekin          = DS->reg<num_real>("integrator.Ekin", Dimension::P);
     g             = DS->reg<num_real>("integrator.g", Dimension::P);
     clone_account = DS->reg<int>("integrator.clone_account", Dimension::P);
     // pf_cross      = DS->reg<bool>("integrator.pf_cross", Dimension::PF);
@@ -409,7 +409,6 @@ void Kernel_GWP::init_data_impl(DataSet* DS) {
 
     P_used_ptr = DS->reg<num_real>("integrator.P_used");
     norm_ptr   = DS->reg<num_real>("integrator.norm");
-    gammat_ptr = DS->reg<num_real>("integrator.gammat");
     veF        = DS->reg<num_real>("integrator.veF", Dimension::FF);
 }
 
@@ -595,10 +594,10 @@ int Kernel_GWP::impl_0(int stat) {
     // ARRAY_SHOW(c, Dimension::P, Dimension::F);
     // ARRAY_SHOW(g, 1, Dimension::P);
 
-    calc_ekin(ekin, p, m, Dimension::P, Dimension::N);
+    calc_Ekin(Ekin, p, m, Dimension::P, Dimension::N);
     calc_Snuc(Snuc, x, p, m, g, x, p, m, g, alpha, Dimension::P, Dimension::N);
     calc_Sele(Sele, c, c, 1, 0, Dimension::P, Dimension::F);
-    calc_dtlnSnuc(dtlnSnuc, x, p, m, f, alpha, ekin, Dimension::P, Dimension::N);
+    calc_dtlnSnuc(dtlnSnuc, x, p, m, f, alpha, Ekin, Dimension::P, Dimension::N);
     calc_dtSele(dtSele, Sele, c, H, vpes, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) { S[ab] = Snuc[ab] * Sele[ab]; }
     // calculate inverse of overlap integral
@@ -644,7 +643,7 @@ int Kernel_GWP::impl_0(int stat) {
     norm_ptr[0] *= abs(scale);
     for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= sqrt(abs(scale));
 
-    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
+    for (int a = 0; a < Dimension::P; ++a) g[a] += Ekin[a] * dt;
 
     cloning();
     death();
@@ -653,7 +652,7 @@ int Kernel_GWP::impl_0(int stat) {
 
 int Kernel_GWP::impl_1(int stat) {
     // calculate overlap integral
-    calc_ekin(ekin, p, m, Dimension::P, Dimension::N);
+    calc_Ekin(Ekin, p, m, Dimension::P, Dimension::N);
     calc_Snuc(Snuc, x_last, p_last, m, g_last, x_last, p_last, m, g_last, alpha, Dimension::P, Dimension::N);
     calc_Sele(Sele, c_last, c_last, 1, 0, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) S1[ab] = Snuc[ab] * Sele[ab];
@@ -743,7 +742,7 @@ int Kernel_GWP::impl_1(int stat) {
     for (int aj = 0; aj < Dimension::PN; ++aj) p_last[aj] = p[aj];
     for (int ai = 0; ai < Dimension::PF; ++ai) c_last[ai] = c[ai];
     // update phase
-    for (int a = 0; a < Dimension::P; ++a) g[a] += ekin[a] * dt;
+    for (int a = 0; a < Dimension::P; ++a) g[a] += Ekin[a] * dt;
     return 0;
 }
 int Kernel_GWP::exec_kernel_impl(int stat) {
