@@ -1,6 +1,6 @@
 py::class_<Kernel> PyKernel(m, "Kernel", py::dynamic_attr());
 
-PyKernel.def(py::init<bool>())
+PyKernel.def(py::init<const std::string&>())
     .def("push", &Kernel::push)
     .def("param", &Kernel::read_param)
     .def("data", &Kernel::init_data)
@@ -8,4 +8,6 @@ PyKernel.def(py::init<bool>())
     .def("exec", &Kernel::exec_kernel);
 
 m.def("modelfactory", &ModelFactory);
+
 m.def("solverfactory", &SolverFactory);
+

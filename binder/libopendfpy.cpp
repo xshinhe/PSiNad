@@ -14,7 +14,7 @@
 namespace py = pybind11;
 using namespace PROJECT_NS;
 
-PYBIND11_MODULE(libopendf, m) {
+PYBIND11_MODULE(libopendfpy, m) {
 #include "opendf_phys.bind"
 //
 #include "opendf_param.bind"

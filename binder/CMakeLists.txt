@@ -1,10 +1,9 @@
 set(CMAKE_CXX_FLAGS "-Os -fopenmp -march=native -fPIC")
 
-add_library(pyopendf SHARED libpyopendf.cpp)
+add_library(opendfpy SHARED libopendfpy.cpp)
 
 target_link_libraries(
-    pyopendf
+    opendfpy
     pybind11::embed
-    models
-    solvers
+    opendfcpp
 )

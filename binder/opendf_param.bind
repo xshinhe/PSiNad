@@ -1,17 +1,26 @@
 py::class_<Param> PyParam(m, "Param", py::dynamic_attr());
 
-PyParam.def(py::init<const std::string &, Param::LoadOption>());
-    PyParam.def("has_key", &Param::has_key, py::return_value_policy::reference_internal);
-    PyParam.def("get_int", &Param::_get<int,true>, py::arg("key") = "", py::arg("loc") = "", py::arg("qdim") = phys::none_d,
-         py::arg("default") = int());
-    PyParam.def("get_real", &Param::_get<double,true>, py::arg("key") = "", py::arg("loc") = "", py::arg("qdim") = phys::none_d,
-         py::arg("default") = double());
-    PyParam.def("get_bool", &Param::_get<bool,true>, py::arg("key") = "", py::arg("loc") = "", py::arg("qdim") = phys::none_d,
-         py::arg("default") = bool());
-    PyParam.def("get_str", &Param::_get<std::string,true>, py::arg("key") = "", py::arg("loc") = "", py::arg("qdim") = phys::none_d,
-         py::arg("default") = bool());
-
 py::enum_<Param::LoadOption>(PyParam, "LoadOption")
     .value("fromString", Param::LoadOption::fromString)
     .value("fromFile", Param::LoadOption::fromFile)
     .export_values();
+
+PyParam.def(py::init<const std::string &, Param::LoadOption>());
+
+PyParam.def("has_key", &Param::has_key, py::return_value_policy::reference_internal);
+
+// PyParam.def("get_int", &Param::get<int,true>, py::arg("key") = "", py::arg("loc") = "", 
+//    py::arg("qdim") = phys::none_d,
+//    py::arg("default") = int());
+// PyParam.def("get_real", &Param::get<double,true>, py::arg("key") = "", py::arg("loc") = "", 
+//    py::arg("qdim") = phys::none_d,
+//    py::arg("default") = double());
+// PyParam.def("get_bool", &Param::get<bool,true>, py::arg("key") = "", py::arg("loc") = "", 
+//    py::arg("qdim") = phys::none_d,
+//    py::arg("default") = bool());
+
+// PyParam.def("get_str", &Param::get<std::string,true>, py::arg("key") = "", py::arg("loc") = "", 
+//     py::arg("qdim") = phys::none_d,
+//     py::arg("default") = "");
+
+PyParam.def("__repr__", &Param::repr);
