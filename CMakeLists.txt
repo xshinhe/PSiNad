@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-# choose a different directory from source for compilation
+# You should choose a different directory from source for compilation
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "
     FATAL: In-source builds are not allowed.
@@ -17,7 +17,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/thirdpart/catch2/contrib)
 
-# processing repositary information
+# Processing repositary fingerprint
 include(repo)
 get_repo_info(GIT_BRANCH GIT_DATE GIT_HASH GIT_STATUS)
 configure_file(
@@ -81,23 +81,26 @@ add_subdirectory(thirdpart)
 add_subdirectory(core)
 add_subdirectory(kernels)
 add_subdirectory(models)
-add_subdirectory(solvers)
-# add_subdirectory(binder)
+
+# add_subdirectory(solvers)
+file(GLOB_RECURSE opendf_solver_srcs solvers/*.cpp)
+add_library(opendfcpp SHARED ${opendf_solver_srcs})
+target_link_libraries(opendfcpp
+    fparser
+    core
+    ker
+    model
+)
+
+add_subdirectory(binder)
 
 add_executable(opendf main.cc Handler.cpp mpi_utils.cpp)
 target_link_libraries(opendf
-    # models
-    # solvers
+    opendfcpp
     gflags::gflags
     glog::glog
-    fparser
     # MKLMod::MKL
     MPIMod::MPI
-    core
-    ker
-    model 
-    solver
-    pl
 )
 
 set(OPENDF_UNIT_TESTS ON)
