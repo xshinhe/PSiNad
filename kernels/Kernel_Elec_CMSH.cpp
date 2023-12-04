@@ -161,6 +161,7 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     use_fssh        = PM->get<bool>("use_fssh", LOC(), false);
     use_strange_win = PM->get<bool>("use_strange_win", LOC(), false);
     use_focus       = PM->get<bool>("use_focus", LOC(), false);
+    use_fall        = PM->get<bool>("use_fall", LOC(), false);
     dt              = PM->get<double>("dt", LOC(), phys::time_d);
 
     hopping_type1 = 0;
@@ -475,8 +476,8 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
         ww_A[0]        = std::min({abs(ww_A[0]), abs(ww_A_init[0])});
 
-        Kernel_Elec::ker_from_rho(K1QA, rho_ele, 1, 0, Dimension::F, true, max_pop);
-        Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, max_pop);
+        Kernel_Elec::ker_from_rho(K1QA, rho_ele, 1, 0, Dimension::F, true, ((use_fall) ? *occ_nuc : max_pop));
+        Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, ((use_fall) ? *occ_nuc : max_pop));
         for (int i = 0; i < Dimension::F; ++i) {
             K2QA[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }

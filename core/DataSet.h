@@ -40,13 +40,6 @@ inline int FMT_WIDTH_SIZE(int X) { return X + 9; }
 
 namespace PROJECT_NS {
 
-template <typename T>
-struct DSVar {
-    T* ptr;
-    std::string key;
-    int size;
-};
-
 namespace details {  // hidden scope
 
 class Tree;  // declaration
