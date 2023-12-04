@@ -2,8 +2,22 @@
 #define Kernel_Record_H
 
 #include "../core/Kernel.h"
+#include "OFSManager.h"
 
 namespace PROJECT_NS {
+
+struct Record_Item {
+    std::string v0;
+    std::string vt;
+    std::string name;
+    std::string save;
+
+    int rec_type;
+    int ofs_ID;
+
+    int fml_ID0;
+    int fml_IDt;
+};
 
 struct Result {
    public:
@@ -14,6 +28,7 @@ struct Result {
     std::vector<int> stat;
     std::vector<double> data;
     std::ofstream ofs;
+    std::vector<std::ofstream*> ofses;
 
     Result(){};
 
@@ -29,6 +44,8 @@ struct Result {
         memset(data.data(), 0, frame * size * sizeof(double));
     }
 
+    void stack(DataSet::Type itype, std::string str);
+
     void save(const std::string& fname, int ibegin, int length = -1, bool with_header = false);
     virtual ~Result();
 };
@@ -41,32 +58,27 @@ class Kernel_Record final : public Kernel {
 
     virtual ~Kernel_Record();
 
-    inline static Result& get_sampling() { return _sampling; }
     inline static Result& get_correlation() { return _correlation; }
 
    private:
-    static Result _sampling;
     static Result _correlation;
-
-    std::ofstream ofs_samp;
     std::ofstream ofs_corr;
+
+    std::vector<Record_Item> Record_List;
+    OFSManager ofsm;
 
     int* istep_ptr;
     int* sstep_ptr;
     int* isamp_ptr;
     int* nsamp_ptr;
 
-    std::vector<int> Sampling_ID;  // 1 point sampling
-    std::vector<std::string> Sampling_STR;
-
-    std::vector<int> Correlation_ID1;  // 2 points correlation: zero time
-    std::vector<int> Correlation_ID2;  // 2 points correlation: t time
-    std::vector<std::string> Correlation_STR1;
-    std::vector<std::string> Correlation_STR2;
-
     bool trace;
     double t0, dt, time_unit;
     std::string directory;
+
+    virtual void token_array(Result& res, JSON& j);
+
+    virtual void token_object(Result& res, JSON& j);
 
     virtual void read_param_impl(Param* P);
 
