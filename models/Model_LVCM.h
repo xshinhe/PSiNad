@@ -15,6 +15,8 @@ DEFINE_POLICY(LVCMPolicy,  //
               CRC2,        //
               CRC5,        //
               BEN5,        //
+              BUTA5,       //
+              PENTA5,      //
               CED2,        //
               CED3,        //
               PYR2CED,     //

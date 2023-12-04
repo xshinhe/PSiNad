@@ -86,6 +86,42 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             }
             break;
         }
+        case LVCMPolicy::BUTA5: {
+            double H_unit = phys::au_2_ev;
+
+            // parameter for BUTA5
+            double E_data_BUTA5[2]      = {9.41165f, 9.95575f};
+            double w_data_BUTA5[5]      = {0.1089f, 0.1773f, 0.2578f, 0.3713f, 0.0912f};
+            double kcoeff_data_BUTA5[8] = {-0.0531f, -0.0594f, 0.0115f,  0.0100f,  //
+                                           -0.1628f, 0.3422f,  -0.0403f, 0.0321f};
+            double lcoeff_data_BUTA5[4] = {0.000f, 0.2880f, 0.2880f, 0.000f};
+
+            double *E_data;
+            double *w_data;
+            double *kcoeff_data;
+            double *lcoeff_data;
+            N_mode      = 4;
+            N_coup      = 1;
+            E_data      = E_data_BUTA5;
+            w_data      = w_data_BUTA5;
+            kcoeff_data = kcoeff_data_BUTA5;
+            lcoeff_data = lcoeff_data_BUTA5;
+
+            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Dimension::F);
+            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
+
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i] / H_unit; }
+            for (int j = 0; j < Dimension::N; ++j) w[j] = w_data[j] / H_unit;
+            for (int j = 0, ji = 0; j < N_mode; ++j) {
+                for (int i = 0; i < Dimension::F; ++i, ++ji) { kcoeff[ji] = (kcoeff_data[ji] / H_unit) * sqrt(w[j]); }
+            }
+            for (int j = N_mode, j0ik = 0; j < Dimension::N; ++j) {
+                for (int ik = 0; ik < Dimension::FF; ++ik, ++j0ik) {
+                    lcoeff[j0ik] = (lcoeff_data[j0ik] / H_unit) * sqrt(w[j]);
+                }
+            }
+            break;
+        }
         case LVCMPolicy::CRC2:
         case LVCMPolicy::CRC5: {
             double H_unit = phys::au_2_ev;
