@@ -44,6 +44,8 @@ class Kernel_Elec_CMSH final : public Kernel {
     bool use_cv    = true;   // adapt cv in rho_nuc
     bool use_wmm   = false;  // in this case, gamma1 will be used as delta in wMM
     bool use_fall  = false;
+    bool use_gdtwa = false;
+    bool use_sum   = false;
 
     bool reflect = true;  // treatment in hopping
     int hopping_type1;
@@ -63,9 +65,12 @@ class Kernel_Elec_CMSH final : public Kernel {
     num_real* Epot;
     num_complex* H;
     num_complex* wrho;
+    num_real* sqcw;
 
     //
     bool use_sqc;
+    int sqc_init;
+
     bool use_fssh;
     bool use_strange_win;
 

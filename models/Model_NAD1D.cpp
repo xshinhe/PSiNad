@@ -767,7 +767,7 @@ int Model_NAD1D::exec_kernel_impl(int stat) {
             mspes_MORSE3B(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3C:
-            mspes_MORSE3C(V, dV, ddV, x, 1, 1, Dimension::F);  // @debug
+            mspes_MORSE3C(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
         case NAD1DPolicy::MORSE15:
             mspes_MORSE15(V, dV, ddV, x, 1, 1, Dimension::F);

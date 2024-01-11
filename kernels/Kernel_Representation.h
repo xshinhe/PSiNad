@@ -39,6 +39,7 @@ class Kernel_Representation final : public Kernel {
    private:
     bool do_refer;
     bool phase_correction;
+    bool basis_switch;
 
     double *V, *dV, *ddV;
     double *E, *T, *Told, *dE, *ddE;

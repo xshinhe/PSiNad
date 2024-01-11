@@ -7,16 +7,6 @@
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
-
 namespace PROJECT_NS {
 
 int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
@@ -34,6 +24,20 @@ int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
                 }
             }
             c[iocc] += 1.0e0;
+            break;
+        }
+        case SQCPolicy::SPX: {
+            Kernel_Elec_CMM::c_sphere(c, Dimension::F);
+            for (int i = 0; i < Dimension::F; ++i) c[i] = abs(c[i] * c[i]);
+            c[iocc] += 1.0e0;
+            break;
+        }
+        case SQCPolicy::BIG: {
+            num_complex* cadd1 = new num_complex[Dimension::Fadd1];
+            Kernel_Elec_CMM::c_sphere(cadd1, Dimension::Fadd1);
+            for (int i = 0; i < Dimension::F; ++i) c[i] = abs(cadd1[i] * cadd1[i]);
+            c[iocc] += 1.0e0;
+            delete[] cadd1;
             break;
         }
         case SQCPolicy::SQR: {
@@ -71,6 +75,8 @@ int Kernel_Elec_SQC::ker_binning(num_complex* ker, num_complex* rho, int sqc_typ
                 bool Outlier = false;
                 switch (sqc_type) {
                     case SQCPolicy::TRI:
+                    case SQCPolicy::SPX:
+                    case SQCPolicy::BIG:
                         Outlier = (i == j) ? ((k != i && vk > 1) || (k == i && vk < 1))
                                            : ((k != i && k != j && vk > 1) || ((k == i || k == j) && vk < 0.5f));
 
@@ -112,6 +118,12 @@ void Kernel_Elec_SQC::read_param_impl(Param* PM) {
     }
     use_cv = PM->get<bool>("use_cv", LOC(), false);
 }
+
+void Kernel_Elec_SQC::init_data_impl(DataSet* DS) {
+    sqcw  = _DataSet->reg<num_real>("integrator.sqcw", Dimension::FF);
+    sqcw0 = _DataSet->reg<num_real>("integrator.sqcw0", Dimension::FF);
+    sqcwh = _DataSet->reg<num_real>("integrator.sqcwh", Dimension::FF);
+};
 
 void Kernel_Elec_SQC::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
@@ -157,14 +169,15 @@ int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
                                          Kernel_Representation::inp_repr_type,  //
                                          Kernel_Representation::ele_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(rho_nuc, T_init, Dimension::F,         //
-                                         Kernel_Representation::inp_repr_type,  //
-                                         Kernel_Representation::ele_repr_type,  //
-                                         SpacePolicy::L);
+        // Kernel_Representation::transform(rho_nuc, T_init, Dimension::F,         //
+        //                                  Kernel_Representation::inp_repr_type,  //
+        //                                  Kernel_Representation::ele_repr_type,  //
+        //                                  SpacePolicy::L); // @debug
 
         // 2) propagte along ele_repr
         ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
-        ARRAY_MATMUL3_TRANS2(rho_nuc, U, rho_nuc, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+        // ARRAY_MATMUL3_TRANS2(rho_nuc, U, rho_nuc, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F); //
+        // @debug
 
         // 3) transform back from ele_repr => inp_repr
         Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
@@ -177,6 +190,23 @@ int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
                                          SpacePolicy::L);
 
         ker_binning(K1, rho_ele, sqc_type);
+        for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+            for (int k = 0; k < Dimension::F; ++k, ++ik) {
+                double radius = abs(2.0e0 - rho_ele[i * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
+                radius        = sqrt(radius * radius + 0.0025e0);
+                switch (sqc_type) {
+                    case SQCPolicy::SPX: {
+                        sqcw[ik] = pow(radius, 3 - Dimension::F);
+                        break;
+                    }
+                    default:
+                    case SQCPolicy::BIG: {
+                        sqcw[ik] = pow(radius, 2 - Dimension::F);
+                        break;
+                    }
+                }
+            }
+        }
         for (int ik = 0; ik < Dimension::FF; ++ik) K2[ik] = K1[ik];
     }
     return 0;

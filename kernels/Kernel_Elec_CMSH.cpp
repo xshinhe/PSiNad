@@ -10,6 +10,41 @@
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
 
+// double hypergeometric(double a, double b, double c, double x) {
+//     const double TOLERANCE = 1.0e-10;
+//     double term            = a * b * x / c;
+//     double value           = 1.0 + term;
+//     int n                  = 1;
+//     while (abs(term) > TOLERANCE) {
+//         a++, b++, c++, n++;
+//         term *= a * b * x / c / n;
+//         value += term;
+//     }
+//     return value;
+// }
+
+double phi(double lambda, double N0_max, int F) {
+    double x     = lambda * N0_max / 2;
+    double term1 = 1.0e0;
+    {  // hypergeometric(double a, double b, double c, double x)
+        const double TOLERANCE = 1.0e-10;
+        int a = 1, b = 1, c = 1 + F;
+        double t = a * b * x / c;
+        term1 += t;
+        int n = 1;
+        while (abs(t) > TOLERANCE) {
+            a++, b++, c++, n++;
+            t *= a * b * x / c / n;
+            term1 += t;
+        }
+    }
+    int Fact = 1;
+    for (int i = 1; i < F; ++i) Fact *= i;
+    term1        = 2 * (F - 2) * (F - 1) * term1 / Fact / F;
+    double term2 = (6 - 2 * F - 2 * x) / Fact;
+    return pow(lambda, F) * pow(2 - 2 * x, 1 - F) * (term1 + term2);
+}
+
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
     ({                                                                               \
         std::cout << "Show Array <" << #_A << ">\n";                                 \
@@ -158,10 +193,13 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     xi2             = (1 + Dimension::F * gamma2);
     use_wmm         = PM->get<bool>("use_wmm", LOC(), false);
     use_sqc         = PM->get<bool>("use_sqc", LOC(), false);
+    sqc_init        = PM->get<int>("sqc_init", LOC(), 0);
     use_fssh        = PM->get<bool>("use_fssh", LOC(), false);
     use_strange_win = PM->get<bool>("use_strange_win", LOC(), false);
     use_focus       = PM->get<bool>("use_focus", LOC(), false);
     use_fall        = PM->get<bool>("use_fall", LOC(), false);
+    use_gdtwa       = PM->get<bool>("use_gdtwa", LOC(), false);
+    use_sum         = PM->get<bool>("use_sum", LOC(), false);
     dt              = PM->get<double>("dt", LOC(), phys::time_d);
 
     hopping_type1 = 0;
@@ -217,6 +255,7 @@ void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
     T         = DS->reg<num_real>("model.rep.T", Dimension::PFF);
     H         = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
     direction = DS->reg<num_real>("integrator.tmp.direction", Dimension::N);
+    sqcw      = DS->reg<num_real>("integrator.sqcw", Dimension::F);
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
@@ -238,20 +277,92 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
         /////////////////////////////////////////////////////////////////
         alpha[0] = (dynamic_alpha) ? calc_alpha(V) : alpha0;
 
-        w[0]     = num_complex(Dimension::F);  ///< initial measure
-        *occ_nuc = Kernel_Elec::occ0;          ///< initial occupation
+        w[0] = num_complex(Dimension::F);  ///< initial measure
+        int iocc;
+        Kernel_Random::rand_catalog(&iocc, 1, true, 0, Dimension::F - 1);
+        iocc     = ((use_sum) ? iocc : Kernel_Elec::occ0);
+        *occ_nuc = iocc;
         if (use_focus) {
-            Kernel_Elec_CMM::c_focus(c, xi1, gamma1, Kernel_Elec::occ0, Dimension::F);
+            Kernel_Elec_CMM::c_focus(c, xi1, gamma1, iocc, Dimension::F);
         } else if (use_sqc) {
-            Kernel_Elec_SQC::c_window(c, Kernel_Elec::occ0, SQCPolicy::TRI,
-                                      Dimension::F);  ///< initial c: non-standard c
+            switch (sqc_init) {
+                case 0: {  // traditional SQC
+                    Kernel_Elec_SQC::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
+                    break;
+                }
+                case 1: {                                        // simplex SQC
+                    Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
+                    for (int i = 0; i < Dimension::F; ++i) c[i] = abs(c[i] * c[i]);
+                    c[Kernel_Elec::occ0] += 1.0e0;
+                    for (int i = 0; i < Dimension::F; ++i) {
+                        num_real randu;
+                        Kernel_Random::rand_uniform(&randu);
+                        randu *= phys::math::twopi;
+                        c[i] = sqrt(c[i]);
+                        c[i] *= (cos(randu) + phys::math::im * sin(randu));
+                    }
+                    break;
+                }
+                case 2: {  // suggested by YHShang
+                    Kernel_Elec_CMM::c_sphere(c, Dimension::F);
+                    break;
+                }
+            }
         } else {
             Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
         }
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
-        Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, (use_sqc ? 1.0e0 : xi1), gamma1, Dimension::F, use_cv,
-                                  *occ_nuc);  ///< initial rho_nuc
-        ARRAY_EYE(U, Dimension::F);           ///< initial propagator
+
+        if (use_gdtwa) {
+            xi1    = 1.0e0;
+            gamma1 = 0.0e0;
+            use_cv = false;
+
+            double randu    = 1.0e0;
+            double gamma_ou = phys::math::sqrthalf;
+            double gamma_uu = 0.0e0;
+            for (int j = 0; j < Dimension::F; ++j) {
+                if (j == iocc) {
+                    rho_ele[j * Dimension::Fadd1] = 1.0e0;
+                    continue;
+                }
+                Kernel_Random::rand_uniform(&randu);
+                randu                            = phys::math::halfpi * (int(randu / 0.25f) + 0.5);
+                rho_ele[iocc * Dimension::F + j] = cos(randu) + phys::math::im * sin(randu);
+                rho_ele[j * Dimension::F + iocc] = std::conj(rho_ele[iocc * Dimension::F + j]);
+            }
+            for (int i = 0, ij = 0; i < Dimension::F; ++i) {
+                for (int j = 0; j < Dimension::F; ++j, ++ij) {
+                    if (i == iocc || j == iocc) continue;
+                    rho_ele[ij] = rho_ele[iocc * Dimension::F + j] / rho_ele[iocc * Dimension::F + i];
+                }
+            }
+            for (int i = 0, ij = 0; i < Dimension::F; ++i) {
+                for (int j = 0; j < Dimension::F; ++j, ++ij) {
+                    if (i == j) {
+                        rho_ele[ij] = (i == iocc) ? phys::math::iu : phys::math::iz;
+                    } else if (i == iocc || j == iocc) {
+                        rho_ele[ij] *= gamma_ou;
+                    } else {
+                        rho_ele[ij] *= gamma_uu;
+                    }
+                }
+            }
+        }
+
+        if (use_sqc) {
+            if (sqc_init == 0 || sqc_init == 1) {
+                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, 1.0, gamma1, Dimension::F, use_cv,
+                                          iocc);  ///< initial rho_nuc
+            } else {
+                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv,
+                                          iocc);  ///< initial rho_nuc
+            }
+        } else {
+            Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv,
+                                      iocc);  ///< initial rho_nuc
+        }
+        ARRAY_EYE(U, Dimension::F);  ///< initial propagator
 
         // BO occupation in adiabatic representation
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
@@ -468,6 +579,17 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
+        if (use_sqc && reflect) {                                                   // only adjusted
+            Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
+                                             RepresentationPolicy::Adiabatic,       //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             SpacePolicy::L);
+            for (int i = 0; i < Dimension::FF; ++i) rho_nuc[i] = rho_ele[i] + (rho_nuc_init[i] - rho_ele_init[i]);
+            Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             RepresentationPolicy::Adiabatic,       //
+                                             SpacePolicy::L);
+        }
 
         // 4) calculated TCF in adiabatic rep & diabatic rep respectively
         // 4-1) Adiabatic rep
@@ -482,6 +604,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
             K2QA[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
         if (use_fssh) { Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, *occ_nuc); }
+        if (use_sqc) Kernel_Elec_SQC::ker_binning(K2QA, rho_ele, SQCPolicy::TRI);
 
         ARRAY_MAT_DIAG(K1DA, K1QA, Dimension::F);
         ARRAY_MAT_DIAG(K2DA, K2QA, Dimension::F);
@@ -514,8 +637,43 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
 
         max_pop = Kernel_Elec_SH::max_choose(rho_ele);  // (in dia rep)
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
+
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
         ww_D[0] = std::min({abs(ww_D[0]), abs(ww_D_init[0])});
+        {                                                                           // general squeezed sqc
+            Kernel_Representation::transform(rho_ele_init, T_init, Dimension::F,    //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             RepresentationPolicy::Diabatic,        //
+                                             SpacePolicy::L);
+            double vmax0 = 0.0e0, vsec0 = 0.0e0;
+            double vmaxt = 0.0e0, vsect = 0.0e0;
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+                if (abs(rho_ele_init[ii]) > vmax0) {
+                    vsec0 = vmax0;
+                    vmax0 = abs(rho_ele_init[ii]);
+                } else if (abs(rho_ele_init[ii]) > vsec0) {
+                    vsec0 = abs(rho_ele_init[ii]);
+                }
+                if (abs(rho_ele[ii]) > vmax0) {
+                    vsect = vmaxt;
+                    vmaxt = abs(rho_ele[ii]);
+                } else if (abs(rho_ele[ii]) > vsect) {
+                    vsect = abs(rho_ele[ii]);
+                }
+            }
+
+            double lambda1 = std::min({1 / vsect, 2 / (vmax0 + vsec0)});
+            double lambda2 = std::max({1 / vmaxt, 1 / vmax0});
+            if (lambda1 > lambda2) {
+                ww_D[0] = phi(lambda1, vmax0, Dimension::F) - phi(lambda2, vmax0, Dimension::F);
+            } else {
+                ww_D[0] = 0.0e0;
+            }
+            Kernel_Representation::transform(rho_ele_init, T_init, Dimension::F,    //
+                                             RepresentationPolicy::Diabatic,        //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             SpacePolicy::L);
+        }
 
         Kernel_Elec::ker_from_rho(K1QD, rho_ele, 1, 0, Dimension::F, true, max_pop);
         Kernel_Elec::ker_from_rho(K2QD, rho_ele, 1, 0, Dimension::F);
@@ -523,7 +681,24 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
             K2QD[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
         if (use_strange_win) calc_wrho(K2QD, rho_ele, 1, 0, 0.2);
-        if (use_sqc) { Kernel_Elec_SQC::ker_binning(K2QD, rho_ele, SQCPolicy::TRI); }
+        if (use_sqc) {
+            Kernel_Elec_SQC::ker_binning(K2QD, rho_ele, SQCPolicy::TRI);
+            if (count_exec <= 0) {  // only count at the beginning
+                for (int k = 0; k < Dimension::F; ++k) {
+                    double radius =
+                        abs(2.0e0 - rho_ele[Kernel_Elec::occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
+                    // radius  = sqrt(radius * radius + 0.0025e0); // @bad soft radius
+                    sqcw[k] = pow(radius, 3 - Dimension::F);
+                }
+            }
+
+            if (sqc_init == 2) {  // overload for K2QD
+                int imax    = Kernel_Elec_SH::max_choose(rho_ele);
+                double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
+                for (int ik = 0; ik < Dimension::FF; ++ik) K2QD[ik] = 0.0e0;
+                if (vmax * vmax * 8.0e0 / 7.0e0 * (Dimension::F + 0.5e0) > 1) K2QD[imax * Dimension::Fadd1] = 1.0e0;
+            }
+        }
 
         ARRAY_MAT_DIAG(K1DD, K1QD, Dimension::F);
         ARRAY_MAT_DIAG(K2DD, K2QD, Dimension::F);

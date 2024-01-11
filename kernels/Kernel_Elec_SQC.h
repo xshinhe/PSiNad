@@ -19,10 +19,11 @@
 
 namespace PROJECT_NS {
 
-
 DEFINE_POLICY(SQCPolicy,
               SQR,  // square window
-              TRI   // triangle window
+              TRI,  // triangle window
+              SPX,  // simplex window
+              BIG   // simplex window
 );
 
 /**
@@ -48,7 +49,13 @@ class Kernel_Elec_SQC final : public Kernel {
     num_real gamma;
     bool use_cv;
 
+    num_real *sqcw;
+    num_real *sqcw0;
+    num_real *sqcwh;
+
     virtual void read_param_impl(Param *PM);
+
+    virtual void init_data_impl(DataSet *DS);
 
     virtual void init_calc_impl(int stat = -1);
 

@@ -158,7 +158,9 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                     if (offd_projected) {
                         double fdotR = 0.0e0, vnorm2 = 0.0e0;
                         for (int j = 0; j < Dimension::N; ++j) fdotR += fproj[j] * p[j], vnorm2 += p[j] * p[j];
-                        for (int j = 0; j < Dimension::N; ++j) fproj[j] += (fproj[j] - fdotR / vnorm2 * p[j]);
+                        if (vnorm2 > 1.0e-8) {
+                            for (int j = 0; j < Dimension::N; ++j) fproj[j] += (fproj[j] - fdotR / vnorm2 * p[j]);
+                        }
                     } else {
                         for (int j = 0; j < Dimension::N; ++j) fproj[j] += fproj[j];
                     }
