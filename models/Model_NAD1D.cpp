@@ -3,6 +3,16 @@
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 
+#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
+    ({                                                                               \
+        std::cout << "Show Array <" << #_A << ">\n";                                 \
+        int _idxA = 0;                                                               \
+        for (int _i = 0; _i < (_n1); ++_i) {                                         \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
+            std::cout << std::endl;                                                  \
+        }                                                                            \
+    })
+
 namespace PROJECT_NS {
 
 double mspes_parm[100];
@@ -561,6 +571,21 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
     Hsys = DS->reg<num_real>("model.Hsys", Dimension::FF);
     memset(Hsys, 0, Dimension::FF * sizeof(num_real));
 
+    if (nad1d_type == NAD1DPolicy::PURE) {
+        std::ifstream ifs("Hsys.dat");
+        std::string H_unit_str;
+        std::string firstline;
+        getline(ifs, firstline);
+        std::stringstream sstr(firstline);
+        sstr >> H_unit_str;  ///< the firstline stores H's unit
+        double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
+
+        num_real val;
+        for (int i = 0; i < Dimension::FF; ++i)
+            if (ifs >> val) Hsys[i] = val / H_unit;
+        ifs.close();
+    }
+
     // model field
     mass = DS->reg<double>("model.mass", Dimension::N);
     vpes = DS->reg<double>("model.vpes");                 // not used
@@ -762,6 +787,12 @@ int Model_NAD1D::exec_kernel_impl(int stat) {
         case NAD1DPolicy::NA_I:
             mspes_NA_I(V, dV, ddV, x, 1, 1, Dimension::F);
             break;
+        case NAD1DPolicy::PURE: {
+            if (count_exec == 0) {
+                for (int i = 0; i < Dimension::FF; ++i) { V[i] = Hsys[i], dV[i] = 0.0e0; }
+            }
+            break;
+        }
     }
     if (p[0] >= 0) {
         p_sign[0] = phys::math::iu, p_sign[1] = phys::math::iz;

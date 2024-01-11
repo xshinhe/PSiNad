@@ -16,7 +16,8 @@
 namespace PROJECT_NS {
 
 void Model_LVCM::read_param_impl(Param *PM) {
-    lvcm_type = LVCMPolicy::_from(_Param->get<std::string>("lvcm_flag", LOC(), "PYR3"));
+    lvcm_type      = LVCMPolicy::_from(_Param->get<std::string>("lvcm_flag", LOC(), "PYR3"));
+    classical_bath = _Param->get<bool>("classical_bath", LOC(), false);
 }
 
 void Model_LVCM::init_data_impl(DataSet *DS) {
@@ -370,8 +371,13 @@ void Model_LVCM::init_calc_impl(int stat) {
         Kernel_Random::rand_gaussian(x, Dimension::N);
         Kernel_Random::rand_gaussian(p, Dimension::N);
         for (int j = 0; j < Dimension::N; ++j) {
-            x[j] = x_0[j] + x[j] * x_sigma[j];
-            p[j] = p_0[j] + p[j] * p_sigma[j];
+            if (classical_bath) {
+                x[j] = x_0[j];
+                p[j] = p_0[j];
+            } else {
+                x[j] = x_0[j] + x[j] * x_sigma[j];
+                p[j] = p_0[j] + p[j] * p_sigma[j];
+            }
         }
     }
 

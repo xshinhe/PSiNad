@@ -7,6 +7,7 @@
 namespace PROJECT_NS {
 
 DEFINE_POLICY(NAD1DPolicy,
+              PURE,      // Pure Electronic Dynamic
               SAC,       // Tully's Single Avoid Crossing Model
               SAC2,      // Tully's Single Avoid Crossing Model (with slight revision)
               SAC3,      // asymmertical Tully's Single Avoid Crossing Model

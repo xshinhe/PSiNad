@@ -32,6 +32,7 @@ class Model_LVCM final : public Kernel {
     LVCMPolicy::_type lvcm_type;
     int N_coup;
     int N_mode;
+    bool classical_bath;
 
 
     num_real* Hsys;
