@@ -1,0 +1,248 @@
+#ifndef DataSet_H
+#define DataSet_H
+
+#include <complex>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <tuple>
+#include <vector>
+
+// format control for dumping the state
+inline int FMT_WIDTH_SIZE(int X) { return X + 9; }
+#define FMT(X) \
+    " " << std::setiosflags(std::ios::scientific) << std::setprecision(X) << std::right << std::setw(FMT_WIDTH_SIZE(X))
+
+namespace PROJECT_NS {
+
+namespace details {
+
+using num_real    = double;
+using num_complex = std::complex<double>;
+
+class DataSet;
+
+class Node {
+   public:
+    enum class NodeType { Void, Int, Real, Complex, DataSet };
+
+    virtual ~Node() = default;
+
+    virtual std::string repr() const = 0;
+
+    inline NodeType type() const { return _type; }
+
+    inline std::size_t size() const { return _size; }
+
+    virtual void dump(std::ostream& os) const = 0;
+    virtual void load(std::istream& is)       = 0;
+
+   protected:
+    NodeType _type    = NodeType::Void;
+    std::size_t _size = 0;
+};
+
+template <typename T>
+Node::NodeType AsNodeType();
+template <typename T>
+std::string AsString();
+#define DEFINE_TYPE_BIND_WITH_NODETYPE(T, NT) \
+    template <>                               \
+    inline Node::NodeType AsNodeType<T>() {   \
+        return Node::NodeType::NT;            \
+    }                                         \
+    template <>                               \
+    inline std::string AsString<T>() {        \
+        return #NT;                           \
+    }
+DEFINE_TYPE_BIND_WITH_NODETYPE(int, Int);
+DEFINE_TYPE_BIND_WITH_NODETYPE(num_real, Real);
+DEFINE_TYPE_BIND_WITH_NODETYPE(num_complex, Complex);
+DEFINE_TYPE_BIND_WITH_NODETYPE(DataSet, DataSet);
+
+template <typename T>
+class Tensor final : public Node {
+   public:
+    using DataType = T;
+
+    Tensor(const std::size_t& size) {
+        _type = AsNodeType<T>();
+        _size = size;
+        _data = std::make_unique<T[]>(_size);
+        memset(_data.get(), 0, _size * sizeof(T));
+    }
+
+    virtual std::string repr() const override {
+        std::ostringstream os;
+        T* ptr = _data.get();
+        os << FMT(0) << AsString<T>();
+        os << FMT(0) << _size;
+        for (int i = 0; i < _size; ++i) os << FMT(8) << ptr[i];
+        return os.str();
+    }
+
+    virtual void dump(std::ostream& os) const override { os << repr(); }
+
+    virtual void load(std::istream& is) override {
+        for (int i = 0; i < _size; ++i) is >> _data[i];
+    }
+
+   private:
+    friend class DataSet;
+
+    std::unique_ptr<T[]> _data;
+};
+
+class DataSet final : public Node {
+   public:
+    using NodePtr  = std::unique_ptr<Node>;
+    using DataType = std::map<std::string, NodePtr>;
+
+    DataSet() {
+        _size = 1;
+        _type = Node::NodeType::DataSet;
+        _data = std::make_unique<DataType>();
+    }
+
+    template <typename T>
+    T* def(const std::string& key, std::size_t size = 1) {
+        KeyHelper kh = KeyHelper(key);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*_data)[kh.terms[i]];
+            if (!node) node = std::make_unique<DataSet>();
+
+            currentNode = static_cast<DataSet*>(node.get());
+        }
+
+        auto& leaf_node = (*_data)[kh.terms.back()];
+        if (!leaf_node) leaf_node = std::make_unique<Tensor<T>>(size);
+
+        if (leaf_node->type() != AsNodeType<T>() || size != leaf_node->size())
+            throw std::runtime_error("doubly conflicted definition!");
+
+        return static_cast<T*>((static_cast<Tensor<T>*>(leaf_node.get())->_data).get());
+    }
+
+    template <typename T = DataSet>
+    T* at(const std::string& key) {
+        KeyHelper kh = KeyHelper(key);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*_data)[kh.terms[i]];
+            if (!node) throw std::runtime_error("access undefined key!");
+
+            currentNode = static_cast<DataSet*>(node.get());
+        }
+
+        auto& leaf_node = (*_data)[kh.terms.back()];
+        if (!leaf_node) throw std::runtime_error("access undefined key!");
+
+        if (leaf_node->type() != AsNodeType<T>()) throw std::runtime_error("bad conversion!");
+        if (leaf_node->type() == Node::NodeType::DataSet) return (T*) (static_cast<DataSet*>(leaf_node.get()));
+        return static_cast<T*>((static_cast<Tensor<T>*>(leaf_node.get())->_data).get());
+    }
+
+    void undef(const std::string& key) {
+        KeyHelper kh = KeyHelper(key);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*_data)[kh.terms[i]];
+            if (!node) return;
+
+            currentNode = static_cast<DataSet*>(node.get());
+        }
+
+        auto it = _data->find(kh.terms.back());
+        if (it != _data->end()) { _data->erase(it); }
+    }
+
+    virtual std::string repr() const override {
+        std::ostringstream os;
+        std::vector<std::tuple<std::string, Node*>> stack;
+
+        stack.push_back(std::make_tuple("", (Node*) this));
+
+        while (!stack.empty()) {
+            auto [parent, currentNode] = stack.back();
+            stack.pop_back();
+
+            DataType* d_ptr = ((DataSet*) (currentNode))->_data.get();
+
+            for (auto& i : (*d_ptr)) {
+                std::string key = (parent == "") ? i.first : parent + "." + i.first;
+                Node* inode     = i.second.get();
+                if (inode->type() == Node::NodeType::DataSet) {
+                    stack.push_back(std::make_tuple(key, inode));
+                } else {
+                    os << key << inode->repr() << "\n";
+                }
+            }
+        }
+        return os.str();
+    }
+
+    virtual void dump(std::ostream& os) const override { os << repr(); }
+
+    virtual void load(std::istream& is) override {
+        std::string key, typeflag;
+        int size;
+        while (is >> key >> typeflag >> size) {
+            if (typeflag == AsString<int>()) {
+                int* ptr = def<int>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            } else if (typeflag == AsString<num_real>()) {
+                num_real* ptr = def<num_real>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            } else if (typeflag == AsString<num_complex>()) {
+                num_complex* ptr = def<num_complex>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            }
+        }
+    }
+
+   private:
+    class KeyHelper {
+       public:
+        std::vector<std::string> terms;
+        KeyHelper(const std::string& key, const std::string& delimiter = ".") {
+            size_t start = 0, end;
+            while ((end = key.find(delimiter, start)) != std::string::npos) {
+                terms.emplace_back(key, start, end - start);
+                start = end + delimiter.length();
+            }
+            terms.emplace_back(key, start, key.size() - start);
+        }
+    };
+
+    std::unique_ptr<DataType> _data;
+};
+
+};  // namespace details
+
+};  // namespace PROJECT_NS
+
+#endif  // DataSet_H
+
+int main() {
+    using namespace PROJECT_NS::details;
+
+    DataSet DS;
+    DS.def<int>("a.b", 10);
+    DS.def<double>("a.c.1", 8);
+    DS.def<double>("a.c.d", 8);
+    DS.dump(std::cout);
+    std::cout << "\n";
+    DS.at("a.c")->dump(std::cout);
+    std::cout << "\n";
+    std::cout << *DS.at<double>("a.c.1") << "\n";
+    DS.undef("a.c");
+    DS.dump(std::cout);
+    return 0;
+}

@@ -1,0 +1,270 @@
+#ifndef DataSet_H
+#define DataSet_H
+
+#include <complex>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <tuple>
+#include <vector>
+
+// format control for dumping the state
+inline int FMT_WIDTH_SIZE(int X) { return X + 9; }
+#define FMT(X) \
+    " " << std::setiosflags(std::ios::scientific) << std::setprecision(X) << std::right << std::setw(FMT_WIDTH_SIZE(X))
+
+namespace PROJECT_NS {
+
+namespace details {  // hidden scope
+
+using num_real    = double;
+using num_complex = std::complex<double>;
+
+class DataSet;  // declaration
+
+class Node {
+   public:
+    enum class NodeType { Void, Int, Real, Complex, DataSet };
+    using SizeType = std::size_t;
+    using DataType = void;
+
+    virtual ~Node() { _delete(); }  //< deconstructor
+
+    virtual std::string repr() = 0;
+
+    inline NodeType type() { return _type; }
+
+    inline SizeType size() { return _size; }
+
+    inline DataType* data() { return _data; }
+
+   protected:
+    NodeType _type  = NodeType::Void;
+    SizeType _size  = 0;
+    DataType* _data = nullptr;
+    bool _ownership = false;
+
+   private:
+    virtual void _delete(){};  // virtual function called by deconstructor
+};
+
+template <typename T>
+Node::NodeType AsNodeType();
+template <typename T>
+std::string AsString();
+#define DEFINE_TYPE_BIND_WITH_NODETYPE(T, NT) \
+    template <>                               \
+    inline Node::NodeType AsNodeType<T>() {   \
+        return Node::NodeType::NT;            \
+    }                                         \
+    template <>                               \
+    inline std::string AsString<T>() {        \
+        return #NT;                           \
+    }
+DEFINE_TYPE_BIND_WITH_NODETYPE(int, Int);
+DEFINE_TYPE_BIND_WITH_NODETYPE(num_real, Real);
+DEFINE_TYPE_BIND_WITH_NODETYPE(num_complex, Complex);
+DEFINE_TYPE_BIND_WITH_NODETYPE(DataSet, DataSet);
+
+
+template <typename T>
+class Tensor final : public Node {
+   public:
+    using SizeType = std::size_t;
+    using DataType = T;
+
+    Tensor(const std::size_t& size) {
+        _type = AsNodeType<T>();
+        _size = size;
+        _data = (void*) new T[_size];
+        memset(_data, 0, _size * sizeof(T));
+        _ownership = true;
+    }
+    virtual ~Tensor() { _delete(); }
+
+    virtual std::string repr() {
+        std::ostringstream os;
+        T* ptr = (T*) data();
+        os << FMT(0) << AsString<T>();
+        os << FMT(0) << _size;
+        for (int i = 0; i < _size; ++i) os << FMT(8) << ptr[i];
+        return os.str();
+    }
+
+   private:
+    friend class DataSet;
+
+    virtual void _delete() {
+        if (_ownership) delete[] static_cast<T*>(_data);
+        _ownership = false;
+    }
+};
+
+
+class DataSet final : public Node {
+   private:
+    DataSet& operator=(const DataSet&) = delete;
+
+   public:
+    using DataType = std::map<std::string, Node*>;
+
+    DataSet() {
+        _size      = 1;  // only one TensorBuffer will be newed
+        _type      = Node::NodeType::DataSet;
+        _data      = (void*) new DataType();
+        _ownership = true;
+    };
+
+    virtual ~DataSet() {
+        if (_ownership) _delete();
+        _ownership = false;
+    }
+
+    template <typename T>
+    T* def(const std::string& key, std::size_t size = 1) {
+        KeyHelper kh    = KeyHelper(key);
+        DataType* d_ptr = static_cast<DataType*>(_data);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*d_ptr)[kh.terms[i]];
+            if (!node) node = new DataSet;
+
+            currentNode = static_cast<DataSet*>(node);
+            d_ptr       = static_cast<DataType*>(currentNode->_data);
+        }
+
+        auto& leaf_node = (*d_ptr)[kh.terms.back()];
+        if (!leaf_node) leaf_node = new Tensor<T>(size);
+
+        if (leaf_node->type() != AsNodeType<T>() || size != leaf_node->size())
+            throw std::runtime_error("doubly conflicted definition!");
+        return static_cast<T*>(leaf_node->data());
+    }
+
+    template <typename T = DataSet>
+    T* at(const std::string& key) {
+        KeyHelper kh    = KeyHelper(key);
+        DataType* d_ptr = static_cast<DataType*>(_data);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*d_ptr)[kh.terms[i]];
+            if (!node) throw std::runtime_error("access undefined key!");
+
+            currentNode = static_cast<DataSet*>(node);
+            d_ptr       = static_cast<DataType*>(currentNode->_data);
+        }
+
+        auto& leaf_node = (*d_ptr)[kh.terms.back()];
+        if (!leaf_node) throw std::runtime_error("access undefined key!");
+
+        if (leaf_node->type() != AsNodeType<T>()) throw std::runtime_error("bad conversion!");
+        if (leaf_node->type() == Node::NodeType::DataSet) return (T*) (leaf_node);
+        return static_cast<T*>(leaf_node->data());
+    }
+
+    void undef(const std::string& key) {
+        KeyHelper kh    = KeyHelper(key);
+        DataType* d_ptr = static_cast<DataType*>(_data);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*d_ptr)[kh.terms[i]];
+            if (!node) return;
+
+            currentNode = static_cast<DataSet*>(node);
+            d_ptr       = static_cast<DataType*>(currentNode->_data);
+        }
+
+        auto it = d_ptr->find(kh.terms.back());
+        if (it != d_ptr->end()) {
+            delete it->second;
+            d_ptr->erase(it);
+        }
+    }
+
+    virtual std::string repr() {
+        std::ostringstream os;
+        std::vector<std::tuple<std::string, Node*>> stack;
+
+        stack.push_back(std::make_tuple("", this));
+
+        while (!stack.empty()) {
+            auto [parent, currentNode] = stack.back();
+            stack.pop_back();
+
+            DataType* d_ptr = static_cast<DataType*>(currentNode->data());
+
+            for (auto& i : (*d_ptr)) {
+                std::string key = (parent == "") ? i.first : parent + "." + i.first;
+                Node* inode     = i.second;
+                if (inode->type() == Node::NodeType::DataSet) {
+                    stack.push_back(std::make_tuple(key, inode));
+                } else {
+                    os << key << inode->repr() << "\n";
+                }
+            }
+        }
+        return os.str();
+    }
+
+    virtual void dump(std::ostream& os) { os << repr(); }
+
+    virtual void load(std::istream& is) {
+        std::string key, typeflag;
+        int size;
+        while (is >> key >> typeflag >> size) {
+            if (typeflag == AsString<int>()) {
+                int* ptr = def<int>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            } else if (typeflag == AsString<num_real>()) {
+                num_real* ptr = def<num_real>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            } else if (typeflag == AsString<num_complex>()) {
+                num_complex* ptr = def<num_complex>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            }
+        }
+    }
+
+   private:
+    class KeyHelper {
+       public:
+        std::vector<std::string> terms;
+        KeyHelper(const std::string& key, const std::string& delimiter = ".") {
+            size_t start = 0, end;
+            while ((end = key.find(delimiter, start)) != std::string::npos) {
+                terms.emplace_back(key, start, end - start);
+                start = end + delimiter.length();
+            }
+            terms.emplace_back(key, start);
+        }
+    };
+
+    virtual void _delete() {
+        DataType* d_ptr = static_cast<DataType*>(_data);
+        for (auto& i : (*d_ptr)) delete i.second;
+        delete d_ptr;  // essential!
+    }
+};
+
+};  // namespace details
+
+};  // namespace PROJECT_NS
+
+#endif  // DataSet_H
+
+int main() {
+    PROJECT_NS::details::DataSet DS;
+    DS.def<int>("a.b", 10);
+    DS.def<double>("a.c.1", 8);
+    DS.def<double>("a.c.d", 8);
+    std::cout << DS.repr() << "\n";
+    std::cout << DS.at("a.c")->repr() << "\n";
+    std::cout << *DS.at<double>("a.c.1") << "\n";
+    DS.undef("a.c");
+    std::cout << DS.repr() << "\n";
+    return 0;
+}
