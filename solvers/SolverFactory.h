@@ -3,10 +3,10 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 extern std::shared_ptr<Kernel> SolverFactory(const std::string& name, std::shared_ptr<Kernel> kmodel);
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // SolverFactory_H

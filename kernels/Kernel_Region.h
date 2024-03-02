@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "Kernel_Elec.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 class Kernel_Region final : public Kernel {
    public:
@@ -13,7 +13,7 @@ class Kernel_Region final : public Kernel {
    private:
     region_type;
 
-    num_real *f, *grad, *dV, *dE, *Force, *T;
+    kids_real *f, *grad, *dV, *dE, *Force, *T;
 
     virtual void read_param_impl(Param* PM){};
 
@@ -24,6 +24,6 @@ class Kernel_Region final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1) { return 0; }
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Region_H

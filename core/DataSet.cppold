@@ -1,6 +1,6 @@
 #include "DataSet.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 namespace details {  // hidden scope
 
@@ -166,10 +166,10 @@ void Tree::load(std::istream& is, NodeGeneric::Format format) {
                     int* ptr = reg<int>(key, size);
                     for (int i = 0; i < size; ++i) is >> ptr[i];
                 } else if (typeflag == "Real") {
-                    num_real* ptr = reg<num_real>(key, size);
+                    kids_real* ptr = reg<kids_real>(key, size);
                     for (int i = 0; i < size; ++i) is >> ptr[i];
                 } else if (typeflag == "Complex") {
-                    num_complex* ptr = reg<num_complex>(key, size);
+                    kids_complex* ptr = reg<kids_complex>(key, size);
                     for (int i = 0; i < size; ++i) is >> ptr[i];
                 }
             }
@@ -201,4 +201,4 @@ void Tree::_delete() {
 
 };  // namespace details
 
-};  // namespace PROJECT_NS
+};  // namespace kids

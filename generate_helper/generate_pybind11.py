@@ -18,7 +18,7 @@ with open(config_file, 'r', encoding='utf-8') as load_f:
     data = json.load(load_f)
 
 decro_list = ['const', 'static', 'inline', 'virtual', 'constexpr']
-type_list = ['void', 'bool', 'int', 'double', 'num_real', 'num_complex',
+type_list = ['void', 'bool', 'int', 'double', 'kids_real', 'kids_complex',
              'std::string', 'std::map', 'enum', 'class', 'namespace']
 
 def parse_decro_type_flag(line):
@@ -507,7 +507,7 @@ def creat_class_var(ns, dd):
     for f in dd[ns]['_var']:
         for i in f:
             if f[i]['_attr'] == 'public':
-                if f[i]['_type'] in ['int', 'double', 'num_real', 'num_complex',
+                if f[i]['_type'] in ['int', 'double', 'kids_real', 'kids_complex',
                 'std::string', 'bool'] and i[0]!='*':
                     print('\n    .def_readwrite("%s", &%s::%s)'%(
                         i, ns, i
@@ -523,7 +523,7 @@ def creat_class_bind(ns, dd):
 def creat_class_fun(ns, ns0, dd):
     for f in dd[ns]['_fun']:
         for i in f:
-            if f[i]['_type'] not in type_list or 'num_complex*' in f[i]['_raw']:
+            if f[i]['_type'] not in type_list or 'kids_complex*' in f[i]['_raw']:
                 continue
 
             if i == 'name' and ns != ns0:

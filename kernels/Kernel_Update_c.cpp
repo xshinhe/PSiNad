@@ -14,43 +14,42 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
-void Kernel_Update_c::read_param_impl(Param* PM) {
-    dt  = PM->get<double>("dt", LOC(), phys::time_d);  //
-    sdt = scale * dt;
-}
+void Kernel_Update_c::init_data_impl(DataSet* DS) {
+    dt_ptr = DS->def<kids_real>("iter.dt");
 
-void Kernel_Update_c::init_data_impl(DataSet* S) {
-    E   = S->reg<num_real>("model.rep.E", Dimension::PF);
-    T   = S->reg<num_real>("model.rep.T", Dimension::PFF);
-    L   = S->reg<num_real>("model.rep.L", Dimension::PF);
-    R   = S->reg<num_complex>("model.rep.R", Dimension::PFF);
-    U   = S->reg<num_complex>("integrator.U", Dimension::PFF);
-    Udt = S->reg<num_complex>("integrator.Udt", Dimension::PFF);
+    E   = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    T   = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    L   = DS->def<kids_real>("model.rep.L", Dimension::PF);
+    R   = DS->def<kids_complex>("model.rep.R", Dimension::PFF);
+    U   = DS->def<kids_complex>("integrator.U", Dimension::PFF);
+    Udt = DS->def<kids_complex>("integrator.Udt", Dimension::PFF);
 
-    invexpidiagdt = S->reg<num_complex>("integrator.tmp.invexpidiagdt", Dimension::F);
+    invexpidiagdt = DS->def<kids_complex>("integrator.tmp.invexpidiagdt", Dimension::F);
 }
 
 int Kernel_Update_c::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm
-        num_real* E      = this->E + iP * Dimension::F;
-        num_real* T      = this->T + iP * Dimension::FF;
-        num_real* L      = this->L + iP * Dimension::F;
-        num_complex* R   = this->R + iP * Dimension::FF;
-        num_complex* U   = this->U + iP * Dimension::FF;
-        num_complex* Udt = this->Udt + iP * Dimension::FF;
+        kids_real* E      = this->E + iP * Dimension::F;
+        kids_real* T      = this->T + iP * Dimension::FF;
+        kids_real* L      = this->L + iP * Dimension::F;
+        kids_complex* R   = this->R + iP * Dimension::FF;
+        kids_complex* U   = this->U + iP * Dimension::FF;
+        kids_complex* Udt = this->Udt + iP * Dimension::FF;
 
         switch (Kernel_Representation::ele_repr_type) {
             case RepresentationPolicy::Diabatic: {
-                for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * E[i] * dt);
+                for (int i = 0; i < Dimension::F; ++i)
+                    invexpidiagdt[i] = exp(-phys::math::im * E[i] * scale * dt_ptr[0]);
                 ARRAY_MATMUL3_TRANS2(Udt, T, invexpidiagdt, T, Dimension::F, Dimension::F, 0, Dimension::F);
                 ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
                 break;
             }
             case RepresentationPolicy::Adiabatic: {
-                for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * L[i] * dt);
+                for (int i = 0; i < Dimension::F; ++i)
+                    invexpidiagdt[i] = exp(-phys::math::im * L[i] * scale * dt_ptr[0]);
                 ARRAY_MATMUL3_TRANS2(Udt, R, invexpidiagdt, R, Dimension::F, Dimension::F, 0, Dimension::F);
                 ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
                 break;
@@ -62,4 +61,4 @@ int Kernel_Update_c::exec_kernel_impl(int stat) {
     }
     return 0;
 }
-};  // namespace PROJECT_NS
+};  // namespace kids

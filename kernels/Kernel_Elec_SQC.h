@@ -17,7 +17,7 @@
 #include "Kernel_Elec.h"
 
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(SQCPolicy,
               SQR,  // square window
@@ -40,18 +40,18 @@ class Kernel_Elec_SQC final : public Kernel {
     /**
      * @brief sampling mapping variables from uniform sphere distribution (i.e. uniform simplex for action)
      */
-    static int c_window(num_complex *c, int iocc, int type, int fdim);
+    static int c_window(kids_complex *c, int iocc, int type, int fdim);
 
-    static int ker_binning(num_complex *ker, num_complex *rho, int sqc_type);
+    static int ker_binning(kids_complex *ker, kids_complex *rho, int sqc_type);
 
    private:
     SQCPolicy::_type sqc_type;
-    num_real gamma;
+    kids_real gamma;
     bool use_cv;
 
-    num_real *sqcw;
-    num_real *sqcw0;
-    num_real *sqcwh;
+    kids_real *sqcw;
+    kids_real *sqcw0;
+    kids_real *sqcwh;
 
     virtual void read_param_impl(Param *PM);
 
@@ -63,6 +63,6 @@ class Kernel_Elec_SQC final : public Kernel {
 };
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Elec_SQC_H

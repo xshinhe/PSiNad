@@ -1,19 +1,30 @@
-/**
- * @file Param.h
- * @author xshinhe
- * @date 2023-04
- * @brief class for parameters from input
+/**@file        Param.h
+ * @brief       Provide struct and interfaces for input parameters
  * @details
- *  current Param class is based on json format, built on a thirdpart library:
- *  https://github.com/Nomango/configor
- *  herein the used version is: https://github.com/Nomango/configor/tree/2.x
  *
- * @further may support file format:
- *      - [x] YAML (based yamlcpp     : https://github.com/jbeder/yaml-cpp
- *                       or rapidyaml : https://github.com/biojppm/rapidyaml)
- *      - [x] TOML (based toml11      : https://github.com/ToruNiina/toml11)
- *      - [x] XML  (based srlzio      : https://github.com/Mazrog/srlzio)
- *      - [x] ENO or namelist format
+ * ## Easier interfaces for getting parameters (@todo)
+ * @note it is a better manner but only suits std=c++2a:
+ * ```cpp
+ *  template <typename T>
+ *  double get(const std::string& key, const std::string& loc = "", const
+ *  T& default_value = T());
+ *
+ *  template <phys::dimension7 qdim>
+ *  double get(const std::string& key, const std::string& loc = "", const
+ *  double& default_value = double());
+ * ```
+ * @author      [author]
+ * @date        [latest-date]
+ * @version     [version]
+ * @copyright   [copyright]
+ **********************************************************************************
+ * @par revision [logs]:
+ * <table>
+ * <tr><th> Date    <th> Version    <th> Author    <th> Description
+ * <tr><td>[date]   <td>[version]   <td>[author]   <td> [commit]
+ * </table>
+ *
+ **********************************************************************************
  */
 
 #ifndef PARAM_H
@@ -22,21 +33,13 @@
 #include <cstring>
 #include <fstream>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <string>
 
 #include "../thirdpart/configor/json.hpp"
 #include "Exception.h"
 #include "phys.h"
-
-/**
- *
- * Following is an example of realization of interface to JSON format.
- * the json library is used with https://github.com/Nomango/configor.
- * the used version is: https://github.com/Nomango/configor/tree/2.x
- */
-typedef configor::json JSON;
-typedef configor::configor_exception JSON_Exception;
 
 /**
  * @brief return the base of filename
@@ -50,47 +53,57 @@ inline const char *basename(const char *filepath) {
 }
 
 /**
- * @brief the macro for the location info
+ * show the location information for debug
  */
 #define LOC() (std::string(basename(__FILE__)) + ":" + std::to_string(__LINE__))
 
-namespace PROJECT_NS {
-
-// helpers for types in json
-template <typename T>
-inline std::string TypeFLAG();
-template <>
-inline std::string TypeFLAG<bool>() {
-    return "bool";
-}
-template <>
-inline std::string TypeFLAG<int>() {
-    return "integr";
-}
-template <>
-inline std::string TypeFLAG<double>() {
-    return "double";
-}
-template <>
-inline std::string TypeFLAG<std::string>() {
-    return "string";
-}
+namespace kids {
 
 /**
- * @brief class Param is a wrapper based on the thirdpart json library
+ * Param class is provided as an interface wrapper for the parameter data.
+ *
+ * @note As a realization of interface to JSON format.
+ * the json library is used with https://github.com/Nomango/configor.
+ * the used version is: https://github.com/Nomango/configor/tree/2.x
+ *
+ * @todo More formats should be supported in future, including:
+ * - YAML (based yamlcpp     : https://github.com/jbeder/yaml-cpp
+ *       or rapidyaml : https://github.com/biojppm/rapidyaml)
+ * - TOML (based toml11      : https://github.com/ToruNiina/toml11)
+ * - XML  (based srlzio      : https://github.com/Mazrog/srlzio)
+ * - ENO or namelist (in Fortran)
  */
 class Param final {
    public:
-    enum LoadOption { fromString, fromFile };
+    using JSON           = configor::json;
+    using JSON_Exception = configor::configor_exception;
+
+    /** @see Param(const std::string &input, LoadOption option)
+     */
+    enum LoadOption {
+        fromString,  ///< construct Param from string
+        fromFile     ///< construct Param from file
+    };
 
     /**
-     * @brief constructor
+     * @param[in]  input              a Json-like string or a file path
+     * @param[in]  option             enum for parse input
+     * @ref fromFile                  parse Param from file    \n
+     * @ref fromString                parse Param from string  \n
      *
-     * @param input : string or filename
-     * @param option : Param::fromFile or Param::fromString
+     * ### Usages
+     *
+     * - initialize Param from string
+     *   ```cpp
+     *   Param("{\"key\": 1234}", Param::fromString);
+     *   ```
+     * - initialize Param from file
+     *   ```cpp
+     *   Param("param_example.json", Param::fromFile);
+     *   ```
      */
-    Param(const std::string &input, LoadOption option) : created{true} {
-        pj = new JSON();
+    Param(const std::string &input, LoadOption option) {
+        pj = std::shared_ptr<JSON>(new JSON());
         // clang-format off
         switch (option) {
             case fromFile: {
@@ -117,18 +130,13 @@ class Param final {
     }
 
     /**
-     * @brief deconstructor (only from the root)
+     *Param &operator[](const std::string &key) {
+     *        if (!has_key(key)) { throw param_illegal_key_error(key); }
+     *        Param ref = Param();
+     *        ref.pj    = &((*pj)[key]);
+     *        return ref;
+     *    }
      */
-    virtual ~Param() {
-        if (created) delete pj;
-    }
-
-    // Param &operator[](const std::string &key) {
-    //     if (!has_key(key)) { throw param_illegal_key_error(key); }
-    //     Param ref = Param();
-    //     ref.pj    = &((*pj)[key]);
-    //     return ref;
-    // }
 
     bool has_key(const std::string &key) { return !(pj->count(key) == 0); }
 
@@ -145,21 +153,21 @@ class Param final {
         // cannot find the key
         if (!has_key(key)) {
             if (Require) {
-                throw param_illegal_key_error(                   //
-                    utils::concat(loc,                           //
-                                  " Type<", TypeFLAG<T>(), ">",  //
-                                  " Key/", key, "/",             //
-                                  " : Illegal default")          //
+                throw basic_error(                             //
+                    utils::concat(loc,                         //
+                                  " Type<", as_str<T>(), ">",  //
+                                  " Key/", key, "/",           //
+                                  " : Illegal default")        //
                 );
                 return T();
             } else {
                 try {
-                    throw param_warning(                             //
-                        utils::concat(loc,                           //
-                                      " Type<", TypeFLAG<T>(), ">",  //
-                                      " Key/", key, "/",             //
-                                      " : Use default ",             //
-                                      default_value)                 //
+                    throw param_warning(                           //
+                        utils::concat(loc,                         //
+                                      " Type<", as_str<T>(), ">",  //
+                                      " Key/", key, "/",           //
+                                      " : Use default ",           //
+                                      default_value)               //
                     );
                 } catch (param_warning &w) { std::cerr << w.what() << "\n"; }
                 return default_value;
@@ -209,9 +217,9 @@ class Param final {
             }
         }
         // cannot be adapted to existing conversions
-        throw param_mismatched_type_error(               //
+        throw basic_error(                               //
             utils::concat(loc,                           //
-                          " Type<", TypeFLAG<T>(), ">",  //
+                          " Type<", as_str<T>(), ">",    //
                           " Key/", key, "/",             //
                           " Data{",                      //
                           (*pj)[key].dump(4, ' '), "}",  //
@@ -220,15 +228,17 @@ class Param final {
         return T();
     }
 
-    // template <typename T>
-    // Param &get(KParam<T> *KP, const std::string &loc, const phys::dimension7 &qdim, const T &default_value) {
-    //     KP->ptr = get<T>(KP->key, loc, qdim, default_value);
-    //     return *this;
-    // }
-
-    /**
-     * @brief simplified interface
+    /** @deprecated
+     * ```
+     * template <typename T>
+     * Param &get(KParam<T> *KP, const std::string &loc, const phys::dimension7 &qdim, const T &default_value) {
+     *     KP->ptr = get<T>(KP->key, loc, qdim, default_value);
+     *     return *this;
+     * }
+     * ```
      */
+
+    /// @{
     template <typename T, bool Require = true>
     T get(const std::string &key, const std::string &loc, const phys::dimension7 &qdim) {
         return get<T, Require>(key, loc, qdim, T());
@@ -245,32 +255,16 @@ class Param final {
     T get(const std::string &key) {
         return get<T, Require>(key, "__loc__", phys::none_d, T());
     }
+    /// @}
 
-    /**
-     * @pity: Maybe it is a better manner but only suits std=c++2a:
-     *
-     *  template <typename T>
-     *  double get(const std::string& key, const std::string& loc = "", const
-     *  T& default_value = T());
-     *
-     *  template <phys::dimension7 qdim>
-     *  double get(const std::string& key, const std::string& loc = "", const
-     *  double& default_value = double());
-     *
-     */
-
-
-    inline JSON *pjson() { return pj; }
+    inline std::shared_ptr<JSON> pjson() { return pj; }
 
     inline std::string repr() { return pj->dump(4, ' '); }
 
    private:
-    bool created = false;
-    JSON *pj;
-
-    Param() : created{false} {};
+    std::shared_ptr<JSON> pj;
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // PARAM_H

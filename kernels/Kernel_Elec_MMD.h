@@ -5,7 +5,7 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(MMDPolicy,  //
               MMF,        //
@@ -23,13 +23,13 @@ class Kernel_Elec_MMD final : public Kernel {
         push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
     }
 
-    static int rho_focus(num_complex *rho, int iocc, double gamma_ou, double gamma_uu, int fdim, bool rand_act = false,
+    static int rho_focus(kids_complex *rho, int iocc, double gamma_ou, double gamma_uu, int fdim, bool rand_act = false,
                          bool pure_phase = true, bool cont_phase = true);
 
    private:
     MMDPolicy::_type mmd_type;
-    num_real scale;
-    num_real gamma_ou, gamma_uu;
+    kids_real scale;
+    kids_real gamma_ou, gamma_uu;
     int Fref;
     bool pure_phase;
     bool cont_phase;
@@ -43,6 +43,6 @@ class Kernel_Elec_MMD final : public Kernel {
 };
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Elec_MMD_H

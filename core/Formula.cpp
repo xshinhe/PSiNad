@@ -1,6 +1,6 @@
 #include "Formula.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 // template <typename T>
 // int FPARSER<T>::regis_FPARSER(const std::string& str, const std::string& vars_str) {
@@ -69,7 +69,7 @@ std::vector<FPARSER<T>> FPARSER<T>::GLOBAL;
 //         parsed_declaration = str.substr(0, ipos);               // such as R(x,y)
 //         parsed_expression  = str.substr(ipos + 1, str.size());  // such as x^2 + cos(y)
 
-//         char type_char = parsed_declaration[0];  // from {'R', 'C'} for num_real and num_complex type
+//         char type_char = parsed_declaration[0];  // from {'R', 'C'} for kids_real and kids_complex type
 
 //         // remove (...) around the variables
 //         parsed_varslist = parsed_declaration;
@@ -104,11 +104,11 @@ std::vector<FPARSER<T>> FPARSER<T>::GLOBAL;
 //         switch (type_char) {
 //             case 'R':
 //                 res_type   = DataSet::Type::Real;
-//                 FPARSER_ID = FPARSER<num_real>::regis_FPARSER(parsed_expression, parsed_varslist);
+//                 FPARSER_ID = FPARSER<kids_real>::regis_FPARSER(parsed_expression, parsed_varslist);
 //                 break;
 //             case 'C':
 //                 res_type   = DataSet::Type::Complex;
-//                 FPARSER_ID = FPARSER<num_complex>::regis_FPARSER(parsed_expression, parsed_varslist);
+//                 FPARSER_ID = FPARSER<kids_complex>::regis_FPARSER(parsed_expression, parsed_varslist);
 //                 break;
 //         }
 
@@ -125,4 +125,4 @@ std::vector<FPARSER<T>> FPARSER<T>::GLOBAL;
 
 std::vector<Formula> Formula::GLOBAL;
 
-};  // namespace PROJECT_NS
+};  // namespace kids

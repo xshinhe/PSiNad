@@ -5,7 +5,7 @@
 #include "../core/Policy.h"
 
 
-namespace PROJECT_NS {
+namespace kids {
 
 
 DEFINE_POLICY(BathPolicy,   //
@@ -42,19 +42,19 @@ class Model_Bath final : public Kernel {
 
     static double J(double w, double* w_arr = nullptr, double* c_arr = nullptr, int Nb = 0);
 
-    static int fun_Cw(num_complex* Cw_arr, double* w, int Nw, double* w_arr, double* c_arr, double beta, int Nb);
+    static int fun_Cw(kids_complex* Cw_arr, double* w, int Nw, double* w_arr, double* c_arr, double beta, int Nb);
 
    private:
-    num_real* coeffs;
-    num_real* omegas;
-    num_real* x_sigma;
-    num_real* p_sigma;
+    kids_real* coeffs;
+    kids_real* omegas;
+    kids_real* x_sigma;
+    kids_real* p_sigma;
 
-    virtual void read_param_impl(Param* P);
+    virtual void read_param_impl(Param* PM);
     virtual void init_data_impl(DataSet* DS);
 };
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Model_Bath_H

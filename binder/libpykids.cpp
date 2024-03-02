@@ -12,14 +12,14 @@
 #include "../solvers/SolverFactory.h"
 
 namespace py = pybind11;
-using namespace PROJECT_NS;
+using namespace kids;
 
-PYBIND11_MODULE(libopendfpy, m) {
-#include "opendf_phys.bind"
+PYBIND11_MODULE(libpykids, m) {
+#include "kids_phys.bind"
 //
-#include "opendf_param.bind"
+#include "kids_param.bind"
 //
-#include "opendf_dataset.bind"
+#include "kids_dataset.bind"
 //
-#include "opendf_kernel.bind"
+#include "kids_kernel.bind"
 }

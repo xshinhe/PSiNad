@@ -7,12 +7,12 @@
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
-int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
+int Kernel_Elec_SQC::c_window(kids_complex* c, int iocc, int type, int fdim) {
     switch (type) {
         case SQCPolicy::TRI: {
-            num_real tmp2[2];
+            kids_real tmp2[2];
             Kernel_Random::rand_uniform(tmp2, 2);
             while (tmp2[0] + tmp2[1] > 1.0f) Kernel_Random::rand_uniform(tmp2, 2);
             c[iocc] = tmp2[0];
@@ -33,7 +33,7 @@ int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
             break;
         }
         case SQCPolicy::BIG: {
-            num_complex* cadd1 = new num_complex[Dimension::Fadd1];
+            kids_complex* cadd1 = new kids_complex[Dimension::Fadd1];
             Kernel_Elec_CMM::c_sphere(cadd1, Dimension::Fadd1);
             for (int i = 0; i < Dimension::F; ++i) c[i] = abs(cadd1[i] * cadd1[i]);
             c[iocc] += 1.0e0;
@@ -41,9 +41,9 @@ int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
             break;
         }
         case SQCPolicy::SQR: {
-            const num_real gm0 = Kernel_Elec_CMM::gamma_wigner(2.0f);
+            const kids_real gm0 = Kernel_Elec_CMM::gamma_wigner(2.0f);
             for (int i = 0; i < fdim; ++i) {
-                num_real randu;
+                kids_real randu;
                 Kernel_Random::rand_uniform(&randu);
                 c[i] = 2.0 * gm0 * randu;
             }
@@ -52,7 +52,7 @@ int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
         }
     }
     for (int i = 0; i < fdim; ++i) {
-        num_real randu;
+        kids_real randu;
         Kernel_Random::rand_uniform(&randu);
         randu *= phys::math::twopi;
         c[i] = sqrt(c[i]);
@@ -61,8 +61,8 @@ int Kernel_Elec_SQC::c_window(num_complex* c, int iocc, int type, int fdim) {
     return 0;
 };
 
-int Kernel_Elec_SQC::ker_binning(num_complex* ker, num_complex* rho, int sqc_type) {
-    const num_real gm0 = Kernel_Elec_CMM::gamma_wigner(2.0f), gm1 = 1 + gm0, gmh = 0.5f + gm0;
+int Kernel_Elec_SQC::ker_binning(kids_complex* ker, kids_complex* rho, int sqc_type) {
+    const kids_real gm0 = Kernel_Elec_CMM::gamma_wigner(2.0f), gm1 = 1 + gm0, gmh = 0.5f + gm0;
 
     // set all elements to 1
     for (int i = 0; i < Dimension::FF; ++i) ker[i] = rho[i] / std::abs(rho[i]);
@@ -120,19 +120,19 @@ void Kernel_Elec_SQC::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_SQC::init_data_impl(DataSet* DS) {
-    sqcw  = _DataSet->reg<num_real>("integrator.sqcw", Dimension::FF);
-    sqcw0 = _DataSet->reg<num_real>("integrator.sqcw0", Dimension::FF);
-    sqcwh = _DataSet->reg<num_real>("integrator.sqcwh", Dimension::FF);
+    sqcw  = _DataSet->def<kids_real>("integrator.sqcw", Dimension::FF);
+    sqcw0 = _DataSet->def<kids_real>("integrator.sqcw0", Dimension::FF);
+    sqcwh = _DataSet->def<kids_real>("integrator.sqcwh", Dimension::FF);
 };
 
 void Kernel_Elec_SQC::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_complex* w       = Kernel_Elec::w + iP;
-        num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
-        num_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
-        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
+        kids_complex* w       = Kernel_Elec::w + iP;
+        kids_complex* c       = Kernel_Elec::c + iP * Dimension::F;
+        kids_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
+        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
 
         /////////////////////////////////////////////////////////////////
 
@@ -152,15 +152,15 @@ void Kernel_Elec_SQC::init_calc_impl(int stat) {
 
 int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
-        num_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
-        num_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
-        num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
-        num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
-        num_real* T               = Kernel_Elec::T + iP * Dimension::FF;
-        num_real* T_init          = Kernel_Elec::T_init + iP * Dimension::FF;
+        kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        kids_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
+        kids_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
+        kids_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
+        kids_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
+        kids_real* T               = Kernel_Elec::T + iP * Dimension::FF;
+        kids_real* T_init          = Kernel_Elec::T_init + iP * Dimension::FF;
 
         // 1) transform from inp_repr => ele_repr
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
@@ -214,4 +214,4 @@ int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
 
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids

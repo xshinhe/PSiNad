@@ -95,7 +95,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using BO_ForceField::BO_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -104,7 +104,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -122,7 +122,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -132,7 +132,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -151,7 +151,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -175,37 +175,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -214,9 +214,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -224,9 +224,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -238,7 +238,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using Water_ForceField::Water_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& icycle) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Water_ForceField, // parent class
@@ -247,7 +247,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Water_ForceField, // parent class
@@ -256,7 +256,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -275,7 +275,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -294,7 +294,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -311,26 +311,26 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_charge_arr", &Water_ForceField::ref_charge_arr, py::return_value_policy::reference_internal)
     .def("ref_pbox", &Water_ForceField::ref_pbox, py::return_value_policy::reference_internal)
     .def_static("name", &Water_ForceField::name)
-    .def("ForceField_init", [](Water_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](Water_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& icycle) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, icycle); 
         }
     )
-    .def("ForceField_spec", [](Water_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Water_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
-    .def("ForceField_npes", [](Water_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Water_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
@@ -340,37 +340,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -379,9 +379,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -389,9 +389,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -403,7 +403,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using SmallMol_ForceField::SmallMol_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& icycle) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SmallMol_ForceField, // parent class
@@ -412,7 +412,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SmallMol_ForceField, // parent class
@@ -421,7 +421,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -440,7 +440,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -459,7 +459,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -474,26 +474,26 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<const Param&>())
     .def(py::init<const std::string&>())
     .def_static("name", &SmallMol_ForceField::name)
-    .def("ForceField_init", [](SmallMol_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](SmallMol_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& icycle) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, icycle); 
         }
     )
-    .def("ForceField_spec", [](SmallMol_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](SmallMol_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
-    .def("ForceField_npes", [](SmallMol_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](SmallMol_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
@@ -503,37 +503,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -542,9 +542,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -552,9 +552,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -566,7 +566,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using SCTEST_ForceField::SCTEST_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& icycle) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SCTEST_ForceField, // parent class
@@ -575,7 +575,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SCTEST_ForceField, // parent class
@@ -584,7 +584,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -603,7 +603,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -622,7 +622,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -637,46 +637,46 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<const Param&>())
     .def(py::init<const std::string&>())
     .def_static("name", &SCTEST_ForceField::name)
-    .def("ForceField_init", [](SCTEST_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](SCTEST_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& icycle) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, icycle); 
         }
     )
-    .def("ForceField_spec", [](SCTEST_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](SCTEST_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
-    .def("ForceField_npes", [](SCTEST_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](SCTEST_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes_SC1D", [](SCTEST_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes_SC1D", [](SCTEST_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes_SC1D(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes_SC2D", [](SCTEST_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes_SC2D", [](SCTEST_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes_SC2D(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
@@ -686,37 +686,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -725,9 +725,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -735,9 +735,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -749,7 +749,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using LiquidNe_ForceField::LiquidNe_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& icycle) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
             LiquidNe_ForceField, // parent class
@@ -758,7 +758,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             LiquidNe_ForceField, // parent class
@@ -767,7 +767,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -786,7 +786,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -805,7 +805,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -819,26 +819,26 @@ PYBIND11_MODULE(libopendf, m) {
     py::class_<LiquidNe_ForceField, BO_ForceField, PyTrampoline_LiquidNe_ForceField>(models_m, "LiquidNe_ForceField", py::dynamic_attr())
     .def(py::init<const Param&>())
     .def_static("name", &LiquidNe_ForceField::name)
-    .def("ForceField_init", [](LiquidNe_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](LiquidNe_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& icycle) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, icycle); 
         }
     )
-    .def("ForceField_spec", [](LiquidNe_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](LiquidNe_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
-    .def("ForceField_npes", [](LiquidNe_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](LiquidNe_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
@@ -848,37 +848,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -887,9 +887,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -897,9 +897,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -911,7 +911,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using MD1D_ForceField::MD1D_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& icycle) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
             MD1D_ForceField, // parent class
@@ -920,7 +920,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             MD1D_ForceField, // parent class
@@ -929,7 +929,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -948,7 +948,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -967,7 +967,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -983,26 +983,26 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<const Param&>())
     .def(py::init<const std::string&>())
     .def_static("name", &MD1D_ForceField::name)
-    .def("ForceField_init", [](MD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](MD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& icycle) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, icycle); 
         }
     )
-    .def("ForceField_spec", [](MD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](MD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
-    .def("ForceField_npes", [](MD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](MD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
@@ -1012,37 +1012,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -1051,9 +1051,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -1061,9 +1061,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -1075,7 +1075,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using Nad_ForceField::Nad_ForceField;
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -1093,7 +1093,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1103,7 +1103,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1113,7 +1113,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1123,7 +1123,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1133,7 +1133,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1152,8 +1152,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1163,7 +1163,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -1172,7 +1172,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -1181,7 +1181,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -1190,7 +1190,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1207,30 +1207,30 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_mod_eac", &Nad_ForceField::ref_mod_eac, py::return_value_policy::reference_internal)
     .def("ref_mod_rho", &Nad_ForceField::ref_mod_rho, py::return_value_policy::reference_internal)
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -1238,20 +1238,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -1265,37 +1265,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -1304,9 +1304,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -1314,9 +1314,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -1328,7 +1328,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using SystemBath_ForceField::SystemBath_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1338,7 +1338,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1348,7 +1348,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1358,7 +1358,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_SpinBoson(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_SpinBoson(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                           const int& rdim, const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1368,7 +1368,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_SiteExciton(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_SiteExciton(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                             const int& rdim, const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1378,7 +1378,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_General(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_General(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1388,7 +1388,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SystemBath_ForceField, // parent class
@@ -1415,7 +1415,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -1433,7 +1433,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1443,7 +1443,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1462,8 +1462,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1473,7 +1473,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -1482,7 +1482,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -1491,7 +1491,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1515,20 +1515,20 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_QL", &SystemBath_ForceField::ref_QL, py::return_value_policy::reference_internal)
     .def("ref_Xnj", &SystemBath_ForceField::ref_Xnj, py::return_value_policy::reference_internal)
     .def_static("name", &SystemBath_ForceField::name)
-    .def("ForceField_npes", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -1537,10 +1537,10 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes_SpinBoson", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_SpinBoson", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -1549,10 +1549,10 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_epes_SpinBoson(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes_SiteExciton", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_SiteExciton", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -1561,10 +1561,10 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_epes_SiteExciton(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes_General", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_General", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -1576,30 +1576,30 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_nbath", static_cast<int (SystemBath_ForceField::*)()>(&SystemBath_ForceField::get_nbath))
     .def("get_Nb", static_cast<int (SystemBath_ForceField::*)()>(&SystemBath_ForceField::get_Nb))
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -1607,20 +1607,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -1634,37 +1634,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -1673,9 +1673,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -1683,9 +1683,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -1697,7 +1697,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using NAD1D_ForceField::NAD1D_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1707,7 +1707,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NAD1D_ForceField, // parent class
@@ -1716,7 +1716,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1726,7 +1726,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1745,7 +1745,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_Morse3A(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_Morse3A(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1755,7 +1755,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_Morse3B(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_Morse3B(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1765,7 +1765,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_Morse3C(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_Morse3C(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1775,7 +1775,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_Morse15(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_Morse15(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1785,7 +1785,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_IVP1(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_IVP1(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1795,7 +1795,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_IVP2(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_IVP2(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1805,7 +1805,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_IVP3(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_IVP3(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1815,7 +1815,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_IVP4(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_IVP4(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1825,7 +1825,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_CL1D(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_CL1D(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1835,7 +1835,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_JC1D(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_JC1D(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1845,7 +1845,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_NA_I(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_NA_I(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1864,7 +1864,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1874,7 +1874,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1893,8 +1893,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1904,7 +1904,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -1913,7 +1913,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -1922,7 +1922,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -1931,7 +1931,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -1947,28 +1947,28 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<const Param&>())
     .def(py::init<const std::string&>())
     .def_static("name", &NAD1D_ForceField::name)
-    .def("ForceField_spec", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
-    .def("ForceField_npes", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -1976,110 +1976,110 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("NAD1D_plot", static_cast<int (NAD1D_ForceField::*)()>(&NAD1D_ForceField::NAD1D_plot))
-    .def("ForceField_epes_Morse3A", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_Morse3A", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_Morse3A(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_Morse3B", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_Morse3B", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_Morse3B(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_Morse3C", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_Morse3C", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_Morse3C(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_Morse15", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_Morse15", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_Morse15(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_IVP1", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_IVP1", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_IVP1(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_IVP2", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_IVP2", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_IVP2(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_IVP3", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_IVP3", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_IVP3(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_IVP4", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_IVP4", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_IVP4(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_CL1D", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_CL1D", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_CL1D(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_JC1D", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_JC1D", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_JC1D(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_NA_I", [](NAD1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_NA_I", [](NAD1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -2087,30 +2087,30 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -2118,20 +2118,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -2145,37 +2145,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -2184,9 +2184,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -2194,9 +2194,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -2208,7 +2208,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using Spectrum_NAD_ForceField::Spectrum_NAD_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2218,7 +2218,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2228,7 +2228,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2238,7 +2238,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -2256,7 +2256,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2266,7 +2266,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2285,8 +2285,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2296,7 +2296,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -2305,7 +2305,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -2314,7 +2314,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -2323,7 +2323,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2343,20 +2343,20 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_workr_v", &Spectrum_NAD_ForceField::ref_workr_v, py::return_value_policy::reference_internal)
     .def("ref_workr_dv", &Spectrum_NAD_ForceField::ref_workr_dv, py::return_value_policy::reference_internal)
     .def_static("name", &Spectrum_NAD_ForceField::name)
-    .def("ForceField_npes", [](Spectrum_NAD_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Spectrum_NAD_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](Spectrum_NAD_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Spectrum_NAD_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -2364,30 +2364,30 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -2395,20 +2395,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -2422,37 +2422,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -2461,9 +2461,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -2471,9 +2471,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -2485,7 +2485,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using LVCM_ForceField::LVCM_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2495,7 +2495,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2505,7 +2505,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2515,7 +2515,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_PYR(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_PYR(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2525,7 +2525,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_CrCO5_2(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_CrCO5_2(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2535,7 +2535,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_CrCO5_5(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_CrCO5_5(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2545,7 +2545,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_BEN_5(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_BEN_5(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                       const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2555,7 +2555,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -2573,7 +2573,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2583,7 +2583,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2602,8 +2602,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2613,7 +2613,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -2622,7 +2622,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -2631,7 +2631,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -2640,7 +2640,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2659,60 +2659,60 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_ECI", &LVCM_ForceField::ref_ECI, py::return_value_policy::reference_internal)
     .def("ref_KCI", &LVCM_ForceField::ref_KCI, py::return_value_policy::reference_internal)
     .def_static("name", &LVCM_ForceField::name)
-    .def("ForceField_npes", [](LVCM_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](LVCM_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](LVCM_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](LVCM_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_PYR", [](LVCM_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_PYR", [](LVCM_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_PYR(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_CrCO5_2", [](LVCM_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_CrCO5_2", [](LVCM_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_CrCO5_2(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_CrCO5_5", [](LVCM_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_CrCO5_5", [](LVCM_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_CrCO5_5(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_BEN_5", [](LVCM_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_BEN_5", [](LVCM_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -2720,30 +2720,30 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -2751,20 +2751,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -2778,37 +2778,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -2817,9 +2817,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -2827,9 +2827,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -2841,7 +2841,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using ManySite_ForceField::ManySite_ForceField;
 
-        int ForceField_heff(num_complex* H, num_complex* rhos, const int& mdim, const int& fdim) override {
+        int ForceField_heff(kids_complex* H, kids_complex* rhos, const int& mdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             ManySite_ForceField, // parent class
@@ -2850,7 +2850,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_heff_Ising(num_complex* H, num_complex* rhos, const int& mdim, const int& fdim) override {
+        int ForceField_heff_Ising(kids_complex* H, kids_complex* rhos, const int& mdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             ManySite_ForceField, // parent class
@@ -2859,7 +2859,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -2877,7 +2877,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2887,7 +2887,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2897,7 +2897,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2907,7 +2907,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2917,7 +2917,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2936,8 +2936,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -2947,7 +2947,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -2956,7 +2956,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -2965,7 +2965,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -2974,7 +2974,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3001,30 +3001,30 @@ PYBIND11_MODULE(libopendf, m) {
     .def_static("name", &ManySite_ForceField::name)
     .def("get_M", static_cast<int (ManySite_ForceField::*)()>(&ManySite_ForceField::get_M))
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -3032,20 +3032,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -3059,37 +3059,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -3098,9 +3098,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -3108,9 +3108,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -3122,7 +3122,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using Scatter1D_ForceField::Scatter1D_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3132,7 +3132,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Scatter1D_ForceField, // parent class
@@ -3141,7 +3141,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3160,7 +3160,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3170,7 +3170,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_SAC(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_SAC(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3180,7 +3180,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_SAC2(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_SAC2(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                      const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3190,7 +3190,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_DAC(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_DAC(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3200,7 +3200,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_ECR(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_ECR(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3210,7 +3210,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_DBG(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_DBG(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3220,7 +3220,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_DAG(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_DAG(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3230,7 +3230,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_DRN(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_DRN(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3249,7 +3249,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3259,7 +3259,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3278,8 +3278,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3289,7 +3289,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -3298,7 +3298,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -3307,7 +3307,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -3316,7 +3316,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3332,99 +3332,99 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<const Param&>())
     .def(py::init<const std::string&>())
     .def_static("name", &Scatter1D_ForceField::name)
-    .def("ForceField_spec", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
-    .def("ForceField_npes", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
     .def("Scatter1D_plot", static_cast<int (Scatter1D_ForceField::*)(const double&)>(&Scatter1D_ForceField::Scatter1D_plot))
-    .def("ForceField_epes", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_SAC", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_SAC", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_SAC(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_SAC2", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_SAC2", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_SAC2(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_DAC", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_DAC", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_DAC(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_ECR", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_ECR", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_ECR(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_DBG", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_DBG", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_DBG(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_DAG", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_DAG", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_DAG(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_DRN", [](Scatter1D_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_DRN", [](Scatter1D_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -3432,30 +3432,30 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -3463,20 +3463,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -3490,37 +3490,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -3529,9 +3529,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -3539,9 +3539,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -3553,7 +3553,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using PyrCav_ForceField::PyrCav_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3563,7 +3563,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3573,7 +3573,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3583,7 +3583,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_PC1(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_PC1(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3593,7 +3593,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_PC2(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_PC2(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3603,7 +3603,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_PC3(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_PC3(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                     const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3613,7 +3613,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -3631,7 +3631,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3641,7 +3641,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3660,8 +3660,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3671,7 +3671,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -3680,7 +3680,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -3689,7 +3689,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -3698,7 +3698,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3717,50 +3717,50 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_ECI", &PyrCav_ForceField::ref_ECI, py::return_value_policy::reference_internal)
     .def("ref_KCI", &PyrCav_ForceField::ref_KCI, py::return_value_policy::reference_internal)
     .def_static("name", &PyrCav_ForceField::name)
-    .def("ForceField_npes", [](PyrCav_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](PyrCav_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](PyrCav_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](PyrCav_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_PC1", [](PyrCav_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_PC1", [](PyrCav_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_PC1(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_PC2", [](PyrCav_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_PC2", [](PyrCav_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes_PC2(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes_PC3", [](PyrCav_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_PC3", [](PyrCav_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -3768,30 +3768,30 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -3799,20 +3799,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -3826,37 +3826,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -3865,9 +3865,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -3875,9 +3875,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -3889,7 +3889,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using AtomCED_ForceField::AtomCED_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3899,7 +3899,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3909,7 +3909,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3919,7 +3919,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             AtomCED_ForceField, // parent class
@@ -3937,7 +3937,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -3955,7 +3955,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3965,7 +3965,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3984,8 +3984,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -3995,7 +3995,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4004,7 +4004,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4013,7 +4013,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4032,20 +4032,20 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_omegas", &AtomCED_ForceField::ref_omegas, py::return_value_policy::reference_internal)
     .def("ref_coeffs", &AtomCED_ForceField::ref_coeffs, py::return_value_policy::reference_internal)
     .def_static("name", &AtomCED_ForceField::name)
-    .def("ForceField_npes", [](AtomCED_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](AtomCED_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](AtomCED_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](AtomCED_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -4054,30 +4054,30 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("get_Nb", static_cast<int (AtomCED_ForceField::*)()>(&AtomCED_ForceField::get_Nb))
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -4085,20 +4085,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4112,37 +4112,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -4151,9 +4151,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -4161,9 +4161,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -4175,7 +4175,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using ZnPc_ForceField::ZnPc_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4185,7 +4185,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4195,7 +4195,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4223,7 +4223,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_SpinBoson(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_SpinBoson(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                           const int& rdim, const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4233,7 +4233,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_SiteExciton(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_SiteExciton(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                             const int& rdim, const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4243,7 +4243,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes_General(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag,
+        int ForceField_epes_General(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag,
                                         const int& rdim, const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4253,7 +4253,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SystemBath_ForceField, // parent class
@@ -4262,7 +4262,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -4280,7 +4280,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4290,7 +4290,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4309,8 +4309,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4320,7 +4320,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4329,7 +4329,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4338,7 +4338,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4374,20 +4374,20 @@ PYBIND11_MODULE(libopendf, m) {
     .def_static("name", &ZnPc_ForceField::name)
     .def("index", static_cast<int (ZnPc_ForceField::*)(const int&, const int&, const int&)>(&ZnPc_ForceField::index))
     .def("init_Hamiltonian", static_cast<int (ZnPc_ForceField::*)()>(&ZnPc_ForceField::init_Hamiltonian))
-    .def("ForceField_npes", [](ZnPc_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](ZnPc_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](ZnPc_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](ZnPc_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4398,20 +4398,20 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("get_nbath", static_cast<int (ZnPc_ForceField::*)()>(&ZnPc_ForceField::get_nbath))
     .def("get_Nb", static_cast<int (ZnPc_ForceField::*)()>(&ZnPc_ForceField::get_Nb))
-    .def("ForceField_npes", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4420,10 +4420,10 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes_SpinBoson", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_SpinBoson", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4432,10 +4432,10 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_epes_SpinBoson(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes_SiteExciton", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_SiteExciton", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4444,10 +4444,10 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_epes_SiteExciton(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes_General", [](SystemBath_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes_General", [](SystemBath_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4459,30 +4459,30 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_nbath", static_cast<int (SystemBath_ForceField::*)()>(&SystemBath_ForceField::get_nbath))
     .def("get_Nb", static_cast<int (SystemBath_ForceField::*)()>(&SystemBath_ForceField::get_Nb))
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -4490,20 +4490,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4517,37 +4517,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -4556,9 +4556,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -4566,9 +4566,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -4580,7 +4580,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using GAUSS16_ForceField::GAUSS16_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& icycle) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4590,8 +4590,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* E, num_real* dE, num_real* ddE,
-                                num_real* R,  
+        int ForceField_epes(kids_real* E, kids_real* dE, kids_real* ddE,
+                                kids_real* R,  
                                 const int& flag, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4601,7 +4601,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -4619,7 +4619,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4629,7 +4629,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4639,7 +4639,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4658,8 +4658,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4669,7 +4669,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -4678,7 +4678,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4687,7 +4687,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4696,7 +4696,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4716,10 +4716,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_nr_samp", &GAUSS16_ForceField::ref_nr_samp, py::return_value_policy::reference_internal)
     .def("ref_np_samp", &GAUSS16_ForceField::ref_np_samp, py::return_value_policy::reference_internal)
     .def_static("name", &GAUSS16_ForceField::name)
-    .def("ForceField_epes", [](GAUSS16_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> E_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dE_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddE_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](GAUSS16_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> E_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dE_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddE_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -4727,36 +4727,36 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("parse_g16", static_cast<int (GAUSS16_ForceField::*)(const std::string&)>(&GAUSS16_ForceField::parse_g16))
-    .def("calc_hess", [](GAUSS16_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("calc_hess", [](GAUSS16_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& rdim) {
             return self.calc_hess(R_arr.mutable_data(), rdim); 
         }
     )
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -4764,20 +4764,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -4791,37 +4791,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -4830,9 +4830,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -4840,9 +4840,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -4854,7 +4854,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using MNDO99_ForceField::MNDO99_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4864,8 +4864,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* E, num_real* dE, num_real* ddE,
-                                num_real* R,                       
+        int ForceField_epes(kids_real* E, kids_real* dE, kids_real* ddE,
+                                kids_real* R,                       
                                 const int& flag,                   
                                 const int& rdim, const int& fdim,  
                                 const int& itraj, const int& istep) override {
@@ -4877,8 +4877,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& istep) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4888,7 +4888,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -4906,7 +4906,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4916,7 +4916,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4926,7 +4926,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4945,7 +4945,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -4954,7 +4954,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4963,7 +4963,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -4972,7 +4972,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -4997,10 +4997,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_ener2", &MNDO99_ForceField::ref_ener2, py::return_value_policy::reference_internal)
     .def("ref_grad", &MNDO99_ForceField::ref_grad, py::return_value_policy::reference_internal)
     .def_static("name", &MNDO99_ForceField::name)
-    .def("ForceField_epes", [](MNDO99_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> E_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dE_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddE_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](MNDO99_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> E_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dE_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddE_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -5011,7 +5011,7 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("parse_mndo99", static_cast<int (MNDO99_ForceField::*)(const std::string&)>(&MNDO99_ForceField::parse_mndo99))
     .def("new_keyword", static_cast<std::string (MNDO99_ForceField::*)(const MNDO99KW_map&)>(&MNDO99_ForceField::new_keyword))
-    .def("new_task", [](MNDO99_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("new_task", [](MNDO99_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const std::string& file, 
         const std::string& task_flag, 
         const int& rdim) {
@@ -5021,7 +5021,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("track_nac_sign", static_cast<int (MNDO99_ForceField::*)()>(&MNDO99_ForceField::track_nac_sign))
     .def("parse_standard", static_cast<int (MNDO99_ForceField::*)(const std::string&)>(&MNDO99_ForceField::parse_standard))
     .def("parse_hessian", static_cast<int (MNDO99_ForceField::*)(const std::string&)>(&MNDO99_ForceField::parse_hessian))
-    .def("calc_normalmode", [](MNDO99_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("calc_normalmode", [](MNDO99_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& rdim) {
             return self.calc_normalmode(R_arr.mutable_data(), rdim); 
         }
@@ -5029,30 +5029,30 @@ PYBIND11_MODULE(libopendf, m) {
     .def("calc_samp", static_cast<int (MNDO99_ForceField::*)()>(&MNDO99_ForceField::calc_samp))
     .def("calc_scan", static_cast<int (MNDO99_ForceField::*)()>(&MNDO99_ForceField::calc_scan))
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -5060,20 +5060,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -5087,37 +5087,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -5126,9 +5126,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -5136,9 +5136,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -5150,7 +5150,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using PythonFF_ForceField::PythonFF_ForceField;
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, num_complex* erho, num_complex* eeac,
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, kids_complex* erho, kids_complex* eeac,
                                 int& eocc, const int& rdim, const int& fdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5160,7 +5160,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5170,7 +5170,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5180,7 +5180,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& fdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -5198,7 +5198,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_npes(num_real* V, num_real* dV, num_real* ddV, num_real* R, num_real* P, const int& flag,
+        int ForceField_npes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, kids_real* P, const int& flag,
                                 const int& rdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5208,7 +5208,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_epes(num_real* V, num_real* dV, num_real* ddV, num_real* R, const int& flag, const int& rdim,
+        int ForceField_epes(kids_real* V, kids_real* dV, kids_real* ddV, kids_real* R, const int& flag, const int& rdim,
                                 const int& fdim, const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5227,8 +5227,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, num_real* nr, num_real* np, num_real* nm,
-                                 num_complex* erho, num_complex* eeac, int& eocc, const int& rdim, const int& fdim,
+        int ForceField_write(std::ofstream& ofs0, std::ofstream& ofs1, kids_real* nr, kids_real* np, kids_real* nm,
+                                 kids_complex* erho, kids_complex* eeac, int& eocc, const int& rdim, const int& fdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5238,7 +5238,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int reduce_force(num_real* fx, num_complex* rho, num_real* dH, const int& rdim, const int& fdim) override {
+        int reduce_force(kids_real* fx, kids_complex* rho, kids_real* dH, const int& rdim, const int& fdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Nad_ForceField, // parent class
@@ -5247,7 +5247,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_init(num_real* nr, num_real* np, num_real* nm, const int& rdim, const int& itraj) override {
+        int ForceField_init(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim, const int& itraj) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -5256,7 +5256,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_spec(num_real* nr, num_real* np, num_real* nm, const int& rdim) override {
+        int ForceField_spec(kids_real* nr, kids_real* np, kids_real* nm, const int& rdim) override {
             PYBIND11_OVERRIDE(
             int, // return type
             BO_ForceField, // parent class
@@ -5265,7 +5265,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ForceField_write(std::ofstream& ofs0, num_real* nr, num_real* np, num_real* nm, const int& rdim,
+        int ForceField_write(std::ofstream& ofs0, kids_real* nr, kids_real* np, kids_real* nm, const int& rdim,
                                  const int& itraj, const int& isamp) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5280,20 +5280,20 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<const Param&>())
     .def(py::init<const std::string&>())
     .def_static("name", &PythonFF_ForceField::name)
-    .def("ForceField_npes", [](PythonFF_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](PythonFF_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_epes", [](PythonFF_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](PythonFF_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
@@ -5301,30 +5301,30 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("get_F", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::get_F))
-    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, fdim); 
         }
     )
     .def("nspec", static_cast<int (Nad_ForceField::*)()>(&Nad_ForceField::nspec))
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -5332,20 +5332,20 @@ PYBIND11_MODULE(libopendf, m) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim, itraj, isamp); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim) {
             return self.ForceField_epes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), flag, rdim, fdim); 
         }
     )
-    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
+    .def("ForceField_epes", [](Nad_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
         const int& flag, 
         const int& rdim, 
         const int& fdim, 
@@ -5359,37 +5359,37 @@ PYBIND11_MODULE(libopendf, m) {
     .def("get_Ndim", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::get_Ndim))
     .def("Suggest_dt", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_dt))
     .def("Suggest_tend", static_cast<double (BO_ForceField::*)()>(&BO_ForceField::Suggest_tend))
-    .def("ForceField_init", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
         }
     )
-    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_spec", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim) {
             return self.ForceField_spec(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim); 
         }
     )
     .def("nspec", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::nspec))
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim) {
             return self.ForceField_npes(V_arr.mutable_data(), dV_arr.mutable_data(), ddV_arr.mutable_data(), R_arr.mutable_data(), P_arr.mutable_data(), flag, rdim); 
         }
     )
-    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> V_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> ddV_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> R_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> P_arr, 
+    .def("ForceField_npes", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> V_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> ddV_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> R_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> P_arr, 
         const int& flag, 
         const int& rdim, 
         const int& itraj, 
@@ -5398,9 +5398,9 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("ForceField_init_default_build", static_cast<int (BO_ForceField::*)(const double&, const int&)>(&BO_ForceField::ForceField_init_default_build))
-    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+    .def("ForceField_init_default", [](BO_ForceField& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj) {
             return self.ForceField_init_default(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), rdim, itraj); 
@@ -5408,9 +5408,9 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("CheckForceField", static_cast<int (BO_ForceField::*)()>(&BO_ForceField::CheckForceField))
     .def("ForceField_write", [](BO_ForceField& self, std::ofstream& ofs0, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
         const int& rdim, 
         const int& itraj, 
         const int& isamp) {
@@ -5547,7 +5547,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -5556,7 +5556,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -5565,7 +5565,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -5574,7 +5574,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -5690,10 +5690,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -5720,7 +5720,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5729,7 +5729,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5738,7 +5738,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p_harm(const num_real& dt) override {
+        int update_p_harm(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5748,7 +5748,7 @@ PYBIND11_MODULE(libopendf, m) {
         }
 
         int caylay_update_half(
-        const num_real& dt) override {
+        const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5776,7 +5776,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5803,7 +5803,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5857,7 +5857,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int rot_trans_corr(int Natom, num_real* m_in, num_real* x_in, num_real* p_in, num_real* F_in,
+        int rot_trans_corr(int Natom, kids_real* m_in, kids_real* x_in, kids_real* p_in, kids_real* F_in,
                                bool cal_force = true) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -5867,7 +5867,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int pseudo_inv(int N, num_real* A, num_real* invA, num_real* vectmp, num_real eps) override {
+        int pseudo_inv(int N, kids_real* A, kids_real* invA, kids_real* vectmp, kids_real eps) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5876,7 +5876,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int cross(num_real* vec1, num_real* vec2, num_real* prod) override {
+        int cross(kids_real* vec1, kids_real* vec2, kids_real* prod) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -5985,16 +5985,16 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_hesses", &PIMDTraj_Solver::ref_hesses, py::return_value_policy::reference_internal)
     .def_static("name", &PIMDTraj_Solver::name)
     .def("ff_calc1", static_cast<int (PIMDTraj_Solver::*)(const int&)>(&PIMDTraj_Solver::ff_calc1))
-    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_r))
-    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p))
-    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p_harm))
-    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::caylay_update_half))
+    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_r))
+    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p))
+    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p_harm))
+    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::caylay_update_half))
     .def("BAOAB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BAOAB))
     .def("BCOCB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BCOCB))
-    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_thermo))
+    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_thermo))
     .def("traj", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj))
     .def("traj_Middle", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj_Middle))
-    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::traj_property))
     .def("sampler", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::sampler))
     .def("estimator", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::estimator))
     .def("run_impl", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::run_impl))
@@ -6004,25 +6004,25 @@ PYBIND11_MODULE(libopendf, m) {
     .def("all_K2X", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_K2X))
     .def("all_FX2FK", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_FX2FK))
     .def("rot_trans_corr", [](PIMDTraj_Solver& self, int Natom, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> m_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> x_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> p_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> F_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> m_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> x_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> p_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> F_in_arr, 
         bool cal_force) {
             return self.rot_trans_corr(Natom, m_in_arr.mutable_data(), x_in_arr.mutable_data(), p_in_arr.mutable_data(), F_in_arr.mutable_data(), cal_force); 
         }
     )
     .def("pseudo_inv", [](PIMDTraj_Solver& self, int N, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> A_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> invA_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
-        num_real eps) {
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> A_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> invA_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
+        kids_real eps) {
             return self.pseudo_inv(N, A_arr.mutable_data(), invA_arr.mutable_data(), vectmp_arr.mutable_data(), eps); 
         }
     )
-    .def("cross", [](PIMDTraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> vec1_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vec2_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> prod_arr) {
+    .def("cross", [](PIMDTraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec1_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec2_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> prod_arr) {
             return self.cross(vec1_arr.mutable_data(), vec2_arr.mutable_data(), prod_arr.mutable_data()); 
         }
     )
@@ -6035,10 +6035,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -6074,8 +6074,8 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int ff_Oi(int i, num_real* Oi_pos, num_real* dVi_pos, num_real* Oi, num_real* dOi, num_real* Vi,
-                      num_real* dVi) override {
+        int ff_Oi(int i, kids_real* Oi_pos, kids_real* dVi_pos, kids_real* Oi, kids_real* dOi, kids_real* Vi,
+                      kids_real* dVi) override {
             PYBIND11_OVERRIDE(
             int, // return type
             MESPIMDTraj_Solver, // parent class
@@ -6093,19 +6093,19 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        num_real esti_term1(num_real* Q, const bool& dressed = true, const bool& fixed = false) override {
+        kids_real esti_term1(kids_real* Q, const bool& dressed = true, const bool& fixed = false) override {
             PYBIND11_OVERRIDE(
-            num_real, // return type
+            kids_real, // return type
             MESPIMDTraj_Solver, // parent class
             esti_term1, // func name
             Q, dressed, fixed
             );
         }
 
-        num_real esti_term2(num_real* Q1, num_real* Q2, const bool& dressed1 = true, const bool& dressed2 = true,
+        kids_real esti_term2(kids_real* Q1, kids_real* Q2, const bool& dressed1 = true, const bool& dressed2 = true,
                                 const bool& fixed1 = false, const bool& fixed2 = false) override {
             PYBIND11_OVERRIDE(
-            num_real, // return type
+            kids_real, // return type
             MESPIMDTraj_Solver, // parent class
             esti_term2, // func name
             Q1, Q2, dressed1, dressed2, fixed1, fixed2
@@ -6121,7 +6121,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6130,7 +6130,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6139,7 +6139,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p_harm(const num_real& dt) override {
+        int update_p_harm(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6149,7 +6149,7 @@ PYBIND11_MODULE(libopendf, m) {
         }
 
         int caylay_update_half(
-        const num_real& dt) override {
+        const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6177,7 +6177,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6204,7 +6204,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6240,7 +6240,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int rot_trans_corr(int Natom, num_real* m_in, num_real* x_in, num_real* p_in, num_real* F_in,
+        int rot_trans_corr(int Natom, kids_real* m_in, kids_real* x_in, kids_real* p_in, kids_real* F_in,
                                bool cal_force = true) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -6250,7 +6250,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int pseudo_inv(int N, num_real* A, num_real* invA, num_real* vectmp, num_real eps) override {
+        int pseudo_inv(int N, kids_real* A, kids_real* invA, kids_real* vectmp, kids_real eps) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6259,7 +6259,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int cross(num_real* vec1, num_real* vec2, num_real* prod) override {
+        int cross(kids_real* vec1, kids_real* vec2, kids_real* prod) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6382,24 +6382,24 @@ PYBIND11_MODULE(libopendf, m) {
     .def("init", static_cast<int (MESPIMDTraj_Solver::*)(const int&)>(&MESPIMDTraj_Solver::init))
     .def("ff_calc1", static_cast<int (MESPIMDTraj_Solver::*)(const int&)>(&MESPIMDTraj_Solver::ff_calc1))
     .def("ff_Oi", [](MESPIMDTraj_Solver& self, int i, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> Oi_pos_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dVi_pos_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> Oi_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dOi_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> Vi_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> dVi_arr) {
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> Oi_pos_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dVi_pos_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> Oi_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dOi_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> Vi_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> dVi_arr) {
             return self.ff_Oi(i, Oi_pos_arr.mutable_data(), dVi_pos_arr.mutable_data(), Oi_arr.mutable_data(), dOi_arr.mutable_data(), Vi_arr.mutable_data(), dVi_arr.mutable_data()); 
         }
     )
     .def("ff_OO", static_cast<int (MESPIMDTraj_Solver::*)()>(&MESPIMDTraj_Solver::ff_OO))
-    .def("esti_term1", [](MESPIMDTraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> Q_arr, 
+    .def("esti_term1", [](MESPIMDTraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> Q_arr, 
         const bool& dressed, 
         const bool& fixed) {
             return self.esti_term1(Q_arr.mutable_data(), dressed, fixed); 
         }
     )
-    .def("esti_term2", [](MESPIMDTraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> Q1_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> Q2_arr, 
+    .def("esti_term2", [](MESPIMDTraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> Q1_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> Q2_arr, 
         const bool& dressed1, 
         const bool& dressed2, 
         const bool& fixed1, 
@@ -6409,16 +6409,16 @@ PYBIND11_MODULE(libopendf, m) {
     )
     .def("estimator", static_cast<int (MESPIMDTraj_Solver::*)(const int&, TCFnucl&)>(&MESPIMDTraj_Solver::estimator))
     .def("ff_calc1", static_cast<int (PIMDTraj_Solver::*)(const int&)>(&PIMDTraj_Solver::ff_calc1))
-    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_r))
-    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p))
-    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p_harm))
-    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::caylay_update_half))
+    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_r))
+    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p))
+    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p_harm))
+    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::caylay_update_half))
     .def("BAOAB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BAOAB))
     .def("BCOCB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BCOCB))
-    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_thermo))
+    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_thermo))
     .def("traj", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj))
     .def("traj_Middle", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj_Middle))
-    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::traj_property))
     .def("sampler", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::sampler))
     .def("estimator", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::estimator))
     .def("run_impl", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::run_impl))
@@ -6428,25 +6428,25 @@ PYBIND11_MODULE(libopendf, m) {
     .def("all_K2X", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_K2X))
     .def("all_FX2FK", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_FX2FK))
     .def("rot_trans_corr", [](PIMDTraj_Solver& self, int Natom, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> m_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> x_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> p_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> F_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> m_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> x_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> p_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> F_in_arr, 
         bool cal_force) {
             return self.rot_trans_corr(Natom, m_in_arr.mutable_data(), x_in_arr.mutable_data(), p_in_arr.mutable_data(), F_in_arr.mutable_data(), cal_force); 
         }
     )
     .def("pseudo_inv", [](PIMDTraj_Solver& self, int N, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> A_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> invA_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
-        num_real eps) {
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> A_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> invA_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
+        kids_real eps) {
             return self.pseudo_inv(N, A_arr.mutable_data(), invA_arr.mutable_data(), vectmp_arr.mutable_data(), eps); 
         }
     )
-    .def("cross", [](PIMDTraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> vec1_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vec2_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> prod_arr) {
+    .def("cross", [](PIMDTraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec1_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec2_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> prod_arr) {
             return self.cross(vec1_arr.mutable_data(), vec2_arr.mutable_data(), prod_arr.mutable_data()); 
         }
     )
@@ -6459,10 +6459,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -6489,7 +6489,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6498,7 +6498,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6507,7 +6507,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p_harm(const num_real& dt) override {
+        int update_p_harm(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6517,7 +6517,7 @@ PYBIND11_MODULE(libopendf, m) {
         }
 
         int caylay_update_half(
-        const num_real& dt) override {
+        const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6545,7 +6545,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6572,7 +6572,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6662,7 +6662,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int rot_trans_corr(int Natom, num_real* m_in, num_real* x_in, num_real* p_in, num_real* F_in,
+        int rot_trans_corr(int Natom, kids_real* m_in, kids_real* x_in, kids_real* p_in, kids_real* F_in,
                                bool cal_force = true) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -6681,7 +6681,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int pseudo_inv(int N, num_real* A, num_real* invA, num_real* vectmp, num_real eps) override {
+        int pseudo_inv(int N, kids_real* A, kids_real* invA, kids_real* vectmp, kids_real eps) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6690,7 +6690,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int cross(num_real* vec1, num_real* vec2, num_real* prod) override {
+        int cross(kids_real* vec1, kids_real* vec2, kids_real* prod) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDPARATraj_Solver, // parent class
@@ -6789,16 +6789,16 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_hesses", &PIMDPARATraj_Solver::ref_hesses, py::return_value_policy::reference_internal)
     .def_static("name", &PIMDPARATraj_Solver::name)
     .def("ff_calc1", static_cast<int (PIMDPARATraj_Solver::*)(const int&)>(&PIMDPARATraj_Solver::ff_calc1))
-    .def("update_r", static_cast<int (PIMDPARATraj_Solver::*)(const num_real&)>(&PIMDPARATraj_Solver::update_r))
-    .def("update_p", static_cast<int (PIMDPARATraj_Solver::*)(const num_real&)>(&PIMDPARATraj_Solver::update_p))
-    .def("update_p_harm", static_cast<int (PIMDPARATraj_Solver::*)(const num_real&)>(&PIMDPARATraj_Solver::update_p_harm))
-    .def("caylay_update_half", static_cast<int (PIMDPARATraj_Solver::*)(const num_real&)>(&PIMDPARATraj_Solver::caylay_update_half))
+    .def("update_r", static_cast<int (PIMDPARATraj_Solver::*)(const kids_real&)>(&PIMDPARATraj_Solver::update_r))
+    .def("update_p", static_cast<int (PIMDPARATraj_Solver::*)(const kids_real&)>(&PIMDPARATraj_Solver::update_p))
+    .def("update_p_harm", static_cast<int (PIMDPARATraj_Solver::*)(const kids_real&)>(&PIMDPARATraj_Solver::update_p_harm))
+    .def("caylay_update_half", static_cast<int (PIMDPARATraj_Solver::*)(const kids_real&)>(&PIMDPARATraj_Solver::caylay_update_half))
     .def("BAOAB", static_cast<int (PIMDPARATraj_Solver::*)(int&, int)>(&PIMDPARATraj_Solver::BAOAB))
     .def("BCOCB", static_cast<int (PIMDPARATraj_Solver::*)(int&, int)>(&PIMDPARATraj_Solver::BCOCB))
-    .def("update_thermo", static_cast<int (PIMDPARATraj_Solver::*)(const num_real&)>(&PIMDPARATraj_Solver::update_thermo))
+    .def("update_thermo", static_cast<int (PIMDPARATraj_Solver::*)(const kids_real&)>(&PIMDPARATraj_Solver::update_thermo))
     .def("traj", static_cast<int (PIMDPARATraj_Solver::*)(TCFnucl&, const int&)>(&PIMDPARATraj_Solver::traj))
     .def("traj_Middle", static_cast<int (PIMDPARATraj_Solver::*)(TCFnucl&, const int&)>(&PIMDPARATraj_Solver::traj_Middle))
-    .def("traj_property", static_cast<int (PIMDPARATraj_Solver::*)(const num_real&)>(&PIMDPARATraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (PIMDPARATraj_Solver::*)(const kids_real&)>(&PIMDPARATraj_Solver::traj_property))
     .def("sampler", static_cast<int (PIMDPARATraj_Solver::*)(const int&, TCFnucl&)>(&PIMDPARATraj_Solver::sampler))
     .def("estimator", static_cast<int (PIMDPARATraj_Solver::*)(const int&, TCFnucl&)>(&PIMDPARATraj_Solver::estimator))
     .def("run_impl", static_cast<int (PIMDPARATraj_Solver::*)()>(&PIMDPARATraj_Solver::run_impl))
@@ -6809,36 +6809,36 @@ PYBIND11_MODULE(libopendf, m) {
     .def("all_K2X", static_cast<int (PIMDPARATraj_Solver::*)()>(&PIMDPARATraj_Solver::all_K2X))
     .def("all_FX2FK", static_cast<int (PIMDPARATraj_Solver::*)()>(&PIMDPARATraj_Solver::all_FX2FK))
     .def("rot_trans_corr", [](PIMDPARATraj_Solver& self, int Natom, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> m_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> x_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> p_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> F_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> m_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> x_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> p_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> F_in_arr, 
         bool cal_force) {
             return self.rot_trans_corr(Natom, m_in_arr.mutable_data(), x_in_arr.mutable_data(), p_in_arr.mutable_data(), F_in_arr.mutable_data(), cal_force); 
         }
     )
     .def("cons_rot", static_cast<int (PIMDPARATraj_Solver::*)()>(&PIMDPARATraj_Solver::cons_rot))
     .def("pseudo_inv", [](PIMDPARATraj_Solver& self, int N, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> A_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> invA_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
-        num_real eps) {
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> A_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> invA_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
+        kids_real eps) {
             return self.pseudo_inv(N, A_arr.mutable_data(), invA_arr.mutable_data(), vectmp_arr.mutable_data(), eps); 
         }
     )
-    .def("cross", [](PIMDPARATraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> vec1_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vec2_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> prod_arr) {
+    .def("cross", [](PIMDPARATraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec1_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec2_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> prod_arr) {
             return self.cross(vec1_arr.mutable_data(), vec2_arr.mutable_data(), prod_arr.mutable_data()); 
         }
     )
     .def("rst_output", static_cast<int (PIMDPARATraj_Solver::*)(const int&)>(&PIMDPARATraj_Solver::rst_output))
     .def("rst_read", static_cast<int (PIMDPARATraj_Solver::*)(const int&)>(&PIMDPARATraj_Solver::rst_read))
-    .def("mpiSendx", [](PIMDPARATraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> x_mpi_arr) {
+    .def("mpiSendx", [](PIMDPARATraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> x_mpi_arr) {
             return self.mpiSendx(x_mpi_arr.mutable_data()); 
         }
     )
-    .def("mpiRecvf", [](PIMDPARATraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> f_mpi_arr, 
+    .def("mpiRecvf", [](PIMDPARATraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> f_mpi_arr, 
         int nsize) {
             return self.mpiRecvf(f_mpi_arr.mutable_data(), nsize); 
         }
@@ -6851,10 +6851,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -6881,7 +6881,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p_harm(const num_real &dt) override {
+        int update_p_harm(const kids_real &dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             MBPIMDTraj_Solver, // parent class
@@ -6908,7 +6908,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6917,7 +6917,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6927,7 +6927,7 @@ PYBIND11_MODULE(libopendf, m) {
         }
 
         int caylay_update_half(
-        const num_real& dt) override {
+        const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6955,7 +6955,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -6982,7 +6982,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7027,7 +7027,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int rot_trans_corr(int Natom, num_real* m_in, num_real* x_in, num_real* p_in, num_real* F_in,
+        int rot_trans_corr(int Natom, kids_real* m_in, kids_real* x_in, kids_real* p_in, kids_real* F_in,
                                bool cal_force = true) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -7037,7 +7037,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int pseudo_inv(int N, num_real* A, num_real* invA, num_real* vectmp, num_real eps) override {
+        int pseudo_inv(int N, kids_real* A, kids_real* invA, kids_real* vectmp, kids_real eps) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7046,7 +7046,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int cross(num_real* vec1, num_real* vec2, num_real* prod) override {
+        int cross(kids_real* vec1, kids_real* vec2, kids_real* prod) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7147,19 +7147,19 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_dE_spring", &MBPIMDTraj_Solver::ref_dE_spring, py::return_value_policy::reference_internal)
     .def_static("name", &MBPIMDTraj_Solver::name)
     .def("spring_force", static_cast<int (MBPIMDTraj_Solver::*)()>(&MBPIMDTraj_Solver::spring_force))
-    .def("update_p_harm", static_cast<int (MBPIMDTraj_Solver::*)(const num_real&)>(&MBPIMDTraj_Solver::update_p_harm))
+    .def("update_p_harm", static_cast<int (MBPIMDTraj_Solver::*)(const kids_real&)>(&MBPIMDTraj_Solver::update_p_harm))
     .def("estimator", static_cast<int (MBPIMDTraj_Solver::*)(const int&, TCFnucl&)>(&MBPIMDTraj_Solver::estimator))
     .def("ff_calc1", static_cast<int (PIMDTraj_Solver::*)(const int&)>(&PIMDTraj_Solver::ff_calc1))
-    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_r))
-    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p))
-    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p_harm))
-    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::caylay_update_half))
+    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_r))
+    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p))
+    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p_harm))
+    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::caylay_update_half))
     .def("BAOAB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BAOAB))
     .def("BCOCB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BCOCB))
-    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_thermo))
+    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_thermo))
     .def("traj", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj))
     .def("traj_Middle", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj_Middle))
-    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::traj_property))
     .def("sampler", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::sampler))
     .def("estimator", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::estimator))
     .def("run_impl", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::run_impl))
@@ -7169,25 +7169,25 @@ PYBIND11_MODULE(libopendf, m) {
     .def("all_K2X", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_K2X))
     .def("all_FX2FK", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_FX2FK))
     .def("rot_trans_corr", [](PIMDTraj_Solver& self, int Natom, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> m_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> x_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> p_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> F_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> m_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> x_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> p_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> F_in_arr, 
         bool cal_force) {
             return self.rot_trans_corr(Natom, m_in_arr.mutable_data(), x_in_arr.mutable_data(), p_in_arr.mutable_data(), F_in_arr.mutable_data(), cal_force); 
         }
     )
     .def("pseudo_inv", [](PIMDTraj_Solver& self, int N, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> A_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> invA_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
-        num_real eps) {
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> A_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> invA_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
+        kids_real eps) {
             return self.pseudo_inv(N, A_arr.mutable_data(), invA_arr.mutable_data(), vectmp_arr.mutable_data(), eps); 
         }
     )
-    .def("cross", [](PIMDTraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> vec1_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vec2_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> prod_arr) {
+    .def("cross", [](PIMDTraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec1_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec2_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> prod_arr) {
             return self.cross(vec1_arr.mutable_data(), vec2_arr.mutable_data(), prod_arr.mutable_data()); 
         }
     )
@@ -7200,10 +7200,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -7221,7 +7221,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using PILD_Solver::PILD_Solver;
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PILD_Solver, // parent class
@@ -7230,7 +7230,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PILD_Solver, // parent class
@@ -7266,7 +7266,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7275,7 +7275,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p_harm(const num_real& dt) override {
+        int update_p_harm(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7285,7 +7285,7 @@ PYBIND11_MODULE(libopendf, m) {
         }
 
         int caylay_update_half(
-        const num_real& dt) override {
+        const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7331,7 +7331,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7367,7 +7367,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int rot_trans_corr(int Natom, num_real* m_in, num_real* x_in, num_real* p_in, num_real* F_in,
+        int rot_trans_corr(int Natom, kids_real* m_in, kids_real* x_in, kids_real* p_in, kids_real* F_in,
                                bool cal_force = true) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -7377,7 +7377,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int pseudo_inv(int N, num_real* A, num_real* invA, num_real* vectmp, num_real eps) override {
+        int pseudo_inv(int N, kids_real* A, kids_real* invA, kids_real* vectmp, kids_real eps) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7386,7 +7386,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int cross(num_real* vec1, num_real* vec2, num_real* prod) override {
+        int cross(kids_real* vec1, kids_real* vec2, kids_real* prod) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7482,21 +7482,21 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<const std::string&, Model*>())
     .def("ref_M_therm", &PILD_Solver::ref_M_therm, py::return_value_policy::reference_internal)
     .def_static("name", &PILD_Solver::name)
-    .def("update_thermo", static_cast<int (PILD_Solver::*)(const num_real&)>(&PILD_Solver::update_thermo))
-    .def("update_p", static_cast<int (PILD_Solver::*)(const num_real&)>(&PILD_Solver::update_p))
+    .def("update_thermo", static_cast<int (PILD_Solver::*)(const kids_real&)>(&PILD_Solver::update_thermo))
+    .def("update_p", static_cast<int (PILD_Solver::*)(const kids_real&)>(&PILD_Solver::update_p))
     .def("init", static_cast<int (PILD_Solver::*)(const int&)>(&PILD_Solver::init))
     .def("estimator", static_cast<int (PILD_Solver::*)(const int&, TCFnucl&)>(&PILD_Solver::estimator))
     .def("ff_calc1", static_cast<int (PIMDTraj_Solver::*)(const int&)>(&PIMDTraj_Solver::ff_calc1))
-    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_r))
-    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p))
-    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p_harm))
-    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::caylay_update_half))
+    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_r))
+    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p))
+    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p_harm))
+    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::caylay_update_half))
     .def("BAOAB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BAOAB))
     .def("BCOCB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BCOCB))
-    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_thermo))
+    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_thermo))
     .def("traj", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj))
     .def("traj_Middle", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj_Middle))
-    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::traj_property))
     .def("sampler", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::sampler))
     .def("estimator", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::estimator))
     .def("run_impl", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::run_impl))
@@ -7506,25 +7506,25 @@ PYBIND11_MODULE(libopendf, m) {
     .def("all_K2X", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_K2X))
     .def("all_FX2FK", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_FX2FK))
     .def("rot_trans_corr", [](PIMDTraj_Solver& self, int Natom, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> m_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> x_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> p_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> F_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> m_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> x_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> p_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> F_in_arr, 
         bool cal_force) {
             return self.rot_trans_corr(Natom, m_in_arr.mutable_data(), x_in_arr.mutable_data(), p_in_arr.mutable_data(), F_in_arr.mutable_data(), cal_force); 
         }
     )
     .def("pseudo_inv", [](PIMDTraj_Solver& self, int N, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> A_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> invA_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
-        num_real eps) {
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> A_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> invA_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
+        kids_real eps) {
             return self.pseudo_inv(N, A_arr.mutable_data(), invA_arr.mutable_data(), vectmp_arr.mutable_data(), eps); 
         }
     )
-    .def("cross", [](PIMDTraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> vec1_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vec2_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> prod_arr) {
+    .def("cross", [](PIMDTraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec1_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec2_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> prod_arr) {
             return self.cross(vec1_arr.mutable_data(), vec2_arr.mutable_data(), prod_arr.mutable_data()); 
         }
     )
@@ -7537,10 +7537,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -7558,7 +7558,7 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using CentroidMD_Solver::CentroidMD_Solver;
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             CentroidMD_Solver, // parent class
@@ -7594,7 +7594,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7603,7 +7603,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7612,7 +7612,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p_harm(const num_real& dt) override {
+        int update_p_harm(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7622,7 +7622,7 @@ PYBIND11_MODULE(libopendf, m) {
         }
 
         int caylay_update_half(
-        const num_real& dt) override {
+        const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7668,7 +7668,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7704,7 +7704,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int rot_trans_corr(int Natom, num_real* m_in, num_real* x_in, num_real* p_in, num_real* F_in,
+        int rot_trans_corr(int Natom, kids_real* m_in, kids_real* x_in, kids_real* p_in, kids_real* F_in,
                                bool cal_force = true) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -7714,7 +7714,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int pseudo_inv(int N, num_real* A, num_real* invA, num_real* vectmp, num_real eps) override {
+        int pseudo_inv(int N, kids_real* A, kids_real* invA, kids_real* vectmp, kids_real eps) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7723,7 +7723,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int cross(num_real* vec1, num_real* vec2, num_real* prod) override {
+        int cross(kids_real* vec1, kids_real* vec2, kids_real* prod) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PIMDTraj_Solver, // parent class
@@ -7818,20 +7818,20 @@ PYBIND11_MODULE(libopendf, m) {
     .def(py::init<Param, Model*>())
     .def(py::init<const std::string&, Model*>())
     .def_static("name", &CentroidMD_Solver::name)
-    .def("update_thermo", static_cast<int (CentroidMD_Solver::*)(const num_real&)>(&CentroidMD_Solver::update_thermo))
+    .def("update_thermo", static_cast<int (CentroidMD_Solver::*)(const kids_real&)>(&CentroidMD_Solver::update_thermo))
     .def("init", static_cast<int (CentroidMD_Solver::*)(const int&)>(&CentroidMD_Solver::init))
     .def("estimator", static_cast<int (CentroidMD_Solver::*)(const int&, TCFnucl&)>(&CentroidMD_Solver::estimator))
     .def("ff_calc1", static_cast<int (PIMDTraj_Solver::*)(const int&)>(&PIMDTraj_Solver::ff_calc1))
-    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_r))
-    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p))
-    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_p_harm))
-    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::caylay_update_half))
+    .def("update_r", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_r))
+    .def("update_p", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p))
+    .def("update_p_harm", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_p_harm))
+    .def("caylay_update_half", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::caylay_update_half))
     .def("BAOAB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BAOAB))
     .def("BCOCB", static_cast<int (PIMDTraj_Solver::*)(int&, int)>(&PIMDTraj_Solver::BCOCB))
-    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::update_thermo))
+    .def("update_thermo", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::update_thermo))
     .def("traj", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj))
     .def("traj_Middle", static_cast<int (PIMDTraj_Solver::*)(TCFnucl&, const int&)>(&PIMDTraj_Solver::traj_Middle))
-    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const num_real&)>(&PIMDTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (PIMDTraj_Solver::*)(const kids_real&)>(&PIMDTraj_Solver::traj_property))
     .def("sampler", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::sampler))
     .def("estimator", static_cast<int (PIMDTraj_Solver::*)(const int&, TCFnucl&)>(&PIMDTraj_Solver::estimator))
     .def("run_impl", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::run_impl))
@@ -7841,25 +7841,25 @@ PYBIND11_MODULE(libopendf, m) {
     .def("all_K2X", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_K2X))
     .def("all_FX2FK", static_cast<int (PIMDTraj_Solver::*)()>(&PIMDTraj_Solver::all_FX2FK))
     .def("rot_trans_corr", [](PIMDTraj_Solver& self, int Natom, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> m_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> x_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> p_in_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> F_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> m_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> x_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> p_in_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> F_in_arr, 
         bool cal_force) {
             return self.rot_trans_corr(Natom, m_in_arr.mutable_data(), x_in_arr.mutable_data(), p_in_arr.mutable_data(), F_in_arr.mutable_data(), cal_force); 
         }
     )
     .def("pseudo_inv", [](PIMDTraj_Solver& self, int N, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> A_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> invA_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
-        num_real eps) {
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> A_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> invA_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vectmp_arr, 
+        kids_real eps) {
             return self.pseudo_inv(N, A_arr.mutable_data(), invA_arr.mutable_data(), vectmp_arr.mutable_data(), eps); 
         }
     )
-    .def("cross", [](PIMDTraj_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> vec1_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> vec2_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> prod_arr) {
+    .def("cross", [](PIMDTraj_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec1_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> vec2_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> prod_arr) {
             return self.cross(vec1_arr.mutable_data(), vec2_arr.mutable_data(), prod_arr.mutable_data()); 
         }
     )
@@ -7872,10 +7872,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -7911,7 +7911,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -7983,7 +7983,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8010,7 +8010,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8019,7 +8019,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8064,7 +8064,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8073,7 +8073,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8082,7 +8082,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8196,7 +8196,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -8210,10 +8210,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -8240,7 +8240,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             MMD_Solver, // parent class
@@ -8249,7 +8249,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             MMD_Solver, // parent class
@@ -8276,7 +8276,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8339,7 +8339,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8402,7 +8402,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8411,7 +8411,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8420,7 +8420,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8507,7 +8507,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -8521,10 +8521,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -8560,7 +8560,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel_cmm(num_complex* rhox, num_real& xic, num_real& gammac, const int& F) override {
+        int kernel_cmm(kids_complex* rhox, kids_real& xic, kids_real& gammac, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             CMM_Solver, // parent class
@@ -8569,7 +8569,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             CMM_Solver, // parent class
@@ -8578,7 +8578,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             CMM_Solver, // parent class
@@ -8605,7 +8605,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8659,7 +8659,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8722,7 +8722,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8731,7 +8731,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8740,7 +8740,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -8828,7 +8828,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -8842,10 +8842,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -8881,7 +8881,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SQC_Solver, // parent class
@@ -8890,7 +8890,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SQC_Solver, // parent class
@@ -8917,7 +8917,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -8971,7 +8971,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -9034,7 +9034,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9043,7 +9043,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9052,7 +9052,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9140,7 +9140,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -9154,10 +9154,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -9193,7 +9193,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel_lsc(num_complex* rhox, num_real& gammac, const int& F) override {
+        int kernel_lsc(kids_complex* rhox, kids_real& gammac, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             LSC_Solver, // parent class
@@ -9202,7 +9202,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             LSC_Solver, // parent class
@@ -9211,7 +9211,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             LSC_Solver, // parent class
@@ -9238,7 +9238,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -9292,7 +9292,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -9355,7 +9355,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9364,7 +9364,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9373,7 +9373,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9461,7 +9461,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -9475,10 +9475,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -9514,7 +9514,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel_scmm(num_complex* rhox, const int& F) override {
+        int kernel_scmm(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SMM_Solver, // parent class
@@ -9523,7 +9523,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SMM_Solver, // parent class
@@ -9532,7 +9532,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SMM_Solver, // parent class
@@ -9559,7 +9559,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -9613,7 +9613,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -9676,7 +9676,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9685,7 +9685,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9694,7 +9694,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -9783,7 +9783,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -9797,10 +9797,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -9854,7 +9854,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -9863,7 +9863,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int multi_evolve_elec(num_complex* Uevolve) override {
+        int multi_evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -9872,7 +9872,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt_in) override {
+        int update_p(const kids_real& dt_in) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -9881,7 +9881,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt_in) override {
+        int update_r(const kids_real& dt_in) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -9890,7 +9890,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt_in) override {
+        int update_thermo(const kids_real& dt_in) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -9971,7 +9971,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -9998,7 +9998,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -10007,7 +10007,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -10142,9 +10142,9 @@ PYBIND11_MODULE(libopendf, m) {
     .def("multi_ff_calc1", static_cast<int (Multi_NadTraj_Solver::*)(const int&, const bool&)>(&Multi_NadTraj_Solver::multi_ff_calc1))
     .def("ff_calc2", static_cast<int (Multi_NadTraj_Solver::*)()>(&Multi_NadTraj_Solver::ff_calc2))
     .def("multi_ff_calc2", static_cast<int (Multi_NadTraj_Solver::*)()>(&Multi_NadTraj_Solver::multi_ff_calc2))
-    .def("update_p", static_cast<int (Multi_NadTraj_Solver::*)(const num_real&)>(&Multi_NadTraj_Solver::update_p))
-    .def("update_r", static_cast<int (Multi_NadTraj_Solver::*)(const num_real&)>(&Multi_NadTraj_Solver::update_r))
-    .def("update_thermo", static_cast<int (Multi_NadTraj_Solver::*)(const num_real&)>(&Multi_NadTraj_Solver::update_thermo))
+    .def("update_p", static_cast<int (Multi_NadTraj_Solver::*)(const kids_real&)>(&Multi_NadTraj_Solver::update_p))
+    .def("update_r", static_cast<int (Multi_NadTraj_Solver::*)(const kids_real&)>(&Multi_NadTraj_Solver::update_r))
+    .def("update_thermo", static_cast<int (Multi_NadTraj_Solver::*)(const kids_real&)>(&Multi_NadTraj_Solver::update_thermo))
     .def("init", static_cast<int (Multi_NadTraj_Solver::*)(const int&)>(&Multi_NadTraj_Solver::init))
     .def("multi_init", static_cast<int (Multi_NadTraj_Solver::*)(const int&)>(&Multi_NadTraj_Solver::multi_init))
     .def("ff_calc1", static_cast<int (NadTraj_Solver::*)(const int&, const bool&)>(&NadTraj_Solver::ff_calc1))
@@ -10156,7 +10156,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -10170,10 +10170,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -10200,7 +10200,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int multi_evolve_elec(num_complex* Uevolve) override {
+        int multi_evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PMM_Solver, // parent class
@@ -10236,7 +10236,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PMM_Solver, // parent class
@@ -10245,7 +10245,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             PMM_Solver, // parent class
@@ -10281,7 +10281,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -10290,7 +10290,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt_in) override {
+        int update_p(const kids_real& dt_in) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -10299,7 +10299,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt_in) override {
+        int update_r(const kids_real& dt_in) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -10308,7 +10308,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt_in) override {
+        int update_thermo(const kids_real& dt_in) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Multi_NadTraj_Solver, // parent class
@@ -10380,7 +10380,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -10515,9 +10515,9 @@ PYBIND11_MODULE(libopendf, m) {
     .def("multi_ff_calc1", static_cast<int (Multi_NadTraj_Solver::*)(const int&, const bool&)>(&Multi_NadTraj_Solver::multi_ff_calc1))
     .def("ff_calc2", static_cast<int (Multi_NadTraj_Solver::*)()>(&Multi_NadTraj_Solver::ff_calc2))
     .def("multi_ff_calc2", static_cast<int (Multi_NadTraj_Solver::*)()>(&Multi_NadTraj_Solver::multi_ff_calc2))
-    .def("update_p", static_cast<int (Multi_NadTraj_Solver::*)(const num_real&)>(&Multi_NadTraj_Solver::update_p))
-    .def("update_r", static_cast<int (Multi_NadTraj_Solver::*)(const num_real&)>(&Multi_NadTraj_Solver::update_r))
-    .def("update_thermo", static_cast<int (Multi_NadTraj_Solver::*)(const num_real&)>(&Multi_NadTraj_Solver::update_thermo))
+    .def("update_p", static_cast<int (Multi_NadTraj_Solver::*)(const kids_real&)>(&Multi_NadTraj_Solver::update_p))
+    .def("update_r", static_cast<int (Multi_NadTraj_Solver::*)(const kids_real&)>(&Multi_NadTraj_Solver::update_r))
+    .def("update_thermo", static_cast<int (Multi_NadTraj_Solver::*)(const kids_real&)>(&Multi_NadTraj_Solver::update_thermo))
     .def("init", static_cast<int (Multi_NadTraj_Solver::*)(const int&)>(&Multi_NadTraj_Solver::init))
     .def("multi_init", static_cast<int (Multi_NadTraj_Solver::*)(const int&)>(&Multi_NadTraj_Solver::multi_init))
     .def("ff_calc1", static_cast<int (NadTraj_Solver::*)(const int&, const bool&)>(&NadTraj_Solver::ff_calc1))
@@ -10529,7 +10529,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -10543,10 +10543,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -10582,7 +10582,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel_cmm(num_complex* rhox, num_real& xic, num_real& gammac, const int& F) override {
+        int kernel_cmm(kids_complex* rhox, kids_real& xic, kids_real& gammac, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             WMM_Solver, // parent class
@@ -10591,7 +10591,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             WMM_Solver, // parent class
@@ -10600,7 +10600,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             WMM_Solver, // parent class
@@ -10636,7 +10636,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -10690,7 +10690,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -10744,7 +10744,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -10753,7 +10753,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -10762,7 +10762,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -10851,7 +10851,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -10865,10 +10865,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -10929,9 +10929,9 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        inline num_real nucl_Ekin() override {
+        inline kids_real nucl_Ekin() override {
             PYBIND11_OVERRIDE(
-            num_real, // return type
+            kids_real, // return type
             Hopping_Solver, // parent class
             nucl_Ekin, // func name
             
@@ -10956,7 +10956,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int hopping_choose(const int& iocc, num_complex* rhox, num_complex* H, num_real& dt) override {
+        int hopping_choose(const int& iocc, kids_complex* rhox, kids_complex* H, kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -10965,7 +10965,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int hopping_direction(num_real* direction, const int& to) override {
+        int hopping_direction(kids_real* direction, const int& to) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -10974,7 +10974,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int hopping_impulse(num_real* direction, const int& occ_to) override {
+        int hopping_impulse(kids_real* direction, const int& occ_to) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -10992,7 +10992,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int coherent_evolve(const num_real& dt) override {
+        int coherent_evolve(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -11001,7 +11001,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int decoherent_evolve(const num_real& dt) override {
+        int decoherent_evolve(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -11010,7 +11010,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int hopping_collapse(const num_real& dt, const int& to) override {
+        int hopping_collapse(const kids_real& dt, const int& to) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -11028,7 +11028,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel_fssh(num_complex* rhox, const int& F) override {
+        int kernel_fssh(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -11037,7 +11037,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -11046,7 +11046,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Hopping_Solver, // parent class
@@ -11082,7 +11082,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11127,7 +11127,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11181,7 +11181,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11190,7 +11190,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11199,7 +11199,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11288,23 +11288,23 @@ PYBIND11_MODULE(libopendf, m) {
     .def_static("name", &Hopping_Solver::name)
     .def("init_occ2eac", static_cast<int (Hopping_Solver::*)(const int&)>(&Hopping_Solver::init_occ2eac))
     .def("init", static_cast<int (Hopping_Solver::*)(const int&)>(&Hopping_Solver::init))
-    .def("nucl_Ekin", static_cast<num_real (Hopping_Solver::*)()>(&Hopping_Solver::nucl_Ekin))
+    .def("nucl_Ekin", static_cast<kids_real (Hopping_Solver::*)()>(&Hopping_Solver::nucl_Ekin))
     .def("SE_Hamiltonian", static_cast<int (Hopping_Solver::*)(const bool&)>(&Hopping_Solver::SE_Hamiltonian))
     .def("phase_correction", static_cast<int (Hopping_Solver::*)()>(&Hopping_Solver::phase_correction))
-    .def("hopping_direction", [](Hopping_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> direction_arr, 
+    .def("hopping_direction", [](Hopping_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> direction_arr, 
         const int& to) {
             return self.hopping_direction(direction_arr.mutable_data(), to); 
         }
     )
-    .def("hopping_impulse", [](Hopping_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> direction_arr, 
+    .def("hopping_impulse", [](Hopping_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> direction_arr, 
         const int& occ_to) {
             return self.hopping_impulse(direction_arr.mutable_data(), occ_to); 
         }
     )
     .def("time_calc", static_cast<int (Hopping_Solver::*)()>(&Hopping_Solver::time_calc))
-    .def("coherent_evolve", static_cast<int (Hopping_Solver::*)(const num_real&)>(&Hopping_Solver::coherent_evolve))
-    .def("decoherent_evolve", static_cast<int (Hopping_Solver::*)(const num_real&)>(&Hopping_Solver::decoherent_evolve))
-    .def("hopping_collapse", static_cast<int (Hopping_Solver::*)(const num_real&, const int&)>(&Hopping_Solver::hopping_collapse))
+    .def("coherent_evolve", static_cast<int (Hopping_Solver::*)(const kids_real&)>(&Hopping_Solver::coherent_evolve))
+    .def("decoherent_evolve", static_cast<int (Hopping_Solver::*)(const kids_real&)>(&Hopping_Solver::decoherent_evolve))
+    .def("hopping_collapse", static_cast<int (Hopping_Solver::*)(const kids_real&, const int&)>(&Hopping_Solver::hopping_collapse))
     .def("ff_calc1", static_cast<int (Hopping_Solver::*)(const int&, const bool&)>(&Hopping_Solver::ff_calc1))
     .def("check_break", static_cast<int (Hopping_Solver::*)(int&)>(&Hopping_Solver::check_break))
     .def("ff_calc2", static_cast<int (Hopping_Solver::*)()>(&Hopping_Solver::ff_calc2))
@@ -11318,7 +11318,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -11332,10 +11332,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -11398,7 +11398,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11461,7 +11461,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11479,7 +11479,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11488,7 +11488,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11524,7 +11524,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11533,7 +11533,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11542,7 +11542,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11642,7 +11642,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -11656,10 +11656,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -11686,11 +11686,11 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        num_complex propagate_nuc(num_real* nr2_trj, num_real* np2_trj,  
-                                      num_real* nr1_trj, num_real* np1_trj,  
-                                      const int& prev, const int& next, const num_real& dt) override {
+        kids_complex propagate_nuc(kids_real* nr2_trj, kids_real* np2_trj,  
+                                      kids_real* nr1_trj, kids_real* np1_trj,  
+                                      const int& prev, const int& next, const kids_real& dt) override {
             PYBIND11_OVERRIDE(
-            num_complex, // return type
+            kids_complex, // return type
             QCPI_Solver, // parent class
             propagate_nuc, // func name
             nr2_trj, np2_trj, nr1_trj, np1_trj, prev, next, dt
@@ -11706,7 +11706,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernel0(num_complex* rhox, const int& F) override {
+        int kernel0(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             QCPI_Solver, // parent class
@@ -11715,7 +11715,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int kernelt(num_complex* rhox, const int& F) override {
+        int kernelt(kids_complex* rhox, const int& F) override {
             PYBIND11_OVERRIDE(
             int, // return type
             QCPI_Solver, // parent class
@@ -11751,7 +11751,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int evolve_elec(num_complex* Uevolve) override {
+        int evolve_elec(kids_complex* Uevolve) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11814,7 +11814,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int traj_property(const num_real& dt) override {
+        int traj_property(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             NadTraj_Solver, // parent class
@@ -11868,7 +11868,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_r(const num_real& dt) override {
+        int update_r(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11877,7 +11877,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_p(const num_real& dt) override {
+        int update_p(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11886,7 +11886,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int update_thermo(const num_real& dt) override {
+        int update_thermo(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Traj_Solver, // parent class
@@ -11986,13 +11986,13 @@ PYBIND11_MODULE(libopendf, m) {
         }
     )
     .def("propagate_tensor", static_cast<int (QCPI_Solver::*)()>(&QCPI_Solver::propagate_tensor))
-    .def("propagate_nuc", [](QCPI_Solver& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr2_trj_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np2_trj_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nr1_trj_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np1_trj_arr, 
+    .def("propagate_nuc", [](QCPI_Solver& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr2_trj_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np2_trj_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr1_trj_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np1_trj_arr, 
         const int& prev, 
         const int& next, 
-        const num_real& dt) {
+        const kids_real& dt) {
             return self.propagate_nuc(nr2_trj_arr.mutable_data(), np2_trj_arr.mutable_data(), nr1_trj_arr.mutable_data(), np1_trj_arr.mutable_data(), prev, next, dt); 
         }
     )
@@ -12007,7 +12007,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("check_break", static_cast<int (NadTraj_Solver::*)(int&)>(&NadTraj_Solver::check_break))
     .def("rst_output", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_output))
     .def("rst_read", static_cast<int (NadTraj_Solver::*)(const int&)>(&NadTraj_Solver::rst_read))
-    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const num_real&)>(&NadTraj_Solver::traj_property))
+    .def("traj_property", static_cast<int (NadTraj_Solver::*)(const kids_real&)>(&NadTraj_Solver::traj_property))
     .def("traj", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (NadTraj_Solver::*)(NAD_TCFer&, const int&, const int&)>(&NadTraj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (NadTraj_Solver::*)(const int&, NAD_TCFer&)>(&NadTraj_Solver::sampler))
@@ -12021,10 +12021,10 @@ PYBIND11_MODULE(libopendf, m) {
     .def("rst_output", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_output))
     .def("rst_read", static_cast<int (Traj_Solver::*)(const int&)>(&Traj_Solver::rst_read))
     .def("check_break", static_cast<int (Traj_Solver::*)(int&)>(&Traj_Solver::check_break))
-    .def("traj_property", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::traj_property))
-    .def("update_r", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_r))
-    .def("update_p", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_p))
-    .def("update_thermo", static_cast<int (Traj_Solver::*)(const num_real&)>(&Traj_Solver::update_thermo))
+    .def("traj_property", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::traj_property))
+    .def("update_r", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_r))
+    .def("update_p", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_p))
+    .def("update_thermo", static_cast<int (Traj_Solver::*)(const kids_real&)>(&Traj_Solver::update_thermo))
     .def("traj", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj))
     .def("traj_velocityverlet", static_cast<int (Traj_Solver::*)(TCFnucl&, const int&)>(&Traj_Solver::traj_velocityverlet))
     .def("sampler", static_cast<int (Traj_Solver::*)(const int&, TCFnucl&)>(&Traj_Solver::sampler))
@@ -12042,8 +12042,8 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using HEOM_Solver::HEOM_Solver;
 
-        int Init_Bath(const int& ib, const int& Nr, const int& Ni, num_real& gdph_m, num_complex* tcf_coef,
-                          num_complex* tcf_zero, num_complex* tcf_deri) override {
+        int Init_Bath(const int& ib, const int& Nr, const int& Ni, kids_real& gdph_m, kids_complex* tcf_coef,
+                          kids_complex* tcf_zero, kids_complex* tcf_deri) override {
             PYBIND11_OVERRIDE(
             int, // return type
             HEOM_Solver, // parent class
@@ -12079,7 +12079,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int Evolve(num_complex* sigma_tot_t1, num_complex* sigma_tot_t2) override {
+        int Evolve(kids_complex* sigma_tot_t1, kids_complex* sigma_tot_t2) override {
             PYBIND11_OVERRIDE(
             int, // return type
             HEOM_Solver, // parent class
@@ -12300,7 +12300,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int action_on_wavafunction(num_complex* eacnew, num_complex* eac, const num_real& t) override {
+        int action_on_wavafunction(kids_complex* eacnew, kids_complex* eac, const kids_real& t) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SSE_Solver, // parent class
@@ -12309,7 +12309,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int action_on_wavafunction_adia(num_complex* eacnew, num_complex* eac, const num_real& t) override {
+        int action_on_wavafunction_adia(kids_complex* eacnew, kids_complex* eac, const kids_real& t) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SSE_Solver, // parent class
@@ -12318,7 +12318,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int time_kernel(num_complex* Ker, const num_real& t) override {
+        int time_kernel(kids_complex* Ker, const kids_real& t) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SSE_Solver, // parent class
@@ -12327,7 +12327,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int call_memory_array_adia(const num_real& dt) override {
+        int call_memory_array_adia(const kids_real& dt) override {
             PYBIND11_OVERRIDE(
             int, // return type
             SSE_Solver, // parent class
@@ -12354,7 +12354,7 @@ PYBIND11_MODULE(libopendf, m) {
             );
         }
 
-        int action_on_wavafunction_adia_mem(num_complex* eacnew, num_complex* eacold, const int& hstep,
+        int action_on_wavafunction_adia_mem(kids_complex* eacnew, kids_complex* eacold, const int& hstep,
                                                 const bool& hupdate) override {
             PYBIND11_OVERRIDE(
             int, // return type
@@ -12473,7 +12473,7 @@ PYBIND11_MODULE(libopendf, m) {
     .def("init", static_cast<int (SSE_Solver::*)(const int&)>(&SSE_Solver::init))
     .def("correlation", static_cast<int (SSE_Solver::*)(const int&, NAD_TCFer&)>(&SSE_Solver::correlation))
     .def("sampler", static_cast<int (SSE_Solver::*)(const int&, NAD_TCFer&)>(&SSE_Solver::sampler))
-    .def("call_memory_array_adia", static_cast<int (SSE_Solver::*)(const num_real&)>(&SSE_Solver::call_memory_array_adia))
+    .def("call_memory_array_adia", static_cast<int (SSE_Solver::*)(const kids_real&)>(&SSE_Solver::call_memory_array_adia))
     .def("sse", static_cast<int (SSE_Solver::*)(NAD_TCFer&, const int&, const int&)>(&SSE_Solver::sse))
     .def("sse_adia", static_cast<int (SSE_Solver::*)(NAD_TCFer&, const int&, const int&)>(&SSE_Solver::sse_adia))
     .def("run_parallel", static_cast<int (SSE_Solver::*)()>(&SSE_Solver::run_parallel))
@@ -12536,8 +12536,8 @@ PYBIND11_MODULE(libopendf, m) {
         public:
         using Thermostat::Thermostat;
 
-        int evolve(num_real* nr, num_real* np, num_real* nm, const num_real& dt, const int& N, const int& start = 0,
-                       num_real gammal_in = -1.0f) override {
+        int evolve(kids_real* nr, kids_real* np, kids_real* nm, const kids_real& dt, const int& N, const int& start = 0,
+                       kids_real gammal_in = -1.0f) override {
             PYBIND11_OVERRIDE(
             int, // return type
             Thermostat, // parent class
@@ -12557,24 +12557,24 @@ PYBIND11_MODULE(libopendf, m) {
     .def("ref_nhc_Q", &Thermostat::ref_nhc_Q, py::return_value_policy::reference_internal)
     .def("init_alloc", static_cast<int (Thermostat::*)(const int&)>(&Thermostat::init_alloc))
     .def("dothermo", static_cast<bool (Thermostat::*)(const int&)>(&Thermostat::dothermo))
-    .def("set_gammal", static_cast<void (Thermostat::*)(num_real)>(&Thermostat::set_gammal))
-    .def("evolve", [](Thermostat& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
-        const num_real& dt, 
+    .def("set_gammal", static_cast<void (Thermostat::*)(kids_real)>(&Thermostat::set_gammal))
+    .def("evolve", [](Thermostat& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        const kids_real& dt, 
         const int& N, 
         const int& start, 
-        num_real gammal_in) {
+        kids_real gammal_in) {
             return self.evolve(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), dt, N, start, gammal_in); 
         }
     )
-    .def("run_NHC", [](Thermostat& self, py::array_t<num_real, py::array::c_style | py::array::forcecast> nr_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> np_arr, 
-        py::array_t<num_real, py::array::c_style | py::array::forcecast> nm_arr, 
-        const num_real& dt, 
+    .def("run_NHC", [](Thermostat& self, py::array_t<kids_real, py::array::c_style | py::array::forcecast> nr_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> np_arr, 
+        py::array_t<kids_real, py::array::c_style | py::array::forcecast> nm_arr, 
+        const kids_real& dt, 
         const int& N, 
         const int& start, 
-        num_real gammal_in) {
+        kids_real gammal_in) {
             return self.run_NHC(nr_arr.mutable_data(), np_arr.mutable_data(), nm_arr.mutable_data(), dt, N, start, gammal_in); 
         }
     );

@@ -3,7 +3,7 @@
 #include "../core/Formula.h"
 #include "../core/linalg.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Result::stack(DataSet::Type itype, std::string str) {
     switch (itype) {
@@ -80,10 +80,12 @@ void Kernel_Record::read_param_impl(Param* PM) {
 }
 
 void Kernel_Record::init_data_impl(DataSet* DS) {
-    istep_ptr = DS->reg<int>("timer.istep");
-    sstep_ptr = DS->reg<int>("timer.sstep");
-    isamp_ptr = DS->reg<int>("timer.isamp");
-    nsamp_ptr = DS->reg<int>("timer.nsamp");
+    istep_ptr   = DS->def<int>("iter.istep");
+    sstep_ptr   = DS->def<int>("iter.sstep");
+    isamp_ptr   = DS->def<int>("iter.isamp");
+    nsamp_ptr   = DS->def<int>("iter.nsamp");
+    tsec_ptr    = DS->def<double>("iter.tsec");
+    do_recd_ptr = DS->def<int>("iter.do_recd");
 }
 
 inline std::string contacted_hdr(const std::string& s1, int i1, const std::string& s2, int i2) {
@@ -98,7 +100,7 @@ inline std::string bracket_hdr(const std::string& s1, int i1, const std::string&
     return utils::concat(s1, s2, "[", i1, ",", i2, "]");
 }
 
-void Kernel_Record::token_array(Result& correlation, JSON& j) {  // @deprecated[2024] old format
+void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @deprecated[2024] old format
     Record_Item item_tmp;
 
     switch (j.size()) {
@@ -153,7 +155,7 @@ void Kernel_Record::token_array(Result& correlation, JSON& j) {  // @deprecated[
     }
 }
 
-void Kernel_Record::token_object(Result& correlation, JSON& j) {  // @recomment new format
+void Kernel_Record::token_object(Result& correlation, Param::JSON& j) {  // @recomment new format
     Record_Item item_tmp;
     item_tmp.v0      = (j.count("v0") == 1) ? j["v0"].get<std::string>() : "1";
     item_tmp.vt      = (j.count("vt") == 1) ? j["vt"].get<std::string>() : "1";
@@ -187,7 +189,7 @@ void Kernel_Record::init_calc_impl(int stat) {
         correlation.frame   = (*nsamp_ptr);
 
         // add default record here
-        // JSON def_j = JSON::parse("[\"K0\", \"K0\"]");
+        // Param::JSON def_j = Param::JSON::parse("[\"K0\", \"K0\"]");
         // token_array(correlation, def_j);
 
         for (auto& j : (json["result"])) {
@@ -195,18 +197,16 @@ void Kernel_Record::init_calc_impl(int stat) {
             if (j.is_object()) token_object(correlation, j);
         }
         correlation.t0 = t0;
-        correlation.dt = dt * (*sstep_ptr) / time_unit;
+        correlation.dt = tsec_ptr[0] / time_unit;
         correlation.stat.resize(correlation.frame);
         correlation.data.resize(correlation.size * correlation.frame);
     }
 }
 
 int Kernel_Record::exec_kernel_impl(int stat) {
-    Result& correlation   = get_correlation();
-    bool do_record        = ((*istep_ptr) % (*sstep_ptr) == 0);
-    bool do_record_header = ((*istep_ptr) == 0);
-
-    if (do_record) {
+    Result& correlation = get_correlation();
+    if (do_recd_ptr[0] == 1) {
+        std::cout << "doing recd\n";
         int correlation_idx0 = ((*isamp_ptr) % correlation.frame) * correlation.size;
         for (int i = 0, idx = correlation_idx0; i < Record_List.size(); ++i) {
             auto& f1 = Formula::GLOBAL[Record_List[i].fml_ID0];
@@ -216,15 +216,15 @@ int Kernel_Record::exec_kernel_impl(int stat) {
                 for (int is2 = 0; is2 < f2.get_size(); ++is2) {
                     switch (f1.get_res_type()) {
                         case DataSet::Type::Real: {
-                            num_real v1 = f1.eval<num_real>(is1);
+                            kids_real v1 = f1.eval<kids_real>(is1);
                             switch (f2.get_res_type()) {
                                 case DataSet::Type::Real: {
-                                    num_real v2             = f2.eval<num_real>(is2);
+                                    kids_real v2            = f2.eval<kids_real>(is2);
                                     correlation.data[idx++] = v1 * v2;
                                     break;
                                 }
                                 case DataSet::Type::Complex: {
-                                    num_complex v2          = f2.eval<num_complex>(is2);
+                                    kids_complex v2         = f2.eval<kids_complex>(is2);
                                     correlation.data[idx++] = std::real(v1 * v2);
                                     correlation.data[idx++] = std::imag(v1 * v2);
                                     break;
@@ -233,16 +233,16 @@ int Kernel_Record::exec_kernel_impl(int stat) {
                             break;
                         }
                         case DataSet::Type::Complex: {
-                            num_complex v1 = f1.eval<num_complex>(is1);
+                            kids_complex v1 = f1.eval<kids_complex>(is1);
                             switch (f2.get_res_type()) {
                                 case DataSet::Type::Real: {
-                                    num_real v2             = f2.eval<num_real>(is2);
+                                    kids_real v2            = f2.eval<kids_real>(is2);
                                     correlation.data[idx++] = std::real(v1 * v2);
                                     correlation.data[idx++] = std::imag(v1 * v2);
                                     break;
                                 }
                                 case DataSet::Type::Complex: {
-                                    num_complex v2          = f2.eval<num_complex>(is2);
+                                    kids_complex v2         = f2.eval<kids_complex>(is2);
                                     correlation.data[idx++] = std::real(v1 * v2);
                                     correlation.data[idx++] = std::imag(v1 * v2);
                                     break;
@@ -261,14 +261,10 @@ int Kernel_Record::exec_kernel_impl(int stat) {
             correlation.stat[(*isamp_ptr) % correlation.frame] = 0;
             Kernel::BREAK                                      = true;
         }
-
-        // if (trace) sampling.save(utils::concat(directory, "/samp", stat, ".dat"), 0, 1, do_record_header);
-        // if (trace) correlation.save(utils::concat("corr", stat, ".dat"), *isamp_ptr, *isamp_ptr + 1,
-        // do_record_header);
     }
     return 0;
 }
 
 Result Kernel_Record::_correlation;
 
-};  // namespace PROJECT_NS
+};  // namespace kids

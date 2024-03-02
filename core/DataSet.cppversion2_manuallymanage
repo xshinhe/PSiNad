@@ -14,12 +14,12 @@ inline int FMT_WIDTH_SIZE(int X) { return X + 9; }
 #define FMT(X) \
     " " << std::setiosflags(std::ios::scientific) << std::setprecision(X) << std::right << std::setw(FMT_WIDTH_SIZE(X))
 
-namespace PROJECT_NS {
+namespace kids {
 
 namespace details {  // hidden scope
 
-using num_real    = double;
-using num_complex = std::complex<double>;
+using kids_real    = double;
+using kids_complex = std::complex<double>;
 
 class DataSet;  // declaration
 
@@ -63,8 +63,8 @@ std::string AsString();
         return #NT;                           \
     }
 DEFINE_TYPE_BIND_WITH_NODETYPE(int, Int);
-DEFINE_TYPE_BIND_WITH_NODETYPE(num_real, Real);
-DEFINE_TYPE_BIND_WITH_NODETYPE(num_complex, Complex);
+DEFINE_TYPE_BIND_WITH_NODETYPE(kids_real, Real);
+DEFINE_TYPE_BIND_WITH_NODETYPE(kids_complex, Complex);
 DEFINE_TYPE_BIND_WITH_NODETYPE(DataSet, DataSet);
 
 
@@ -219,11 +219,11 @@ class DataSet final : public Node {
             if (typeflag == AsString<int>()) {
                 int* ptr = def<int>(key, size);
                 for (int i = 0; i < size; ++i) is >> ptr[i];
-            } else if (typeflag == AsString<num_real>()) {
-                num_real* ptr = def<num_real>(key, size);
+            } else if (typeflag == AsString<kids_real>()) {
+                kids_real* ptr = def<kids_real>(key, size);
                 for (int i = 0; i < size; ++i) is >> ptr[i];
-            } else if (typeflag == AsString<num_complex>()) {
-                num_complex* ptr = def<num_complex>(key, size);
+            } else if (typeflag == AsString<kids_complex>()) {
+                kids_complex* ptr = def<kids_complex>(key, size);
                 for (int i = 0; i < size; ++i) is >> ptr[i];
             }
         }
@@ -252,12 +252,12 @@ class DataSet final : public Node {
 
 };  // namespace details
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // DataSet_H
 
 int main() {
-    PROJECT_NS::details::DataSet DS;
+    kids::details::DataSet DS;
     DS.def<int>("a.b", 10);
     DS.def<double>("a.c.1", 8);
     DS.def<double>("a.c.d", 8);

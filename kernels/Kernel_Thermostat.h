@@ -7,9 +7,9 @@
 #endif  // Thermostat_H
 
 /// Suzuki-Yoshida decomposition framework
-const int ndofs_sy              = 7;
-const num_real wgt_sy[ndofs_sy] = {0.784513610477560f, 0.235573213359357f, -1.17767998417887f, 1.3151863206839063f,
-                                   -1.17767998417887f, 0.235573213359357f, 0.784513610477560f};
+const int ndofs_sy               = 7;
+const kids_real wgt_sy[ndofs_sy] = {0.784513610477560f, 0.235573213359357f, -1.17767998417887f, 1.3151863206839063f,
+                                    -1.17767998417887f, 0.235573213359357f, 0.784513610477560f};
 namespace thermo_policy {
 enum _enum { None, Langevin, Andersen, NHC };
 const std::map<std::string, _enum> _dict = {{"#none", None}, {"#lang", Langevin}, {"#and", Andersen}, {"#nhc", NHC}};
@@ -36,32 +36,32 @@ class Kernel_Update_T final : public Kernel {
     double *c1, *c2p;                       ///< auxiliary
     double *nhc_x, *nhc_p, *nhc_G, *nhc_Q;  ///< auxiliary
 
-    virtual void read_param_impl(Param* P) {
-        ndofs  = P->get<int>("N", LOC());
-        dt     = P->get<double>("dt", LOC());
-        gammal = P->get<double>("gammal", LOC(), 0.1);
+    virtual void read_param_impl(Param* PM) {
+        ndofs  = PM->get<int>("N", LOC());
+        dt     = PM->get<double>("dt", LOC());
+        gammal = PM->get<double>("gammal", LOC(), 0.1);
         dt *= scale;
 
-        thermo_option.flag = P->get<std::string>("thermo_flag", LOC(), "#lang");
+        thermo_option.flag = PM->get<std::string>("thermo_flag", LOC(), "#lang");
         thermo_option.type = thermo_policy::_dict.at(thermo_option.flag);
 
         // read temperature
-        double temp = P->get<double>("temp", LOC(), phys::temperature_d, 1.0f);
+        double temp = PM->get<double>("temp", LOC(), phys::temperature_d, 1.0f);
         beta        = 1.0f / (phys::au::k * temp);  // never ignore k_Boltzman
 
-        nthstp = P->get<int>("nthstp", LOC(), 0);
-        nchain = P->get<int>("nchain", LOC(), 1);
-        nrespa = P->get<int>("nrespa", LOC(), 10);
+        nthstp = PM->get<int>("nthstp", LOC(), 0);
+        nchain = PM->get<int>("nchain", LOC(), 1);
+        nrespa = PM->get<int>("nrespa", LOC(), 10);
     }
 
-    virtual void init_data_impl(DataSet* S) {
-        m = S->reg<double>("integrator.m", ndofs);
-        p = S->reg<double>("integrator.p", ndofs);
+    virtual void init_data_impl(DataSet* DS) {
+        m = DS->def<double>("integrator.m", ndofs);
+        p = DS->def<double>("integrator.p", ndofs);
 
 
         // if Langevin dynamics, set optimal c1 & c2p
-        c1  = S->reg<double>("integrator.param.c1", ndofs);
-        c2p = S->reg<double>("integrator.param.c2p", ndofs);
+        c1  = DS->def<double>("integrator.param.c1", ndofs);
+        c2p = DS->def<double>("integrator.param.c2p", ndofs);
         for (int i = 0; i < ndofs; ++i) {
             c1[i]  = exp(-gammal * dt);
             c2p[i] = sqrt(1.0 - c1[i] * c1[i]);
@@ -69,10 +69,10 @@ class Kernel_Update_T final : public Kernel {
 
         // for NHC
         if (thermo_option.type == thermo_policy::NHC) {  // allow you to re-allocate it
-            nhc_x = S->reg<double>("integrator.nhc.x", nchain * ndofs);
-            nhc_p = S->reg<double>("integrator.nhc.p", nchain * ndofs);
-            nhc_G = S->reg<double>("integrator.nhc.G", nchain * ndofs);  ///< p^2/m - Te
-            nhc_Q = S->reg<double>("integrator.nhc.Q", nchain);
+            nhc_x = DS->def<double>("integrator.nhc.x", nchain * ndofs);
+            nhc_p = DS->def<double>("integrator.nhc.p", nchain * ndofs);
+            nhc_G = DS->def<double>("integrator.nhc.G", nchain * ndofs);  ///< p^2/m - Te
+            nhc_Q = DS->def<double>("integrator.nhc.Q", nchain);
 
             // optimal gammal = 20*dt
             for (int i = 0; i < nchain; ++i) nhc_Q[i] = gammal * gammal / beta;
@@ -98,12 +98,12 @@ class Kernel_Update_T final : public Kernel {
                 }
                 break;
             case thermo_policy::NHC: {
-                num_real smalldt  = dt / nrespa;
-                num_real hsmalldt = 0.5f * smalldt;
-                num_real qsmalldt = 0.25f * smalldt;
-                num_real Te       = 1.0f / (phys::au::k * beta);
-                num_real* xi      = nhc_x;
-                num_real* pi      = nhc_p;
+                kids_real smalldt  = dt / nrespa;
+                kids_real hsmalldt = 0.5f * smalldt;
+                kids_real qsmalldt = 0.25f * smalldt;
+                kids_real Te       = 1.0f / (phys::au::k * beta);
+                kids_real* xi      = nhc_x;
+                kids_real* pi      = nhc_p;
                 for (int i = 0; i < ndofs; ++i, xi += nchain, pi += nchain) {
                     // sweep nchain
                     for (int k = 0; k < nrespa; ++k) {

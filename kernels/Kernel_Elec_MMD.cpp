@@ -15,12 +15,12 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
 /**
  * @brief sampling mapping variables from uniform sphere distribution (i.e. uniform simplex for action)
  */
-int Kernel_Elec_MMD::rho_focus(num_complex* rho, int iocc, double gamma_ou, double gamma_uu, int fdim, bool rand_act,
+int Kernel_Elec_MMD::rho_focus(kids_complex* rho, int iocc, double gamma_ou, double gamma_uu, int fdim, bool rand_act,
                                bool pure_phase, bool cont_phase) {
     double randu = 1.0e0;
     if (pure_phase) {
@@ -68,7 +68,7 @@ int Kernel_Elec_MMD::rho_focus(num_complex* rho, int iocc, double gamma_ou, doub
 
 void Kernel_Elec_MMD::read_param_impl(Param* PM) {
     mmd_type = MMDPolicy::_from(PM->get<std::string>("mmd_flag", LOC(), "MMF"));
-    scale    = PM->get<num_real>("scale", LOC(), 1.0);
+    scale    = PM->get<kids_real>("scale", LOC(), 1.0);
     Fref     = PM->get<int>("Fref", LOC(), Dimension::F);
     switch (mmd_type) {
         case MMDPolicy::MMF:
@@ -80,17 +80,17 @@ void Kernel_Elec_MMD::read_param_impl(Param* PM) {
             gamma_ou = sqrt(0.5f * scale);
             break;
         case MMDPolicy::MID: {
-            double scale_k = PM->get<num_real>("scale_k", LOC(), 1.0);
+            double scale_k = PM->get<kids_real>("scale_k", LOC(), 1.0);
             double r       = (Fref + 2 * scale_k) / (1 + scale_k);
             gamma_uu       = (std::sqrt(r / (1 + scale_k) * scale + 1) - 1) / r;
             gamma_ou       = std::sqrt((1 + scale_k) * gamma_uu * (1 + gamma_uu));
             break;
         }
     }
-    double gamma_uu_in = PM->get<num_real>("gamma", LOC(), -1.0);
+    double gamma_uu_in = PM->get<kids_real>("gamma", LOC(), -1.0);
     if (gamma_uu_in >= 0) {
         gamma_uu           = gamma_uu_in;
-        double gamma_ou_in = PM->get<num_real>("gamma_ou", LOC(), -1.0);
+        double gamma_ou_in = PM->get<kids_real>("gamma_ou", LOC(), -1.0);
         gamma_ou           = (gamma_uu_in >= 0) ? gamma_uu_in : sqrt((1 + gamma_uu) * gamma_uu);
     }
 
@@ -101,17 +101,17 @@ void Kernel_Elec_MMD::read_param_impl(Param* PM) {
 
 void Kernel_Elec_MMD::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_complex* w       = Kernel_Elec::w + iP;
-        num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
-        num_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
-        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
+        kids_complex* w       = Kernel_Elec::w + iP;
+        kids_complex* c       = Kernel_Elec::c + iP * Dimension::F;
+        kids_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
+        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
 
         /////////////////////////////////////////////////////////////////
 
-        w[0]     = (rand_act) ? num_complex(Dimension::F) : 1.0e0;  ///< initial measure
-        *occ_nuc = Kernel_Elec::occ0;                               ///< initial occupation
+        w[0]     = (rand_act) ? kids_complex(Dimension::F) : 1.0e0;  ///< initial measure
+        *occ_nuc = Kernel_Elec::occ0;                                ///< initial occupation
         c;
         rho_focus(rho_ele, *occ_nuc, gamma_ou, gamma_uu, Dimension::F, rand_act, pure_phase, cont_phase);
         rho_nuc;                     ///< initial rho_nuc (not used)
@@ -126,17 +126,17 @@ void Kernel_Elec_MMD::init_calc_impl(int stat) {
 
 int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
-        num_complex* c            = Kernel_Elec::c + iP * Dimension::F;
-        num_complex* c_init       = Kernel_Elec::c_init + iP * Dimension::F;
-        num_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
-        num_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
-        num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
+        kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        kids_complex* c            = Kernel_Elec::c + iP * Dimension::F;
+        kids_complex* c_init       = Kernel_Elec::c_init + iP * Dimension::F;
+        kids_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
+        kids_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
+        kids_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
 
-        num_real* T      = Kernel_Elec::T + iP * Dimension::FF;
-        num_real* T_init = Kernel_Elec::T_init + iP * Dimension::FF;
+        kids_real* T      = Kernel_Elec::T + iP * Dimension::FF;
+        kids_real* T_init = Kernel_Elec::T_init + iP * Dimension::FF;
 
         /////////////////////////////////////////////////////////////////
 
@@ -174,4 +174,4 @@ int Kernel_Elec_MMD::exec_kernel_impl(int stat) {
     return 0;
 }
 
-};  // namespace PROJECT_NS
+};  // namespace kids

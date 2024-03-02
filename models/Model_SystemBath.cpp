@@ -18,7 +18,7 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Model_SystemBath::read_param_impl(Param* PM) {
     // size information
@@ -36,8 +36,8 @@ void Model_SystemBath::read_param_impl(Param* PM) {
 
 void Model_SystemBath::init_data_impl(DataSet* DS) {
     /// 1) System
-    Hsys = DS->reg<num_real>("model.Hsys", Dimension::FF);
-    memset(Hsys, 0, Dimension::FF * sizeof(num_real));
+    Hsys = DS->def<kids_real>("model.Hsys", Dimension::FF);
+    memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
     L = 1;
     switch (system_type) {
         case SystemPolicy::SB: {
@@ -53,7 +53,7 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             //// CHECK_EQ(nbath, 7);
             //// CHECK_GE(F, 7);  // F = 7, or F = 8 (include ground state in the last; be careful)
             double tmp_unit = phys::au_2_wn;
-            memset(Hsys, 0, Dimension::FF * sizeof(num_real));
+            memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
             for (int i = 0, ik = 0; i < 7; ++i) {
                 for (int k = 0; k < 7; ++k, ++ik) { Hsys[i * Dimension::F + k] = HFMO_data[ik] / tmp_unit; }
             }
@@ -120,7 +120,7 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             sstr >> H_unit_str;  ///< the firstline stores H's unit
 
             double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
-            num_real val;
+            kids_real val;
             for (int i = 0; i < Dimension::FF; ++i)
                 if (ifs >> val) Hsys[i] = val / H_unit;
             ifs.close();
@@ -129,16 +129,16 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
 
     /// 2) init Bath sub-kernel (declaration & call)
     for (auto pkernel : _kernel_vector) pkernel->init_data(DS);
-    omegas  = DS->reg<double>("model.bath.omegas", Nb);
-    coeffs  = DS->reg<double>("model.bath.coeffs", Nb);
-    x_sigma = DS->reg<double>("model.bath.x_sigma", Nb);
-    p_sigma = DS->reg<double>("model.bath.p_sigma", Nb);
+    omegas  = DS->def<double>("model.bath.omegas", Nb);
+    coeffs  = DS->def<double>("model.bath.coeffs", Nb);
+    x_sigma = DS->def<double>("model.bath.x_sigma", Nb);
+    p_sigma = DS->def<double>("model.bath.p_sigma", Nb);
 
     /// 3) bilinear Coupling (saving order: L, nbath, Nb, FF)
-    Q   = DS->reg<double>("model.coupling.Q", nbath * Dimension::FF);
-    CL  = DS->reg<double>("model.coupling.CL", L * Nb);
-    QL  = DS->reg<double>("model.coupling.QL", L * nbath * Dimension::FF);
-    Xnj = DS->reg<double>("model.coupling.Xnj", Dimension::NFF);
+    Q   = DS->def<double>("model.coupling.Q", nbath * Dimension::FF);
+    CL  = DS->def<double>("model.coupling.CL", L * Nb);
+    QL  = DS->def<double>("model.coupling.QL", L * nbath * Dimension::FF);
+    Xnj = DS->def<double>("model.coupling.Xnj", Dimension::NFF);
     switch (coupling_type) {
         case CouplingPolicy::SB: {
             Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
@@ -156,7 +156,7 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
         default: {
             std::string coupling_readfile = _Param->get<std::string>("coupling_readfile", LOC(), "coupling.dat");
             std::ifstream ifs(coupling_readfile);
-            num_real tmp;
+            kids_real tmp;
             for (int i = 0; i < nbath * Dimension::FF; ++i)
                 if (ifs >> tmp) Q[i] = tmp;
             ifs.close();
@@ -180,19 +180,19 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    mass = DS->reg<double>("model.mass", Dimension::N);
+    mass = DS->def<double>("model.mass", Dimension::N);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
 
-    vpes = DS->reg<double>("model.vpes", Dimension::P);
-    grad = DS->reg<double>("model.grad", Dimension::PN);
-    hess = DS->reg<double>("model.hess", Dimension::PNN);
-    V    = DS->reg<double>("model.V", Dimension::PFF);
-    dV   = DS->reg<double>("model.dV", Dimension::PNFF);
-    // ddV  = DS->reg<double>("model.ddV", Dimension::NNFF);
+    vpes = DS->def<double>("model.vpes", Dimension::P);
+    grad = DS->def<double>("model.grad", Dimension::PN);
+    hess = DS->def<double>("model.hess", Dimension::PNN);
+    V    = DS->def<double>("model.V", Dimension::PFF);
+    dV   = DS->def<double>("model.dV", Dimension::PNFF);
+    // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x = DS->reg<double>("integrator.x", Dimension::PN);
-    p = DS->reg<double>("integrator.p", Dimension::PN);
+    x = DS->def<double>("integrator.x", Dimension::PN);
+    p = DS->def<double>("integrator.p", Dimension::PN);
 
     // ARRAY_SHOW(Hsys, Dimension::F, Dimension::F);
     // ARRAY_SHOW(omegas, 1, Nb);
@@ -204,8 +204,8 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
 
 void Model_SystemBath::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real* x = this->x + iP * Dimension::N;
-        num_real* p = this->p + iP * Dimension::N;
+        kids_real* x = this->x + iP * Dimension::N;
+        kids_real* p = this->p + iP * Dimension::N;
 
         Kernel_Random::rand_gaussian(x, Dimension::N);
         Kernel_Random::rand_gaussian(p, Dimension::N);
@@ -236,12 +236,12 @@ void Model_SystemBath::init_calc_impl(int stat) {
 
 int Model_SystemBath::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real* x    = this->x + iP * Dimension::N;
-        num_real* vpes = this->vpes + iP;
-        num_real* grad = this->grad + iP * Dimension::N;
-        num_real* hess = this->hess + iP * Dimension::NN;
-        num_real* V    = this->V + iP * Dimension::FF;
-        num_real* dV   = this->dV + iP * Dimension::NFF;
+        kids_real* x    = this->x + iP * Dimension::N;
+        kids_real* vpes = this->vpes + iP;
+        kids_real* grad = this->grad + iP * Dimension::N;
+        kids_real* hess = this->hess + iP * Dimension::NN;
+        kids_real* V    = this->V + iP * Dimension::FF;
+        kids_real* dV   = this->dV + iP * Dimension::NFF;
 
         // note we implement mass = 1
 
@@ -310,4 +310,4 @@ int Model_SystemBath::exec_kernel_impl(int stat) {
     return 0;
 }
 
-};  // namespace PROJECT_NS
+};  // namespace kids

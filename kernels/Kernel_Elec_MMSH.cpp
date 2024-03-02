@@ -18,10 +18,10 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
 
-void Kernel_Elec_MMSH::hopping_direction(num_real* direction, num_real* E, num_real* dE, num_complex* rho, int from,
+void Kernel_Elec_MMSH::hopping_direction(kids_real* direction, kids_real* E, kids_real* dE, kids_complex* rho, int from,
                                          int to) {
     if (to == from) return;
 
@@ -57,36 +57,36 @@ void Kernel_Elec_MMSH::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_MMSH::init_data_impl(DataSet* DS) {
-    p  = DS->reg<num_real>("integrator.p", Dimension::PN);
-    m  = DS->reg<num_real>("integrator.m", Dimension::PN);
-    E  = DS->reg<num_real>("model.rep.E", Dimension::PF);
-    dE = DS->reg<num_real>("model.rep.dE", Dimension::PNFF);
-    T  = DS->reg<num_real>("model.rep.T", Dimension::PFF);
-    H  = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
+    p  = DS->def<kids_real>("integrator.p", Dimension::PN);
+    m  = DS->def<kids_real>("integrator.m", Dimension::PN);
+    E  = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    dE = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
+    T  = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    H  = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
 
-    direction = DS->reg<num_real>("integrator.tmp.direction", Dimension::N);
+    direction = DS->def<kids_real>("integrator.tmp.direction", Dimension::N);
 }
 
 void Kernel_Elec_MMSH::init_calc_impl(int stat) {
     Kernel_NADForce::NADForce_type = (hopping) ? NADForcePolicy::BO : NADForcePolicy::EHR;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_complex* w       = Kernel_Elec::w + iP;
-        num_complex* w_CC    = Kernel_Elec::w_CC + iP;
-        num_complex* w_CP    = Kernel_Elec::w_CP + iP;
-        num_complex* w_PP    = Kernel_Elec::w_PP + iP;
-        num_complex* w_AA    = Kernel_Elec::w_AA + iP;
-        num_complex* w_AD    = Kernel_Elec::w_AD + iP;
-        num_complex* w_DD    = Kernel_Elec::w_DD + iP;
-        num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
-        num_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
-        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
+        kids_complex* w       = Kernel_Elec::w + iP;
+        kids_complex* w_CC    = Kernel_Elec::w_CC + iP;
+        kids_complex* w_CP    = Kernel_Elec::w_CP + iP;
+        kids_complex* w_PP    = Kernel_Elec::w_PP + iP;
+        kids_complex* w_AA    = Kernel_Elec::w_AA + iP;
+        kids_complex* w_AD    = Kernel_Elec::w_AD + iP;
+        kids_complex* w_DD    = Kernel_Elec::w_DD + iP;
+        kids_complex* c       = Kernel_Elec::c + iP * Dimension::F;
+        kids_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
+        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
 
         /////////////////////////////////////////////////////////////////
 
-        w[0] = (sumover) ? num_complex(Dimension::F) : 1.0e0;  ///< initial measure
+        w[0] = (sumover) ? kids_complex(Dimension::F) : 1.0e0;  ///< initial measure
 
         do {  // sampling occ_nuc, c, rho_ele [branch for sumover & focused]
             if (focused) {
@@ -152,23 +152,23 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
 
 int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        int* occ_nuc              = Kernel_Elec::occ_nuc + iP;
-        num_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
-        num_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
-        num_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
-        num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
-        num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
-        num_complex* K1DA         = Kernel_Elec::K1DA + iP * Dimension::FF;
-        num_complex* K2DA         = Kernel_Elec::K2DA + iP * Dimension::FF;
+        int* occ_nuc               = Kernel_Elec::occ_nuc + iP;
+        kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        kids_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
+        kids_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
+        kids_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
+        kids_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
+        kids_complex* K1DA         = Kernel_Elec::K1DA + iP * Dimension::FF;
+        kids_complex* K2DA         = Kernel_Elec::K2DA + iP * Dimension::FF;
 
-        num_real* E    = this->E + iP * Dimension::F;
-        num_real* T    = this->T + iP * Dimension::FF;
-        num_real* dE   = this->dE + iP * Dimension::NFF;
-        num_real* p    = this->p + iP * Dimension::N;
-        num_real* m    = this->m + iP * Dimension::N;
-        num_complex* H = this->H + iP * Dimension::FF;
+        kids_real* E    = this->E + iP * Dimension::F;
+        kids_real* T    = this->T + iP * Dimension::FF;
+        kids_real* dE   = this->dE + iP * Dimension::NFF;
+        kids_real* p    = this->p + iP * Dimension::N;
+        kids_real* m    = this->m + iP * Dimension::N;
+        kids_complex* H = this->H + iP * Dimension::FF;
 
         //////////////////////////////////////////////////////////////////////
 
@@ -203,4 +203,4 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids

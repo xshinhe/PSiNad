@@ -19,7 +19,7 @@
 #define CONSTEXPR_DECOR constexpr
 #endif  // (__cplusplus < 201402L)
 
-// using real_precision = num_real;
+// using real_precision = kids_real;
 using real_precision = double;
 
 namespace phys {  // phys::
@@ -101,7 +101,7 @@ constexpr std::array<T, N> array_scale(const std::array<T, N> a, T b) {
     return array_scale_impl(a, b, typename gens<N>::type());
 }
 
-#else   // (if c++17 is support it will be much easier)
+#else  // (if c++17 is support it will be much easier)
 
 template <typename T, std::size_t N>
 constexpr std::array<T, N> array_add(const std::array<T, N> a, const std::array<T, N> b) {
@@ -583,7 +583,7 @@ CONSTEXPR_DECOR T exp_int(int n) {
         }
         x *= x;
     }
-    return (T) (x * y);
+    return (T)(x * y);
 }
 template <typename T>
 CONSTEXPR_DECOR long double exp(T num) {

@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "OFSManager.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 struct Record_Item {
     std::string v0;
@@ -71,16 +71,20 @@ class Kernel_Record final : public Kernel {
     int* sstep_ptr;
     int* isamp_ptr;
     int* nsamp_ptr;
+    double* tsec_ptr;
+
+    int* do_recd_ptr;
 
     bool trace;
     double t0, dt, time_unit;
+
     std::string directory;
 
-    virtual void token_array(Result& res, JSON& j);
+    virtual void token_array(Result& res, Param::JSON& j);
 
-    virtual void token_object(Result& res, JSON& j);
+    virtual void token_object(Result& res, Param::JSON& j);
 
-    virtual void read_param_impl(Param* P);
+    virtual void read_param_impl(Param* PM);
 
     virtual void init_data_impl(DataSet* DS);
 
@@ -89,7 +93,7 @@ class Kernel_Record final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 
 #endif  // Kernel_Record_H

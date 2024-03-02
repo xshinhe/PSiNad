@@ -10,19 +10,6 @@
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
 
-// double hypergeometric(double a, double b, double c, double x) {
-//     const double TOLERANCE = 1.0e-10;
-//     double term            = a * b * x / c;
-//     double value           = 1.0 + term;
-//     int n                  = 1;
-//     while (abs(term) > TOLERANCE) {
-//         a++, b++, c++, n++;
-//         term *= a * b * x / c / n;
-//         value += term;
-//     }
-//     return value;
-// }
-
 double phi(double lambda, double N0_max, int F) {
     double x     = lambda * N0_max / 2;
     double term1 = 1.0e0;
@@ -45,19 +32,9 @@ double phi(double lambda, double N0_max, int F) {
     return pow(lambda, F) * pow(2 - 2 * x, 1 - F) * (term1 + term2);
 }
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
+namespace kids {
 
-namespace PROJECT_NS {
-
-double calc_alpha(num_real* V, int i = 0, int k = 1, int F = 2) {  // acoording to mix angle
+double calc_alpha(kids_real* V, int i = 0, int k = 1, int F = 2) {  // acoording to mix angle
     int ii = i * (F + 1), kk = k * (F + 1), ik = i * F + k;
     if (V[ii] == V[kk]) return 1.0e0;
     double res = 2.0e0 / phys::math::pi * atan(2 * V[ik] / (V[ii] - V[kk]));
@@ -65,14 +42,14 @@ double calc_alpha(num_real* V, int i = 0, int k = 1, int F = 2) {  // acoording 
     return res;
 }
 
-int calc_wrho(num_complex* wrho,  // distorted rho
-              num_complex* rho,   // rho_ele
-              double xi,          // xi must be 1
-              double gamma,       // gamma must be 0
+int calc_wrho(kids_complex* wrho,  // distorted rho
+              kids_complex* rho,   // rho_ele
+              double xi,           // xi must be 1
+              double gamma,        // gamma must be 0
               double alpha) {
     // initialize distorted-density
-    num_real L       = 1.0e0 - log(abs(alpha));  // @NOTE
-    num_complex norm = 0.0e0;
+    kids_real L       = 1.0e0 - log(abs(alpha));  // @NOTE
+    kids_complex norm = 0.0e0;
     for (int i = 0, ik = 0; i < Dimension::F; ++i) {
         for (int k = 0; k < Dimension::F; ++k, ++ik) {
             if (i == k) {
@@ -88,7 +65,7 @@ int calc_wrho(num_complex* wrho,  // distorted rho
     return 0;
 }
 
-double calc_Ew(num_real* E, num_complex* wrho, int occ) {
+double calc_Ew(kids_real* E, kids_complex* wrho, int occ) {
     double Ecalc = 0.0e0;
     switch (Kernel_NADForce::NADForce_type) {
         case NADForcePolicy::BO:
@@ -120,15 +97,15 @@ double calc_Ew(num_real* E, num_complex* wrho, int occ) {
  *
  * @return     { description_of_the_return_value }
  */
-int calc_distforce(num_real* f1,       // to be calculated
-                   num_real* E,        // (input)
-                   num_real* dE,       // (input)
-                   num_complex* wrho,  // distorted rho
-                   num_complex* rho,   // rho_ele
+int calc_distforce(kids_real* f1,       // to be calculated
+                   kids_real* E,        // (input)
+                   kids_real* dE,       // (input)
+                   kids_complex* wrho,  // distorted rho
+                   kids_complex* rho,   // rho_ele
                    double alpha) {
     // initialize distorted-density
-    num_real L            = 1.0e0 - log(abs(alpha));  // @NOTE
-    num_real rate_default = (L == 1.0e0) ? 1.0e0 : 0.0e0;
+    kids_real L            = 1.0e0 - log(abs(alpha));  // @NOTE
+    kids_real rate_default = (L == 1.0e0) ? 1.0e0 : 0.0e0;
 
     // averaged adiabatic energy by distorted-density
     double Ew = 0.0e0;
@@ -136,8 +113,8 @@ int calc_distforce(num_real* f1,       // to be calculated
 
     // distortion force (when L= 1 [EHR], the distortion force is zero)
     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
-        num_real* dEj = dE + jFF;
-        f1[j]         = 0.0e0;
+        kids_real* dEj = dE + jFF;
+        f1[j]          = 0.0e0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
             double rate  = ((std::real(rho[ii]) == 0.0e0) ? rate_default : std::real(wrho[ii] / rho[ii]));
             double coeff = (E[i] - (E[i] - Ew) * L * rate);
@@ -151,26 +128,26 @@ int calc_distforce(num_real* f1,       // to be calculated
     return 0;
 }
 
-int hopping_impulse(num_real* direction, num_real* np, num_real* nm,  //
-                    num_real Efrom, num_real Eto, int from, int to, bool reflect) {
+int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm,  //
+                    kids_real Efrom, kids_real Eto, int from, int to, bool reflect) {
     if (to == from) return from;
 
     // solve x: Ef + P**2 / (2*M) = Et + (P + direction*x)**2 / (2*M)
-    num_real coeffa = 0.0f, coeffb = 0.0f, coeffc = Eto - Efrom;
+    kids_real coeffa = 0.0f, coeffb = 0.0f, coeffc = Eto - Efrom;
     for (int i = 0; i < Dimension::N; ++i) {
         coeffa += 0.5f * direction[i] * direction[i] / nm[i];
         coeffb += np[i] / nm[i] * direction[i];
     }
     coeffb /= coeffa, coeffc /= coeffa;  // normalization for safety
 
-    num_real coeffd = coeffb * coeffb - 4 * coeffc;
+    kids_real coeffd = coeffb * coeffb - 4 * coeffc;
     if (coeffd > 0) {
-        num_real x1 = 0.5f * (-coeffb + sqrt(coeffd)), x2 = 0.5f * (-coeffb - sqrt(coeffd));
-        num_real xx = (std::abs(x1) < std::abs(x2)) ? x1 : x2;
+        kids_real x1 = 0.5f * (-coeffb + sqrt(coeffd)), x2 = 0.5f * (-coeffb - sqrt(coeffd));
+        kids_real xx = (std::abs(x1) < std::abs(x2)) ? x1 : x2;
         for (int i = 0; i < Dimension::N; ++i) np[i] += xx * direction[i];
         return to;
     } else if (reflect) {  // 2008Algorithm
-        num_real xx = -coeffb;
+        kids_real xx = -coeffb;
         for (int i = 0; i < Dimension::N; ++i) np[i] += xx * direction[i];
         return from;
     } else {  // 1990Algorithm, do nothing
@@ -182,8 +159,8 @@ int hopping_impulse(num_real* direction, num_real* np, num_real* nm,  //
 void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     cmsh_type = CMSHPolicy::_from(PM->get<std::string>("cmsh_flag", LOC(), "CVSH"));
 
-    alpha0 = PM->get<num_real>("alpha0", LOC(), 0.5);
-    gamma1 = PM->get<num_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
+    alpha0 = PM->get<kids_real>("alpha0", LOC(), 0.5);
+    gamma1 = PM->get<kids_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
 
     if (gamma1 < -1.5) gamma1 = Kernel_Elec_MMSH::gamma_opt(Dimension::F);
     if (gamma1 < -0.5) gamma1 = Kernel_Elec_CMM::gamma_wigner(Dimension::F);
@@ -199,7 +176,9 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     use_focus       = PM->get<bool>("use_focus", LOC(), false);
     use_fall        = PM->get<bool>("use_fall", LOC(), false);
     use_gdtwa       = PM->get<bool>("use_gdtwa", LOC(), false);
+    only_adjust     = PM->get<bool>("only_adjust", LOC(), false);
     use_sum         = PM->get<bool>("use_sum", LOC(), false);
+    check_cxs       = PM->get<bool>("check_cxs", LOC(), false);
     dt              = PM->get<double>("dt", LOC(), phys::time_d);
 
     hopping_type1 = 0;
@@ -241,43 +220,46 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
-    alpha     = DS->reg<num_real>("integrator.alpha", Dimension::P);
-    Epot      = DS->reg<num_real>("integrator.Epot", Dimension::P);
-    p         = DS->reg<num_real>("integrator.p", Dimension::PN);
-    m         = DS->reg<num_real>("integrator.m", Dimension::PN);
-    fadd      = DS->reg<num_real>("integrator.fadd", Dimension::PN);
-    ftmp      = DS->reg<num_real>("integrator.tmp.ftmp", Dimension::N);
-    wrho      = DS->reg<num_complex>("integrator.tmp.wrho", Dimension::FF);
-    vpes      = DS->reg<num_real>("model.vpes", Dimension::P);
-    V         = DS->reg<num_real>("model.V", Dimension::PFF);
-    E         = DS->reg<num_real>("model.rep.E", Dimension::PF);
-    dE        = DS->reg<num_real>("model.rep.dE", Dimension::PNFF);
-    T         = DS->reg<num_real>("model.rep.T", Dimension::PFF);
-    H         = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
-    direction = DS->reg<num_real>("integrator.tmp.direction", Dimension::N);
-    sqcw      = DS->reg<num_real>("integrator.sqcw", Dimension::F);
+    alpha       = DS->def<kids_real>("integrator.alpha", Dimension::P);
+    Epot        = DS->def<kids_real>("integrator.Epot", Dimension::P);
+    p           = DS->def<kids_real>("integrator.p", Dimension::PN);
+    m           = DS->def<kids_real>("integrator.m", Dimension::PN);
+    fadd        = DS->def<kids_real>("integrator.fadd", Dimension::PN);
+    ftmp        = DS->def<kids_real>("integrator.tmp.ftmp", Dimension::N);
+    wrho        = DS->def<kids_complex>("integrator.tmp.wrho", Dimension::FF);
+    vpes        = DS->def<kids_real>("model.vpes", Dimension::P);
+    V           = DS->def<kids_real>("model.V", Dimension::PFF);
+    E           = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    dE          = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
+    T           = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    H           = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
+    direction   = DS->def<kids_real>("integrator.tmp.direction", Dimension::N);
+    sqcw        = DS->def<kids_real>("integrator.sqcw", Dimension::F);
+    sqcIA       = DS->def<kids_real>("integrator.sqcIA", 1);
+    sqcID       = DS->def<kids_real>("integrator.sqcID", 1);
+    do_prec_ptr = DS->def<kids_int>("iter.do_prec");
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_complex* w       = Kernel_Elec::w + iP;
-        num_complex* wz_A    = Kernel_Elec::wz_A + iP;
-        num_complex* wz_D    = Kernel_Elec::wz_D + iP;
-        num_complex* ww_A    = Kernel_Elec::ww_A + iP;
-        num_complex* ww_D    = Kernel_Elec::ww_D + iP;
-        num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
-        num_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
-        num_real* T          = Kernel_Elec::T + iP * Dimension::FF;
-        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
-        num_real* alpha      = this->alpha + iP;
-        num_real* V          = this->V + iP * Dimension::FF;
+        kids_complex* w       = Kernel_Elec::w + iP;
+        kids_complex* wz_A    = Kernel_Elec::wz_A + iP;
+        kids_complex* wz_D    = Kernel_Elec::wz_D + iP;
+        kids_complex* ww_A    = Kernel_Elec::ww_A + iP;
+        kids_complex* ww_D    = Kernel_Elec::ww_D + iP;
+        kids_complex* c       = Kernel_Elec::c + iP * Dimension::F;
+        kids_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
+        kids_real* T          = Kernel_Elec::T + iP * Dimension::FF;
+        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
+        kids_real* alpha      = this->alpha + iP;
+        kids_real* V          = this->V + iP * Dimension::FF;
 
         /////////////////////////////////////////////////////////////////
         alpha[0] = (dynamic_alpha) ? calc_alpha(V) : alpha0;
 
-        w[0] = num_complex(Dimension::F);  ///< initial measure
+        w[0] = kids_complex(Dimension::F);  ///< initial measure
         int iocc;
         Kernel_Random::rand_catalog(&iocc, 1, true, 0, Dimension::F - 1);
         iocc     = ((use_sum) ? iocc : Kernel_Elec::occ0);
@@ -295,7 +277,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                     for (int i = 0; i < Dimension::F; ++i) c[i] = abs(c[i] * c[i]);
                     c[Kernel_Elec::occ0] += 1.0e0;
                     for (int i = 0; i < Dimension::F; ++i) {
-                        num_real randu;
+                        kids_real randu;
                         Kernel_Random::rand_uniform(&randu);
                         randu *= phys::math::twopi;
                         c[i] = sqrt(c[i]);
@@ -307,9 +289,24 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                     Kernel_Elec_CMM::c_sphere(c, Dimension::F);
                     break;
                 }
+                case 3: {  // suggested by Liu
+                    Kernel_Elec_SQC::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
+                    break;
+                }
+                case 4: {  // suggested by Liu
+                    Kernel_Elec_SQC::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
+                    double norm = 0.0e0;
+                    for (int i = 0; i < Dimension::F; ++i) norm += std::abs(c[i] * c[i]);
+                    xi1    = norm;
+                    gamma1 = (xi1 - 1.0e0) / Dimension::F;
+                    norm   = sqrt(norm);
+                    for (int i = 0; i < Dimension::F; ++i) c[i] /= norm;
+                    break;
+                }
             }
         } else {
             Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
+            for (int i = 0; i < Dimension::F; ++i) c[i] = 1.0e0 * i;
         }
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
 
@@ -354,8 +351,15 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
             if (sqc_init == 0 || sqc_init == 1) {
                 Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, 1.0, gamma1, Dimension::F, use_cv,
                                           iocc);  ///< initial rho_nuc
-            } else {
-                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv,
+            } else if (sqc_init <= 3) {           // by youhao shang / Liu scheme
+                double norm = 0.0;
+                for (int i = 0; i < Dimension::F; ++i) norm += abs(rho_ele[i * Dimension::Fadd1]);
+                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1 / norm, gamma1, Dimension::F, use_cv,
+                                          iocc);  ///< initial rho_nuc
+            } else if (sqc_init <= 4) {
+                double norm = 0.0;
+                for (int i = 0; i < Dimension::F; ++i) norm += abs(rho_ele[i * Dimension::Fadd1]);
+                Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, 1.0, (norm - 1.0) / Dimension::F, Dimension::F, use_cv,
                                           iocc);  ///< initial rho_nuc
             }
         } else {
@@ -408,13 +412,15 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
     Kernel_Elec::T_init       = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
 
+    do_prec_ptr[0] = 1;
     exec_kernel(stat);
+    do_prec_ptr[0] = 0;
     // for (int iP = 0; iP < Dimension::P; ++iP) {  // @debug only for scattering problem
-    //     num_real* vpes = this->vpes + iP;
-    //     num_real* E    = this->E + iP;
-    //     num_real* Epot = this->Epot + iP;
-    //     num_real* p    = this->p + iP;
-    //     num_real* m    = this->m + iP;
+    //     kids_real* vpes = this->vpes + iP;
+    //     kids_real* E    = this->E + iP;
+    //     kids_real* Epot = this->Epot + iP;
+    //     kids_real* p    = this->p + iP;
+    //     kids_real* m    = this->m + iP;
     //     double Ekin = 0.0e0;
     //     for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5e0 * p[j] * p[j] / m[j];
     //     double Ekin2 = Ekin + E[Kernel_Elec::occ0] - Epot[0];
@@ -425,40 +431,40 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
 
 int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        int* occ_nuc              = Kernel_Elec::occ_nuc + iP;
-        num_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
-        num_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
-        num_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
-        num_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
-        num_real* T               = Kernel_Elec::T + iP * Dimension::FF;
-        num_real* T_init          = Kernel_Elec::T_init + iP * Dimension::FF;
-        num_complex* K0           = Kernel_Elec::K0 + iP * Dimension::FF;
-        num_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
-        num_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
-        num_complex* K1QA         = Kernel_Elec::K1QA + iP * Dimension::FF;
-        num_complex* K2QA         = Kernel_Elec::K2QA + iP * Dimension::FF;
-        num_complex* K1DA         = Kernel_Elec::K1DA + iP * Dimension::FF;
-        num_complex* K2DA         = Kernel_Elec::K2DA + iP * Dimension::FF;
-        num_complex* K1QD         = Kernel_Elec::K1QD + iP * Dimension::FF;
-        num_complex* K2QD         = Kernel_Elec::K2QD + iP * Dimension::FF;
-        num_complex* K1DD         = Kernel_Elec::K1DD + iP * Dimension::FF;
-        num_complex* K2DD         = Kernel_Elec::K2DD + iP * Dimension::FF;
-        num_complex* ww_A_init    = Kernel_Elec::ww_A_init + iP;
-        num_complex* ww_D_init    = Kernel_Elec::ww_D_init + iP;
-        num_complex* ww_A         = Kernel_Elec::ww_A + iP;
-        num_complex* ww_D         = Kernel_Elec::ww_D + iP;
+        int* occ_nuc               = Kernel_Elec::occ_nuc + iP;
+        kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        kids_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
+        kids_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
+        kids_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
+        kids_real* T               = Kernel_Elec::T + iP * Dimension::FF;
+        kids_real* T_init          = Kernel_Elec::T_init + iP * Dimension::FF;
+        kids_complex* K0           = Kernel_Elec::K0 + iP * Dimension::FF;
+        kids_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
+        kids_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
+        kids_complex* K1QA         = Kernel_Elec::K1QA + iP * Dimension::FF;
+        kids_complex* K2QA         = Kernel_Elec::K2QA + iP * Dimension::FF;
+        kids_complex* K1DA         = Kernel_Elec::K1DA + iP * Dimension::FF;
+        kids_complex* K2DA         = Kernel_Elec::K2DA + iP * Dimension::FF;
+        kids_complex* K1QD         = Kernel_Elec::K1QD + iP * Dimension::FF;
+        kids_complex* K2QD         = Kernel_Elec::K2QD + iP * Dimension::FF;
+        kids_complex* K1DD         = Kernel_Elec::K1DD + iP * Dimension::FF;
+        kids_complex* K2DD         = Kernel_Elec::K2DD + iP * Dimension::FF;
+        kids_complex* ww_A_init    = Kernel_Elec::ww_A_init + iP;
+        kids_complex* ww_D_init    = Kernel_Elec::ww_D_init + iP;
+        kids_complex* ww_A         = Kernel_Elec::ww_A + iP;
+        kids_complex* ww_D         = Kernel_Elec::ww_D + iP;
 
-        num_real* alpha = this->alpha + iP;
-        num_real* Epot  = this->Epot + iP;
-        num_real* vpes  = this->vpes + iP;
-        num_real* V     = this->V + iP * Dimension::FF;
-        num_real* E     = this->E + iP * Dimension::F;
-        num_real* dE    = this->dE + iP * Dimension::NFF;
-        num_real* p     = this->p + iP * Dimension::N;
-        num_real* m     = this->m + iP * Dimension::N;
-        num_real* fadd  = this->fadd + iP * Dimension::N;
-        num_complex* H  = this->H + iP * Dimension::FF;
+        kids_real* alpha = this->alpha + iP;
+        kids_real* Epot  = this->Epot + iP;
+        kids_real* vpes  = this->vpes + iP;
+        kids_real* V     = this->V + iP * Dimension::FF;
+        kids_real* E     = this->E + iP * Dimension::F;
+        kids_real* dE    = this->dE + iP * Dimension::NFF;
+        kids_real* p     = this->p + iP * Dimension::N;
+        kids_real* m     = this->m + iP * Dimension::N;
+        kids_real* fadd  = this->fadd + iP * Dimension::N;
+        kids_complex* H  = this->H + iP * Dimension::FF;
 
         //////////////////////////////////////////////////////////////////////
 
@@ -492,7 +498,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
 
         // step 1: determine where to hop (BOSH & CVSH)
         /// 1.1 calc Efrom
-        num_real Efrom, Eto;
+        kids_real Efrom, Eto;
         Efrom = calc_Ew(E, rho_nuc, *occ_nuc);
         /// 1.2 calc to
         int to;
@@ -579,17 +585,23 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        if (use_sqc && reflect) {                                                   // only adjusted
+        if ((use_sqc && reflect) || (use_sqc && only_adjust)) {                     // only adjusted
             Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
                                              RepresentationPolicy::Adiabatic,       //
                                              Kernel_Representation::inp_repr_type,  //
                                              SpacePolicy::L);
+            double norm = 0.0e0;
+            for (int i = 0; i < Dimension::F; ++i) norm += abs(rho_ele[i * Dimension::Fadd1]);
+            // Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1/norm, gamma1, Dimension::F, use_cv,
+            //                          iocc);  ///< initial rho_nuc /// adjust only support for sqc_init=0!!!
             for (int i = 0; i < Dimension::FF; ++i) rho_nuc[i] = rho_ele[i] + (rho_nuc_init[i] - rho_ele_init[i]);
             Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
                                              Kernel_Representation::inp_repr_type,  //
                                              RepresentationPolicy::Adiabatic,       //
                                              SpacePolicy::L);
         }
+
+        if (do_prec_ptr[0] == 0) continue;
 
         // 4) calculated TCF in adiabatic rep & diabatic rep respectively
         // 4-1) Adiabatic rep
@@ -604,7 +616,11 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
             K2QA[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
         if (use_fssh) { Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, *occ_nuc); }
-        if (use_sqc) Kernel_Elec_SQC::ker_binning(K2QA, rho_ele, SQCPolicy::TRI);
+        if (use_sqc) {
+            Kernel_Elec_SQC::ker_binning(K2QA, rho_ele, SQCPolicy::TRI);
+            sqcIA[0] = 0;
+            for (int i = 0; i < Dimension::F; ++i) sqcIA[0] += std::real(K2QA[i * Dimension::Fadd1]);
+        }
 
         ARRAY_MAT_DIAG(K1DA, K1QA, Dimension::F);
         ARRAY_MAT_DIAG(K2DA, K2QA, Dimension::F);
@@ -639,6 +655,13 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
 
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
+        if (check_cxs) {
+            double y = max_val - 0.5e0;
+            ww_D[0]  = (23.0e0 / 2 * y - 72.0e0 * y * y + 140.0e0 * y * y * y + 480.0e0 * y * y * y * y -
+                       840.0e0 * y * y * y * y * y) +
+                      (9.0e0 / 4.0 - 9.0e0 * y * y - 420.0e0 * y * y * y * y + 1680.0e0 * y * y * y * y * y * y) *
+                          atan(2.0e0 * y);
+        }
         ww_D[0] = std::min({abs(ww_D[0]), abs(ww_D_init[0])});
         {                                                                           // general squeezed sqc
             Kernel_Representation::transform(rho_ele_init, T_init, Dimension::F,    //
@@ -692,6 +715,9 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 }
             }
 
+            sqcID[0] = 0;
+            for (int i = 0; i < Dimension::F; ++i) sqcID[0] += std::real(K2QD[i * Dimension::Fadd1]);
+
             if (sqc_init == 2) {  // overload for K2QD
                 int imax    = Kernel_Elec_SH::max_choose(rho_ele);
                 double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
@@ -704,6 +730,10 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         ARRAY_MAT_DIAG(K2DD, K2QD, Dimension::F);
 
         // 5) transform back from tcf_repr => inp_repr
+        Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
+                                         RepresentationPolicy::Diabatic,        //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         SpacePolicy::L);
         Kernel_Representation::transform(K0, T, Dimension::F,                   //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
@@ -735,4 +765,4 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
     }
     return stat;
 }
-};  // namespace PROJECT_NS
+};  // namespace kids

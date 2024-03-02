@@ -14,9 +14,9 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
-int Kernel_Representation::transform(num_complex* A, num_real* T, int fdim,  //
+int Kernel_Representation::transform(kids_complex* A, kids_real* T, int fdim,  //
                                      RepresentationPolicy::_type from, RepresentationPolicy::_type to,
                                      SpacePolicy::_type Stype) {
     if (from == to) return 0;
@@ -44,26 +44,26 @@ void Kernel_Representation::read_param_impl(Param* PM) {
 }
 
 void Kernel_Representation::init_data_impl(DataSet* DS) {
-    V  = DS->reg<num_real>("model.V", Dimension::PFF);
-    dV = DS->reg<num_real>("model.dV", Dimension::PNFF);
-    // ddV = DS->reg<num_real>("model.ddV", Dimension::NNFF);
-    E    = DS->reg<num_real>("model.rep.E", Dimension::PF);
-    T    = DS->reg<num_real>("model.rep.T", Dimension::PFF);
-    Told = DS->reg<num_real>("model.rep.Told", Dimension::PFF);
-    dE   = DS->reg<num_real>("model.rep.dE", Dimension::PNFF);
-    // ddE = DS->reg<num_real>("model.rep.ddE", Dimension::NNFF);
-    L = DS->reg<num_real>("model.rep.L", Dimension::PF);
-    R = DS->reg<num_complex>("model.rep.R", Dimension::PFF);
-    H = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
+    V  = DS->def<kids_real>("model.V", Dimension::PFF);
+    dV = DS->def<kids_real>("model.dV", Dimension::PNFF);
+    // ddV = DS->def<kids_real>("model.ddV", Dimension::NNFF);
+    E    = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    T    = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    Told = DS->def<kids_real>("model.rep.Told", Dimension::PFF);
+    dE   = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
+    // ddE = DS->def<kids_real>("model.rep.ddE", Dimension::NNFF);
+    L = DS->def<kids_real>("model.rep.L", Dimension::PF);
+    R = DS->def<kids_complex>("model.rep.R", Dimension::PFF);
+    H = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
 
-    m       = DS->reg<num_real>("integrator.m", Dimension::PN);
-    p       = DS->reg<num_real>("integrator.p", Dimension::PN);
-    occ_nuc = DS->reg<int>("integrator.occ_nuc", Dimension::P);
-    rho_ele = DS->reg<num_complex>("integrator.rho_ele", Dimension::PFF);
+    m       = DS->def<kids_real>("integrator.m", Dimension::PN);
+    p       = DS->def<kids_real>("integrator.p", Dimension::PN);
+    occ_nuc = DS->def<int>("integrator.occ_nuc", Dimension::P);
+    rho_ele = DS->def<kids_complex>("integrator.rho_ele", Dimension::PFF);
 
-    TtTold = DS->reg<num_real>("integrator.tmp.TtTold", Dimension::FF);
-    ve     = DS->reg<num_real>("integrator.tmp.ve", Dimension::N);
-    vedE   = DS->reg<num_real>("integrator.tmp.vedE", Dimension::FF);
+    TtTold = DS->def<kids_real>("integrator.tmp.TtTold", Dimension::FF);
+    ve     = DS->def<kids_real>("integrator.tmp.ve", Dimension::N);
+    vedE   = DS->def<kids_real>("integrator.tmp.vedE", Dimension::FF);
 }
 
 void Kernel_Representation::init_calc_impl(int stat) {
@@ -77,20 +77,20 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
     if (Dimension::F <= 1) return 0;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real* V    = this->V + iP * Dimension::FF;
-        num_real* E    = this->E + iP * Dimension::F;
-        num_real* T    = this->T + iP * Dimension::FF;
-        num_real* Told = this->Told + iP * Dimension::FF;
-        num_real* dV   = this->dV + iP * Dimension::NFF;
-        num_real* dE   = this->dE + iP * Dimension::NFF;
-        num_real* L    = this->L + iP * Dimension::F;
-        num_complex* R = this->R + iP * Dimension::FF;
-        num_complex* H = this->H + iP * Dimension::FF;
+        kids_real* V    = this->V + iP * Dimension::FF;
+        kids_real* E    = this->E + iP * Dimension::F;
+        kids_real* T    = this->T + iP * Dimension::FF;
+        kids_real* Told = this->Told + iP * Dimension::FF;
+        kids_real* dV   = this->dV + iP * Dimension::NFF;
+        kids_real* dE   = this->dE + iP * Dimension::NFF;
+        kids_real* L    = this->L + iP * Dimension::F;
+        kids_complex* R = this->R + iP * Dimension::FF;
+        kids_complex* H = this->H + iP * Dimension::FF;
 
-        num_real* p          = this->p + iP * Dimension::N;
-        num_real* m          = this->m + iP * Dimension::N;
-        int* occ_nuc         = this->occ_nuc + iP;
-        num_complex* rho_ele = this->rho_ele + iP * Dimension::FF;
+        kids_real* p          = this->p + iP * Dimension::N;
+        kids_real* m          = this->m + iP * Dimension::N;
+        int* occ_nuc          = this->occ_nuc + iP;
+        kids_complex* rho_ele = this->rho_ele + iP * Dimension::FF;
 
         switch (representation_type) {
             case RepresentationPolicy::Diabatic: {
@@ -108,7 +108,7 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
                         // calculate permutation matrix = rountint(T^ * Told)
                         ARRAY_MATMUL_TRANS1(TtTold, T, Told, Dimension::F, Dimension::F, Dimension::F);
 
-                        // std::cout << *(_DataSet->reg<int>("timer.istep")) * 1 << "\n";
+                        // std::cout << *(_DataSet->def<int>("timer.istep")) * 1 << "\n";
 
                         // ARRAY_SHOW(E, 1, Dimension::F);
                         // ARRAY_SHOW(T, Dimension::F, Dimension::F);
@@ -196,7 +196,7 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
                 }
 
                 if (phase_correction) {
-                    num_real Ekin = 0;
+                    kids_real Ekin = 0;
                     for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5f * p[j] * p[j] / m[j];
                     double Epes = 0.0f;
                     if (Kernel_NADForce::NADForce_type == NADForcePolicy::BO) {
@@ -230,4 +230,4 @@ RepresentationPolicy::_type Kernel_Representation::nuc_repr_type;
 RepresentationPolicy::_type Kernel_Representation::tcf_repr_type;
 bool Kernel_Representation::onthefly;
 
-};  // namespace PROJECT_NS
+};  // namespace kids

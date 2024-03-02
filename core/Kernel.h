@@ -36,7 +36,7 @@
 #include "DataSet.h"
 #include "Param.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 /**
  * @brief Kernel class is the container and implementation of algorithms
@@ -100,7 +100,8 @@ class Kernel {
     inline void init_calc(int stat = -1, int count = -1) {
         if (count == -1) count = count_calc;
         if (count != count_calc) return;
-        // std::cout << "init_calc:" << name() << "\n";
+
+        // if (_Param->get<std::string>("load", LOC(), "NULL") != "NULL") return;  // @bug: make sure init_calc be save!
 
         init_calc_impl(stat);
         for (auto& pkernel : _kernel_vector) pkernel->init_calc(stat, count);
@@ -161,6 +162,6 @@ class Kernel {
     void destory();
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_H

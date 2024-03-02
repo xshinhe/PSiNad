@@ -1,13 +1,13 @@
 #ifndef Model_CED_H
 #define Model_CED_H
 
-namespace PROJECT_NS {
+namespace kids {
 
 class Model_CED final : public Kernel {
    public:
    private:
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Model_CED_H

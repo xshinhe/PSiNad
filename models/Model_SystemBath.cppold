@@ -6,7 +6,7 @@
 #include "../kernels/Kernel_Random.h"
 #include "hamiltonian_data.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Bath::read_param_impl(Param* PM) {
     _Param = PM;
@@ -93,7 +93,7 @@ void Model_SystemBath::read_param_impl(Param* PM) {
 
 void Bath::init_data_impl(DataSet* DS) {
     /// 1) System
-    Hsys = DS->reg<num_real>("model.Hsys", F * F);
+    Hsys = DS->def<kids_real>("model.Hsys", F * F);
     L    = 1;
     switch (system_type) {
         case SystemPolicy::SB: {
@@ -109,7 +109,7 @@ void Bath::init_data_impl(DataSet* DS) {
             //// CHECK_EQ(nbath, 7);
             //// CHECK_GE(F, 7);  // F = 7, or F = 8 (include ground state in the last; be careful)
             double tmp_unit = phys::au_2_wn;
-            memset(Hsys, 0, FF * sizeof(num_real));
+            memset(Hsys, 0, FF * sizeof(kids_real));
             for (int i = 0, ik = 0; i < 7; ++i) {
                 for (int k = 0; k < 7; ++k, ++ik) { Hsys[i * F + k] = HFMO_data[ik] / tmp_unit; }
             }
@@ -143,7 +143,7 @@ void Bath::init_data_impl(DataSet* DS) {
             //// CHECK_EQ(nbath, 9);
             //// CHECK_GE(F, 9);  // F = 9, or F = 10 (include ground state; be careful)
             double tmp_unit = phys::au_2_wn;
-            memset(Hsys, 0, FF * sizeof(num_real));
+            memset(Hsys, 0, FF * sizeof(kids_real));
             for (int i = 0, ik = 0; i < 9; ++i) {
                 for (int k = 0; k < 9; ++k, ++ik) { Hsys[i * F + k] = HFCP_data[ik] / tmp_unit; }
             }
@@ -177,7 +177,7 @@ void Bath::init_data_impl(DataSet* DS) {
             sstr >> H_unit_str;  ///< the firstline stores H's unit
 
             double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
-            num_real val;
+            kids_real val;
             for (int i = 0; i < FF; ++i)
                 if (ifs >> val) Hsys[i] = val / H_unit;
             ifs.close();
@@ -185,8 +185,8 @@ void Bath::init_data_impl(DataSet* DS) {
     }
 
     /// 2) Bath (init omegas, coeffs; m, w, x_sigma, p_sigma)
-    omegas = DS->reg<double>("model.omegas", Nb);
-    coeffs = DS->reg<double>("model.coeffs", Nb);
+    omegas = DS->def<double>("model.omegas", Nb);
+    coeffs = DS->def<double>("model.coeffs", Nb);
     switch (bath_type) {
         case BathPolicy::Debye: {  // from continuous spectrum
             for (int j = 0; j < Nb; ++j) {
@@ -249,12 +249,12 @@ void Bath::init_data_impl(DataSet* DS) {
             }
         }
     }
-    mass    = DS->reg<double>("model.mass", N);
-    freq    = DS->reg<double>("model.freq", N);
-    x_mean  = DS->reg<double>("model.x_mean", N);
-    p_mean  = DS->reg<double>("model.p_mean", N);
-    x_sigma = DS->reg<double>("model.x_sigma", N);
-    p_sigma = DS->reg<double>("model.p_sigma", N);
+    mass    = DS->def<double>("model.mass", N);
+    freq    = DS->def<double>("model.freq", N);
+    x_mean  = DS->def<double>("model.x_mean", N);
+    p_mean  = DS->def<double>("model.p_mean", N);
+    x_sigma = DS->def<double>("model.x_sigma", N);
+    p_sigma = DS->def<double>("model.p_sigma", N);
     for (int j = 0; j < N; ++j) {
         mass[j] = 1.0f;
         freq[j] = omegas[j % Nb];
@@ -269,10 +269,10 @@ void Bath::init_data_impl(DataSet* DS) {
 
 
     /// 3) Coupling (saving order: L, nbath, Nb, FF)
-    Q   = DS->reg<double>("model.Q", nbath * F * F);
-    CL  = DS->reg<double>("model.CL", L * Nb);
-    QL  = DS->reg<double>("model.QL", L * nbath * F * F);
-    Xnj = DS->reg<double>("model.Xnj", N * F * F);
+    Q   = DS->def<double>("model.Q", nbath * F * F);
+    CL  = DS->def<double>("model.CL", L * Nb);
+    QL  = DS->def<double>("model.QL", L * nbath * F * F);
+    Xnj = DS->def<double>("model.Xnj", N * F * F);
     switch (coupling_type) {
         case CouplingPolicy::SB: {
             //// CHECK_EQ(nbath, 1);
@@ -292,7 +292,7 @@ void Bath::init_data_impl(DataSet* DS) {
         default: {
             std::string coupling_readfile = _Param->get<std::string>("coupling_readfile", LOC(), "coupling.dat");
             std::ifstream ifs(coupling_readfile);
-            num_real tmp;
+            kids_real tmp;
             for (int i = 0; i < nbath * F * F; ++i)
                 if (ifs >> tmp) Q[i] = tmp;
             ifs.close();
@@ -315,23 +315,23 @@ void Bath::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    vpes = DS->reg<double>("model.vpes");
-    grad = DS->reg<double>("model.grad", N);
-    hess = DS->reg<double>("model.hess", N);
-    V    = DS->reg<double>("model.V", FF);
-    dV   = DS->reg<double>("model.dV", NFF);
-    ddV  = DS->reg<double>("model.ddV", NNFF);
+    vpes = DS->def<double>("model.vpes");
+    grad = DS->def<double>("model.grad", N);
+    hess = DS->def<double>("model.hess", N);
+    V    = DS->def<double>("model.V", FF);
+    dV   = DS->def<double>("model.dV", NFF);
+    ddV  = DS->def<double>("model.ddV", NNFF);
 
     // init & integrator
-    x_init = DS->reg<double>("init.x", N);
-    p_init = DS->reg<double>("init.p", N);
-    x      = DS->reg<double>("integrator.x", N);
-    p      = DS->reg<double>("integrator.p", N);
+    x_init = DS->def<double>("init.x", N);
+    p_init = DS->def<double>("init.p", N);
+    x      = DS->def<double>("integrator.x", N);
+    p      = DS->def<double>("integrator.p", N);
 }
 
 void Model_SystemBath::init_data_impl(DataSet* DS) {
     /// 1) System
-    Hsys = DS->reg<num_real>("model.Hsys", F * F);
+    Hsys = DS->def<kids_real>("model.Hsys", F * F);
     L    = 1;
     switch (system_type) {
         case SystemPolicy::SB: {
@@ -347,7 +347,7 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             //// CHECK_EQ(nbath, 7);
             //// CHECK_GE(F, 7);  // F = 7, or F = 8 (include ground state in the last; be careful)
             double tmp_unit = phys::au_2_wn;
-            memset(Hsys, 0, FF * sizeof(num_real));
+            memset(Hsys, 0, FF * sizeof(kids_real));
             for (int i = 0, ik = 0; i < 7; ++i) {
                 for (int k = 0; k < 7; ++k, ++ik) { Hsys[i * F + k] = HFMO_data[ik] / tmp_unit; }
             }
@@ -381,7 +381,7 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             //// CHECK_EQ(nbath, 9);
             //// CHECK_GE(F, 9);  // F = 9, or F = 10 (include ground state; be careful)
             double tmp_unit = phys::au_2_wn;
-            memset(Hsys, 0, FF * sizeof(num_real));
+            memset(Hsys, 0, FF * sizeof(kids_real));
             for (int i = 0, ik = 0; i < 9; ++i) {
                 for (int k = 0; k < 9; ++k, ++ik) { Hsys[i * F + k] = HFCP_data[ik] / tmp_unit; }
             }
@@ -415,7 +415,7 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             sstr >> H_unit_str;  ///< the firstline stores H's unit
 
             double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
-            num_real val;
+            kids_real val;
             for (int i = 0; i < FF; ++i)
                 if (ifs >> val) Hsys[i] = val / H_unit;
             ifs.close();
@@ -423,8 +423,8 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     }
 
     /// 2) Bath (init omegas, coeffs; m, w, x_sigma, p_sigma)
-    omegas = DS->reg<double>("model.omegas", Nb);
-    coeffs = DS->reg<double>("model.coeffs", Nb);
+    omegas = DS->def<double>("model.omegas", Nb);
+    coeffs = DS->def<double>("model.coeffs", Nb);
     switch (bath_type) {
         case BathPolicy::Debye: {  // from continuous spectrum
             for (int j = 0; j < Nb; ++j) {
@@ -487,12 +487,12 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             }
         }
     }
-    mass    = DS->reg<double>("model.mass", N);
-    freq    = DS->reg<double>("model.freq", N);
-    x_mean  = DS->reg<double>("model.x_mean", N);
-    p_mean  = DS->reg<double>("model.p_mean", N);
-    x_sigma = DS->reg<double>("model.x_sigma", N);
-    p_sigma = DS->reg<double>("model.p_sigma", N);
+    mass    = DS->def<double>("model.mass", N);
+    freq    = DS->def<double>("model.freq", N);
+    x_mean  = DS->def<double>("model.x_mean", N);
+    p_mean  = DS->def<double>("model.p_mean", N);
+    x_sigma = DS->def<double>("model.x_sigma", N);
+    p_sigma = DS->def<double>("model.p_sigma", N);
     for (int j = 0; j < N; ++j) {
         mass[j] = 1.0f;
         freq[j] = omegas[j % Nb];
@@ -507,10 +507,10 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
 
 
     /// 3) Coupling (saving order: L, nbath, Nb, FF)
-    Q   = DS->reg<double>("model.Q", nbath * F * F);
-    CL  = DS->reg<double>("model.CL", L * Nb);
-    QL  = DS->reg<double>("model.QL", L * nbath * F * F);
-    Xnj = DS->reg<double>("model.Xnj", N * F * F);
+    Q   = DS->def<double>("model.Q", nbath * F * F);
+    CL  = DS->def<double>("model.CL", L * Nb);
+    QL  = DS->def<double>("model.QL", L * nbath * F * F);
+    Xnj = DS->def<double>("model.Xnj", N * F * F);
     switch (coupling_type) {
         case CouplingPolicy::SB: {
             //// CHECK_EQ(nbath, 1);
@@ -530,7 +530,7 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
         default: {
             std::string coupling_readfile = _Param->get<std::string>("coupling_readfile", LOC(), "coupling.dat");
             std::ifstream ifs(coupling_readfile);
-            num_real tmp;
+            kids_real tmp;
             for (int i = 0; i < nbath * F * F; ++i)
                 if (ifs >> tmp) Q[i] = tmp;
             ifs.close();
@@ -553,18 +553,18 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    vpes = DS->reg<double>("model.vpes");
-    grad = DS->reg<double>("model.grad", N);
-    hess = DS->reg<double>("model.hess", N);
-    V    = DS->reg<double>("model.V", FF);
-    dV   = DS->reg<double>("model.dV", NFF);
-    ddV  = DS->reg<double>("model.ddV", NNFF);
+    vpes = DS->def<double>("model.vpes");
+    grad = DS->def<double>("model.grad", N);
+    hess = DS->def<double>("model.hess", N);
+    V    = DS->def<double>("model.V", FF);
+    dV   = DS->def<double>("model.dV", NFF);
+    ddV  = DS->def<double>("model.ddV", NNFF);
 
     // init & integrator
-    x_init = DS->reg<double>("init.x", N);
-    p_init = DS->reg<double>("init.p", N);
-    x      = DS->reg<double>("integrator.x", N);
-    p      = DS->reg<double>("integrator.p", N);
+    x_init = DS->def<double>("init.x", N);
+    p_init = DS->def<double>("init.p", N);
+    x      = DS->def<double>("integrator.x", N);
+    p      = DS->def<double>("integrator.p", N);
 }
 
 void Model_SystemBath::init_calc_impl(int stat) {
@@ -639,4 +639,4 @@ int Model_SystemBath::exec_kernel_impl(int stat) {
     return 0;
 }
 
-};  // namespace PROJECT_NS
+};  // namespace kids

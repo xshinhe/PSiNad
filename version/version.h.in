@@ -2,7 +2,7 @@
 
 #include <string>
 
-#define @PROJECT_NAME@ PROJECT_NS
+#define @PROJECT_NAME@ kids
 
 const std::string repo_name = "@PROJECT_NAME@";
 const std::string repo_version = "@GIT_BRANCH@-(@GIT_DATE@)-@GIT_HASH@";

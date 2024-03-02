@@ -13,7 +13,7 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
 double mspes_parm[100];
 
@@ -568,8 +568,8 @@ void Model_NAD1D::read_param_impl(Param* PM) {
 };
 
 void Model_NAD1D::init_data_impl(DataSet* DS) {
-    Hsys = DS->reg<num_real>("model.Hsys", Dimension::FF);
-    memset(Hsys, 0, Dimension::FF * sizeof(num_real));
+    Hsys = DS->def<kids_real>("model.Hsys", Dimension::FF);
+    memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
 
     if (nad1d_type == NAD1DPolicy::PURE) {
         std::ifstream ifs("Hsys.dat");
@@ -580,39 +580,39 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
         sstr >> H_unit_str;  ///< the firstline stores H's unit
         double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
 
-        num_real val;
+        kids_real val;
         for (int i = 0; i < Dimension::FF; ++i)
             if (ifs >> val) Hsys[i] = val / H_unit;
         ifs.close();
     }
 
     // model field
-    mass = DS->reg<double>("model.mass", Dimension::N);
-    vpes = DS->reg<double>("model.vpes");                 // not used
-    grad = DS->reg<double>("model.grad", Dimension::N);   // not used
-    hess = DS->reg<double>("model.hess", Dimension::NN);  // not used
-    V    = DS->reg<double>("model.V", Dimension::FF);
-    dV   = DS->reg<double>("model.dV", Dimension::NFF);
-    // ddV  = DS->reg<double>("model.ddV", Dimension::Dimension::NNFF);
+    mass = DS->def<double>("model.mass", Dimension::N);
+    vpes = DS->def<double>("model.vpes");                 // not used
+    grad = DS->def<double>("model.grad", Dimension::N);   // not used
+    hess = DS->def<double>("model.hess", Dimension::NN);  // not used
+    V    = DS->def<double>("model.V", Dimension::FF);
+    dV   = DS->def<double>("model.dV", Dimension::NFF);
+    // ddV  = DS->def<double>("model.ddV", Dimension::Dimension::NNFF);
 
-    x0      = DS->reg<double>("model.x0", Dimension::N);
-    p0      = DS->reg<double>("model.p0", Dimension::N);
-    x_sigma = DS->reg<double>("model.x_sigma", Dimension::N);
-    p_sigma = DS->reg<double>("model.p_sigma", Dimension::N);
+    x0      = DS->def<double>("model.x0", Dimension::N);
+    p0      = DS->def<double>("model.p0", Dimension::N);
+    x_sigma = DS->def<double>("model.x_sigma", Dimension::N);
+    p_sigma = DS->def<double>("model.p_sigma", Dimension::N);
 
     // init & integrator
-    x      = DS->reg<double>("integrator.x", Dimension::N);
-    p      = DS->reg<double>("integrator.p", Dimension::N);
-    p_sign = DS->reg<num_complex>("integrator.p_sign", 2);
+    x      = DS->def<double>("integrator.x", Dimension::N);
+    p      = DS->def<double>("integrator.p", Dimension::N);
+    p_sign = DS->def<kids_complex>("integrator.p_sign", 2);
 
     double x0_read = _Param->get<double>("x0grid", LOC(), -10.0e0);
     int Nxgird     = _Param->get<int>("Nxgrid", LOC(), 101);
     double dx      = (2 * abs(x0_read)) / (Nxgird - 1);
-    double* xgrid  = DS->reg<double>("integrator.xgrid", Nxgird);
+    double* xgrid  = DS->def<double>("integrator.xgrid", Nxgird);
     for (int i = 0; i < Nxgird; ++i) xgrid[i] = -abs(x0_read) + i * dx;
 
-    DS->reg<double>("init.x", Dimension::N);
-    DS->reg<double>("init.p", Dimension::N);
+    DS->def<double>("init.x", Dimension::N);
+    DS->def<double>("init.p", Dimension::N);
 
     mass[0]     = _Param->get<double>("m0", LOC(), 2000.0e0);
     x0[0]       = _Param->get<double>("x0", LOC(), 100.0e0);
@@ -717,8 +717,8 @@ void Model_NAD1D::init_calc_impl(int stat) {
             Kernel_Random::rand_gaussian(x, Dimension::N);
             Kernel_Random::rand_gaussian(p, Dimension::N);
             for (int j = 0; j < Dimension::N; ++j) {
-                x[j] = x0[j] + x[j] * x_sigma[j];
-                p[j] = p0[j] + p[j] * p_sigma[j];
+                x[j] = x0[j] + 0 * x[j] * x_sigma[j];
+                p[j] = p0[j] + 0 * p[j] * p_sigma[j];
             }
             break;
         }
@@ -803,4 +803,4 @@ int Model_NAD1D::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids

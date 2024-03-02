@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(RepresentationPolicy,
               Diabatic,   // diabatic representation
@@ -33,7 +33,7 @@ class Kernel_Representation final : public Kernel {
 
     inline virtual const std::string name() { return "Kernel_Representation"; }
 
-    static int transform(num_complex *A, num_real *T, int fdim,  //
+    static int transform(kids_complex *A, kids_real *T, int fdim,  //
                          RepresentationPolicy::_type from, RepresentationPolicy::_type to, SpacePolicy::_type Stype);
 
    private:
@@ -49,7 +49,7 @@ class Kernel_Representation final : public Kernel {
 
     double *x, *p, *m;
     int *occ_nuc;
-    num_complex *rho_ele;
+    kids_complex *rho_ele;
     double *ve, *vedE, *TtTold;
 
     virtual void read_param_impl(Param *PM);
@@ -61,6 +61,6 @@ class Kernel_Representation final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Representation_H

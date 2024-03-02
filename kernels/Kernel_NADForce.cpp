@@ -16,7 +16,7 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Kernel_NADForce::read_param_impl(Param* PM) {
     FORCE_OPT::BATH_FORCE_BILINEAR = _Param->get<bool>("BATH_FORCE_BILINEAR", LOC(), false);
@@ -24,15 +24,15 @@ void Kernel_NADForce::read_param_impl(Param* PM) {
 };
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
-    f     = DS->reg<double>("integrator.f", Dimension::PN);
-    p     = DS->reg<double>("integrator.p", Dimension::PN);
-    m     = DS->reg<double>("integrator.m", Dimension::PN);
-    fadd  = DS->reg<double>("integrator.fadd", Dimension::PN);
-    fproj = DS->reg<double>("integrator.tmp.fporj", Dimension::N);
-    grad  = DS->reg<double>("model.grad", Dimension::PN);
-    dV    = DS->reg<double>("model.dV", Dimension::PNFF);
-    dE    = DS->reg<double>("model.rep.dE", Dimension::PNFF);
-    T     = DS->reg<double>("model.rep.T", Dimension::PFF);
+    f     = DS->def<double>("integrator.f", Dimension::PN);
+    p     = DS->def<double>("integrator.p", Dimension::PN);
+    m     = DS->def<double>("integrator.m", Dimension::PN);
+    fadd  = DS->def<double>("integrator.fadd", Dimension::PN);
+    fproj = DS->def<double>("integrator.tmp.fporj", Dimension::N);
+    grad  = DS->def<double>("model.grad", Dimension::PN);
+    dV    = DS->def<double>("model.dV", Dimension::PNFF);
+    dE    = DS->def<double>("model.rep.dE", Dimension::PNFF);
+    T     = DS->def<double>("model.rep.T", Dimension::PFF);
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:
@@ -48,16 +48,16 @@ void Kernel_NADForce::init_calc_impl(int stat) { exec_kernel(stat); }
 
 int Kernel_NADForce::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        int* occ_nuc         = Kernel_Elec::occ_nuc + iP;
-        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
+        kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
 
-        num_real* f     = this->f + iP * Dimension::N;
-        num_real* p     = this->p + iP * Dimension::N;
-        num_real* m     = this->m + iP * Dimension::N;
-        num_real* fadd  = this->fadd + iP * Dimension::N;
-        num_real* grad  = this->grad + iP * Dimension::N;
-        num_real* Force = this->Force + iP * Dimension::NFF;
-        num_real* T     = this->T + iP * Dimension::FF;
+        kids_real* f     = this->f + iP * Dimension::N;
+        kids_real* p     = this->p + iP * Dimension::N;
+        kids_real* m     = this->m + iP * Dimension::N;
+        kids_real* fadd  = this->fadd + iP * Dimension::N;
+        kids_real* grad  = this->grad + iP * Dimension::N;
+        kids_real* Force = this->Force + iP * Dimension::NFF;
+        kids_real* T     = this->T + iP * Dimension::FF;
 
         /////////////////////////////////////////////////////////////////
         switch (NADForce_type) {
@@ -188,4 +188,4 @@ int Nb                   = 1;
 bool BATH_FORCE_BILINEAR = false;
 };  // namespace FORCE_OPT
 
-};  // namespace PROJECT_NS
+};  // namespace kids

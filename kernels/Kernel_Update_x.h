@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 class Kernel_Update_x final : public Kernel {
    public:
@@ -14,17 +14,14 @@ class Kernel_Update_x final : public Kernel {
    private:
     double *x, *p, *m, *minv;
 
-    double scale;
-    double dt, sdt;
-
-    virtual void read_param_impl(Param* PM);
+    double scale, *dt_ptr;
 
     virtual void init_data_impl(DataSet* DS);
 
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 
 #endif  // Kernel_Update_x_H

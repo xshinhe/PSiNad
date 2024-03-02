@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(NADForcePolicy,  //
               EHR,             //
@@ -28,9 +28,9 @@ class Kernel_NADForce : public Kernel {
    private:
     bool offd_projected;
 
-    num_real *f, *grad, *dV, *dE, *Force, *T;
-    num_real *p, *m;
-    num_real *fadd, *fproj;
+    kids_real *f, *grad, *dV, *dE, *Force, *T;
+    kids_real *p, *m;
+    kids_real *fadd, *fproj;
 
     virtual void read_param_impl(Param *PM);
 
@@ -41,6 +41,6 @@ class Kernel_NADForce : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_NADForce_H

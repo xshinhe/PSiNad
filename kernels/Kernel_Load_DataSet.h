@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 /**
  * @brief Kernel_Load_DataSet load previous data in state stucture if restart
@@ -22,7 +22,7 @@ class Kernel_Load_DataSet : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 
 #endif  // Kernel_Load_DataSet_H

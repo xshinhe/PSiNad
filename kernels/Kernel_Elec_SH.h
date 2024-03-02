@@ -16,7 +16,7 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(SHPolicy,  //
               FSSH,      //
@@ -38,18 +38,18 @@ class Kernel_Elec_SH final : public Kernel {
     }
 
     // @brief: generate hopping state from iocc (but with change current state)
-    static int max_choose(num_complex* rho);
+    static int max_choose(kids_complex* rho);
 
-    static int pop_choose(num_complex* rho);
+    static int pop_choose(kids_complex* rho);
 
-    static int pop_neg_choose(num_complex* rho);
+    static int pop_neg_choose(kids_complex* rho);
 
     // @brief: generate hopping state from iocc (but with change current state)
-    static int hopping_choose(num_complex* rho, num_complex* H, int from, num_real dt);
+    static int hopping_choose(kids_complex* rho, kids_complex* H, int from, kids_real dt);
 
-    static void hopping_direction(num_real* direction, num_real* dE, int from, int to);
+    static void hopping_direction(kids_real* direction, kids_real* dE, int from, int to);
 
-    static int hopping_impulse(num_real* direction, num_real* np, num_real* nm, num_real* E,  //
+    static int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm, kids_real* E,  //
                                int from, int to, bool reflect);
 
    private:
@@ -58,13 +58,13 @@ class Kernel_Elec_SH final : public Kernel {
 
     double dt;
     int* occ_nuc;
-    num_real* x;
-    num_real* p;
-    num_real* m;
-    num_real* direction;
-    num_real *E, *dE, *T, *T_init;
-    num_complex* H;
-    num_complex* rho_ele;
+    kids_real* x;
+    kids_real* p;
+    kids_real* m;
+    kids_real* direction;
+    kids_real *E, *dE, *T, *T_init;
+    kids_complex* H;
+    kids_complex* rho_ele;
 
     virtual void read_param_impl(Param* PM);
 
@@ -75,6 +75,6 @@ class Kernel_Elec_SH final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Elec_SH_H

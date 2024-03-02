@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 
 /**
@@ -23,7 +23,7 @@ class Kernel_Dump_DataSet : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 
 #endif  // Kernel_Dump_DataSet_H

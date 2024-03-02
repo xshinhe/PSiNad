@@ -15,7 +15,7 @@
 #include "../core/Kernel.h"
 #include "Kernel_Elec.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 /**
  * @brief initialization kernel for electonic DOFs in CMM
@@ -36,12 +36,12 @@ class Kernel_Elec_CMM final : public Kernel {
     /**
      * @brief sampling mapping variables from uniform sphere distribution (i.e. uniform simplex for action)
      */
-    static int c_sphere(num_complex *c, int fdim);
+    static int c_sphere(kids_complex *c, int fdim);
 
-    static int c_focus(num_complex *c, double xi, double gamma, int occ, int fdim);
+    static int c_focus(kids_complex *c, double xi, double gamma, int occ, int fdim);
 
    private:
-    num_real gamma1, gamma2, xi1, xi2;
+    kids_real gamma1, gamma2, xi1, xi2;
     bool use_cv  = false;
     bool use_wmm = false;  // in this case, gamma1 will be used as delta in wMM
 
@@ -53,6 +53,6 @@ class Kernel_Elec_CMM final : public Kernel {
 };
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Elec_CMM_H

@@ -12,25 +12,21 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
-
-void Kernel_Update_p::read_param_impl(Param* PM) {
-    dt  = PM->get<double>("dt", LOC(), phys::time_d);
-    sdt = scale * dt;
-}
+namespace kids {
 
 void Kernel_Update_p::init_data_impl(DataSet* DS) {
-    f    = DS->reg<num_real>("integrator.f", Dimension::PN);
-    p    = DS->reg<num_real>("integrator.p", Dimension::PN);
-    minv = DS->reg<num_real>("integrator.minv", Dimension::PN);
-    Ekin = DS->reg<num_real>("integrator.Ekin", Dimension::P);
+    dt_ptr = DS->def<kids_real>("iter.dt");
+    f      = DS->def<kids_real>("integrator.f", Dimension::PN);
+    p      = DS->def<kids_real>("integrator.p", Dimension::PN);
+    minv   = DS->def<kids_real>("integrator.minv", Dimension::PN);
+    Ekin   = DS->def<kids_real>("integrator.Ekin", Dimension::P);
 }
 
 void Kernel_Update_p::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real* p    = this->p + iP * Dimension::N;
-        num_real* minv = this->minv + iP * Dimension::N;
-        num_real* Ekin = this->Ekin + iP;
+        kids_real* p    = this->p + iP * Dimension::N;
+        kids_real* minv = this->minv + iP * Dimension::N;
+        kids_real* Ekin = this->Ekin + iP;
         //////////////////////////////////////////////
         Ekin[0] = 0.0e0;
         for (int i = 0; i < Dimension::N; ++i) Ekin[0] += 0.5e0 * p[i] * p[i] * minv[i];
@@ -39,19 +35,19 @@ void Kernel_Update_p::init_calc_impl(int stat) {
 
 int Kernel_Update_p::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real* f    = this->f + iP * Dimension::N;
-        num_real* p    = this->p + iP * Dimension::N;
-        num_real* minv = this->minv + iP * Dimension::N;
-        num_real* Ekin = this->Ekin + iP;
+        kids_real* f    = this->f + iP * Dimension::N;
+        kids_real* p    = this->p + iP * Dimension::N;
+        kids_real* minv = this->minv + iP * Dimension::N;
+        kids_real* Ekin = this->Ekin + iP;
 
         //////////////////////////////////////////////
         Ekin[0] = 0.0e0;
         for (int i = 0; i < Dimension::N; ++i) {
-            p[i] -= f[i] * sdt;
+            p[i] -= f[i] * scale * dt_ptr[0];
             Ekin[0] += 0.5e0 * p[i] * p[i] * minv[i];
         }
     }
     return 0;
 }
 
-};  // namespace PROJECT_NS
+};  // namespace kids

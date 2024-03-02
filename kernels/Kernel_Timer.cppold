@@ -1,6 +1,6 @@
 #include "Kernel_Timer.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Kernel_Timer::read_param_impl(Param* PM) {
     t0    = PM->get<double>("t0", LOC(), phys::time_d, 0.0f);
@@ -12,12 +12,12 @@ void Kernel_Timer::read_param_impl(Param* PM) {
 }
 
 void Kernel_Timer::init_data_impl(DataSet* DS) {
-    t_ptr     = DS->reg<num_real>("integrator.t");
-    sstep_ptr = DS->reg<int>("timer.sstep");
-    istep_ptr = DS->reg<int>("timer.istep");
-    nstep_ptr = DS->reg<int>("timer.nstep");
-    isamp_ptr = DS->reg<int>("timer.isamp");
-    nsamp_ptr = DS->reg<int>("timer.nsamp");
+    t_ptr     = DS->def<kids_real>("integrator.t");
+    sstep_ptr = DS->def<int>("timer.sstep");
+    istep_ptr = DS->def<int>("timer.istep");
+    nstep_ptr = DS->def<int>("timer.nstep");
+    isamp_ptr = DS->def<int>("timer.isamp");
+    nsamp_ptr = DS->def<int>("timer.nsamp");
     // initial
     *sstep_ptr = sstep;
     *nstep_ptr = nstep;
@@ -36,4 +36,4 @@ int Kernel_Timer::exec_kernel_impl(int stat) {
     (*isamp_ptr) = (*istep_ptr) / sstep;
     return 0;
 }
-};  // namespace PROJECT_NS
+};  // namespace kids

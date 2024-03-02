@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(LVCMPolicy,  //
               PYR3,        //
@@ -35,21 +35,21 @@ class Model_LVCM final : public Kernel {
     bool classical_bath;
 
 
-    num_real* Hsys;
-    num_real *kcoeff, *lcoeff;
+    kids_real* Hsys;
+    kids_real *kcoeff, *lcoeff;
 
-    num_real* x_sigma;
-    num_real* p_sigma;
-    num_real* x_0;
-    num_real* p_0;
+    kids_real* x_sigma;
+    kids_real* p_sigma;
+    kids_real* x_0;
+    kids_real* p_0;
 
     // integrator
-    num_real *x, *p, *m, *w;
+    kids_real *x, *p, *m, *w;
 
     // model
-    num_real* mass;
-    num_real *vpes, *grad, *hess;
-    num_real *V, *dV, *ddV;
+    kids_real* mass;
+    kids_real *vpes, *grad, *hess;
+    kids_real *V, *dV, *ddV;
 
     // int N_ligh;
     // N = N_mode + N_coup + N_ligh
@@ -63,6 +63,6 @@ class Model_LVCM final : public Kernel {
     int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Model_LVCM_H

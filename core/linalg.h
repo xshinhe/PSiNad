@@ -21,7 +21,7 @@
 #include "../thirdpart/Eigen/QR"
 #include "types.h"
 
-using namespace PROJECT_NS;
+using namespace kids;
 
 #define EigMajor Eigen::RowMajor
 
@@ -34,12 +34,12 @@ using EigMX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 template <class T>
 using EigAX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 
-typedef EigVX<num_real> EigVXr;
-typedef EigVX<num_complex> EigVXc;
-typedef EigMX<num_real> EigMXr;
-typedef EigMX<num_complex> EigMXc;
-typedef EigMX<num_real> EigAXr;
-typedef EigMX<num_complex> EigAXc;
+typedef EigVX<kids_real> EigVXr;
+typedef EigVX<kids_complex> EigVXc;
+typedef EigMX<kids_real> EigMXr;
+typedef EigMX<kids_complex> EigMXc;
+typedef EigMX<kids_real> EigAXr;
+typedef EigMX<kids_complex> EigAXc;
 typedef Eigen::Map<EigVXr> MapVXr;
 typedef Eigen::Map<EigVXc> MapVXc;
 typedef Eigen::Map<EigMXr> MapMXr;
@@ -189,14 +189,14 @@ void ARRAY_MAT_OFFD(TA* A, TB* B, size_t N1) {
 =            realize interface of linear algebra            =
 ===========================================================*/
 
-inline void LinearSolve(num_real* x, num_real* A, num_real* b, const int& N) {
+inline void LinearSolve(kids_real* x, kids_real* A, kids_real* b, const int& N) {
     MapMXr Mapx(x, N, 1);
     MapMXr MapA(A, N, N);
     MapMXr Mapb(b, N, 1);
     Mapx = MapA.householderQr().solve(Mapb);
 }
 
-inline void EigenSolve(num_real* E, num_real* T, num_real* A, const int& N) {
+inline void EigenSolve(kids_real* E, kids_real* T, kids_real* A, const int& N) {
     MapMXr MapE(E, N, 1);
     MapMXr MapT(T, N, N);
     MapMXr MapA(A, N, N);
@@ -205,7 +205,7 @@ inline void EigenSolve(num_real* E, num_real* T, num_real* A, const int& N) {
     MapT = eig.eigenvectors().real();
 }
 
-inline void EigenSolve(num_real* E, num_complex* T, num_complex* A, const int& N) {
+inline void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, const int& N) {
     MapMXr MapE(E, N, 1);
     MapMXc MapT(T, N, N);
     MapMXc MapA(A, N, N);
@@ -214,7 +214,7 @@ inline void EigenSolve(num_real* E, num_complex* T, num_complex* A, const int& N
     MapT = eig.eigenvectors();
 }
 
-inline void EigenSolve(num_complex* E, num_complex* T, num_complex* A, const int& N) {
+inline void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, const int& N) {
     MapMXc MapE(E, N, 1);
     MapMXc MapT(T, N, N);
     MapMXc MapA(A, N, N);
@@ -223,7 +223,7 @@ inline void EigenSolve(num_complex* E, num_complex* T, num_complex* A, const int
     MapT = eig.eigenvectors();
 }
 
-inline void PseudoInverse(num_real* A, num_real* invA, const int& N, num_real e = 1E-5) {
+inline void PseudoInverse(kids_real* A, kids_real* invA, const int& N, kids_real e = 1E-5) {
     MapMXr MapA(A, N, N);
     MapMXr MapInvA(invA, N, N);
     MapInvA = MapA.completeOrthogonalDecomposition().pseudoInverse();
@@ -401,7 +401,7 @@ x.cross(y)                // cross(x, y) Requires #include <Eigen/Geometry>
 
 //// Type conversion
 // Eigen                           // Matlab
-A.cast<num_real>();                  // num_real(A)
+A.cast<kids_real>();                  // kids_real(A)
 A.cast<float>();                   // single(A)
 A.cast<int>();                     // int32(A)
 A.real();                          // real(A)

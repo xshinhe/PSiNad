@@ -8,7 +8,7 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
            ")
 endif()
 
-project(opendf LANGUAGES C CXX Fortran)
+project(kids LANGUAGES C CXX Fortran)
 enable_language(Fortran)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,6 +38,13 @@ if(CCACHE_PROGRAM)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif()
 
+# Measuring Compiling Time
+# https://github.com/jrmadsen/compile-time-perf
+find_package(compile-time-perf) 
+if(compile-time-perf_FOUND)
+    enable_compile_time_perf(kids-ctp)
+endif()
+
 include_directories(${CMAKE_SOURCE_DIR}/thirdpart/)
 include_directories(${CMAKE_SOURCE_DIR}) # set up root also as include directory
 
@@ -61,7 +68,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native -fPIC")
 # set(CUSTOMIZED_HDF5_DIR "/usr/local/HDF_Group/HDF5/1.13.2")
 
 find_package(MPIMod REQUIRED)
-# find_package(MKLMod)
+#find_package(MKLMod)
 
 # find_package(CINTMod) # optional
 # # find_package(pybind11 REQUIRED)
@@ -83,9 +90,9 @@ add_subdirectory(kernels)
 add_subdirectory(models)
 
 # add_subdirectory(solvers)
-file(GLOB_RECURSE opendf_solver_srcs solvers/*.cpp)
-add_library(opendfcpp SHARED ${opendf_solver_srcs})
-target_link_libraries(opendfcpp
+file(GLOB_RECURSE kids_solver_srcs solvers/*.cpp)
+add_library(cppkids SHARED ${kids_solver_srcs})
+target_link_libraries(cppkids
     fparser
     core
     ker
@@ -94,9 +101,9 @@ target_link_libraries(opendfcpp
 
 add_subdirectory(binder)
 
-add_executable(opendf main.cc Handler.cpp mpi_utils.cpp)
-target_link_libraries(opendf
-    opendfcpp
+add_executable(kids main.cc Handler.cpp mpi_utils.cpp)
+target_link_libraries(kids
+    cppkids
     gflags::gflags
     glog::glog
     # MKLMod::MKL

@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 class Kernel_Update_T : public Kernel {
    public:
@@ -18,20 +18,19 @@ class Kernel_Update_T : public Kernel {
     // for NHC
     double *nhc_x, *nhc_p, *nhc_G, *nhc_Q;
     //
-    double scale;
-    double dt, sdt;
+    double scale, *dt_ptr;
     double beta;
     double gammal;
     double randu;
 
     virtual void read_param_impl(Param *PM);
 
-    virtual void init_data_impl(DataSet *S);
+    virtual void init_data_impl(DataSet *DS);
 
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 
 #endif  // Kernel_Update_T_H

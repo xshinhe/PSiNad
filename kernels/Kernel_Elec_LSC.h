@@ -14,7 +14,7 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 /**
  * @brief initialization kernel for electonic DOFs in LSC
@@ -31,7 +31,7 @@ class Kernel_Elec_LSC final : public Kernel {
     /**
      * @brief sampling mapping variables from gaussian distribution
      */
-    static int mapvar_gauss(num_real *mapvar, num_real variance, int fdim) {
+    static int mapvar_gauss(kids_real *mapvar, kids_real variance, int fdim) {
         Kernel_Random::rand_gaussian(mapvar, 2 * fdim, sqrt(variance));
         return 0;
     }
@@ -47,6 +47,6 @@ class Kernel_Elec_LSC final : public Kernel {
 };
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Elec_LSC_H

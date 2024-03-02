@@ -7,7 +7,7 @@
 #include "../core/DataSet.h"
 #include "../thirdpart/fparser/fparser.hh"
 
-namespace PROJECT_NS {
+namespace kids {
 
 template <typename T>
 class FPARSER {
@@ -51,36 +51,36 @@ inline int convert_from_Int(void* data, int ID) {
     return *((int*) data + ID);
 }
 template <>
-inline num_real convert_from_Int(void* data, int ID) {
+inline kids_real convert_from_Int(void* data, int ID) {
     return *((int*) data + ID);
 }
 template <>
-inline num_complex convert_from_Int(void* data, int ID) {
+inline kids_complex convert_from_Int(void* data, int ID) {
     return 1.0e0 * (*((int*) data + ID));
 }
 template <>
 inline int convert_from_Real(void* data, int ID) {
-    return (int) (*((num_real*) data + ID));
+    return (int) (*((kids_real*) data + ID));
 }
 template <>
-inline num_real convert_from_Real(void* data, int ID) {
-    return (*((num_real*) data + ID));
+inline kids_real convert_from_Real(void* data, int ID) {
+    return (*((kids_real*) data + ID));
 }
 template <>
-inline num_complex convert_from_Real(void* data, int ID) {
-    return 1.0e0 * (*((num_real*) data + ID));
+inline kids_complex convert_from_Real(void* data, int ID) {
+    return 1.0e0 * (*((kids_real*) data + ID));
 }
 template <>
 inline int convert_from_Complex(void* data, int ID) {
-    return (int) std::real(*((num_complex*) data + ID));
+    return (int) std::real(*((kids_complex*) data + ID));
 }
 template <>
-inline num_real convert_from_Complex(void* data, int ID) {
-    return std::real(*((num_complex*) data + ID));
+inline kids_real convert_from_Complex(void* data, int ID) {
+    return std::real(*((kids_complex*) data + ID));
 }
 template <>
-inline num_complex convert_from_Complex(void* data, int ID) {
-    return (*((num_complex*) data + ID));
+inline kids_complex convert_from_Complex(void* data, int ID) {
+    return (*((kids_complex*) data + ID));
 }
 
 class Formula {
@@ -149,7 +149,7 @@ class Formula {
 
         if (FPARSER_ID == -1) {  ///< [single variable]
             auto inode = std::get<3>(DS->info(utils::concat(field, ".", parsed_string)));
-            if (inode == nullptr) throw state_undefined_key_error(parsed_string);
+            if (inode == nullptr) throw basic_error(parsed_string);
 
             res_type = inode->type();
 
@@ -164,7 +164,7 @@ class Formula {
             parsed_declaration = parsed_string.substr(0, ipos);               // such as R(x,y)
             parsed_expression  = parsed_string.substr(ipos + 1, str.size());  // such as x^2 + cos(y)
 
-            char type_char = parsed_declaration[0];  // from {'R', 'C'} for num_real and num_complex type
+            char type_char = parsed_declaration[0];  // from {'R', 'C'} for kids_real and kids_complex type
 
             // remove (...) around the variables
             parsed_varslist = parsed_declaration;
@@ -199,11 +199,11 @@ class Formula {
             switch (type_char) {
                 case 'R':
                     res_type   = DataSet::Type::Real;
-                    FPARSER_ID = FPARSER<num_real>::regis_FPARSER(parsed_expression, parsed_varslist);
+                    FPARSER_ID = FPARSER<kids_real>::regis_FPARSER(parsed_expression, parsed_varslist);
                     break;
                 case 'C':
                     res_type   = DataSet::Type::Complex;
-                    FPARSER_ID = FPARSER<num_complex>::regis_FPARSER(parsed_expression, parsed_varslist);
+                    FPARSER_ID = FPARSER<kids_complex>::regis_FPARSER(parsed_expression, parsed_varslist);
                     break;
             }
             unique_name = (str_alias == "") ? utils::concat("[F", FPARSER_ID, "]") : str_alias;
@@ -240,6 +240,6 @@ class Formula {
 // std::vector<Formula> Formula::GLOBAL;
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  //  FORMULA_H

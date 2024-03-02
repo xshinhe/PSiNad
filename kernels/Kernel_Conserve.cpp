@@ -3,20 +3,20 @@
 #include "Kernel_Declare.h"
 #include "Kernel_Elec.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Kernel_Conserve::read_param_impl(Param* PM) {
     conserve_scale = PM->get<bool>("conserve_scale", LOC(), false);  // default as false
 }
 
 void Kernel_Conserve::init_data_impl(DataSet* DS) {
-    vpes = DS->reg<num_real>("model.vpes", Dimension::P);
-    Ekin = DS->reg<num_real>("integrator.Ekin", Dimension::P);
-    Epot = DS->reg<num_real>("integrator.Epot", Dimension::P);
-    Etot = DS->reg<num_real>("integrator.Etot", Dimension::P);
-    E    = DS->reg<num_real>("model.rep.E", Dimension::PF);
-    m    = DS->reg<num_real>("integrator.m", Dimension::PN);
-    p    = DS->reg<num_real>("integrator.p", Dimension::PN);
+    vpes = DS->def<kids_real>("model.vpes", Dimension::P);
+    Ekin = DS->def<kids_real>("integrator.Ekin", Dimension::P);
+    Epot = DS->def<kids_real>("integrator.Epot", Dimension::P);
+    Etot = DS->def<kids_real>("integrator.Etot", Dimension::P);
+    E    = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    m    = DS->def<kids_real>("integrator.m", Dimension::PN);
+    p    = DS->def<kids_real>("integrator.p", Dimension::PN);
 }
 
 void Kernel_Conserve::init_calc_impl(int stat) {
@@ -32,14 +32,14 @@ void Kernel_Conserve::init_calc_impl(int stat) {
 
 int Kernel_Conserve::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real* E         = this->E + iP * Dimension::F;
-        num_real* p         = this->p + iP * Dimension::N;
-        num_real* m         = this->m + iP * Dimension::N;
-        num_real* Etot      = this->Etot + iP;
-        num_real* Etot_init = this->Etot_init + iP;
-        num_real* Ekin      = this->Ekin + iP;
-        num_real* Epot      = this->Epot + iP;
-        num_real* vpes      = this->vpes + iP;
+        kids_real* E         = this->E + iP * Dimension::F;
+        kids_real* p         = this->p + iP * Dimension::N;
+        kids_real* m         = this->m + iP * Dimension::N;
+        kids_real* Etot      = this->Etot + iP;
+        kids_real* Etot_init = this->Etot_init + iP;
+        kids_real* Ekin      = this->Ekin + iP;
+        kids_real* Epot      = this->Epot + iP;
+        kids_real* vpes      = this->vpes + iP;
 
         // Epot[0] = vpes[0] + E[(*Kernel_Elec::occ_nuc)];  // @onlly read
         Ekin[0] = 0.0e0;
@@ -54,4 +54,4 @@ int Kernel_Conserve::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids

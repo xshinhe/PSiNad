@@ -1,6 +1,6 @@
 #include "Model_Bath.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 double Model_Bath::J_Debye(double w) { return 2 * lambda * omegac * w / (w * w + omegac * omegac); }
 
@@ -20,7 +20,7 @@ double Model_Bath::J(double w, double* w_arr, double* c_arr, int Nb) {
     return Jw;
 }
 
-int Model_Bath::fun_Cw(num_complex* Cw, double* w, int Nw, double* w_arr, double* c_arr, double beta, int Nb) {
+int Model_Bath::fun_Cw(kids_complex* Cw, double* w, int Nw, double* w_arr, double* c_arr, double beta, int Nb) {
     double dw    = std::min({1.0e-5, w_arr[0] / 10, w_arr[Nb - 1] / 1000});
     double C0_Re = (J(dw, w_arr, c_arr, Nb) - J(-dw, w_arr, c_arr, Nb)) / (2 * beta * dw);
     for (int i = 0; i < Nw; ++i) {
@@ -79,8 +79,8 @@ void Model_Bath::read_param_impl(Param* PM) {
 }
 
 void Model_Bath::init_data_impl(DataSet* DS) {
-    omegas = DS->reg<double>("model.bath.omegas", Nb);
-    coeffs = DS->reg<double>("model.bath.coeffs", Nb);
+    omegas = DS->def<double>("model.bath.omegas", Nb);
+    coeffs = DS->def<double>("model.bath.coeffs", Nb);
     switch (bath_type) {
         case BathPolicy::Debye: {
             for (int j = 0; j < Nb; ++j) {
@@ -144,8 +144,8 @@ void Model_Bath::init_data_impl(DataSet* DS) {
         }
     }
 
-    x_sigma = DS->reg<double>("model.bath.x_sigma", Nb);
-    p_sigma = DS->reg<double>("model.bath.p_sigma", Nb);
+    x_sigma = DS->def<double>("model.bath.x_sigma", Nb);
+    p_sigma = DS->def<double>("model.bath.p_sigma", Nb);
     for (int j = 0; j < Nb; ++j) {
         /* note:
             for finite temperature: Qoverbeta = 0.5*freq / dtanh(0.5*beta*freq)
@@ -159,4 +159,4 @@ void Model_Bath::init_data_impl(DataSet* DS) {
     }
 }
 
-};  // namespace PROJECT_NS
+};  // namespace kids

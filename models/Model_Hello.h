@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 class Model_Hello final : public Kernel {
    public:
@@ -14,7 +14,7 @@ class Model_Hello final : public Kernel {
     double *x, *V, *dV, *ddV;
     double *m, *w;
 
-    virtual void read_param_impl(Param* P){};
+    virtual void read_param_impl(Param* PM){};
 
     virtual void init_data_impl(DataSet* DS){};
 
@@ -24,6 +24,6 @@ class Model_Hello final : public Kernel {
     }
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // MODEL_HELLO

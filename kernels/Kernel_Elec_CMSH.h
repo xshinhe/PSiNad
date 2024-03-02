@@ -16,7 +16,7 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(CMSHPolicy,
               EHR,    // Ehrenfest Dynamics
@@ -39,7 +39,7 @@ class Kernel_Elec_CMSH final : public Kernel {
    private:
     CMSHPolicy::_type cmsh_type;
 
-    num_real gamma1, gamma2, xi1, xi2;
+    kids_real gamma1, gamma2, xi1, xi2;
     bool use_focus = false;
     bool use_cv    = true;   // adapt cv in rho_nuc
     bool use_wmm   = false;  // in this case, gamma1 will be used as delta in wMM
@@ -54,22 +54,27 @@ class Kernel_Elec_CMSH final : public Kernel {
     bool dynamic_alpha;
 
     double dt;
-    num_real alpha0;
-    num_real* alpha;
-    num_real* p;
-    num_real* m;
-    num_real* fadd;
-    num_real* ftmp;
-    num_real* direction;
-    num_real *vpes, *V, *E, *dE, *T;
-    num_real* Epot;
-    num_complex* H;
-    num_complex* wrho;
-    num_real* sqcw;
+    kids_real alpha0;
+    kids_real* alpha;
+    kids_real* p;
+    kids_real* m;
+    kids_real* fadd;
+    kids_real* ftmp;
+    kids_real* direction;
+    kids_real *vpes, *V, *E, *dE, *T;
+    kids_real* Epot;
+    kids_complex* H;
+    kids_complex* wrho;
+    kids_real* sqcw;
+    kids_real *sqcIA, *sqcID;
+
+    int* do_prec_ptr;
 
     //
     bool use_sqc;
     int sqc_init;
+    bool only_adjust;
+    bool check_cxs;
 
     bool use_fssh;
     bool use_strange_win;
@@ -83,6 +88,6 @@ class Kernel_Elec_CMSH final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Elec_CMSH_H

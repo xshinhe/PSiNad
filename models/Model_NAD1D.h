@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(NAD1DPolicy,
               PURE,      // Pure Electronic Dynamic
@@ -37,24 +37,24 @@ class Model_NAD1D final : public Kernel {
    private:
     NAD1DPolicy::_type nad1d_type;
 
-    num_real* Hsys;
+    kids_real* Hsys;
 
-    num_real* x0;
-    num_real* p0;
-    num_real* x_sigma;
-    num_real* p_sigma;
+    kids_real* x0;
+    kids_real* p0;
+    kids_real* x_sigma;
+    kids_real* p_sigma;
 
     // integrator
-    num_real *x, *p;
-    num_complex* p_sign;
+    kids_real *x, *p;
+    kids_complex* p_sign;
 
     // model
-    num_real* mass;
-    num_real *vpes, *grad, *hess;
-    num_real *V, *dV, *ddV;
-    num_real* pm;
+    kids_real* mass;
+    kids_real *vpes, *grad, *hess;
+    kids_real *V, *dV, *ddV;
+    kids_real* pm;
 
-    virtual void read_param_impl(Param* P);
+    virtual void read_param_impl(Param* PM);
 
     virtual void init_data_impl(DataSet* DS);
 
@@ -64,6 +64,6 @@ class Model_NAD1D final : public Kernel {
 };
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // MODEL_NAD1D_H

@@ -15,7 +15,7 @@
 #include "../kernels/Kernel_Representation.h"
 #include "../kernels/Kernel_Update.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 // CMM Solver Builder
 std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string NAD_Kernel_name) {
@@ -23,9 +23,6 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
 
     // Root Kernel
     std::shared_ptr<Kernel> ker(new Kernel(NAD_Kernel_name));
-
-    // Timer
-    std::shared_ptr<Kernel_Timer> ktime(new Kernel_Timer());
 
     /// Integrator Kernel
     std::shared_ptr<Kernel> kinte(new Kernel("BAOAB_Integrator"));
@@ -73,8 +70,6 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     kinte->push(ku_p);
     kinte->push(std::shared_ptr<Kernel_Conserve>(new Kernel_Conserve()));
 
-    kinte->push(ktime);
-
     std::shared_ptr<Kernel_Iter> kiter(new Kernel_Iter());
     kiter->push(krecd);  // stacked in iteration
     kiter->push(kinte);  // stacked in iteration
@@ -82,11 +77,11 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     // /// CMM kernel
     ker->push(std::shared_ptr<Kernel_Load_DataSet>(new Kernel_Load_DataSet()))
         .push(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
-        .push(std::shared_ptr<Kernel_Declare>(new Kernel_Declare({kmodel, ktime, kinte})))
+        .push(std::shared_ptr<Kernel_Declare>(new Kernel_Declare({kmodel, kinte})))
         .push(std::shared_ptr<Kernel_Initialize>(new Kernel_Initialize({kmodel, krepr, kele, krecd})))
         .push(kiter)
         .push(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
     return ker;
 }
 
-};  // namespace PROJECT_NS
+};  // namespace kids

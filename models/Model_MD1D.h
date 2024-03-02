@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../kernels/Kernel_Random.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 
 class Model_HO final : public Kernel {
@@ -20,23 +20,23 @@ class Model_HO final : public Kernel {
 
     double beta;
 
-    virtual void read_param_impl(Param *P) {
-        size = P->get<int>("N", LOC());             //
-        beta = P->get<double>("beta", LOC(), 1.0);  //
+    virtual void read_param_impl(Param *PM) {
+        size = PM->get<int>("N", LOC());             //
+        beta = PM->get<double>("beta", LOC(), 1.0);  //
     }
 
     virtual void init_data_impl(DataSet *DS) {
         // external
-        x = DS->reg<double>("integrator.x", size);
-        p = DS->reg<double>("integrator.p", size);
-        f = DS->reg<double>("integrator.f", size);
+        x = DS->def<double>("integrator.x", size);
+        p = DS->def<double>("integrator.p", size);
+        f = DS->def<double>("integrator.f", size);
 
-        x_init = DS->reg<double>("init.x", size);
-        p_init = DS->reg<double>("init.p", size);
+        x_init = DS->def<double>("init.x", size);
+        p_init = DS->def<double>("init.p", size);
 
         // shared
-        w = DS->reg<double>("model.w", size);
-        m = DS->reg<double>("model.m", size);
+        w = DS->def<double>("model.w", size);
+        m = DS->def<double>("model.m", size);
         for (int i = 0; i < size; ++i) m[i] = 1, w[i] = 1;
     }
 
@@ -74,17 +74,17 @@ class MODEL_MD1D final : public Kernel {
     double *x, *f;
     double *m, *w;
 
-    virtual void read_param_impl(Param *P) {
-        size = P->get<int>("N", LOC());  //
+    virtual void read_param_impl(Param *PM) {
+        size = PM->get<int>("N", LOC());  //
     }
 
     virtual void init_data_impl(DataSet *DS) {
         // external
-        x = DS->reg<double>("integrator.x", size);
-        f = DS->reg<double>("integrator.f", size);
+        x = DS->def<double>("integrator.x", size);
+        f = DS->def<double>("integrator.f", size);
         // shared
-        w = DS->reg<double>("model.w", size);
-        m = DS->reg<double>("model.m", size);
+        w = DS->def<double>("model.w", size);
+        m = DS->def<double>("model.m", size);
         for (int i = 0; i < size; ++i) m[i] = 1, w[i] = 1;
     }
 
@@ -93,6 +93,6 @@ class MODEL_MD1D final : public Kernel {
         return 0;
     }
 };
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // MODEL_MD1D_H

@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 /**
  * @brief iterative kernel wrapper/(interface) for other kernels
@@ -13,15 +13,29 @@ class Kernel_Iter final : public Kernel {
     inline virtual const std::string name() { return "Kernel_Iter"; }
 
    private:
-    int* istep_ptr;
-    int* nstep_ptr;
+    double t0, *t0_ptr;
+    double t, *t_ptr;
+    double dt, *dt_ptr;
+    double tend, *tend_ptr;
+    double tsec, *tsec_ptr;
+    int *succ_ptr;
+    int *do_recd_ptr;
+    int *do_prec_ptr;
 
-    virtual void init_data_impl(DataSet* DS);
+    int sstep, *sstep_ptr;
+    int istep, *istep_ptr, nstep, *nstep_ptr;
+    int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
+
+    virtual void read_param_impl(Param *PM);
+
+    virtual void init_data_impl(DataSet *DS);
+
+    virtual void init_calc_impl(int stat = -1);
 
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 
 #endif  // Kernel_Iter_H

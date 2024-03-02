@@ -13,7 +13,7 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Model_LVCM::read_param_impl(Param *PM) {
     lvcm_type      = LVCMPolicy::_from(_Param->get<std::string>("lvcm_flag", LOC(), "PYR3"));
@@ -21,9 +21,9 @@ void Model_LVCM::read_param_impl(Param *PM) {
 }
 
 void Model_LVCM::init_data_impl(DataSet *DS) {
-    Hsys = DS->reg<num_real>("model.Hsys", Dimension::FF);
-    w    = DS->reg<num_real>("model.w", Dimension::N);
-    memset(Hsys, 0, Dimension::FF * sizeof(num_real));
+    Hsys = DS->def<kids_real>("model.Hsys", Dimension::FF);
+    w    = DS->def<kids_real>("model.w", Dimension::N);
+    memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
     switch (lvcm_type) {
         case LVCMPolicy::PYR3:
         case LVCMPolicy::PYR24: {
@@ -72,8 +72,8 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
                     break;
             }
 
-            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Dimension::F);
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
+            kcoeff = DS->def<kids_real>("model.kcoeff", N_mode * Dimension::F);
+            lcoeff = DS->def<kids_real>("model.lcoeff", N_coup * Dimension::FF);
 
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i] / H_unit; }
             for (int j = 0; j < Dimension::N; ++j) w[j] = w_data[j] / H_unit;
@@ -108,8 +108,8 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             kcoeff_data = kcoeff_data_BUTA5;
             lcoeff_data = lcoeff_data_BUTA5;
 
-            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Dimension::F);
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
+            kcoeff = DS->def<kids_real>("model.kcoeff", N_mode * Dimension::F);
+            lcoeff = DS->def<kids_real>("model.lcoeff", N_coup * Dimension::FF);
 
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i] / H_unit; }
             for (int j = 0; j < Dimension::N; ++j) w[j] = w_data[j] / H_unit;
@@ -164,8 +164,8 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             double *kcoeff_data = kcoeff_data_CRC5;
             double *lcoeff_data = lcoeff_data_CRC5;
 
-            kcoeff = DS->reg<num_real>("model.kcoeff");
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
+            kcoeff = DS->def<kids_real>("model.kcoeff");
+            lcoeff = DS->def<kids_real>("model.lcoeff", N_coup * Dimension::FF);
 
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i] / H_unit; }
             for (int j = 0; j < Dimension::N; ++j) w[j] = w_data[j] / H_unit;
@@ -212,7 +212,7 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             N_mode = 0;
             N_coup = Dimension::N;
 
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
+            lcoeff = DS->def<kids_real>("model.lcoeff", N_coup * Dimension::FF);
 
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) { Hsys[ii] = E_data[i]; }
             for (int j = 0, jik = 0; j < Dimension::N; ++j) {
@@ -244,8 +244,8 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             double *kcoeff_data = kcoeff_data_PYR2;
             double *lcoeff_data = lcoeff_data_PYR2;
 
-            kcoeff = DS->reg<num_real>("model.kcoeff", N_mode * Dimension::F);
-            lcoeff = DS->reg<num_real>("model.lcoeff", N_coup * Dimension::FF);
+            kcoeff = DS->def<kids_real>("model.kcoeff", N_mode * Dimension::F);
+            lcoeff = DS->def<kids_real>("model.lcoeff", N_coup * Dimension::FF);
 
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
                 Hsys[ii] = i / (Dimension::F / 2) * wcav + E_data[i % 2] / H_unit;
@@ -320,10 +320,10 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
     }
 
     /// 2) init Bath sub-kernel (declaration & call)
-    x_0     = DS->reg<num_real>("model.x_0", Dimension::N);
-    p_0     = DS->reg<num_real>("model.p_0", Dimension::N);
-    x_sigma = DS->reg<double>("model.x_sigma", Dimension::N);
-    p_sigma = DS->reg<double>("model.p_sigma", Dimension::N);
+    x_0     = DS->def<kids_real>("model.x_0", Dimension::N);
+    p_0     = DS->def<kids_real>("model.p_0", Dimension::N);
+    x_sigma = DS->def<double>("model.x_sigma", Dimension::N);
+    p_sigma = DS->def<double>("model.p_sigma", Dimension::N);
     switch (lvcm_type) {
         case LVCMPolicy::CRC2:
         case LVCMPolicy::CRC5: {
@@ -349,24 +349,24 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
     }
 
     // model field
-    mass = DS->reg<double>("model.mass", Dimension::N);
+    mass = DS->def<double>("model.mass", Dimension::N);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
-    vpes = DS->reg<double>("model.vpes", Dimension::P);
-    grad = DS->reg<double>("model.grad", Dimension::PN);
-    hess = DS->reg<double>("model.hess", Dimension::PNN);
-    V    = DS->reg<double>("model.V", Dimension::PFF);
-    dV   = DS->reg<double>("model.dV", Dimension::PNFF);
-    // ddV  = DS->reg<double>("model.ddV", Dimension::NNFF);
+    vpes = DS->def<double>("model.vpes", Dimension::P);
+    grad = DS->def<double>("model.grad", Dimension::PN);
+    hess = DS->def<double>("model.hess", Dimension::PNN);
+    V    = DS->def<double>("model.V", Dimension::PFF);
+    dV   = DS->def<double>("model.dV", Dimension::PNFF);
+    // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x = DS->reg<double>("integrator.x", Dimension::PN);
-    p = DS->reg<double>("integrator.p", Dimension::PN);
+    x = DS->def<double>("integrator.x", Dimension::PN);
+    p = DS->def<double>("integrator.p", Dimension::PN);
 }
 
 void Model_LVCM::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real *x = this->x + iP * Dimension::N;
-        num_real *p = this->p + iP * Dimension::N;
+        kids_real *x = this->x + iP * Dimension::N;
+        kids_real *p = this->p + iP * Dimension::N;
 
         Kernel_Random::rand_gaussian(x, Dimension::N);
         Kernel_Random::rand_gaussian(p, Dimension::N);
@@ -388,12 +388,12 @@ void Model_LVCM::init_calc_impl(int stat) {
 
 int Model_LVCM::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real *x    = this->x + iP * Dimension::N;
-        num_real *vpes = this->vpes + iP;
-        num_real *grad = this->grad + iP * Dimension::N;
-        num_real *hess = this->hess + iP * Dimension::NN;
-        num_real *V    = this->V + iP * Dimension::FF;
-        num_real *dV   = this->dV + iP * Dimension::NFF;
+        kids_real *x    = this->x + iP * Dimension::N;
+        kids_real *vpes = this->vpes + iP;
+        kids_real *grad = this->grad + iP * Dimension::N;
+        kids_real *hess = this->hess + iP * Dimension::NN;
+        kids_real *V    = this->V + iP * Dimension::FF;
+        kids_real *dV   = this->dV + iP * Dimension::NFF;
         // ARRAY_SHOW(x, 1, Dimension::N);
 
         // calculate nuclear vpes and grad
@@ -405,7 +405,7 @@ int Model_LVCM::exec_kernel_impl(int stat) {
         vpes[0] = 0.5 * term;
 
         // electronic pes
-        memset(V, 0, Dimension::FF * sizeof(num_real));
+        memset(V, 0, Dimension::FF * sizeof(kids_real));
         for (int ik = 0; ik < Dimension::FF; ++ik) V[ik] = Hsys[ik];
         // ARRAY_SHOW(V, Dimension::F, Dimension::F);
 
@@ -445,4 +445,4 @@ int Model_LVCM::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace PROJECT_NS
+};  // namespace kids

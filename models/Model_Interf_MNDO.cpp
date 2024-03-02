@@ -27,7 +27,7 @@ inline void closeOFS(std::ofstream& ofs) {
 
 inline bool isFileExists(const std::string& name) { return std::ifstream{name.c_str()}.good(); }
 
-namespace PROJECT_NS {
+namespace kids {
 
 void Model_Interf_MNDO::read_param_impl(Param* PM) {
     Kernel_Representation::onthefly = true;
@@ -41,31 +41,31 @@ void Model_Interf_MNDO::read_param_impl(Param* PM) {
 }
 
 void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
-    x = DS->reg<double>("integrator.x", Dimension::N);
-    p = DS->reg<double>("integrator.p", Dimension::N);
+    x = DS->def<double>("integrator.x", Dimension::N);
+    p = DS->def<double>("integrator.p", Dimension::N);
 
-    x0      = DS->reg<double>("model.x0", Dimension::N);
-    p0      = DS->reg<double>("model.p0", Dimension::N);
-    w       = DS->reg<double>("model.w", Dimension::N);
-    x_sigma = DS->reg<double>("model.x_sigma", Dimension::N);
-    p_sigma = DS->reg<double>("model.p_sigma", Dimension::N);
+    x0      = DS->def<double>("model.x0", Dimension::N);
+    p0      = DS->def<double>("model.p0", Dimension::N);
+    w       = DS->def<double>("model.w", Dimension::N);
+    x_sigma = DS->def<double>("model.x_sigma", Dimension::N);
+    p_sigma = DS->def<double>("model.p_sigma", Dimension::N);
 
     // model field
-    atoms = DS->reg<int>("model.atoms", Dimension::N);
-    mass  = DS->reg<double>("model.mass", Dimension::N);
-    vpes  = DS->reg<double>("model.vpes");
-    grad  = DS->reg<double>("model.grad", Dimension::N);
-    hess  = DS->reg<double>("model.hess", Dimension::NN);
-    Tmod  = DS->reg<double>("model.Tmod", Dimension::NN);
+    atoms = DS->def<int>("model.atoms", Dimension::N);
+    mass  = DS->def<double>("model.mass", Dimension::N);
+    vpes  = DS->def<double>("model.vpes");
+    grad  = DS->def<double>("model.grad", Dimension::N);
+    hess  = DS->def<double>("model.hess", Dimension::NN);
+    Tmod  = DS->def<double>("model.Tmod", Dimension::NN);
 
-    V  = DS->reg<double>("model.V", Dimension::FF);
-    dV = DS->reg<double>("model.dV", Dimension::NFF);
-    // ddV  = DS->reg<double>("model.ddV", Dimension::NNFF);
-    E  = DS->reg<double>("model.rep.E", Dimension::F);
-    dE = DS->reg<double>("model.rep.dE", Dimension::NFF);
-    // ddE  = DS->reg<double>("model.rep.ddE", Dimension::NNFF);
-    nac      = DS->reg<double>("model.rep.nac", Dimension::NFF);
-    nac_prev = DS->reg<double>("model.rep.nac_prev", Dimension::NFF);
+    V  = DS->def<double>("model.V", Dimension::FF);
+    dV = DS->def<double>("model.dV", Dimension::NFF);
+    // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
+    E  = DS->def<double>("model.rep.E", Dimension::F);
+    dE = DS->def<double>("model.rep.dE", Dimension::NFF);
+    // ddE  = DS->def<double>("model.rep.ddE", Dimension::NNFF);
+    nac      = DS->def<double>("model.rep.nac", Dimension::NFF);
+    nac_prev = DS->def<double>("model.rep.nac_prev", Dimension::NFF);
 
     // read z index
     for (int i = 0, idx = 0, idxR = 0; i < natom; ++i) {
@@ -100,7 +100,7 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
 
     if (init_nuclinp == "#hess") {
         std::ifstream ifs(".hess");  // read from .hess (saves in au)
-        num_real tmp;
+        kids_real tmp;
         if (ifs) {
             for (int i = 0, idx = 0; i < Dimension::N; ++i)  // hessian
                 for (int j = 0; j < Dimension::N; ++j, ++idx) {
@@ -171,7 +171,7 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
     } else if (init_nuclinp == "#fix") {  // for initial md
         for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i], p[i] = 0.0f;
     } else {
-        num_real tmp;
+        kids_real tmp;
         std::string stmp;
         std::ifstream ifs(utils::concat(init_nuclinp, stat));
         if (!ifs.is_open()) throw std::runtime_error("init_nuclinp cannot open");
@@ -789,7 +789,7 @@ int Model_Interf_MNDO::calc_samp() {
 
 int Model_Interf_MNDO::calc_scan() {
     int istep = 0, readn;
-    num_real tmp;
+    kids_real tmp;
     std::string eachline;
 
     // savefile_traj = utils::concat("traj-", 0, ".xyz");
@@ -822,4 +822,4 @@ int Model_Interf_MNDO::calc_scan() {
     ifs.close();
     return 0;
 }
-};  // namespace PROJECT_NS
+};  // namespace kids

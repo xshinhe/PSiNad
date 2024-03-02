@@ -16,15 +16,15 @@
         }                                                                            \
     })
 
-namespace PROJECT_NS {
+namespace kids {
 
-int Kernel_GWP::calc_Ekin(num_real* Ekin,  // [P]
-                          num_real* p,     // [P,N]
-                          num_real* m,     // [P,N]
+int Kernel_GWP::calc_Ekin(kids_real* Ekin,  // [P]
+                          kids_real* p,     // [P,N]
+                          kids_real* m,     // [P,N]
                           int P, int N) {
-    Eigen::Map<EigMX<num_real>> Map_Ekin(Ekin, P, 1);
-    Eigen::Map<EigMX<num_real>> Map_p(p, P, N);
-    Eigen::Map<EigMX<num_real>> Map_m(m, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_Ekin(Ekin, P, 1);
+    Eigen::Map<EigMX<kids_real>> Map_p(p, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_m(m, P, N);
     Map_Ekin = (Map_p.array() * Map_p.array() / (2.0e0 * Map_m.array())).matrix().rowwise().sum();
     return 0;
 }
@@ -32,32 +32,32 @@ int Kernel_GWP::calc_Ekin(num_real* Ekin,  // [P]
 /**
  * the expression is exp(-0.25*a*(x1-x2)^2 -0.25*(p1-p2)/a + 0.5i*(p1+p2)(x1-x2) - i(g1-g2))
  */
-int Kernel_GWP::calc_Snuc(num_complex* Snuc,  // [P,P]
-                          num_real* x1,       // [P,N]
-                          num_real* p1,       // [P,N]
-                          num_real* m1,       // [P,N]
-                          num_real* g1,       // [P]
-                          num_real* x2,       // [P,N]
-                          num_real* p2,       // [P,N]
-                          num_real* m2,       // [P,N]
-                          num_real* g2,       // [P]
-                          num_real* alpha,    // [N]
+int Kernel_GWP::calc_Snuc(kids_complex* Snuc,  // [P,P]
+                          kids_real* x1,       // [P,N]
+                          kids_real* p1,       // [P,N]
+                          kids_real* m1,       // [P,N]
+                          kids_real* g1,       // [P]
+                          kids_real* x2,       // [P,N]
+                          kids_real* p2,       // [P,N]
+                          kids_real* m2,       // [P,N]
+                          kids_real* g2,       // [P]
+                          kids_real* alpha,    // [N]
                           int P, int N) {
-    Eigen::Map<EigMX<num_complex>> Map_Snuc(Snuc, P, P);
-    Eigen::Map<EigMX<num_real>> Map_x1(x1, P, N);
-    Eigen::Map<EigMX<num_real>> Map_p1(p1, P, N);
-    Eigen::Map<EigMX<num_real>> Map_m1(m1, P, N);
-    Eigen::Map<EigMX<num_real>> Map_g1(g1, P, 1);
+    Eigen::Map<EigMX<kids_complex>> Map_Snuc(Snuc, P, P);
+    Eigen::Map<EigMX<kids_real>> Map_x1(x1, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_p1(p1, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_m1(m1, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_g1(g1, P, 1);
 
-    Eigen::Map<EigMX<num_real>> Map_x2(x2, P, N);
-    Eigen::Map<EigMX<num_real>> Map_p2(p2, P, N);
-    Eigen::Map<EigMX<num_real>> Map_m2(m2, P, N);
-    Eigen::Map<EigMX<num_real>> Map_g2(g2, P, 1);
+    Eigen::Map<EigMX<kids_real>> Map_x2(x2, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_p2(p2, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_m2(m2, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_g2(g2, P, 1);
 
-    Eigen::Map<EigMX<num_real>> Map_a(alpha, N, 1);
+    Eigen::Map<EigMX<kids_real>> Map_a(alpha, N, 1);
 
-    auto O_NP = EigMX<num_real>::Ones(N, P);
-    auto O_P1 = EigMX<num_real>::Ones(P, 1);
+    auto O_NP = EigMX<kids_real>::Ones(N, P);
+    auto O_P1 = EigMX<kids_real>::Ones(P, 1);
 
     auto x1_mul = Map_x1 * Map_a.asDiagonal();
     auto x2_mul = Map_x2 * Map_a.asDiagonal();
@@ -90,7 +90,7 @@ int Kernel_GWP::calc_Snuc(num_complex* Snuc,  // [P,P]
     // // ARRAY_SHOW(Snuc, P, P);
     // for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
     //     for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
-    //         num_complex term = 0.0e0;
+    //         kids_complex term = 0.0e0;
     //         for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
     //             term += -0.25 * alpha[j] * (x1[aj] - x2[bj]) * (x1[aj] - x2[bj])         //
     //                     - 0.25 / alpha[j] * (p1[aj] - p2[bj]) * (p1[aj] - p2[bj])        //
@@ -103,37 +103,37 @@ int Kernel_GWP::calc_Snuc(num_complex* Snuc,  // [P,P]
     return 0;
 }
 
-int Kernel_GWP::calc_Sele(num_complex* Sele,  // [P,P]
-                          num_complex* c1,    // [P,F]
-                          num_complex* c2,    // [P,F]
-                          num_real xi,        //
-                          num_real gamma,     //
+int Kernel_GWP::calc_Sele(kids_complex* Sele,  // [P,P]
+                          kids_complex* c1,    // [P,F]
+                          kids_complex* c2,    // [P,F]
+                          kids_real xi,        //
+                          kids_real gamma,     //
                           int P, int F) {
-    Eigen::Map<EigMX<num_complex>> Map_S(Sele, P, P);
-    Eigen::Map<EigMX<num_complex>> Map_c1(c1, P, F);
-    Eigen::Map<EigMX<num_complex>> Map_c2(c2, P, F);
+    Eigen::Map<EigMX<kids_complex>> Map_S(Sele, P, P);
+    Eigen::Map<EigMX<kids_complex>> Map_c1(c1, P, F);
+    Eigen::Map<EigMX<kids_complex>> Map_c2(c2, P, F);
     Map_S = xi * Map_c1.conjugate() * Map_c2.transpose() - F * gamma * EigMXc::Identity(P, P);  // or Ones(P, P) @BAD!!!
     return 0;
 }
 
-int Kernel_GWP::calc_dtlnSnuc(num_complex* dtlnSnuc,  // [P,P]
-                              num_real* x,            // [P,N]
-                              num_real* p,            // [P,N]
-                              num_real* m,            // [P,N]
-                              num_real* f,            // [P,N]
-                              num_real* alpha,        // [N]
-                              num_real* Ekin,         // [P]
+int Kernel_GWP::calc_dtlnSnuc(kids_complex* dtlnSnuc,  // [P,P]
+                              kids_real* x,            // [P,N]
+                              kids_real* p,            // [P,N]
+                              kids_real* m,            // [P,N]
+                              kids_real* f,            // [P,N]
+                              kids_real* alpha,        // [N]
+                              kids_real* Ekin,         // [P]
                               int P, int N) {
-    Eigen::Map<EigMX<num_complex>> Map_dtlnSnuc(dtlnSnuc, P, P);
-    Eigen::Map<EigMX<num_real>> Map_x(x, P, N);
-    Eigen::Map<EigMX<num_real>> Map_p(p, P, N);
-    Eigen::Map<EigMX<num_real>> Map_m(m, P, N);
-    Eigen::Map<EigMX<num_real>> Map_f(f, P, N);
-    Eigen::Map<EigMX<num_real>> Map_Ekin(Ekin, P, 1);
-    Eigen::Map<EigMX<num_real>> Map_a(alpha, N, 1);
+    Eigen::Map<EigMX<kids_complex>> Map_dtlnSnuc(dtlnSnuc, P, P);
+    Eigen::Map<EigMX<kids_real>> Map_x(x, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_p(p, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_m(m, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_f(f, P, N);
+    Eigen::Map<EigMX<kids_real>> Map_Ekin(Ekin, P, 1);
+    Eigen::Map<EigMX<kids_real>> Map_a(alpha, N, 1);
 
-    auto O_NP = EigMX<num_real>::Ones(N, P);
-    auto O_P1 = EigMX<num_real>::Ones(P, 1);
+    auto O_NP = EigMX<kids_real>::Ones(N, P);
+    auto O_P1 = EigMX<kids_real>::Ones(P, 1);
 
     auto x_mul = Map_x * Map_a.asDiagonal();
     auto p_div = Map_p * (1.0e0 / Map_a.array()).matrix().asDiagonal();
@@ -160,7 +160,7 @@ int Kernel_GWP::calc_dtlnSnuc(num_complex* dtlnSnuc,  // [P,P]
     // // ARRAY_SHOW(dtlnSnuc, P, P);
     // for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
     //     for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
-    //         num_complex term = 0.0e0;
+    //         kids_complex term = 0.0e0;
     //         for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
     //             term +=
     //                 p[bj] / m[bj] * 0.5 * alpha[j] * (x[aj] - x[bj] + (p[aj] + p[bj]) / (phys::math::im * alpha[j]));
@@ -174,96 +174,96 @@ int Kernel_GWP::calc_dtlnSnuc(num_complex* dtlnSnuc,  // [P,P]
     return 0;
 }
 
-int Kernel_GWP::calc_dtSele(num_complex* dtSele,  // [P,P]
-                            num_complex* Sele,    // [P,P]
-                            num_complex* c,       // [P,F]
-                            num_complex* H,       // [P,F,F]
-                            num_real* vpes,       // [P]
+int Kernel_GWP::calc_dtSele(kids_complex* dtSele,  // [P,P]
+                            kids_complex* Sele,    // [P,P]
+                            kids_complex* c,       // [P,F]
+                            kids_complex* H,       // [P,F,F]
+                            kids_real* vpes,       // [P]
                             int P, int F) {
     int FF = F * F;
 
-    // Eigen::Map<EigMX<num_complex>> Map_dtSele(dtSele, P, P);
-    // Eigen::Map<EigMX<num_complex>> Map_S(Sele, P, P);
-    // Eigen::Map<EigMX<num_complex>> Map_c(c, P, F);
-    // Eigen::Map<EigMX<num_complex>> Map_H_P_FF(H, P, F * F);
-    // Eigen::Map<EigMX<num_complex>> Map_H_PF_F(H, P * F, F);
-    // Eigen::Map<EigMX<num_complex>> Map_H_F_PF(H, F, P * F);
-    // Eigen::Map<EigMX<num_real>> Map_vpes(vpes, P, 1);
+    // Eigen::Map<EigMX<kids_complex>> Map_dtSele(dtSele, P, P);
+    // Eigen::Map<EigMX<kids_complex>> Map_S(Sele, P, P);
+    // Eigen::Map<EigMX<kids_complex>> Map_c(c, P, F);
+    // Eigen::Map<EigMX<kids_complex>> Map_H_P_FF(H, P, F * F);
+    // Eigen::Map<EigMX<kids_complex>> Map_H_PF_F(H, P * F, F);
+    // Eigen::Map<EigMX<kids_complex>> Map_H_F_PF(H, F, P * F);
+    // Eigen::Map<EigMX<kids_real>> Map_vpes(vpes, P, 1);
 
     // Map_S = Map_c.conjugate() * Map_c.transpose();
     for (int a = 0, ab = 0, aF = 0; a < P; ++a, aF += F) {
-        num_complex* ca = c + aF;
+        kids_complex* ca = c + aF;
         for (int b = 0, bF = 0, bFF = 0; b < P; ++b, ++ab, bF += F, bFF += FF) {
-            num_complex* cb = c + bF;
-            num_complex* Hb = H + bFF;
+            kids_complex* cb = c + bF;
+            kids_complex* Hb = H + bFF;
 
-            num_complex term1 = ARRAY_INNER_VMV_TRANS1(ca, H, cb, F, F);
-            num_complex term2 = ARRAY_INNER_TRANS1(ca, cb, F);
-            dtSele[ab]        = -phys::math::im * (term1 + vpes[b] * term2);
+            kids_complex term1 = ARRAY_INNER_VMV_TRANS1(ca, H, cb, F, F);
+            kids_complex term2 = ARRAY_INNER_TRANS1(ca, cb, F);
+            dtSele[ab]         = -phys::math::im * (term1 + vpes[b] * term2);
         }
     }
     return 0;
 }
 
-int Kernel_GWP::calc_invS(num_complex* invS, num_complex* S, int P) {
-    Eigen::Map<EigMX<num_complex>> Map_invS(invS, Dimension::P, Dimension::P);
-    Eigen::Map<EigMX<num_complex>> Map_S(S, Dimension::P, Dimension::P);
+int Kernel_GWP::calc_invS(kids_complex* invS, kids_complex* S, int P) {
+    Eigen::Map<EigMX<kids_complex>> Map_invS(invS, Dimension::P, Dimension::P);
+    Eigen::Map<EigMX<kids_complex>> Map_S(S, Dimension::P, Dimension::P);
 
     Map_invS = Map_S.lu().inverse();
 
     return 0;
 }
 
-double Kernel_GWP::calc_density(num_complex* rhored,         // [F,F]
-                                num_complex* Acoeff,         // [P]
-                                num_complex* Snuc,           // [P,P]
-                                num_complex* c,              // [P,F]
-                                num_real xi,                 // for kernel
-                                num_real gamma,              // for kernel
+double Kernel_GWP::calc_density(kids_complex* rhored,        // [F,F]
+                                kids_complex* Acoeff,        // [P]
+                                kids_complex* Snuc,          // [P,P]
+                                kids_complex* c,             // [P,F]
+                                kids_real xi,                // for kernel
+                                kids_real gamma,             // for kernel
                                 int P_used, int P, int F) {  //@bug
-    Eigen::Map<EigMX<num_complex>> Map_rhored(rhored, Dimension::F, Dimension::F);
-    Eigen::Map<EigMX<num_complex>> Map_Acoeff(Acoeff, Dimension::P, 1);
-    Eigen::Map<EigMX<num_complex>> Map_Snuc(Snuc, Dimension::P, Dimension::P);
-    Eigen::Map<EigMX<num_complex>> Map_c(c, Dimension::P, Dimension::F);
+    Eigen::Map<EigMX<kids_complex>> Map_rhored(rhored, Dimension::F, Dimension::F);
+    Eigen::Map<EigMX<kids_complex>> Map_Acoeff(Acoeff, Dimension::P, 1);
+    Eigen::Map<EigMX<kids_complex>> Map_Snuc(Snuc, Dimension::P, Dimension::P);
+    Eigen::Map<EigMX<kids_complex>> Map_c(c, Dimension::P, Dimension::F);
     Map_rhored =
         (xi * Map_c.adjoint() * Map_Acoeff.adjoint().asDiagonal() * Map_Snuc * Map_Acoeff.asDiagonal() * Map_c -
          gamma * (Map_Acoeff.adjoint() * Map_Snuc * Map_Acoeff).sum() * EigMXc::Identity(F, F));
     return std::abs(Map_rhored.trace());
 }
 
-int Kernel_GWP::calc_Hbasis(num_complex* Hbasis,  // [P,P]
-                            num_real* vpes,       // [P]
-                            num_real* grad,       // [P,N]
-                            num_real* V,          // [P,F,F]
-                            num_real* dV,         // [P,N,F,F]
-                            num_real* x,          // [P,N]
-                            num_real* p,          // [P,N]
-                            num_real* m,          // [P,N]
-                            num_real* alpha,      // [N]
-                            num_complex* Sele,    // [P,P]
-                            num_complex* c,       // [P,F]
-                            int P, int N, int F   // Dimensions
+int Kernel_GWP::calc_Hbasis(kids_complex* Hbasis,  // [P,P]
+                            kids_real* vpes,       // [P]
+                            kids_real* grad,       // [P,N]
+                            kids_real* V,          // [P,F,F]
+                            kids_real* dV,         // [P,N,F,F]
+                            kids_real* x,          // [P,N]
+                            kids_real* p,          // [P,N]
+                            kids_real* m,          // [P,N]
+                            kids_real* alpha,      // [N]
+                            kids_complex* Sele,    // [P,P]
+                            kids_complex* c,       // [P,F]
+                            int P, int N, int F    // Dimensions
 ) {
     int FF  = F * F;
     int NFF = N * FF;
 
     for (int a = 0, aN = 0, aF = 0, ab = 0; a < P; ++a, aN += N, aF += F) {
-        num_real* Va    = V + a * FF;
-        num_complex* ca = c + aF;
+        kids_real* Va    = V + a * FF;
+        kids_complex* ca = c + aF;
         for (int b = 0, bN = 0, bF = 0; b < P; ++b, ++ab, bN += N, bF += F) {
-            num_real* Vb    = V + b * FF;
-            num_complex* cb = c + bF;
+            kids_real* Vb    = V + b * FF;
+            kids_complex* cb = c + bF;
 
-            num_complex Tab = 0.0e0;
-            num_complex Vab = 0.0e0;
+            kids_complex Tab = 0.0e0;
+            kids_complex Vab = 0.0e0;
 
             Vab += 0.5e0 * (vpes[a] * Sele[ab] + ARRAY_INNER_VMV_TRANS1(ca, Va, cb, F, F));
             Vab += 0.5e0 * (vpes[b] * Sele[ab] + ARRAY_INNER_VMV_TRANS1(ca, Vb, cb, F, F));
             for (int j = 0, jFF = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj, jFF += FF) {
-                num_real* dVaj   = dV + aj * FF;
-                num_real* dVbj   = dV + bj * FF;
-                num_complex xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
-                num_complex pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
+                kids_real* dVaj   = dV + aj * FF;
+                kids_real* dVbj   = dV + bj * FF;
+                kids_complex xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
+                kids_complex pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
                 Tab += alpha[j] / (4 * m[bj]) + pabj * pabj / (2 * m[bj]);
 
                 Vab += 0.5e0 * (xabj - x[aj]) * (grad[aj] * Sele[ab] + ARRAY_INNER_VMV_TRANS1(ca, dVaj, cb, F, F));
@@ -275,36 +275,36 @@ int Kernel_GWP::calc_Hbasis(num_complex* Hbasis,  // [P,P]
     return 0;
 };
 
-int Kernel_GWP::calc_Hbasis_adia(num_complex* Hbasis,  // [P,P]
-                                 num_real* E,          // [P,F]
-                                 num_real* dE,         // [P,N,F,F]
-                                 num_real* x,          // [P,N]
-                                 num_real* p,          // [P,N]
-                                 num_real* m,          // [P,N]
-                                 num_real* alpha,      // [N]
-                                 num_complex* c,       // [P,F]
-                                 int P, int N, int F   // Dimensions
+int Kernel_GWP::calc_Hbasis_adia(kids_complex* Hbasis,  // [P,P]
+                                 kids_real* E,          // [P,F]
+                                 kids_real* dE,         // [P,N,F,F]
+                                 kids_real* x,          // [P,N]
+                                 kids_real* p,          // [P,N]
+                                 kids_real* m,          // [P,N]
+                                 kids_real* alpha,      // [N]
+                                 kids_complex* c,       // [P,F]
+                                 int P, int N, int F    // Dimensions
 ) {
     int FF  = F * F;
     int NFF = N * FF;
 
     for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
         for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
-            num_real* Ea    = E + a * F;
-            num_real* Eb    = E + b * F;
-            num_real* dEa   = dE + a * NFF;
-            num_real* dEb   = dE + b * NFF;
-            num_complex* ca = c + a * F;
-            num_complex* cb = c + b * F;
+            kids_real* Ea    = E + a * F;
+            kids_real* Eb    = E + b * F;
+            kids_real* dEa   = dE + a * NFF;
+            kids_real* dEb   = dE + b * NFF;
+            kids_complex* ca = c + a * F;
+            kids_complex* cb = c + b * F;
 
-            num_complex Tab = 0.0e0;
-            num_complex Eab = 0.0e0;
+            kids_complex Tab = 0.0e0;
+            kids_complex Eab = 0.0e0;
 
             for (int j = 0, jik = 0, jFF = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj, jFF += Dimension::FF) {
-                num_real* dEaj   = dEa + jFF;
-                num_real* dEbj   = dEb + jFF;
-                num_complex xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
-                num_complex pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
+                kids_real* dEaj   = dEa + jFF;
+                kids_real* dEbj   = dEb + jFF;
+                kids_complex xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
+                kids_complex pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
                 Tab += alpha[j] / (4 * m[j]) + pabj * pabj / (2 * m[j]);
 
                 for (int i = 0, ik = 0; i < F; ++i) {
@@ -340,83 +340,83 @@ void Kernel_GWP::read_param_impl(Param* PM) {
 }
 
 void Kernel_GWP::init_data_impl(DataSet* DS) {
-    alpha    = DS->reg<num_real>("integrator.alpha", Dimension::N);
-    Xcoeff   = DS->reg<num_complex>("integrator.Xcoeff", Dimension::P);
-    Acoeff   = DS->reg<num_complex>("integrator.Acoeff", Dimension::P);
-    dtAcoeff = DS->reg<num_complex>("integrator.dtAcoeff", Dimension::P);
-    Hcoeff   = DS->reg<num_complex>("integrator.Hcoeff", Dimension::PP);
-    Hbasis   = DS->reg<num_complex>("integrator.Hbasis", Dimension::PP);
-    UXdt     = DS->reg<num_complex>("integrator.UXdt", Dimension::PP);
-    UYdt     = DS->reg<num_complex>("integrator.UYdt", Dimension::PP);
-    rhored   = DS->reg<num_complex>("integrator.rhored", Dimension::FF);
-    rhored2  = DS->reg<num_complex>("integrator.rhored2", Dimension::FF);
-    rhored3  = DS->reg<num_complex>("integrator.rhored3", Dimension::FF);
+    alpha    = DS->def<kids_real>("integrator.alpha", Dimension::N);
+    Xcoeff   = DS->def<kids_complex>("integrator.Xcoeff", Dimension::P);
+    Acoeff   = DS->def<kids_complex>("integrator.Acoeff", Dimension::P);
+    dtAcoeff = DS->def<kids_complex>("integrator.dtAcoeff", Dimension::P);
+    Hcoeff   = DS->def<kids_complex>("integrator.Hcoeff", Dimension::PP);
+    Hbasis   = DS->def<kids_complex>("integrator.Hbasis", Dimension::PP);
+    UXdt     = DS->def<kids_complex>("integrator.UXdt", Dimension::PP);
+    UYdt     = DS->def<kids_complex>("integrator.UYdt", Dimension::PP);
+    rhored   = DS->def<kids_complex>("integrator.rhored", Dimension::FF);
+    rhored2  = DS->def<kids_complex>("integrator.rhored2", Dimension::FF);
+    rhored3  = DS->def<kids_complex>("integrator.rhored3", Dimension::FF);
 
-    Snuc     = DS->reg<num_complex>("integrator.Snuc", Dimension::PP);
-    Sele     = DS->reg<num_complex>("integrator.Sele", Dimension::PP);
-    S        = DS->reg<num_complex>("integrator.S", Dimension::PP);
-    invS     = DS->reg<num_complex>("integrator.invS", Dimension::PP);
-    dtlnSnuc = DS->reg<num_complex>("integrator.dtlnSnuc", Dimension::PP);
-    dtSele   = DS->reg<num_complex>("integrator.dtSele", Dimension::PP);
-    L        = DS->reg<num_real>("integrator.GWP.L", Dimension::P);
-    L1       = DS->reg<num_real>("integrator.GWP.L1", Dimension::P);
-    L2       = DS->reg<num_real>("integrator.GWP.L2", Dimension::P);
-    R        = DS->reg<num_complex>("integrator.GWP.R", Dimension::PP);
-    R1       = DS->reg<num_complex>("integrator.GWP.R1", Dimension::PP);
-    R2       = DS->reg<num_complex>("integrator.GWP.R2", Dimension::PP);
-    S1       = DS->reg<num_complex>("integrator.GWP.S1", Dimension::PP);
-    S1h      = DS->reg<num_complex>("integrator.GWP.S1h", Dimension::PP);
-    invS1h   = DS->reg<num_complex>("integrator.GWP.invS1h", Dimension::PP);
-    S2       = DS->reg<num_complex>("integrator.GWP.S2", Dimension::PP);
-    S2h      = DS->reg<num_complex>("integrator.GWP.S2h", Dimension::PP);
-    invS2h   = DS->reg<num_complex>("integrator.GWP.invS2h", Dimension::PP);
-    Sx       = DS->reg<num_complex>("integrator.GWP.Sx", Dimension::PP);
+    Snuc     = DS->def<kids_complex>("integrator.Snuc", Dimension::PP);
+    Sele     = DS->def<kids_complex>("integrator.Sele", Dimension::PP);
+    S        = DS->def<kids_complex>("integrator.S", Dimension::PP);
+    invS     = DS->def<kids_complex>("integrator.invS", Dimension::PP);
+    dtlnSnuc = DS->def<kids_complex>("integrator.dtlnSnuc", Dimension::PP);
+    dtSele   = DS->def<kids_complex>("integrator.dtSele", Dimension::PP);
+    L        = DS->def<kids_real>("integrator.GWP.L", Dimension::P);
+    L1       = DS->def<kids_real>("integrator.GWP.L1", Dimension::P);
+    L2       = DS->def<kids_real>("integrator.GWP.L2", Dimension::P);
+    R        = DS->def<kids_complex>("integrator.GWP.R", Dimension::PP);
+    R1       = DS->def<kids_complex>("integrator.GWP.R1", Dimension::PP);
+    R2       = DS->def<kids_complex>("integrator.GWP.R2", Dimension::PP);
+    S1       = DS->def<kids_complex>("integrator.GWP.S1", Dimension::PP);
+    S1h      = DS->def<kids_complex>("integrator.GWP.S1h", Dimension::PP);
+    invS1h   = DS->def<kids_complex>("integrator.GWP.invS1h", Dimension::PP);
+    S2       = DS->def<kids_complex>("integrator.GWP.S2", Dimension::PP);
+    S2h      = DS->def<kids_complex>("integrator.GWP.S2h", Dimension::PP);
+    invS2h   = DS->def<kids_complex>("integrator.GWP.invS2h", Dimension::PP);
+    Sx       = DS->def<kids_complex>("integrator.GWP.Sx", Dimension::PP);
 
-    Ekin          = DS->reg<num_real>("integrator.Ekin", Dimension::P);
-    g             = DS->reg<num_real>("integrator.g", Dimension::P);
-    clone_account = DS->reg<int>("integrator.clone_account", Dimension::P);
-    // pf_cross      = DS->reg<bool>("integrator.pf_cross", Dimension::PF);
+    Ekin          = DS->def<kids_real>("integrator.Ekin", Dimension::P);
+    g             = DS->def<kids_real>("integrator.g", Dimension::P);
+    clone_account = DS->def<int>("integrator.clone_account", Dimension::P);
+    // pf_cross      = DS->def<bool>("integrator.pf_cross", Dimension::PF);
 
     //
-    Udt  = DS->reg<num_complex>("integrator.Udt", Dimension::PFF);
-    H    = DS->reg<num_complex>("model.rep.H", Dimension::PFF);
-    vpes = DS->reg<num_real>("model.vpes", Dimension::P);
-    grad = DS->reg<num_real>("model.grad", Dimension::PN);
-    V    = DS->reg<num_real>("model.V", Dimension::PFF);
-    dV   = DS->reg<num_real>("model.dV", Dimension::PNFF);
-    E    = DS->reg<num_real>("model.rep.E", Dimension::PF);
-    T    = DS->reg<num_real>("model.rep.T", Dimension::PFF);
-    dE   = DS->reg<num_real>("model.rep.dE", Dimension::PNFF);
-    x    = DS->reg<num_real>("integrator.x", Dimension::PN);
-    p    = DS->reg<num_real>("integrator.p", Dimension::PN);
-    m    = DS->reg<num_real>("integrator.m", Dimension::PN);
-    f    = DS->reg<num_real>("integrator.f", Dimension::PN);
-    c    = DS->reg<num_complex>("integrator.c", Dimension::PF);
+    Udt  = DS->def<kids_complex>("integrator.Udt", Dimension::PFF);
+    H    = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
+    vpes = DS->def<kids_real>("model.vpes", Dimension::P);
+    grad = DS->def<kids_real>("model.grad", Dimension::PN);
+    V    = DS->def<kids_real>("model.V", Dimension::PFF);
+    dV   = DS->def<kids_real>("model.dV", Dimension::PNFF);
+    E    = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    T    = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    dE   = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
+    x    = DS->def<kids_real>("integrator.x", Dimension::PN);
+    p    = DS->def<kids_real>("integrator.p", Dimension::PN);
+    m    = DS->def<kids_real>("integrator.m", Dimension::PN);
+    f    = DS->def<kids_real>("integrator.f", Dimension::PN);
+    c    = DS->def<kids_complex>("integrator.c", Dimension::PF);
 
-    fun_diag_F = DS->reg<num_complex>("integrator.tmp.fun_diag_F", Dimension::F);
-    fun_diag_P = DS->reg<num_complex>("integrator.tmp.fun_diag_P", Dimension::P);
-    MatR_PP    = DS->reg<num_real>("integrator.tmp.MatR_PP", Dimension::PP);
-    MatC_PP    = DS->reg<num_complex>("integrator.tmp.MatC_PP", Dimension::PP);
-    I_PP       = DS->reg<num_complex>("integrator.tmp.I_PP", Dimension::PP);
-    Ubranch    = DS->reg<num_complex>("integrator.Ubranch", Dimension::FF);
+    fun_diag_F = DS->def<kids_complex>("integrator.tmp.fun_diag_F", Dimension::F);
+    fun_diag_P = DS->def<kids_complex>("integrator.tmp.fun_diag_P", Dimension::P);
+    MatR_PP    = DS->def<kids_real>("integrator.tmp.MatR_PP", Dimension::PP);
+    MatC_PP    = DS->def<kids_complex>("integrator.tmp.MatC_PP", Dimension::PP);
+    I_PP       = DS->def<kids_complex>("integrator.tmp.I_PP", Dimension::PP);
+    Ubranch    = DS->def<kids_complex>("integrator.Ubranch", Dimension::FF);
 
-    x_last    = DS->reg<num_real>("integrator.x_last", Dimension::PN);
-    p_last    = DS->reg<num_real>("integrator.p_last", Dimension::PN);
-    grad_last = DS->reg<num_real>("integrator.grad_last", Dimension::PN);
-    dV_last   = DS->reg<num_real>("integrator.dV_last", Dimension::PNFF);
-    g_last    = DS->reg<num_real>("integrator.g_last", Dimension::P);
-    c_last    = DS->reg<num_complex>("integrator.c_last", Dimension::PF);
+    x_last    = DS->def<kids_real>("integrator.x_last", Dimension::PN);
+    p_last    = DS->def<kids_real>("integrator.p_last", Dimension::PN);
+    grad_last = DS->def<kids_real>("integrator.grad_last", Dimension::PN);
+    dV_last   = DS->def<kids_real>("integrator.dV_last", Dimension::PNFF);
+    g_last    = DS->def<kids_real>("integrator.g_last", Dimension::P);
+    c_last    = DS->def<kids_complex>("integrator.c_last", Dimension::PF);
 
-    P_used_ptr = DS->reg<num_real>("integrator.P_used");
-    norm_ptr   = DS->reg<num_real>("integrator.norm");
-    veF        = DS->reg<num_real>("integrator.veF", Dimension::FF);
+    P_used_ptr = DS->def<kids_real>("integrator.P_used");
+    norm_ptr   = DS->def<kids_real>("integrator.norm");
+    veF        = DS->def<kids_real>("integrator.veF", Dimension::FF);
 }
 
 void Kernel_GWP::init_calc_impl(int stat) {
     // @begin debug
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_real* x = this->x + iP * Dimension::N;
-        num_real* p = this->p + iP * Dimension::N;
+        kids_real* x = this->x + iP * Dimension::N;
+        kids_real* p = this->p + iP * Dimension::N;
         for (int j = 0; j < Dimension::N; ++j) {
             x[j] = iP * 0.02 * (iP % 2 - 0.5) + 0.1 * j;
             p[j] = -iP * 0.02 * (iP % 2 - 0.5) + 0.2 * j;
@@ -426,13 +426,13 @@ void Kernel_GWP::init_calc_impl(int stat) {
 
     if (samp_type < 3) {  // overlap or neighbourhood re-sampling
         for (int iP = 0; iP < Dimension::P; ++iP) {
-            num_complex* w = Kernel_Elec::w + iP;
-            num_complex* c = Kernel_Elec::c + iP * Dimension::F;
-            num_complex* U = Kernel_Elec::U + iP * Dimension::FF;
-            int* occ_nuc   = Kernel_Elec::occ_nuc + iP;
+            kids_complex* w = Kernel_Elec::w + iP;
+            kids_complex* c = Kernel_Elec::c + iP * Dimension::F;
+            kids_complex* U = Kernel_Elec::U + iP * Dimension::FF;
+            int* occ_nuc    = Kernel_Elec::occ_nuc + iP;
 
-            num_real* x = this->x + iP * Dimension::N;
-            num_real* p = this->p + iP * Dimension::N;
+            kids_real* x = this->x + iP * Dimension::N;
+            kids_real* p = this->p + iP * Dimension::N;
 
             /////////////////////////////////////////////////////////////////
             if (samp_type == 1)
@@ -477,23 +477,23 @@ void Kernel_GWP::init_calc_impl(int stat) {
         }
         ARRAY_EYE(Kernel_Elec::U, Dimension::F);
         for (int iP = 1; iP < Dimension::P; ++iP) {
-            num_real* x_now          = x + iP * Dimension::N;
-            num_real* p_now          = p + iP * Dimension::N;
-            num_real* f_now          = f + iP * Dimension::N;
-            num_complex* U_now       = Kernel_Elec::U + iP * Dimension::FF;
-            num_complex* c_now       = Kernel_Elec::c + iP * Dimension::F;
-            num_complex* rho_nuc_now = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+            kids_real* x_now          = x + iP * Dimension::N;
+            kids_real* p_now          = p + iP * Dimension::N;
+            kids_real* f_now          = f + iP * Dimension::N;
+            kids_complex* U_now       = Kernel_Elec::U + iP * Dimension::FF;
+            kids_complex* c_now       = Kernel_Elec::c + iP * Dimension::F;
+            kids_complex* rho_nuc_now = Kernel_Elec::rho_nuc + iP * Dimension::FF;
 
-            num_real* x_prev    = x + std::max({iP - 2, 0}) * Dimension::N;
-            num_real* p_prev    = p + std::max({iP - 2, 0}) * Dimension::N;
-            num_real* f_prev    = f + std::max({iP - 2, 0}) * Dimension::N;
-            num_complex* U_prev = Kernel_Elec::U + std::max({iP - 2, 0}) * Dimension::FF;
+            kids_real* x_prev    = x + std::max({iP - 2, 0}) * Dimension::N;
+            kids_real* p_prev    = p + std::max({iP - 2, 0}) * Dimension::N;
+            kids_real* f_prev    = f + std::max({iP - 2, 0}) * Dimension::N;
+            kids_complex* U_prev = Kernel_Elec::U + std::max({iP - 2, 0}) * Dimension::FF;
 
-            num_real* E_now      = E + iP * Dimension::F;
-            num_real* T_now      = T + iP * Dimension::FF;
-            num_complex* Udt_now = Udt + iP * Dimension::FF;
+            kids_real* E_now      = E + iP * Dimension::F;
+            kids_real* T_now      = T + iP * Dimension::FF;
+            kids_complex* Udt_now = Udt + iP * Dimension::FF;
 
-            num_real signdt = (iP % 2 == 0) ? dt : -dt;
+            kids_real signdt = (iP % 2 == 0) ? dt : -dt;
 
             for (int j = 0; j < Dimension::N; ++j) x_now[j] = x_prev[j], p_now[j] = p_prev[j], f_now[j] = f_prev[j];
 
@@ -521,10 +521,10 @@ void Kernel_GWP::init_calc_impl(int stat) {
         }
 
         for (int iP = 0; iP < Dimension::P; ++iP) {
-            num_complex* w = Kernel_Elec::w + iP;
-            num_complex* c = Kernel_Elec::c + iP * Dimension::F;
-            num_complex* U = Kernel_Elec::U + iP * Dimension::FF;
-            int* occ_nuc   = Kernel_Elec::occ_nuc + iP;
+            kids_complex* w = Kernel_Elec::w + iP;
+            kids_complex* c = Kernel_Elec::c + iP * Dimension::F;
+            kids_complex* U = Kernel_Elec::U + iP * Dimension::FF;
+            int* occ_nuc    = Kernel_Elec::occ_nuc + iP;
 
             /////////////////////////////////////////////////////////////////
 
@@ -559,7 +559,7 @@ void Kernel_GWP::init_calc_impl(int stat) {
     calc_Snuc(Snuc, x, p, m, g, x, p, m, g, alpha, Dimension::P, Dimension::N);
     calc_Sele(Sele, c, c, 1, 0, Dimension::P, Dimension::F);
     for (int ab = 0; ab < Dimension::PP; ++ab) { S[ab] = Snuc[ab] * Sele[ab]; }
-    num_complex scale;
+    kids_complex scale;
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, S, Acoeff, 1, Dimension::P, Dimension::P, 1);
     for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= sqrt(abs(scale));
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, Snuc, Acoeff, 1, Dimension::P, Dimension::P, 1);
@@ -638,7 +638,7 @@ int Kernel_GWP::impl_0(int stat) {
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     ARRAY_MATMUL(Acoeff, UXdt, Acoeff, Dimension::P, Dimension::P, 1);
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
-    num_complex scale;
+    kids_complex scale;
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, S, Acoeff, 1, Dimension::P, Dimension::P, 1);
     norm_ptr[0] *= abs(scale);
     for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= sqrt(abs(scale));
@@ -711,7 +711,7 @@ int Kernel_GWP::impl_1(int stat) {
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     ARRAY_MATMUL(Xcoeff, S1h, Acoeff, Dimension::P, Dimension::P, 1);
 
-    num_complex cnorm;
+    kids_complex cnorm;
     ARRAY_MATMUL_TRANS1(&cnorm, Xcoeff, Xcoeff, 1, Dimension::P, 1);
     std::cout << "norm 1 = " << cnorm << "\n";
 
@@ -747,14 +747,14 @@ int Kernel_GWP::impl_1(int stat) {
 }
 int Kernel_GWP::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        num_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
-        num_complex* c       = Kernel_Elec::c + iP * Dimension::F;
-        num_complex* c_init  = Kernel_Elec::c_init + iP * Dimension::F;
-        num_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
-        num_complex* K1      = Kernel_Elec::K1 + iP * Dimension::FF;
+        kids_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
+        kids_complex* c       = Kernel_Elec::c + iP * Dimension::F;
+        kids_complex* c_init  = Kernel_Elec::c_init + iP * Dimension::F;
+        kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
+        kids_complex* K1      = Kernel_Elec::K1 + iP * Dimension::FF;
 
-        num_real* T      = Kernel_Elec::T + iP * Dimension::FF;
-        num_real* T_init = Kernel_Elec::T_init + iP * Dimension::FF;
+        kids_real* T      = Kernel_Elec::T + iP * Dimension::FF;
+        kids_real* T_init = Kernel_Elec::T_init + iP * Dimension::FF;
 
         /////////////////////////////////////////////////////////////////
 
@@ -787,7 +787,7 @@ int Kernel_GWP::exec_kernel_impl(int stat) {
             break;
         }
     }
-    num_complex scale;
+    kids_complex scale;
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, Snuc, Acoeff, 1, Dimension::P, Dimension::P, 1);
     std::cout << "t scale : " << scale << "\n";
     xi = 1.0e0 + Dimension::F * gamma * abs(scale);
@@ -818,16 +818,16 @@ int Kernel_GWP::cloning() {
     // ARRAY_SHOW(rhored, Dimension::F, Dimension::F);
 
     for (int iP = 0; iP < P_used; ++iP) {
-        num_real* g         = this->g + iP;
-        num_real* x         = this->x + iP * Dimension::N;
-        num_real* p         = this->p + iP * Dimension::N;
-        num_real* f         = this->f + iP * Dimension::N;
-        num_real* grad      = this->grad + iP * Dimension::N;
-        num_real* V         = this->V + iP * Dimension::FF;
-        num_real* dV        = this->dV + iP * Dimension::NFF;
-        num_complex* c      = this->c + iP * Dimension::F;
-        num_complex* c_init = Kernel_Elec::c_init + iP * Dimension::F;
-        num_complex* U      = Kernel_Elec::U + iP * Dimension::FF;
+        kids_real* g         = this->g + iP;
+        kids_real* x         = this->x + iP * Dimension::N;
+        kids_real* p         = this->p + iP * Dimension::N;
+        kids_real* f         = this->f + iP * Dimension::N;
+        kids_real* grad      = this->grad + iP * Dimension::N;
+        kids_real* V         = this->V + iP * Dimension::FF;
+        kids_real* dV        = this->dV + iP * Dimension::NFF;
+        kids_complex* c      = this->c + iP * Dimension::F;
+        kids_complex* c_init = Kernel_Elec::c_init + iP * Dimension::F;
+        kids_complex* U      = Kernel_Elec::U + iP * Dimension::FF;
 
         /////////////////////////////////////////////////
 
@@ -855,21 +855,21 @@ int Kernel_GWP::cloning() {
             int break_state = (std::abs(c[break_state_i]) > std::abs(c[break_state_k])) ? break_state_i : break_state_k;
             double norm_b   = abs(c[break_state]);
             double norm_a   = sqrt(1 - norm_b * norm_b);
-            num_complex norm_phase_a = norm_a * (norm_a + phys::math::im * norm_b);
-            num_complex norm_phase_b = norm_b * (norm_b - phys::math::im * norm_a);
+            kids_complex norm_phase_a = norm_a * (norm_a + phys::math::im * norm_b);
+            kids_complex norm_phase_b = norm_b * (norm_b - phys::math::im * norm_a);
 
             // std::cout << "norm_a, norm_b, iP, P_used, P_increase: " << norm_a << ", " << norm_b << ", " << iP << ","
             //           << P_used << ", " << P_increase << "\n";
 
-            num_real* g_new         = this->g + P_increase;
-            num_real* x_new         = this->x + P_increase * Dimension::N;
-            num_real* p_new         = this->p + P_increase * Dimension::N;
-            num_real* f_new         = this->f + P_increase * Dimension::N;
-            num_real* grad_new      = this->grad + P_increase * Dimension::N;
-            num_real* dV_new        = this->dV + P_increase * Dimension::NFF;
-            num_complex* c_new      = this->c + P_increase * Dimension::F;
-            num_complex* c_init_new = Kernel_Elec::c_init + P_increase * Dimension::F;
-            num_complex* U_new      = Kernel_Elec::U + P_increase * Dimension::FF;
+            kids_real* g_new         = this->g + P_increase;
+            kids_real* x_new         = this->x + P_increase * Dimension::N;
+            kids_real* p_new         = this->p + P_increase * Dimension::N;
+            kids_real* f_new         = this->f + P_increase * Dimension::N;
+            kids_real* grad_new      = this->grad + P_increase * Dimension::N;
+            kids_real* dV_new        = this->dV + P_increase * Dimension::NFF;
+            kids_complex* c_new      = this->c + P_increase * Dimension::F;
+            kids_complex* c_init_new = Kernel_Elec::c_init + P_increase * Dimension::F;
+            kids_complex* U_new      = Kernel_Elec::U + P_increase * Dimension::FF;
 
             g_new[0] = g[0];
             for (int j = 0; j < Dimension::N; ++j) x_new[j] = x[j];
@@ -920,9 +920,9 @@ int Kernel_GWP::cloning() {
     return 0;
 
     // for (int iP = 0; iP < Dimension::P; ++iP) {
-    //     num_real* p    = this->p + iP * Dimension::N;
-    //     num_real* grad = this->grad + iP * Dimension::N;
-    //     num_real* dV   = this->dV + iP * Dimension::NFF;
+    //     kids_real* p    = this->p + iP * Dimension::N;
+    //     kids_real* grad = this->grad + iP * Dimension::N;
+    //     kids_real* dV   = this->dV + iP * Dimension::NFF;
     //     bool* pf_cross = this->pf_cross + iP * Dimension::F;
 
     //     /////////////////////////////////////////////////
@@ -950,4 +950,4 @@ int Kernel_GWP::cloning() {
     return 0;
 }
 
-};  // namespace PROJECT_NS
+};  // namespace kids

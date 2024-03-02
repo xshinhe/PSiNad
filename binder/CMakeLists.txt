@@ -1,9 +1,9 @@
 set(CMAKE_CXX_FLAGS "-Os -fopenmp -march=native -fPIC")
 
-add_library(opendfpy SHARED libopendfpy.cpp)
+add_library(pykids SHARED libpykids.cpp)
 
 target_link_libraries(
-    opendfpy
+    pykids
     pybind11::embed
-    opendfcpp
+    cppkids
 )

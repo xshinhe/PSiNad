@@ -5,7 +5,7 @@
 #include "../core/DataSet.h"
 #include "../generate/version.h"
 
-using namespace PROJECT_NS;
+using namespace kids;
 
 template <typename T>
 class Test1_Fixture {

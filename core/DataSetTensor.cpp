@@ -11,10 +11,10 @@
 #include <tuple>
 #include <vector>
 
-namespace PROJECT_NS {
+namespace kids {
 
-using num_real    = double;
-using num_complex = std::complex<double>;
+using kids_real    = double;
+using kids_complex = std::complex<double>;
 
 // format control for dumping the state
 constexpr inline int FMT_WIDTH(int X) { return X + 7; }
@@ -166,7 +166,7 @@ class VARIABLE final : public VARIABLE_BASE {
  */
 class Node {
    public:
-    enum class NodeType { Void, Int, Real, Complex, DataSet };
+    enum class NodeType { Void, Bool, Int, Real, Complex, DataSet };
     using SizeType = std::size_t;
     using DataType = void;
 
@@ -205,8 +205,9 @@ std::string AsString();
         return #NT;                           \
     }
 DEFINE_TYPE_BIND_WITH_NODETYPE(int, Int);
-DEFINE_TYPE_BIND_WITH_NODETYPE(num_real, Real);
-DEFINE_TYPE_BIND_WITH_NODETYPE(num_complex, Complex);
+DEFINE_TYPE_BIND_WITH_NODETYPE(bool, Bool);
+DEFINE_TYPE_BIND_WITH_NODETYPE(kids_real, Real);
+DEFINE_TYPE_BIND_WITH_NODETYPE(kids_complex, Complex);
 DEFINE_TYPE_BIND_WITH_NODETYPE(DataSet, DataSet);
 
 
@@ -397,11 +398,11 @@ class DataSet final : public Node {
             if (typeflag == AsString<int>()) {
                 int* ptr = def<int>(key, size);
                 for (int i = 0; i < size; ++i) is >> ptr[i];
-            } else if (typeflag == AsString<num_real>()) {
-                num_real* ptr = def<num_real>(key, size);
+            } else if (typeflag == AsString<kids_real>()) {
+                kids_real* ptr = def<kids_real>(key, size);
                 for (int i = 0; i < size; ++i) is >> ptr[i];
-            } else if (typeflag == AsString<num_complex>()) {
-                num_complex* ptr = def<num_complex>(key, size);
+            } else if (typeflag == AsString<kids_complex>()) {
+                kids_complex* ptr = def<kids_complex>(key, size);
                 for (int i = 0; i < size; ++i) is >> ptr[i];
             }
         }
@@ -438,9 +439,9 @@ class DataSet final : public Node {
     VARIABLE<type> var(#name, shape, doc);              \
     };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
-using namespace PROJECT_NS;
+using namespace kids;
 
 Dimen dim1;
 Dimen dim2;
@@ -448,7 +449,7 @@ Shape S12({&dim1, &dim2});
 
 DATASET_DEFINE_VARIABLE(double, integrator::x, &S12, "it is the coordinate");
 DATASET_DEFINE_VARIABLE(double, integrator::p, &S12, "it is the momentum");
-DATASET_DEFINE_VARIABLE(num_complex, integrator::c, &S12, "it is the amplititude");
+DATASET_DEFINE_VARIABLE(kids_complex, integrator::c, &S12, "it is the amplititude");
 
 int main() {
     dim1 = 10;
@@ -477,7 +478,7 @@ int main() {
     ifs.close();
     std::cout << DS2.repr() << "\n";
 
-    for (auto& i : PROJECT_NS::VARIABLE_BASE::_LIST) { std::cout << i->name() << " : " << i->help() << "\n"; }
+    for (auto& i : kids::VARIABLE_BASE::_LIST) { std::cout << i->name() << " : " << i->help() << "\n"; }
     return 0;
 }
 

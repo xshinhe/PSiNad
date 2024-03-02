@@ -16,7 +16,7 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-namespace PROJECT_NS {
+namespace kids {
 
 DEFINE_POLICY(MMSHPolicy,
               MASH1,  // arXiv:2212.11773
@@ -41,7 +41,8 @@ class Kernel_Elec_MMSH final : public Kernel {
         return ((fdim - sum) / (sum - 1.0f)) / fdim;
     }
 
-    static void hopping_direction(num_real* direction, num_real* E, num_real* dE, num_complex* rho, int from, int to);
+    static void hopping_direction(kids_real* direction, kids_real* E, kids_real* dE, kids_complex* rho, int from,
+                                  int to);
 
    private:
     MMSHPolicy::_type mmsh_type;
@@ -56,11 +57,11 @@ class Kernel_Elec_MMSH final : public Kernel {
 
 
     double dt;
-    num_real* p;
-    num_real* m;
-    num_real* direction;
-    num_real *E, *dE, *T;
-    num_complex* H;
+    kids_real* p;
+    kids_real* m;
+    kids_real* direction;
+    kids_real *E, *dE, *T;
+    kids_complex* H;
 
     virtual void read_param_impl(Param* PM);
 
@@ -71,6 +72,6 @@ class Kernel_Elec_MMSH final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace PROJECT_NS
+};  // namespace kids
 
 #endif  // Kernel_Elec_MMSH_H

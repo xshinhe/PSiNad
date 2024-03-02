@@ -8,7 +8,7 @@
 #include "../core/State.h"
 #include "../core/some_Kernels.h"
 
-using namespace PROJECT_NS;
+using namespace kids;
 
 void MM_Kernel_Builder(Kernel* ker) {
     // BAOAB integrator
