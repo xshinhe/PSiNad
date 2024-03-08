@@ -6,7 +6,7 @@
 #include "../core/Kernel.h"
 
 
-namespace kids {
+namespace PROJECT_NS {
 /**
  * @brief Kernel_Random manipulation of random engine and numbers
  */
@@ -112,7 +112,7 @@ class Kernel_Random : public Kernel {
     }
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // Kernel_Random_H

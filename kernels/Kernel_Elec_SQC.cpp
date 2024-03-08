@@ -7,7 +7,7 @@
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 int Kernel_Elec_SQC::c_window(kids_complex* c, int iocc, int type, int fdim) {
     switch (type) {
@@ -143,10 +143,10 @@ void Kernel_Elec_SQC::init_calc_impl(int stat) {
         Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, 1, gamma, Dimension::F, use_cv, *occ_nuc);  ///< initial rho_nuc
         ARRAY_EYE(U, Dimension::F);                                                             ///< initial propagator
     }
-    Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
-    Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
-    Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
-    Kernel_Elec::T_init       = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
+    Kernel_Elec::c_init       = _DataSet->def("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::rho_ele_init = _DataSet->def("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
+    Kernel_Elec::rho_nuc_init = _DataSet->def("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
+    Kernel_Elec::T_init       = _DataSet->def("init.T", Kernel_Elec::T, Dimension::PFF);
     exec_kernel(stat);
 }
 
@@ -214,4 +214,4 @@ int Kernel_Elec_SQC::exec_kernel_impl(int stat) {
 
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS

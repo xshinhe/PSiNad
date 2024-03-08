@@ -15,7 +15,7 @@
 #include "../kernels/Kernel_Representation.h"
 #include "../kernels/Kernel_Update.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 std::shared_ptr<Kernel> NAD_Adapt_Kernel(std::shared_ptr<Kernel> kmodel, std::string NAD_Kernel_name) {
     bool take_ownership_false = false;
@@ -82,4 +82,4 @@ std::shared_ptr<Kernel> NAD_Adapt_Kernel(std::shared_ptr<Kernel> kmodel, std::st
     return ker;
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

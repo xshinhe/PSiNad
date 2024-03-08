@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 class Model_Hello final : public Kernel {
    public:
@@ -24,6 +24,6 @@ class Model_Hello final : public Kernel {
     }
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // MODEL_HELLO

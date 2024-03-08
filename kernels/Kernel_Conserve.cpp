@@ -3,7 +3,7 @@
 #include "Kernel_Declare.h"
 #include "Kernel_Elec.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Kernel_Conserve::read_param_impl(Param* PM) {
     conserve_scale = PM->get<bool>("conserve_scale", LOC(), false);  // default as false
@@ -20,7 +20,7 @@ void Kernel_Conserve::init_data_impl(DataSet* DS) {
 }
 
 void Kernel_Conserve::init_calc_impl(int stat) {
-    Etot_init = _DataSet->set("init.Etot", Etot, Dimension::P);
+    Etot_init = _DataSet->def("init.Etot", Etot, Dimension::P);
 
     bool conserve_scale_bak = conserve_scale;
     conserve_scale          = false;
@@ -54,4 +54,4 @@ int Kernel_Conserve::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS

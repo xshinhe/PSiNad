@@ -14,7 +14,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 /**
  * @brief initialization kernel for electonic DOFs in LSC
@@ -47,6 +47,6 @@ class Kernel_Elec_LSC final : public Kernel {
 };
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Elec_LSC_H

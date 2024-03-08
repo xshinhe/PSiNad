@@ -16,7 +16,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 int Kernel_GWP::calc_Ekin(kids_real* Ekin,  // [P]
                           kids_real* p,     // [P,N]
@@ -572,8 +572,8 @@ void Kernel_GWP::init_calc_impl(int stat) {
 
     // ARRAY_SHOW(Acoeff, 1, Dimension::P);
 
-    Kernel_Elec::c_init = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
-    Kernel_Elec::T_init = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
+    Kernel_Elec::c_init = _DataSet->def("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::T_init = _DataSet->def("init.T", Kernel_Elec::T, Dimension::PFF);
 
     for (int a = 0; a < Dimension::P; ++a) g_last[a] = g[a];
     for (int aj = 0; aj < Dimension::PN; ++aj) x_last[aj] = x[aj];
@@ -950,4 +950,4 @@ int Kernel_GWP::cloning() {
     return 0;
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

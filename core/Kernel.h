@@ -36,7 +36,7 @@
 #include "DataSet.h"
 #include "Param.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 /**
  * @brief Kernel class is the container and implementation of algorithms
@@ -162,6 +162,6 @@ class Kernel {
     void destory();
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_H

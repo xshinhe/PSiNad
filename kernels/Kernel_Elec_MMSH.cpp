@@ -18,7 +18,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 
 void Kernel_Elec_MMSH::hopping_direction(kids_real* direction, kids_real* E, kids_real* dE, kids_complex* rho, int from,
@@ -138,15 +138,15 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
         }
     }
 
-    _DataSet->set("init.w_CC", Kernel_Elec::w_CC, Dimension::P);
-    _DataSet->set("init.w_CP", Kernel_Elec::w_CP, Dimension::P);
-    _DataSet->set("init.w_PP", Kernel_Elec::w_PP, Dimension::P);
-    _DataSet->set("init.w_AA", Kernel_Elec::w_AA, Dimension::P);
-    _DataSet->set("init.w_AD", Kernel_Elec::w_AD, Dimension::P);
-    _DataSet->set("init.w_DD", Kernel_Elec::w_DD, Dimension::P);
-    Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
-    Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
-    Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
+    _DataSet->def("init.w_CC", Kernel_Elec::w_CC, Dimension::P);
+    _DataSet->def("init.w_CP", Kernel_Elec::w_CP, Dimension::P);
+    _DataSet->def("init.w_PP", Kernel_Elec::w_PP, Dimension::P);
+    _DataSet->def("init.w_AA", Kernel_Elec::w_AA, Dimension::P);
+    _DataSet->def("init.w_AD", Kernel_Elec::w_AD, Dimension::P);
+    _DataSet->def("init.w_DD", Kernel_Elec::w_DD, Dimension::P);
+    Kernel_Elec::c_init       = _DataSet->def("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::rho_ele_init = _DataSet->def("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
+    Kernel_Elec::rho_nuc_init = _DataSet->def("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
     exec_kernel(stat);
 }
 
@@ -203,4 +203,4 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS

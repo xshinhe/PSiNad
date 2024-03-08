@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 class Kernel_Timer final : public Kernel {
    public:
@@ -25,7 +25,7 @@ class Kernel_Timer final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // Kernel_Timer_H

@@ -14,7 +14,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 int Kernel_Representation::transform(kids_complex* A, kids_real* T, int fdim,  //
                                      RepresentationPolicy::_type from, RepresentationPolicy::_type to,
@@ -70,7 +70,7 @@ void Kernel_Representation::init_calc_impl(int stat) {
     do_refer = false;
     exec_kernel(stat);
     do_refer = true;
-    _DataSet->set("init.T", T, Dimension::PFF);
+    _DataSet->def("init.T", T, Dimension::PFF);
 }
 
 int Kernel_Representation::exec_kernel_impl(int stat) {
@@ -230,4 +230,4 @@ RepresentationPolicy::_type Kernel_Representation::nuc_repr_type;
 RepresentationPolicy::_type Kernel_Representation::tcf_repr_type;
 bool Kernel_Representation::onthefly;
 
-};  // namespace kids
+};  // namespace PROJECT_NS

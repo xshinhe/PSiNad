@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 /**
  * Dimension namespace locates read parameters for system size
@@ -69,6 +69,6 @@ class Kernel_Initialize final : public Kernel {
     virtual void init_calc_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Declare_H

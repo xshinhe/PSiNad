@@ -1,7 +1,7 @@
 #ifndef DEFAULT_VARIABLES_H
 #define DEFAULT_VARIABLES_H
 
-namespace kids {
+namespace PROJECT_NS {
 
 // Dimension variables
 namespace Dimension {
@@ -226,7 +226,7 @@ extern VARIABLE<kids_complex> H;
 };  // namespace model
 
 };  // namespace DATASET
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // DEFAULT_VARIABLES_H

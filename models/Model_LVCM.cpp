@@ -13,7 +13,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Model_LVCM::read_param_impl(Param *PM) {
     lvcm_type      = LVCMPolicy::_from(_Param->get<std::string>("lvcm_flag", LOC(), "PYR3"));
@@ -381,8 +381,8 @@ void Model_LVCM::init_calc_impl(int stat) {
         }
     }
 
-    _DataSet->set("init.x", x, Dimension::PN);
-    _DataSet->set("init.p", p, Dimension::PN);
+    _DataSet->def("init.x", x, Dimension::PN);
+    _DataSet->def("init.p", p, Dimension::PN);
     exec_kernel(stat);
 }
 
@@ -445,4 +445,4 @@ int Model_LVCM::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS

@@ -16,7 +16,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 int Kernel_Elec_SH::max_choose(kids_complex* rho) {
     int imax       = 0;
@@ -158,9 +158,9 @@ void Kernel_Elec_SH::init_calc_impl(int stat) {
                                  Dimension::F, Dimension::F);
         }
     }
-    Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
-    Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
-    Kernel_Elec::T_init       = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
+    Kernel_Elec::c_init       = _DataSet->def("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::rho_ele_init = _DataSet->def("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
+    Kernel_Elec::T_init       = _DataSet->def("init.T", Kernel_Elec::T, Dimension::PFF);
     exec_kernel(stat);
 }
 
@@ -222,4 +222,4 @@ int Kernel_Elec_SH::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS

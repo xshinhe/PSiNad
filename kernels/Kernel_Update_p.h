@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 class Kernel_Update_p : public Kernel {
    public:
@@ -24,7 +24,7 @@ class Kernel_Update_p : public Kernel {
 };
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // Kernel_Update_p_H

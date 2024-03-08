@@ -14,7 +14,7 @@ inline int FMT_WIDTH_SIZE(int X) { return X + 9; }
 #define FMT(X) \
     " " << std::setiosflags(std::ios::scientific) << std::setprecision(X) << std::right << std::setw(FMT_WIDTH_SIZE(X))
 
-namespace kids {
+namespace PROJECT_NS {
 
 namespace details {  // hidden scope
 
@@ -252,7 +252,7 @@ class DataSet final : public Node {
 
 };  // namespace details
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // DataSet_H
 

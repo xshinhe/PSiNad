@@ -16,7 +16,7 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 DEFINE_POLICY(MMSHPolicy,
               MASH1,  // arXiv:2212.11773
@@ -72,6 +72,6 @@ class Kernel_Elec_MMSH final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Elec_MMSH_H

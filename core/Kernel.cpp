@@ -1,6 +1,6 @@
 #include "Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 /**
  * @brief constructors
@@ -92,4 +92,4 @@ int Kernel::TOTAL      = 0;
 int Kernel::TOTAL_ROOT = 0;
 bool Kernel::BREAK     = false;
 
-};  // namespace kids
+};  // namespace PROJECT_NS

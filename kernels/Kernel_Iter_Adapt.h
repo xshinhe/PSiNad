@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 class Kernel_Iter_Adapt final : public Kernel {
    public:
@@ -19,16 +19,17 @@ class Kernel_Iter_Adapt final : public Kernel {
     double t, *t_ptr;
     double dt, *dt_ptr;
     double tend, *tend_ptr;
-    double tsec, *tsec_ptr;
-    int *succ_ptr;
-    int *do_recd_ptr;
-    int *do_prec_ptr;
+    bool *succ_ptr;
+    bool *do_recd_ptr;
+    bool *do_prec_ptr;
 
+    int msize, *tsize_ptr, *dtsize_ptr;
     int sstep, *sstep_ptr;
     int istep, *istep_ptr, nstep, *nstep_ptr;
     int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
+    int nbackup;
 
-    const std::vector<std::string> backup_fields = {"x", "p", "rho_ele", "rho_nuc", "U", "occ"};
+    const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc"};
 
     virtual void read_param_impl(Param *PM);
 
@@ -39,7 +40,7 @@ class Kernel_Iter_Adapt final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // Kernel_Iter_Adapt_H

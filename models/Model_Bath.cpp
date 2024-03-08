@@ -1,6 +1,6 @@
 #include "Model_Bath.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 double Model_Bath::J_Debye(double w) { return 2 * lambda * omegac * w / (w * w + omegac * omegac); }
 
@@ -159,4 +159,4 @@ void Model_Bath::init_data_impl(DataSet* DS) {
     }
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

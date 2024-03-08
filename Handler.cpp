@@ -9,7 +9,7 @@
 #include "mpi_utils.h"
 
 
-namespace kids {
+namespace PROJECT_NS {
 
 
 Handler::Handler(hdlr_t itype, const std::string& solver_name, const std::string& model_name) {
@@ -162,4 +162,4 @@ int Handler::run_multiple(Param* P) {
 }
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS

@@ -32,7 +32,7 @@ double phi(double lambda, double N0_max, int F) {
     return pow(lambda, F) * pow(2 - 2 * x, 1 - F) * (term1 + term2);
 }
 
-namespace kids {
+namespace PROJECT_NS {
 
 double calc_alpha(kids_real* V, int i = 0, int k = 1, int F = 2) {  // acoording to mix angle
     int ii = i * (F + 1), kk = k * (F + 1), ik = i * F + k;
@@ -237,7 +237,7 @@ void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
     sqcw        = DS->def<kids_real>("integrator.sqcw", Dimension::F);
     sqcIA       = DS->def<kids_real>("integrator.sqcIA", 1);
     sqcID       = DS->def<kids_real>("integrator.sqcID", 1);
-    do_prec_ptr = DS->def<kids_int>("iter.do_prec");
+    do_prec_ptr = DS->def<kids_bool>("iter.do_prec");
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
@@ -275,7 +275,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                 case 1: {                                        // simplex SQC
                     Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
                     for (int i = 0; i < Dimension::F; ++i) c[i] = abs(c[i] * c[i]);
-                    c[Kernel_Elec::occ0] += 1.0e0;
+                    c[iocc] += 1.0e0;
                     for (int i = 0; i < Dimension::F; ++i) {
                         kids_real randu;
                         Kernel_Random::rand_uniform(&randu);
@@ -403,18 +403,17 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                                          SpacePolicy::L);
     }
 
-    _DataSet->set("init.wz_A", Kernel_Elec::wz_A, Dimension::P);
-    _DataSet->set("init.wz_D", Kernel_Elec::wz_D, Dimension::P);
-    Kernel_Elec::ww_A_init    = _DataSet->set("init.ww_A", Kernel_Elec::ww_A, Dimension::P);
-    Kernel_Elec::ww_D_init    = _DataSet->set("init.ww_D", Kernel_Elec::ww_D, Dimension::P);
-    Kernel_Elec::c_init       = _DataSet->set("init.c", Kernel_Elec::c, Dimension::PF);
-    Kernel_Elec::rho_ele_init = _DataSet->set("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
-    Kernel_Elec::rho_nuc_init = _DataSet->set("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
-    Kernel_Elec::T_init       = _DataSet->set("init.T", Kernel_Elec::T, Dimension::PFF);
+    _DataSet->def("init.wz_A", Kernel_Elec::wz_A, Dimension::P);
+    _DataSet->def("init.wz_D", Kernel_Elec::wz_D, Dimension::P);
+    Kernel_Elec::ww_A_init    = _DataSet->def("init.ww_A", Kernel_Elec::ww_A, Dimension::P);
+    Kernel_Elec::ww_D_init    = _DataSet->def("init.ww_D", Kernel_Elec::ww_D, Dimension::P);
+    Kernel_Elec::c_init       = _DataSet->def("init.c", Kernel_Elec::c, Dimension::PF);
+    Kernel_Elec::rho_ele_init = _DataSet->def("init.rho_ele", Kernel_Elec::rho_ele, Dimension::PFF);
+    Kernel_Elec::rho_nuc_init = _DataSet->def("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
+    Kernel_Elec::T_init       = _DataSet->def("init.T", Kernel_Elec::T, Dimension::PFF);
 
-    do_prec_ptr[0] = 1;
+    do_prec_ptr[0] = true;
     exec_kernel(stat);
-    do_prec_ptr[0] = 0;
     // for (int iP = 0; iP < Dimension::P; ++iP) {  // @debug only for scattering problem
     //     kids_real* vpes = this->vpes + iP;
     //     kids_real* E    = this->E + iP;
@@ -601,7 +600,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                              SpacePolicy::L);
         }
 
-        if (do_prec_ptr[0] == 0) continue;
+        if (!do_prec_ptr[0]) continue;
 
         // 4) calculated TCF in adiabatic rep & diabatic rep respectively
         // 4-1) Adiabatic rep
@@ -765,4 +764,4 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
     }
     return stat;
 }
-};  // namespace kids
+};  // namespace PROJECT_NS

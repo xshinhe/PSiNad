@@ -12,7 +12,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Kernel_Update_x::init_data_impl(DataSet* DS) {
     dt_ptr          = DS->def<kids_real>("iter.dt");
@@ -36,4 +36,4 @@ int Kernel_Update_x::exec_kernel_impl(int stat) {
     return 0;
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

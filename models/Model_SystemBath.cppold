@@ -6,7 +6,7 @@
 #include "../kernels/Kernel_Random.h"
 #include "hamiltonian_data.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Bath::read_param_impl(Param* PM) {
     _Param = PM;
@@ -639,4 +639,4 @@ int Model_SystemBath::exec_kernel_impl(int stat) {
     return 0;
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

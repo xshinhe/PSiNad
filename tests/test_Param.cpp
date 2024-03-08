@@ -4,7 +4,7 @@
 
 #include "../core/Param.h"
 
-using namespace kids;
+using namespace PROJECT_NS;
 
 TEST_CASE("Check Param : fromString", "[Param]") {
     std::string param_str = "{\"x\": 1, \"y\": 2.5}";

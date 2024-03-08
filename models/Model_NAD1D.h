@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 DEFINE_POLICY(NAD1DPolicy,
               PURE,      // Pure Electronic Dynamic
@@ -64,6 +64,6 @@ class Model_NAD1D final : public Kernel {
 };
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // MODEL_NAD1D_H

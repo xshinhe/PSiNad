@@ -11,7 +11,7 @@
 #include <tuple>
 #include <vector>
 
-namespace kids {
+namespace PROJECT_NS {
 
 using kids_real    = double;
 using kids_complex = std::complex<double>;
@@ -439,9 +439,9 @@ class DataSet final : public Node {
     VARIABLE<type> var(#name, shape, doc);              \
     };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
-using namespace kids;
+using namespace PROJECT_NS;
 
 Dimen dim1;
 Dimen dim2;
@@ -478,7 +478,7 @@ int main() {
     ifs.close();
     std::cout << DS2.repr() << "\n";
 
-    for (auto& i : kids::VARIABLE_BASE::_LIST) { std::cout << i->name() << " : " << i->help() << "\n"; }
+    for (auto& i : PROJECT_NS::VARIABLE_BASE::_LIST) { std::cout << i->name() << " : " << i->help() << "\n"; }
     return 0;
 }
 

@@ -5,7 +5,7 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 DEFINE_POLICY(MMDPolicy,  //
               MMF,        //
@@ -43,6 +43,6 @@ class Kernel_Elec_MMD final : public Kernel {
 };
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Elec_MMD_H

@@ -5,9 +5,10 @@
 #include <vector>
 
 #include "../core/DataSet.h"
+#include "../core/concat.h"
 #include "../thirdpart/fparser/fparser.hh"
 
-namespace kids {
+namespace PROJECT_NS {
 
 template <typename T>
 class FPARSER {
@@ -39,50 +40,6 @@ class FPARSER {
 // template <typename T>
 // std::vector<FPARSER<T>> FPARSER<T>::GLOBAL;
 
-template <class T>
-inline T convert_from_Int(void* data, int ID = 0);
-template <class T>
-inline T convert_from_Real(void* data, int ID = 0);
-template <class T>
-inline T convert_from_Complex(void* data, int ID = 0);
-
-template <>
-inline int convert_from_Int(void* data, int ID) {
-    return *((int*) data + ID);
-}
-template <>
-inline kids_real convert_from_Int(void* data, int ID) {
-    return *((int*) data + ID);
-}
-template <>
-inline kids_complex convert_from_Int(void* data, int ID) {
-    return 1.0e0 * (*((int*) data + ID));
-}
-template <>
-inline int convert_from_Real(void* data, int ID) {
-    return (int) (*((kids_real*) data + ID));
-}
-template <>
-inline kids_real convert_from_Real(void* data, int ID) {
-    return (*((kids_real*) data + ID));
-}
-template <>
-inline kids_complex convert_from_Real(void* data, int ID) {
-    return 1.0e0 * (*((kids_real*) data + ID));
-}
-template <>
-inline int convert_from_Complex(void* data, int ID) {
-    return (int) std::real(*((kids_complex*) data + ID));
-}
-template <>
-inline kids_real convert_from_Complex(void* data, int ID) {
-    return std::real(*((kids_complex*) data + ID));
-}
-template <>
-inline kids_complex convert_from_Complex(void* data, int ID) {
-    return (*((kids_complex*) data + ID));
-}
-
 class Formula {
    public:
     static std::vector<Formula> GLOBAL;
@@ -108,14 +65,14 @@ class Formula {
             idx = idx % variables_ldims[i];
             // value_list[i] = *((T*) variables_nodes[i]->data() + ID0);
             switch (variables_types[i]) {
-                case DataSet::Type::Int:
-                    value_list[i] = convert_from_Int<T>(variables_nodes[i]->data(), ID0);
+                case kids_int_type:
+                    value_list[i] = cast_at<T, kids_int>(variables_nodes[i]->data(), ID0);
                     break;
-                case DataSet::Type::Real:
-                    value_list[i] = convert_from_Real<T>(variables_nodes[i]->data(), ID0);
+                case kids_real_type:
+                    value_list[i] = cast_at<T, kids_real>(variables_nodes[i]->data(), ID0);
                     break;
-                case DataSet::Type::Complex:
-                    value_list[i] = convert_from_Complex<T>(variables_nodes[i]->data(), ID0);
+                case kids_complex_type:
+                    value_list[i] = cast_at<T, kids_complex>(variables_nodes[i]->data(), ID0);
                     break;
             }
         }
@@ -124,7 +81,7 @@ class Formula {
 
     int get_size() { return size; }
 
-    DataSet::Type get_res_type() { return res_type; }
+    kids_dtype get_res_type() { return res_type; }
 
     std::string name() { return unique_name; }
 
@@ -148,8 +105,7 @@ class Formula {
         FPARSER_ID = (ipos == std::string::npos) ? (-1) : 0;  // [single variable] or [function formula]
 
         if (FPARSER_ID == -1) {  ///< [single variable]
-            auto inode = std::get<3>(DS->info(utils::concat(field, ".", parsed_string)));
-            if (inode == nullptr) throw basic_error(parsed_string);
+            auto inode = DS->node(utils::concat(field, ".", parsed_string));
 
             res_type = inode->type();
 
@@ -198,11 +154,11 @@ class Formula {
 
             switch (type_char) {
                 case 'R':
-                    res_type   = DataSet::Type::Real;
+                    res_type   = kids_real_type;
                     FPARSER_ID = FPARSER<kids_real>::regis_FPARSER(parsed_expression, parsed_varslist);
                     break;
                 case 'C':
-                    res_type   = DataSet::Type::Complex;
+                    res_type   = kids_complex_type;
                     FPARSER_ID = FPARSER<kids_complex>::regis_FPARSER(parsed_expression, parsed_varslist);
                     break;
             }
@@ -224,9 +180,9 @@ class Formula {
     std::string field;
     std::string unique_name;
 
-    DataSet::Type res_type = DataSet::Type::Void;
-    std::vector<DataSet::Generic*> variables_nodes;
-    std::vector<DataSet::Type> variables_types;
+    kids_dtype res_type = kids_void_type;
+    std::vector<Node*> variables_nodes;
+    std::vector<kids_dtype> variables_types;
     std::vector<int> variables_sizes;
     std::vector<int> variables_ldims;
 
@@ -240,6 +196,6 @@ class Formula {
 // std::vector<Formula> Formula::GLOBAL;
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  //  FORMULA_H

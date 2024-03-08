@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../kernels/Kernel_Random.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 
 class Model_HO final : public Kernel {
@@ -93,6 +93,6 @@ class MODEL_MD1D final : public Kernel {
         return 0;
     }
 };
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // MODEL_MD1D_H

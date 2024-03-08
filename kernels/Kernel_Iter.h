@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 /**
  * @brief iterative kernel wrapper/(interface) for other kernels
@@ -19,8 +19,8 @@ class Kernel_Iter final : public Kernel {
     double tend, *tend_ptr;
     double tsec, *tsec_ptr;
     int *succ_ptr;
-    int *do_recd_ptr;
-    int *do_prec_ptr;
+    bool *do_recd_ptr;
+    bool *do_prec_ptr;
 
     int sstep, *sstep_ptr;
     int istep, *istep_ptr, nstep, *nstep_ptr;
@@ -35,7 +35,7 @@ class Kernel_Iter final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // Kernel_Iter_H

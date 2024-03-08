@@ -27,7 +27,7 @@ inline void closeOFS(std::ofstream& ofs) {
 
 inline bool isFileExists(const std::string& name) { return std::ifstream{name.c_str()}.good(); }
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Model_Interf_MNDO::read_param_impl(Param* PM) {
     Kernel_Representation::onthefly = true;
@@ -187,8 +187,8 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
             }
         }
     }
-    _DataSet->set("init.x", x, Dimension::N);
-    _DataSet->set("init.p", p, Dimension::N);
+    _DataSet->def("init.x", x, Dimension::N);
+    _DataSet->def("init.p", p, Dimension::N);
 
     refer = false;
     exec_kernel_impl(stat);
@@ -822,4 +822,4 @@ int Model_Interf_MNDO::calc_scan() {
     ifs.close();
     return 0;
 }
-};  // namespace kids
+};  // namespace PROJECT_NS

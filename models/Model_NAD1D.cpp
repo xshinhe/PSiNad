@@ -13,7 +13,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 double mspes_parm[100];
 
@@ -728,8 +728,8 @@ void Model_NAD1D::init_calc_impl(int stat) {
     } else {
         p_sign[0] = phys::math::iz, p_sign[1] = phys::math::iu;
     }
-    _DataSet->set("init.x", x, Dimension::N);
-    _DataSet->set("init.p", p, Dimension::N);
+    _DataSet->def("init.x", x, Dimension::N);
+    _DataSet->def("init.p", p, Dimension::N);
 
     exec_kernel(stat);
 }
@@ -803,4 +803,4 @@ int Model_NAD1D::exec_kernel_impl(int stat) {
 }
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS

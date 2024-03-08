@@ -5,7 +5,7 @@
 #include "../core/Policy.h"
 #include "Model_Bath.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 DEFINE_POLICY(SystemPolicy,  //
               SB,            //
@@ -77,6 +77,6 @@ class Model_SystemBath final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // SystemBath_H

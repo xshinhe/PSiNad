@@ -1,6 +1,6 @@
 #include "DataSet.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 namespace details {  // hidden scope
 
@@ -201,4 +201,4 @@ void Tree::_delete() {
 
 };  // namespace details
 
-};  // namespace kids
+};  // namespace PROJECT_NS

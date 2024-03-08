@@ -7,7 +7,7 @@
 #include "Model_NAD1D.h"
 #include "Model_SystemBath.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 std::shared_ptr<Kernel> ModelFactory(const std::string& name) {
     if (false) {
@@ -29,4 +29,4 @@ std::shared_ptr<Kernel> ModelFactory(const std::string& name) {
     return nullptr;
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

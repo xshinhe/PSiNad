@@ -7,7 +7,7 @@
 #include "../core/State.h"
 #include "../core/some_Kernels.h"
 
-using namespace kids;
+using namespace PROJECT_NS;
 
 template <typename K>
 class Test1_Fixture {

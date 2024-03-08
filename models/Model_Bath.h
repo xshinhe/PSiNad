@@ -5,7 +5,7 @@
 #include "../core/Policy.h"
 
 
-namespace kids {
+namespace PROJECT_NS {
 
 
 DEFINE_POLICY(BathPolicy,   //
@@ -55,6 +55,6 @@ class Model_Bath final : public Kernel {
 };
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Model_Bath_H

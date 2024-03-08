@@ -1,7 +1,7 @@
 #include "../core/Kernel.h"
 #include "Kernel_Elec.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 class Kernel_GWP final : public Kernel {
    public:
@@ -160,4 +160,4 @@ class Kernel_GWP final : public Kernel {
     int death() { return 0; }
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS

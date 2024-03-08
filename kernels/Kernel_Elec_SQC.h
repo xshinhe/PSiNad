@@ -17,7 +17,7 @@
 #include "Kernel_Elec.h"
 
 
-namespace kids {
+namespace PROJECT_NS {
 
 DEFINE_POLICY(SQCPolicy,
               SQR,  // square window
@@ -63,6 +63,6 @@ class Kernel_Elec_SQC final : public Kernel {
 };
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Elec_SQC_H

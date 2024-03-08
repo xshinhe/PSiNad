@@ -4,7 +4,7 @@
 #include "core/Kernel.h"
 #include "core/Param.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 
 class Handler final {
@@ -30,6 +30,6 @@ class Handler final {
     std::shared_ptr<Kernel> solver;
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Handler_H

@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "Kernel_Elec.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 class Kernel_Region final : public Kernel {
    public:
@@ -24,6 +24,6 @@ class Kernel_Region final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1) { return 0; }
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Region_H

@@ -16,7 +16,7 @@ inline int FMT_WIDTH_SIZE(int X) { return X + 9; }
 #define FMT(X) \
     " " << std::setiosflags(std::ios::scientific) << std::setprecision(X) << std::right << std::setw(FMT_WIDTH_SIZE(X))
 
-namespace kids {
+namespace PROJECT_NS {
 
 namespace details {
 
@@ -226,18 +226,19 @@ class DataSet final : public Node {
 
 };  // namespace details
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // DataSet_H
 
 int main() {
-    using namespace kids::details;
+    using namespace PROJECT_NS::details;
 
     DataSet DS;
     DS.def<int>("a.b", 10);
     DS.def<double>("a.c.1", 8);
     DS.def<double>("a.c.d", 8);
     DS.dump(std::cout);
+	return 0;
     std::cout << "\n";
     DS.at("a.c")->dump(std::cout);
     std::cout << "\n";

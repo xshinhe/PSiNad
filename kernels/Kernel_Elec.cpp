@@ -4,7 +4,17 @@
 #include "Kernel_Declare.h"
 #include "Kernel_Random.h"
 
-namespace kids {
+#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
+    ({                                                                               \
+        std::cout << "Show Array <" << #_A << ">\n";                                 \
+        int _idxA = 0;                                                               \
+        for (int _i = 0; _i < (_n1); ++_i) {                                         \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
+            std::cout << std::endl;                                                  \
+        }                                                                            \
+    })
+
+namespace PROJECT_NS {
 
 void Kernel_Elec::read_param_impl(Param* PM) {
     occ0 = PM->get<int>("occ", LOC(), -1);
@@ -81,42 +91,42 @@ void Kernel_Elec::init_calc_impl(int stat) {
     exec_kernel_impl(stat);
 
     double unit = 1.0e0;
-    _DataSet->set("integrator.1", &unit);
-    _DataSet->set("init.1", &unit);
-    _DataSet->set("init.w", w, Dimension::P);
-    _DataSet->set("init.K0", K0, Dimension::PFF);
-    _DataSet->set("init.K0dia", K0dia, Dimension::PF);
-    _DataSet->set("init.K0occ", K0occ, Dimension::P);
-    _DataSet->set("init.K1", K1, Dimension::PFF);
-    _DataSet->set("init.K1dia", K1dia, Dimension::PF);
-    _DataSet->set("init.K1occ", K1occ, Dimension::P);
-    _DataSet->set("init.K2", K2, Dimension::PFF);
-    _DataSet->set("init.K2dia", K2dia, Dimension::PF);
-    _DataSet->set("init.K2occ", K2occ, Dimension::P);
-    _DataSet->set("init.K1QA", K1QA, Dimension::PFF);
-    _DataSet->set("init.K1QAdia", K1QAdia, Dimension::PF);
-    _DataSet->set("init.K1QAocc", K1QAocc, Dimension::P);
-    _DataSet->set("init.K2QA", K2QA, Dimension::PFF);
-    _DataSet->set("init.K2QAdia", K2QAdia, Dimension::PF);
-    _DataSet->set("init.K2QAocc", K2QAocc, Dimension::P);
-    _DataSet->set("init.K1DA", K1DA, Dimension::PFF);
-    _DataSet->set("init.K1DAdia", K1DAdia, Dimension::PF);
-    _DataSet->set("init.K1DAocc", K1DAocc, Dimension::P);
-    _DataSet->set("init.K2DA", K2DA, Dimension::PFF);
-    _DataSet->set("init.K2DAdia", K2DAdia, Dimension::PF);
-    _DataSet->set("init.K2DAocc", K2DAocc, Dimension::P);
-    _DataSet->set("init.K1QD", K1QD, Dimension::PFF);
-    _DataSet->set("init.K1QDdia", K1QDdia, Dimension::PF);
-    _DataSet->set("init.K1QDocc", K1QDocc, Dimension::P);
-    _DataSet->set("init.K2QD", K2QD, Dimension::PFF);
-    _DataSet->set("init.K2QDdia", K2QDdia, Dimension::PF);
-    _DataSet->set("init.K2QDocc", K2QDocc, Dimension::P);
-    _DataSet->set("init.K1DD", K1DD, Dimension::PFF);
-    _DataSet->set("init.K1DDdia", K1DDdia, Dimension::PF);
-    _DataSet->set("init.K1DDocc", K1DDocc, Dimension::P);
-    _DataSet->set("init.K2DD", K2DD, Dimension::PFF);
-    _DataSet->set("init.K2DDdia", K2DDdia, Dimension::PF);
-    _DataSet->set("init.K2DDocc", K2DDocc, Dimension::P);
+    _DataSet->def("integrator.1", &unit);
+    _DataSet->def("init.1", &unit);
+    _DataSet->def("init.w", w, Dimension::P);
+    _DataSet->def("init.K0", K0, Dimension::PFF);
+    _DataSet->def("init.K0dia", K0dia, Dimension::PF);
+    _DataSet->def("init.K0occ", K0occ, Dimension::P);
+    _DataSet->def("init.K1", K1, Dimension::PFF);
+    _DataSet->def("init.K1dia", K1dia, Dimension::PF);
+    _DataSet->def("init.K1occ", K1occ, Dimension::P);
+    _DataSet->def("init.K2", K2, Dimension::PFF);
+    _DataSet->def("init.K2dia", K2dia, Dimension::PF);
+    _DataSet->def("init.K2occ", K2occ, Dimension::P);
+    _DataSet->def("init.K1QA", K1QA, Dimension::PFF);
+    _DataSet->def("init.K1QAdia", K1QAdia, Dimension::PF);
+    _DataSet->def("init.K1QAocc", K1QAocc, Dimension::P);
+    _DataSet->def("init.K2QA", K2QA, Dimension::PFF);
+    _DataSet->def("init.K2QAdia", K2QAdia, Dimension::PF);
+    _DataSet->def("init.K2QAocc", K2QAocc, Dimension::P);
+    _DataSet->def("init.K1DA", K1DA, Dimension::PFF);
+    _DataSet->def("init.K1DAdia", K1DAdia, Dimension::PF);
+    _DataSet->def("init.K1DAocc", K1DAocc, Dimension::P);
+    _DataSet->def("init.K2DA", K2DA, Dimension::PFF);
+    _DataSet->def("init.K2DAdia", K2DAdia, Dimension::PF);
+    _DataSet->def("init.K2DAocc", K2DAocc, Dimension::P);
+    _DataSet->def("init.K1QD", K1QD, Dimension::PFF);
+    _DataSet->def("init.K1QDdia", K1QDdia, Dimension::PF);
+    _DataSet->def("init.K1QDocc", K1QDocc, Dimension::P);
+    _DataSet->def("init.K2QD", K2QD, Dimension::PFF);
+    _DataSet->def("init.K2QDdia", K2QDdia, Dimension::PF);
+    _DataSet->def("init.K2QDocc", K2QDocc, Dimension::P);
+    _DataSet->def("init.K1DD", K1DD, Dimension::PFF);
+    _DataSet->def("init.K1DDdia", K1DDdia, Dimension::PF);
+    _DataSet->def("init.K1DDocc", K1DDocc, Dimension::P);
+    _DataSet->def("init.K2DD", K2DD, Dimension::PFF);
+    _DataSet->def("init.K2DDdia", K2DDdia, Dimension::PF);
+    _DataSet->def("init.K2DDocc", K2DDocc, Dimension::P);
 }
 
 int Kernel_Elec::exec_kernel_impl(int stat) {
@@ -292,4 +302,4 @@ kids_complex* Kernel_Elec::OpB;
 kids_complex* Kernel_Elec::TrK1A;
 kids_complex* Kernel_Elec::TrK2B;
 
-};  // namespace kids
+};  // namespace PROJECT_NS

@@ -1,6 +1,6 @@
 #include "Formula.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 // template <typename T>
 // int FPARSER<T>::regis_FPARSER(const std::string& str, const std::string& vars_str) {
@@ -125,4 +125,4 @@ std::vector<FPARSER<T>> FPARSER<T>::GLOBAL;
 
 std::vector<Formula> Formula::GLOBAL;
 
-};  // namespace kids
+};  // namespace PROJECT_NS

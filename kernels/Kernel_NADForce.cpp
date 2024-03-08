@@ -16,7 +16,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Kernel_NADForce::read_param_impl(Param* PM) {
     FORCE_OPT::BATH_FORCE_BILINEAR = _Param->get<bool>("BATH_FORCE_BILINEAR", LOC(), false);
@@ -188,4 +188,4 @@ int Nb                   = 1;
 bool BATH_FORCE_BILINEAR = false;
 };  // namespace FORCE_OPT
 
-};  // namespace kids
+};  // namespace PROJECT_NS

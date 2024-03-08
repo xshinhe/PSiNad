@@ -6,27 +6,6 @@
 
 [TOC]
 
-the end time information in last simulation is kept in .h5 file. you can load variables when you initialize your simulation, like:
-
-```c++
-if(FLAGS_r != "") LOAD(pContext, mydata, mydata_size);  // mydata can be neither basic type or pointer of basic type.
-// ...
-```
-
-you should dump it a run.h5 when you finalize a simulation. like in `final()`:
-```c++
-DUMP(pContext, mydata, mydata_size);  // mydata can be neither basic type or pointer of basic type.
-// ...
-```
-
-2) run with the same random seed
-
-you can use .h5 information to run a code with the same random seeds, for reproducible check.
-
-```
-mpirun -np 4 ./opendf -r saved.h5 -read_seed=true -p param.json
-```
-
 ## For developers
 
 1. For developers, it provides `add_definitions(USE_PL=ON)` to test and profile your code's numeric performance (see more at https://github.com/dfeneyrou/palanteer)  while for users but not nondevelopers, please just keep `add_definitions(USE_PL=OFF)`.

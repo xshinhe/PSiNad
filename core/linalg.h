@@ -21,7 +21,7 @@
 #include "../thirdpart/Eigen/QR"
 #include "types.h"
 
-using namespace kids;
+using namespace PROJECT_NS;
 
 #define EigMajor Eigen::RowMajor
 

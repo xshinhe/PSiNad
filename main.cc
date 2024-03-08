@@ -21,7 +21,7 @@ DEFINE_int32(nsave_mpi, 5, "save backups during monte carlo");
 DEFINE_int32(nsave_time, 5, "save backups during a simulation");
 DEFINE_double(everysave, 1.0f, "interval for saving a context (unit in hours)");
 
-using namespace kids;
+using namespace PROJECT_NS;
 namespace fs = ghc::filesystem;
 
 int main(int argc, char* argv[]) {

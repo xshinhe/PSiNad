@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "OFSManager.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 struct Record_Item {
     std::string v0;
@@ -44,7 +44,7 @@ struct Result {
         memset(data.data(), 0, frame * size * sizeof(double));
     }
 
-    void stack(DataSet::Type itype, std::string str);
+    void stack(kids_dtype itype, std::string str);
 
     void save(const std::string& fname, int ibegin, int length = -1, bool with_header = false);
     virtual ~Result();
@@ -71,9 +71,7 @@ class Kernel_Record final : public Kernel {
     int* sstep_ptr;
     int* isamp_ptr;
     int* nsamp_ptr;
-    double* tsec_ptr;
-
-    int* do_recd_ptr;
+    bool* do_recd_ptr;
 
     bool trace;
     double t0, dt, time_unit;
@@ -93,7 +91,7 @@ class Kernel_Record final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // Kernel_Record_H

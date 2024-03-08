@@ -1,6 +1,6 @@
 #include "Kernel_Declare.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 namespace Dimension {
 int M     = 1;
@@ -52,4 +52,4 @@ void Kernel_Initialize::init_calc_impl(int stat) {
     for (auto& ker : _ref_kernels) ker->init_calc(stat);
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

@@ -3,15 +3,25 @@
 #include "../core/Formula.h"
 #include "../core/linalg.h"
 
-namespace kids {
+#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
+    ({                                                                               \
+        std::cout << "Show Array <" << #_A << ">\n";                                 \
+        int _idxA = 0;                                                               \
+        for (int _i = 0; _i < (_n1); ++_i) {                                         \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++]; \
+            std::cout << std::endl;                                                  \
+        }                                                                            \
+    })
 
-void Result::stack(DataSet::Type itype, std::string str) {
+namespace PROJECT_NS {
+
+void Result::stack(kids_dtype itype, std::string str) {
     switch (itype) {
-        case DataSet::Type::Real:
+        case kids_real_type:
             header.push_back(str);
             size++;
             break;
-        case DataSet::Type::Complex:
+        case kids_complex_type:
             header.push_back(utils::concat("R", str));
             header.push_back(utils::concat("I", str));
             size += 2;
@@ -84,8 +94,7 @@ void Kernel_Record::init_data_impl(DataSet* DS) {
     sstep_ptr   = DS->def<int>("iter.sstep");
     isamp_ptr   = DS->def<int>("iter.isamp");
     nsamp_ptr   = DS->def<int>("iter.nsamp");
-    tsec_ptr    = DS->def<double>("iter.tsec");
-    do_recd_ptr = DS->def<int>("iter.do_recd");
+    do_recd_ptr = DS->def<bool>("iter.do_recd");
 }
 
 inline std::string contacted_hdr(const std::string& s1, int i1, const std::string& s2, int i2) {
@@ -132,12 +141,11 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
 
             Record_List.push_back(item_tmp);
 
-            auto& f1 = Formula::GLOBAL[item_tmp.fml_ID0];
-            auto& f2 = Formula::GLOBAL[item_tmp.fml_IDt];
-            DataSet::Type f_type =
-                (f1.get_res_type() == DataSet::Type::Real && f2.get_res_type() == DataSet::Type::Real)
-                    ? DataSet::Type::Real
-                    : DataSet::Type::Complex;
+            auto& f1          = Formula::GLOBAL[item_tmp.fml_ID0];
+            auto& f2          = Formula::GLOBAL[item_tmp.fml_IDt];
+            kids_dtype f_type = (f1.get_res_type() == kids_real_type && f2.get_res_type() == kids_real_type)
+                                    ? kids_real_type
+                                    : kids_complex_type;
 
             /**
              * Output format for correlation: A -- B -- C -- D correlation
@@ -170,9 +178,9 @@ void Kernel_Record::token_object(Result& correlation, Param::JSON& j) {  // @rec
     auto& f1 = Formula::GLOBAL[item_tmp.fml_ID0];
     auto& f2 = Formula::GLOBAL[item_tmp.fml_IDt];
 
-    DataSet::Type f_type = (f1.get_res_type() == DataSet::Type::Real && f2.get_res_type() == DataSet::Type::Real)
-                               ? DataSet::Type::Real
-                               : DataSet::Type::Complex;
+    kids_dtype f_type = (f1.get_res_type() == kids_real_type && f2.get_res_type() == kids_real_type)
+                            ? kids_real_type
+                            : kids_complex_type;
     for (int i1 = 0; i1 < f1.get_size(); ++i1) {
         for (int i2 = 0; i2 < f2.get_size(); ++i2) {
             correlation.stack(f_type, utils::concat(f1.name(), i1, f2.name(), i2));
@@ -197,7 +205,7 @@ void Kernel_Record::init_calc_impl(int stat) {
             if (j.is_object()) token_object(correlation, j);
         }
         correlation.t0 = t0;
-        correlation.dt = tsec_ptr[0] / time_unit;
+        correlation.dt = sstep_ptr[0] * dt / time_unit;
         correlation.stat.resize(correlation.frame);
         correlation.data.resize(correlation.size * correlation.frame);
     }
@@ -205,8 +213,7 @@ void Kernel_Record::init_calc_impl(int stat) {
 
 int Kernel_Record::exec_kernel_impl(int stat) {
     Result& correlation = get_correlation();
-    if (do_recd_ptr[0] == 1) {
-        std::cout << "doing recd\n";
+    if (do_recd_ptr[0]) {
         int correlation_idx0 = ((*isamp_ptr) % correlation.frame) * correlation.size;
         for (int i = 0, idx = correlation_idx0; i < Record_List.size(); ++i) {
             auto& f1 = Formula::GLOBAL[Record_List[i].fml_ID0];
@@ -215,15 +222,15 @@ int Kernel_Record::exec_kernel_impl(int stat) {
             for (int is1 = 0; is1 < f1.get_size(); ++is1) {
                 for (int is2 = 0; is2 < f2.get_size(); ++is2) {
                     switch (f1.get_res_type()) {
-                        case DataSet::Type::Real: {
+                        case kids_real_type: {
                             kids_real v1 = f1.eval<kids_real>(is1);
                             switch (f2.get_res_type()) {
-                                case DataSet::Type::Real: {
+                                case kids_real_type: {
                                     kids_real v2            = f2.eval<kids_real>(is2);
                                     correlation.data[idx++] = v1 * v2;
                                     break;
                                 }
-                                case DataSet::Type::Complex: {
+                                case kids_complex_type: {
                                     kids_complex v2         = f2.eval<kids_complex>(is2);
                                     correlation.data[idx++] = std::real(v1 * v2);
                                     correlation.data[idx++] = std::imag(v1 * v2);
@@ -232,16 +239,16 @@ int Kernel_Record::exec_kernel_impl(int stat) {
                             }
                             break;
                         }
-                        case DataSet::Type::Complex: {
+                        case kids_complex_type: {
                             kids_complex v1 = f1.eval<kids_complex>(is1);
                             switch (f2.get_res_type()) {
-                                case DataSet::Type::Real: {
+                                case kids_real_type: {
                                     kids_real v2            = f2.eval<kids_real>(is2);
                                     correlation.data[idx++] = std::real(v1 * v2);
                                     correlation.data[idx++] = std::imag(v1 * v2);
                                     break;
                                 }
-                                case DataSet::Type::Complex: {
+                                case kids_complex_type: {
                                     kids_complex v2         = f2.eval<kids_complex>(is2);
                                     correlation.data[idx++] = std::real(v1 * v2);
                                     correlation.data[idx++] = std::imag(v1 * v2);
@@ -267,4 +274,4 @@ int Kernel_Record::exec_kernel_impl(int stat) {
 
 Result Kernel_Record::_correlation;
 
-};  // namespace kids
+};  // namespace PROJECT_NS

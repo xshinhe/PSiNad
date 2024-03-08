@@ -12,7 +12,7 @@
 #include "../solvers/SolverFactory.h"
 
 namespace py = pybind11;
-using namespace kids;
+using namespace PROJECT_NS;
 
 PYBIND11_MODULE(libpykids, m) {
 #include "kids_phys.bind"

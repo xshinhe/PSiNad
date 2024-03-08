@@ -1,6 +1,6 @@
 #include "Kernel_Timer.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Kernel_Timer::read_param_impl(Param* PM) {
     t0    = PM->get<double>("t0", LOC(), phys::time_d, 0.0f);
@@ -36,4 +36,4 @@ int Kernel_Timer::exec_kernel_impl(int stat) {
     (*isamp_ptr) = (*istep_ptr) / sstep;
     return 0;
 }
-};  // namespace kids
+};  // namespace PROJECT_NS

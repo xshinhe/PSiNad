@@ -16,7 +16,7 @@
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 DEFINE_POLICY(CMSHPolicy,
               EHR,    // Ehrenfest Dynamics
@@ -68,7 +68,7 @@ class Kernel_Elec_CMSH final : public Kernel {
     kids_real* sqcw;
     kids_real *sqcIA, *sqcID;
 
-    int* do_prec_ptr;
+    bool* do_prec_ptr;
 
     //
     bool use_sqc;
@@ -88,6 +88,6 @@ class Kernel_Elec_CMSH final : public Kernel {
     virtual int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Elec_CMSH_H

@@ -8,7 +8,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 struct MNDO99KW {
     std::string key;
@@ -74,6 +74,6 @@ class Model_Interf_MNDO final : public Kernel {
     int calc_samp();
     int calc_scan();
 };
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // MODEL_INTERF_MNDO_H

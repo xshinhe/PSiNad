@@ -3,7 +3,7 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 /**
  * @brief Kernel_Elec:
  *    1) evolve by rho_ele
@@ -83,6 +83,6 @@ class Kernel_Elec final : public Kernel {
     int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Elec_H

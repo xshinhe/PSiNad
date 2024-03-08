@@ -4,7 +4,7 @@
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 DEFINE_POLICY(LVCMPolicy,  //
               PYR3,        //
@@ -63,6 +63,6 @@ class Model_LVCM final : public Kernel {
     int exec_kernel_impl(int stat = -1);
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Model_LVCM_H

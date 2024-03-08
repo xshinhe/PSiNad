@@ -15,7 +15,7 @@
 #include "../core/Kernel.h"
 #include "Kernel_Elec.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 /**
  * @brief initialization kernel for electonic DOFs in CMM
@@ -53,6 +53,6 @@ class Kernel_Elec_CMM final : public Kernel {
 };
 
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // Kernel_Elec_CMM_H

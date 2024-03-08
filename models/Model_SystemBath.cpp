@@ -18,7 +18,7 @@
         }                                                                            \
     })
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Model_SystemBath::read_param_impl(Param* PM) {
     // size information
@@ -229,8 +229,8 @@ void Model_SystemBath::init_calc_impl(int stat) {
         }
     }
 
-    _DataSet->set("init.x", x, Dimension::PN);
-    _DataSet->set("init.p", p, Dimension::PN);
+    _DataSet->def("init.x", x, Dimension::PN);
+    _DataSet->def("init.p", p, Dimension::PN);
     exec_kernel(stat);
 }
 
@@ -310,4 +310,4 @@ int Model_SystemBath::exec_kernel_impl(int stat) {
     return 0;
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS

@@ -4,7 +4,7 @@
 
 #include "concat.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 const std::string MSG_PARAM_BAD_KEY    = "bad key error : ";
 const std::string MSG_PARAM_BAD_TYPE   = "bad type error : ";
@@ -22,6 +22,6 @@ struct param_warning : public basic_error {
     param_warning(std::string const text) : basic_error(utils::concat("parameter warning of : ", text)) {}
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // OPENDF_EXCEPTION_H

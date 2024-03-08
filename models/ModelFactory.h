@@ -3,11 +3,11 @@
 
 #include "../core/Kernel.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 extern std::shared_ptr<Kernel> ModelFactory(const std::string& name);
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 
 #endif  // ModelFactory_H

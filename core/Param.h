@@ -57,7 +57,7 @@ inline const char *basename(const char *filepath) {
  */
 #define LOC() (std::string(basename(__FILE__)) + ":" + std::to_string(__LINE__))
 
-namespace kids {
+namespace PROJECT_NS {
 
 /**
  * Param class is provided as an interface wrapper for the parameter data.
@@ -265,6 +265,6 @@ class Param final {
     std::shared_ptr<JSON> pj;
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // PARAM_H

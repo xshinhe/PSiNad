@@ -10,7 +10,7 @@ endif()
 
 project(kids LANGUAGES C CXX Fortran)
 enable_language(Fortran)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 

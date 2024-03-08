@@ -1,19 +1,23 @@
-/**
- * @file DataSet.h
- * @author xshinhe
- * @date 2023-05
- * @brief class for `DataSet` object (alias of DataSet)
- * @details
- *  It stores variables in a variable-list, with almost zero cost in copy
- *  (i.e. fetch the pointer of the data only). It support a probability that
- *  different kernels/solvers could access the same data storage.
- *  It also facilitates to save current status into a file, and fully reload
- *  it agian whenever you want.
- * @structure
- *  this file realizes three class.
- *  1) NodeGeneric: interface can contain any type of data by (void*)
- *  2) Node<T>: leaf NodeGeneric, which contains an array of type T.
- *  3) DataSet: non-leaf NodeGeneric, which contains `DataSet::NodeBuffer` type.
+/**@file        DataSet.h
+ * @brief       this file provide DataSet class
+ * @details     DataSet class is a minimal dynamic container. This file includes
+ *              - Node class as an abstract interface,
+ *              - Shape class control the shape of the tensor
+ *              - Tensor class inherited from Node
+ *              - DataSet class with a tree structure for storage of Tensor
+ *
+ * @author      [author] [author2] [author3]
+ * @date        [latest-date]
+ * @version     [version]
+ * @copyright   [copyright]
+ **********************************************************************************
+ * @par revision [logs]:
+ * <table>
+ * <tr><th> Date    <th> Version    <th> Author    <th> Description
+ * <tr><td>[date]   <td>[version]   <td>[author]   <td> [commit]
+ * </table>
+ *
+ **********************************************************************************
  */
 
 #ifndef DataSet_H
@@ -33,394 +37,322 @@
 #include "concat.h"
 #include "types.h"
 
-// format control for dumping the state
-inline int FMT_WIDTH_SIZE(int X) { return X + 9; }
-#define FMT(X) \
-    " " << std::setiosflags(std::ios::scientific) << std::setprecision(X) << std::right << std::setw(FMT_WIDTH_SIZE(X))
-
-namespace kids {
-
-class DataSet;  // declaration
+namespace PROJECT_NS {
 
 /**
- * @brief Generic Node interface
+ * control the output printing format
  */
-class NodeGeneric {
+constexpr inline int FMT_WIDTH(int X) { return X + 7; }
+#define FMT(X)                                                            \
+    " " << std::setiosflags(std::ios::scientific) /*scientific notation*/ \
+        << std::setprecision(X)                   /*precision*/           \
+        << std::right                             /*alignment*/           \
+        << std::setw(FMT_WIDTH(X))                /*width of text*/
+
+
+/**********************************************************************************
+    This file includes classes:
+    1) Node
+    2) Shape
+    3) Tensor<T>
+    4) DataSet
+**********************************************************************************/
+
+/**
+ * Node class is an abstract interface. A Node will store a tensor or another Node
+ */
+class Node {
    public:
-    enum class Format {
-        Free,  // free format
-        Json   // json format
-    };
-    enum class NodeType {
-        Void,     // nothing
-        Bool,     // bool c-array
-        Int,      // int c-array
-        Real,     // kids_real c-array
-        Complex,  // kids_complex c-array
-        DataSet   // tree
-    };
     using SizeType = std::size_t;
     using DataType = void;
-    using InfoType = std::tuple<NodeType, SizeType, DataType*, NodeGeneric*>;
-    using HelpType = std::tuple<NodeType, std::string>;
 
-    template <typename T>
-    static inline HelpType TypeHelper();
+    virtual ~Node() { _delete(); }  //< deconstructor
 
-    virtual ~NodeGeneric() { _delete(); }  //< deconstructor
+    virtual std::string repr() = 0;
 
-    virtual std::string repr(Format format, const std::string& lead = "") = 0;
-
-    inline NodeType type() { return _type; }
+    inline kids_dtype type() { return _type; }
 
     inline SizeType size() { return _size; }
 
     inline DataType* data() { return _data; }
 
-    inline InfoType info() { return std::make_tuple(_type, _size, _data, this); }
-
    protected:
-    NodeType _type  = NodeType::Void;
-    SizeType _size  = 0;
-    DataType* _data = nullptr;
+    friend class DataSet;
+
+    kids_dtype _type = kids_void_type;
+    SizeType _size   = 0;
+    DataType* _data  = nullptr;
+    bool _ownership  = false;
 
    private:
     virtual void _delete(){};  // virtual function called by deconstructor
 };
 
-#define DEFINE_TYPE_BIND_WITH_NODETYPE(T, NT)                   \
-    template <>                                                 \
-    inline NodeGeneric::HelpType NodeGeneric::TypeHelper<T>() { \
-        return std::make_tuple(NodeGeneric::NodeType::NT, #NT); \
+/**
+ * Shape class provide information about of a Tensor's shape
+ */
+class Shape {
+   public:
+    ///< construct from a vector
+    Shape(std::vector<std::size_t> dims) : _rank{dims.size()}, _dims{dims}, _ldims(dims.size(), 0), _size{1} {
+        _ldims[_ldims.size() - 1] = 1;
+        _size                     = dims[_dims.size() - 1];
+        for (int i = _dims.size() - 2; i >= 0; --i) {
+            _ldims[i] = _ldims[i + 1] * (_dims[i + 1]);
+            _size *= _dims[i];
+        }
     }
 
-DEFINE_TYPE_BIND_WITH_NODETYPE(int, Int);
-DEFINE_TYPE_BIND_WITH_NODETYPE(bool, Bool);
-DEFINE_TYPE_BIND_WITH_NODETYPE(kids_real, Real);
-DEFINE_TYPE_BIND_WITH_NODETYPE(kids_complex, Complex);
-DEFINE_TYPE_BIND_WITH_NODETYPE(DataSet, DataSet);
+    ///< construct from a number (rank-1 Shape)
+    Shape(std::size_t size) : _rank{1}, _dims{{size}}, _ldims{1}, _size{size} {};
+
+    /**
+     * Delete new operators to prevent dynamic memory allocation
+     */
+    void* operator new(size_t)   = delete;
+    void* operator new[](size_t) = delete;
+
+    ///< get rank of a Shape
+    inline int rank() const { return _rank; }
+
+    ///< get data size described by a Shape
+    inline int size() const { return _size; }
+
+   private:
+    std::size_t _rank;                ///< rank of the shape
+    std::vector<std::size_t> _dims;   ///< dimensions for each rank
+    std::vector<std::size_t> _ldims;  ///< leading dimensions
+    std::size_t _size;                ///< size of data
+};
 
 /**
- * @brief leaf NodeGeneric, which contains an array of type T
- * @tparam T customized type for Node (in int, kids_real, kids_complex)
+ * Tensor class is the container for array-like data
  */
 template <typename T>
-class Node final : public NodeGeneric {
+class Tensor final : public Node {
    public:
     using SizeType = std::size_t;
     using DataType = T;
 
-    Node(const std::size_t& size) {
-        _type = std::get<0>(NodeGeneric::TypeHelper<T>());
-        _size = size;
+    Tensor(Shape S) : _shape{S} {
+        _type = as_enum<T>();
+        _size = _shape.size();
         _data = (void*) new T[_size];
         memset(_data, 0, _size * sizeof(T));
-        _init = true;
+        _ownership = true;
     }
-    virtual ~Node() { _delete(); }
+    virtual ~Tensor() { _delete(); }
 
-    virtual std::string repr(NodeGeneric::Format format, const std::string& lead = "") {
+    virtual std::string repr() {
         std::ostringstream os;
         T* ptr = (T*) data();
-        switch (format) {
-            case NodeGeneric::Format::Free: {
-                os << FMT(0) << std::get<1>(NodeGeneric::TypeHelper<T>());
-                os << FMT(0) << _size;
-                os << FMT(8) << ptr[0];
-                for (int i = 1; i < _size; ++i) os << FMT(8) << ptr[i];
-                break;
-            }
-            case NodeGeneric::Format::Json: {
-                os << "[";
-                os << FMT(8) << ptr[0];
-                for (int i = 1; i < _size; ++i) os << "," << FMT(8) << ptr[i];
-                os << "]";
-                break;
-            }
-        }
+        os << FMT(0) << as_str<T>();
+        os << FMT(0) << _size;
+        for (int i = 0; i < _size; ++i) os << FMT(8) << ptr[i];
         return os.str();
     }
 
    private:
-    friend class DataSet;
-    bool _init = false;
+    Shape _shape;
 
     virtual void _delete() {
-        if (_init) delete[] static_cast<T*>(_data);
-        _init = false;
+        if (_ownership) delete[] static_cast<T*>(_data);
+        _ownership = false;
     }
 };
 
 /**
- * @brief non-leaf NodeGeneric, which contains `DataSet::NodeBuffer` type.
+ * DataSet class is a tree-structured container for storage of Tensor and
+ * other DataSet.
  */
-class DataSet : public NodeGeneric {
+class DataSet final : public Node {
    private:
     DataSet& operator=(const DataSet&) = delete;
 
    public:
-    using KeyNode     = std::tuple<std::string, NodeGeneric*>;
-    using KeyNodeList = std::vector<KeyNode>;
-    using KeyNodeMap  = std::map<std::string, NodeGeneric*>;
-    using DataType    = KeyNodeMap;
+    using DataType = std::map<std::string, Node*>;
 
-    using Generic = NodeGeneric;
-    using Format  = NodeGeneric::Format;
-    using Type    = NodeGeneric::NodeType;
-
-    /**
-     * @brief constructor: to allocate an instance of NodeBuffer (size=1)
-     */
     DataSet() {
-        _size     = 1;  // only one NodeBuffer will be newed
-        _type     = NodeType::DataSet;
-        _data     = (void*) new DataType();
-        ownership = true;
+        _size      = 1;  // only one TensorBuffer will be newed
+        _type      = kids_dataset_type;
+        _data      = (void*) new DataType();
+        _ownership = true;
     };
 
-    DataSet(const DataSet& itree) {  // always referenced-copy (deep copy see at: shapelike())
-        _size     = itree._size;     // only one NodeBuffer will be newed
-        _type     = itree._type;
-        _data     = itree._data;
-        ownership = false;
-    }
-
-    /**
-     * @brief deconstructor
-     */
     virtual ~DataSet() {
-        if (ownership) _delete();
+        if (_ownership) _delete();
+        _ownership = false;
     }
 
-    /**
-     * @brief      define a leaf-node of in tree storing c-array
-     *
-     * @param[in]  key   The key, i.e., the address of the c-array, adjointed by dot delimiter
-     * @param[in]  size  The size of the array
-     *
-     * @tparam     T     The type of the data (int, kids_real, kids_complex)
-     *
-     * @return     DataSet reference after add definition
-     */
     template <typename T>
-    DataSet& _def(const std::string& key, std::size_t size = 1) {
-        KeyHelper kh    = KeyHelper(key);
-        DataType* d_ptr = static_cast<DataType*>(_data);
-        if (kh.is_leaf) {  // leaf node
-            if (d_ptr->find(key) != d_ptr->end()) throw basic_error(key);
-            (*d_ptr)[key] = new Node<T>(size);
-        } else {  // non-leaf node
-            if (d_ptr->find(kh.key1) == d_ptr->end()) (*d_ptr)[kh.key1] = new DataSet;
-            if ((*d_ptr)[kh.key1]->type() != NodeType::DataSet) throw basic_error(kh.key1);
-            ((DataSet*) (*d_ptr)[kh.key1])->_def<T>(kh.key2, size);
+    T* def(const std::string& key, Shape S = 1) {
+        DataSetKeyParser kh = DataSetKeyParser(key);
+        DataType* d_ptr     = static_cast<DataType*>(_data);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*d_ptr)[kh.terms[i]];
+            if (!node) node = new DataSet;
+
+            currentNode = static_cast<DataSet*>(node);
+            d_ptr       = static_cast<DataType*>(currentNode->_data);
+        }
+
+        auto& leaf_node = (*d_ptr)[kh.terms.back()];
+        if (!leaf_node) leaf_node = new Tensor<T>(S);
+
+        if (leaf_node->type() != as_enum<T>() || S.size() != leaf_node->size())
+            throw std::runtime_error("doubly conflicted definition!");
+        return static_cast<T*>(leaf_node->data());
+    }
+
+    template <typename T>
+    T* def(const std::string& key, T* arr_in, Shape S = 1) {
+        T* arr = def<T>(key, S);
+        for (int i = 0; i < S.size(); ++i) arr[i] = arr_in[i];
+        return arr;
+    }
+
+    template <typename T>
+    T* def(const std::string& key, const std::string& key_in) {
+        auto inode = node(key_in);
+        if (inode->type() == kids_dataset_type)
+            throw std::runtime_error(std::string{key_in} + " : failed copying dataset");
+        return def<T>(key, (T*) inode->data(), inode->size());
+    }
+
+    template <typename T>
+    DataSet& _def(const std::string& key, Shape S = 1) {
+        def<T>(key, S);
+        return *this;
+    }
+
+    DataSet& _def(const std::string& key, const std::string& key_in) {
+        auto leaf_node = node(key_in);
+        switch (leaf_node->type()) {
+            case kids_bool_type:
+                def<kids_bool>(key, key_in);
+                break;
+            case kids_int_type:
+                def<kids_int>(key, key_in);
+                break;
+            case kids_real_type:
+                def<kids_real>(key, key_in);
+                break;
+            case kids_complex_type:
+                def<kids_complex>(key, key_in);
+                break;
+            default:
+                break;
         }
         return *this;
     }
 
-    /**
-     * @brief      undefine leaf/non-leaf node(s) in a tree
-     *
-     * @param[in]  key   The key
-     *
-     * @return     DataSet reference after undefintion
-     */
     DataSet& _undef(const std::string& key) {
-        KeyHelper kh      = KeyHelper(key, false);
-        DataSet* psubtree = kh.is_leaf ? this : &subref(kh.key1);
-        DataType* d_ptr   = static_cast<DataType*>(psubtree->_data);
-        if (d_ptr->find(kh.key2) == d_ptr->end()) throw basic_error(kh.key2);
-        delete (*d_ptr)[kh.key2];
-        d_ptr->erase(kh.key2);
+        DataSetKeyParser kh = DataSetKeyParser(key);
+        DataType* d_ptr     = static_cast<DataType*>(_data);
+
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*d_ptr)[kh.terms[i]];
+            if (!node) return *this;
+
+            currentNode = static_cast<DataSet*>(node);
+            d_ptr       = static_cast<DataType*>(currentNode->_data);
+        }
+
+        auto it = d_ptr->find(kh.terms.back());
+        if (it != d_ptr->end()) {
+            delete it->second;
+            d_ptr->erase(it);
+        }
         return *this;
     }
 
+    Node* node(const std::string& key) {
+        DataSetKeyParser kh = DataSetKeyParser(key);
+        DataType* d_ptr     = static_cast<DataType*>(_data);
 
-    /**
-     * @brief      get a sub-tree of a tree
-     *
-     * @param[in]  key   The key of a subtree
-     *
-     * @return     DataSet reference
-     */
-    DataSet& subref(const std::string& key) {  // @bugs it will destroy the alias structure
-        KeyHelper kh    = KeyHelper(key);
-        DataType* d_ptr = static_cast<DataType*>(_data);
-        if (kh.is_leaf) {
-            if (d_ptr->find(key) == d_ptr->end()) throw basic_error(key);
-            if (NodeType::DataSet != (*d_ptr)[key]->type()) throw basic_error(key);
-            return *((DataSet*) (*d_ptr)[key]);
+        DataSet* currentNode = this;
+        for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+            auto& node = (*d_ptr)[kh.terms[i]];
+            if (!node) throw std::runtime_error(std::string{key} + " : access undefined key!");
+
+            currentNode = static_cast<DataSet*>(node);
+            d_ptr       = static_cast<DataType*>(currentNode->_data);
         }
-        if (d_ptr->find(kh.key1) == d_ptr->end()) throw basic_error(kh.key1);
-        return ((DataSet*) (*d_ptr)[kh.key1])->subref(kh.key2);
-    };
 
-    /**
-     * @brief get information (type & size & storage) of a key in the tree
-     */
-    NodeGeneric::InfoType info(const std::string& key) noexcept {
-        KeyHelper kh    = KeyHelper(key);
-        DataType* d_ptr = static_cast<DataType*>(_data);
-        if (kh.is_leaf && d_ptr->find(key) != d_ptr->end()) {
-            NodeGeneric* inode = (*d_ptr)[key];
-            return inode->info();
-        } else if (!kh.is_leaf && d_ptr->find(kh.key1) != d_ptr->end()) {
-            return ((DataSet*) (*d_ptr)[kh.key1])->info(kh.key2);
-        }
-        return std::make_tuple(NodeGeneric::NodeType::Void, 0, nullptr, nullptr);
-    };
-
-    /**
-     * @brief ask if the key exists in the tree structure
-     */
-    bool has_key(const std::string& key) { return (std::get<3>(info(key)) != nullptr); }
-
-    /**
-     * @brief register an array and return its pointer
-
-     * @param key : the address of the array, adjointed by dot delimiter
-     * @param size_array : the size of the array
-     * @tparam T : the type of the data
-     * @return T* pointer.
-     *     1) If the key of array has been existed, it will only return the
-     *     pointer of the array;
-     *     2) otherwise, it will define a new array assoicated with the key,
-     *     and further return its pointer.
-     */
-    template <typename T>
-    T* def(const std::string& key, std::size_t size_array = 1, bool required = false) {
-        if (!has_key(key)) _def<T>(key, size_array);
-        auto&& res = info(key);
-        if (std::get<0>(NodeGeneric::TypeHelper<T>()) != std::get<0>(res)) throw basic_error(key);
-        if (size_array > 0 && size_array != std::get<1>(res)) throw basic_error(key);
-        return (T*) std::get<2>(res);
-    };
-
-    template <typename T>
-    T* set(const std::string& key, T* array, std::size_t size_array = 1) {
-        if (!has_key(key)) _def<T>(key, size_array);
-        auto&& res = info(key);
-        if (std::get<0>(NodeGeneric::TypeHelper<T>()) != std::get<0>(res)) throw basic_error(key);
-        if (size_array > 0 && size_array != std::get<1>(res)) throw basic_error(key);
-        T* ptr = (T*) std::get<2>(res);
-        for (int i = 0; i < size_array; ++i) ptr[i] = array[i];
-        return ptr;
-    };
-
-    KeyNodeList flatten(bool indeep = false, const std::string& parent = "") {
-        KeyNodeList list;
-        DataType* d_ptr = static_cast<DataType*>(_data);
-        for (auto& i : (*d_ptr)) {
-            std::string key    = (parent == "") ? i.first : utils::concat(parent, ".", i.first);
-            NodeGeneric* inode = i.second;
-            if (inode->type() == NodeGeneric::NodeType::DataSet) {
-                auto&& list2 = ((DataSet*) inode)->flatten(indeep, key);
-                list.insert(list.end(), std::make_move_iterator(list2.begin()), std::make_move_iterator(list2.end()));
-            } else {
-                list.push_back(std::make_tuple(key, inode));
-            }
-        }
-        return list;
+        auto& leaf_node = (*d_ptr)[kh.terms.back()];
+        if (!leaf_node) throw std::runtime_error(std::string{key} + " : access undefined key!");
+        return leaf_node;
     }
 
-    virtual std::string repr(NodeGeneric::Format format = NodeGeneric::Format::Free, const std::string& lead = "") {
+    template <typename T = DataSet>
+    T* at(const std::string& key) {
+        auto leaf_node = node(key);
+        if (leaf_node->type() != as_enum<T>()) throw std::runtime_error("bad conversion!");
+        if (leaf_node->type() == kids_dataset_type) return (T*) (leaf_node);
+        return static_cast<T*>(leaf_node->data());
+    }
+
+    virtual std::string repr() {
         std::ostringstream os;
-        DataType* d_ptr = static_cast<DataType*>(_data);
-        switch (format) {
-            case NodeGeneric::Format::Free: {
-                for (auto& i : flatten()) { os << std::get<0>(i) << std::get<1>(i)->repr(format, lead) << "\n"; }
-                break;
-            }
-            case NodeGeneric::Format::Json: {
-                os << lead << "{\n";
-                std::string nextlead = lead + "  ";
-                for (auto& i : (*d_ptr)) {
-                    NodeGeneric* inode = i.second;
-                    os << nextlead << "\"" << i.first << "\" : ";
-                    os << nextlead << inode->repr(format, nextlead);
-                    os << ",\n";
+        std::vector<std::tuple<std::string, Node*>> stack;
+
+        stack.push_back(std::make_tuple("", this));
+
+        while (!stack.empty()) {
+            auto [parent, currentNode] = stack.back();
+            stack.pop_back();
+
+            DataType* d_ptr = static_cast<DataType*>(currentNode->data());
+
+            for (auto& i : (*d_ptr)) {
+                std::string key = (parent == "") ? i.first : parent + "." + i.first;
+                Node* inode     = i.second;
+                if (inode->type() == kids_dataset_type) {
+                    stack.push_back(std::make_tuple(key, inode));
+                } else {
+                    os << key << inode->repr() << "\n";
                 }
-                os << lead << "}";
-                break;
             }
         }
         return os.str();
     }
 
-    /**
-     * @brief dump DataSet information to a filestream or a file
-     */
-    virtual void dump(std::ostream& os, NodeGeneric::Format format = NodeGeneric::Format::Free) { os << repr(format); }
+    virtual void dump(std::ostream& os) { os << repr(); }
 
-    virtual void dump(const std::string& file, NodeGeneric::Format format = NodeGeneric::Format::Free) {
-        std::ofstream ofs(file);
-        dump(ofs, format);
-        ofs.close();
-    }
-
-    /**
-     * @brief load DataSet information from a filestream or a file
-     */
-    virtual void load(std::istream& is, NodeGeneric::Format format = NodeGeneric::Format::Free) {
-        switch (format) {
-            case NodeGeneric::Format::Free: {  // as an easily implemented format
-                std::string key, typeflag;
-                int size;
-                while (is >> key >> typeflag >> size) {
-                    if (typeflag == "Bool") {
-                        bool* ptr = def<bool>(key, size);
-                        for (int i = 0; i < size; ++i) is >> ptr[i];
-                    } else if (typeflag == "Int") {
-                        int* ptr = def<int>(key, size);
-                        for (int i = 0; i < size; ++i) is >> ptr[i];
-                    } else if (typeflag == "Real") {
-                        kids_real* ptr = def<kids_real>(key, size);
-                        for (int i = 0; i < size; ++i) is >> ptr[i];
-                    } else if (typeflag == "Complex") {
-                        kids_complex* ptr = def<kids_complex>(key, size);
-                        for (int i = 0; i < size; ++i) is >> ptr[i];
-                    }
-                }
-                break;
-            }
-            case NodeGeneric::Format::Json: {
-                throw basic_error("Not implemented");
-                break;
+    virtual void load(std::istream& is) {
+        std::string key, typeflag;
+        int size;
+        while (is >> key >> typeflag >> size) {
+            if (typeflag == as_str<int>()) {
+                int* ptr = def<int>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            } else if (typeflag == as_str<kids_real>()) {
+                kids_real* ptr = def<kids_real>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            } else if (typeflag == as_str<kids_complex>()) {
+                kids_complex* ptr = def<kids_complex>(key, size);
+                for (int i = 0; i < size; ++i) is >> ptr[i];
             }
         }
-    }
-
-    virtual void load(const std::string& file, NodeGeneric::Format format = NodeGeneric::Format::Free) {
-        std::ifstream ifs(file);
-        load(ifs, format);
-        ifs.close();
     }
 
    private:
-    bool ownership = true;
-
-    /**
-     * @brief      This Class parses key sequences.
-     */
-    class KeyHelper {
+    class DataSetKeyParser {
        public:
-        bool is_leaf;
-        std::string key1, key2;
-        KeyHelper(const std::string key, bool from_beginning = true) {
-            std::string::size_type ipos = from_beginning ? key.find_first_of('.') : key.find_last_of('.');
-            is_leaf                     = (ipos == std::string::npos);
-            if (is_leaf) {
-                key1 = from_beginning ? key : "";
-                key2 = from_beginning ? "" : key;
-            } else {  // find a delimiter
-                key1 = key.substr(0, ipos++);
-                key2 = key.substr(ipos, key.length() - ipos);
+        std::vector<std::string> terms;
+        DataSetKeyParser(const std::string& key, const std::string& delimiter = ".") {
+            size_t start = 0, end;
+            while ((end = key.find(delimiter, start)) != std::string::npos) {
+                terms.emplace_back(key, start, end - start);
+                start = end + delimiter.length();
             }
+            terms.emplace_back(key, start);
         }
     };
 
-    /**
-     * @brief implemention of deconstructor
-     */
     virtual void _delete() {
         DataType* d_ptr = static_cast<DataType*>(_data);
         for (auto& i : (*d_ptr)) delete i.second;
@@ -428,6 +360,6 @@ class DataSet : public NodeGeneric {
     }
 };
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // DataSet_H

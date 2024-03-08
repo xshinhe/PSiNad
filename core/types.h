@@ -27,12 +27,12 @@
 
 #include <complex> /* using C++'s std::complex other than C */
 
-namespace kids {
+namespace PROJECT_NS {
 
 class Param;
 class DataSet;
 
-enum kids_enum_type {
+enum kids_dtype {
     kids_void_type,     //
     kids_bool_type,     //
     kids_int_type,      //
@@ -75,19 +75,19 @@ inline Tto cast_at(void* data, int index = 0) {
 /**
  */
 template <typename T>
-kids_enum_type as_enum();
+kids_dtype as_enum();
 
 template <typename T>
 std::string as_str();
 
-#define DEFINE_BIND_UTILS_FOR(T)         \
-    template <>                          \
-    inline kids_enum_type as_enum<T>() { \
-        return T##_type;                 \
-    }                                    \
-    template <>                          \
-    inline std::string as_str<T>() {     \
-        return #T;                       \
+#define DEFINE_BIND_UTILS_FOR(T)     \
+    template <>                      \
+    inline kids_dtype as_enum<T>() { \
+        return T##_type;             \
+    }                                \
+    template <>                      \
+    inline std::string as_str<T>() { \
+        return #T;                   \
     }
 
 DEFINE_BIND_UTILS_FOR(kids_void);
@@ -99,6 +99,6 @@ DEFINE_BIND_UTILS_FOR(kids_str);
 DEFINE_BIND_UTILS_FOR(kids_param);
 DEFINE_BIND_UTILS_FOR(kids_dataset);
 
-};  // namespace kids
+};  // namespace PROJECT_NS
 
 #endif  // NUM_TYPES_H

@@ -3,7 +3,7 @@
 #include "Kernel_Declare.h"
 #include "Kernel_Random.h"
 
-namespace kids {
+namespace PROJECT_NS {
 
 void Kernel_Update_T::read_param_impl(Param* PM) { gammal = PM->get<double>("gammal", LOC(), 0.1); }
 
@@ -32,4 +32,4 @@ int Kernel_Update_T::exec_kernel_impl(int stat) {
     return 0;
 }
 
-};  // namespace kids
+};  // namespace PROJECT_NS
