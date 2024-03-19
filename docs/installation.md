@@ -4,29 +4,27 @@
 
 ## Basic Installation
 
-Prerequisite:
-- unix-like OS
-- a C++ compiler
+**Prerequisites**:
+- Unix-like operating system
+- C++ compiler
+- Python intepretor (optional for `libpykids.so`)
 - Intel One API (MPI and MKL)
-- cmake >= 3.16
+- cmake version >= 3.16
 
-a fast and short guide for installation
+Here's a quick guide for installation:
 
 ```bash
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-# or specify compilers like: CC=g++ FC=gfortran cmake ..
+CC=gcc CXX=g++ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j8
 # make install
 ```
+If you prefer not to compile all components, you can specify modules in the config.json file. Note: refrain from modifying the default config.json; simply copy the file to ${CMAKE_BINARY_DIR}, and the latter will be loaded if it exists.
 
-If you don't want compile all components, you can specify modules in file `config.json`. Note: don't revised the default `config.json`, just copy the file to `${CMAKE_BINARY_DIR}`, and it will load the later one if it exists.
-
-> **Problems Reports:**
+> **Problem Reports:**
 >
-> - [x] **internal compiler error**: if it reports `internal compiler error: Segmentation fault` error, please enlarge swap file and try again as following:
->
+> - [x] **internal compiler error**: If you encounter the `internal compiler error: Segmentation fault` message, consider enlarging the swap file and trying again using the following commands:
 > ```bash
 > sudo dd if=/dev/zero of=/swapfile bs=1M count=1024
 > sudo mkswap /swapfile
@@ -34,16 +32,14 @@ If you don't want compile all components, you can specify modules in file `confi
 > # try compile again
 > sudo swapoff /swapfile # don't forget to close swap file
 > ```
->
 
-It needs MKL and MPI library (Here I recommend Intel's oneAPI), which should be manually configued in `CMakeLists.txt`.
-
+kids requires the MKL and MPI libraries (Intel's oneAPI is recommended), which need to be manually configured in the CMakeLists.txt file.
 ```cmake
 # for example
 set(CUSTOMIZED_MKL_DIR "/opt/intel/oneapi/mkl/latest/")
 set(CUSTOMIZED_MPI_DIR "/opt/intel/oneapi/mpi/latest/")
 ```
-you can revised `cmake/FindMKLMod.cmake` and `cmake/FindMKLMod.cmake` to adapt to environment in your PC.
+You can modify `cmake/FindMKLMod.cmake` and `cmake/FindMKLMod.cmake` to suit your PC environment.
 
 ## Benchmark Test
 

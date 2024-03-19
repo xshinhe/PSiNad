@@ -22,15 +22,6 @@ auto  pathtofile = "param_custom.json"
 auto PM = Param(pathtofile, Param::fromFile);
 ```
 
-Some keywords are used for control to simulation, which are list as follows, and all of them can be passed by command line arguments.
-
-|   keywords    |      type      |     default    |   command line arguments  |
-|:--------------|:---------------|:---------------|:--------------------------|
-|   timing      |      <bool>    |     false      |   `-timing`               |
-|   load        |      <string>  |     ""         |   `-load=...`             |
-|   dump        |      <string>  |     ""         |   `-dump=...`             |
-
-
 
 1) Other kind of formats
 

@@ -6,40 +6,34 @@
 
 [TOC]
 
-## For developers
+## For Developers
 
-1. For developers, it provides `add_definitions(USE_PL=ON)` to test and profile your code's numeric performance (see more at https://github.com/dfeneyrou/palanteer)  while for users but not nondevelopers, please just keep `add_definitions(USE_PL=OFF)`.
+In addition to possessing knowledge in their respective fields and proficiency in the code and algorithms they work with, developers are expected to adhere to the following principles:
 
-![](img/profiling.png)
+Developers' Responsibilities:
 
-2. And please use `clang-format` to standardize you code style with the config file `.clang-format`. (see more at https://clang.llvm.org/docs/ClangFormat.html)
+1. **Clear Code and Comment Style**: Comments should follow the doxygen C/C++ style (refer to https://www.doxygen.nl/manual/docblocks.html#cppblock for details). A template is provided in core/doxygen_template.h. Please utilize clang-format with the .clang-format configuration file to standardize your code style (refer to https://clang.llvm.org/docs/ClangFormat.html).
 
-3. Comments follow doxygen C/C++ style. (see more at https://www.doxygen.nl/manual/docblocks.html#cppblock)
+2. **Code Optimization**: Developers can enable the add_definitions(USE_PL=ON) option to test and profile the numeric performance of their code (see https://github.com/dfeneyrou/palanteer). However, for users who are not developers, it's recommended to keep add_definitions(USE_PL=OFF). Developers should have a clear understanding of their code's performance and strive to optimize both runtime and compile-time costs, ensuring clear code logic throughout.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+## Basic Types
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+The basic types in kids are `kids_bool`, `kids_int`, `kids_real`, `kids_complex`, `kids_str`, `kids_param` and `kids_dataset`.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Four Basic Components
 
 The KIDS framework is divided into the following four basic components: Paramizer, Dataizer, Algorithmizer, Taskizer.
 
 1. **Paramizer**: The Paramizer can be implemented using JSON.
 
-The JSON library has good implementations in C++, and we can simply encapsulate its usage. For RUST, there are also libraries available for direct encapsulation.
-
-```c++
+The JSON library has good implementations in C++, and we can simply encapsulate its usage.
+```cpp
 class Param;
+using kids_param = Param;
 ```
 
 2. **Dataizer**: We define the following classes:
 
-For C++:
-
-```
+```cpp
 class Dimen;
 class Shape;
 class Node;
@@ -49,7 +43,7 @@ class DataSet;
 
 The Dimen class is based on dynamic dimensions of integers, such as `Dimen ndofs`. Operations implemented include bidirectional assignment, comparison operations, etc.
 
-```c++
+```cpp
 void operator=(const int& i, const Dimen& dim);
 void operator=(const Dimen& dim, const int& i);
 void operator==(const int& i, const Dimen& dim);
@@ -70,13 +64,13 @@ The DataSet provides three operations: `def()`, `at()`, and `undef()`, used to d
 
 To better pseudo-bind namespaces and DataSet structures in C++, we also introduce the following auxiliary class and macro functions:
 
-```
+```cpp
 class Variable<T>;
 ```
 
 Here is an example of managing computational data structures:
 
-```c++
+```cpp
 // Pre-runtime overhead...
 Dimen dim1; // Declare a dimension size (note that new operation is disabled)
 Dimen dim2; // Declare another dimension size
@@ -126,7 +120,7 @@ std::cout << DS2.repr() << "\n";
     };
 ```
 
-The ds file format is linear, with read/write complexity of O(N*H), where N is the data volume and H is the maximum depth of the tree. It's a simple hdf5-like format.
+The ds file format is linear, with read/write complexity of O(N\*H), where N is the data volume and H is the maximum depth of the tree. It's a simple hdf5-like format.
 
 3. **Algorithmizer**
 
@@ -152,9 +146,7 @@ The interface of Algorithmizer is Kernel (allowing empty Kernels to be built fro
       #11..: Kernel_Elec_CMM                            0.000s      0.00%
         #12: Kernel_Elec                                0.000s      0.00%
       #06..: Kernel_NADForce                            0.000s      0.00%
-      #
-
-07..: Kernel_Update_p                            0.000s      0.00%
+      #07..: Kernel_Update_p                            0.000s      0.00%
       #13..: Kernel_Conserve                            0.000s      0.00%
       #03..: Kernel_Timer                               0.000s      0.00%
   #19......: Kernel_Dump_DataSet                        0.000s      0.00%
@@ -163,7 +155,7 @@ Using total time 12.0723 s
 
 Kernel provides two calling functions:
 
-```
+```cpp
 template <typename T>
 exec_kernel(T Data);
 
@@ -175,7 +167,8 @@ exec_kernel();
 > The levels of calculation, such as sampling as pre-calculation, dynamics as main calculation, etc., can be controlled through the level.
 
 Under the new interface structure, an instantiated dynamics calculation can be expressed as follows:
-```c++
+
+```cpp
 kernel = build_kernel(kernel_name);
 kernel.exec_kernel<Param>(PM);   // Passing data parameters from top to bottom to different Algorithmizers (Algorithmizers reference these parameters)
 kernel.exec_kernel<DataSet>(DS); // Passing data memory from top to bottom to different Algorithmizers (Algorithmizers reference this memory)
@@ -192,7 +185,7 @@ Reasons for abandoning object orientation in favor of Algorithmizer:
 3) Atomicity of Algorithmizers facilitates maintenance tracking. For example, if the same algorithm has multiple implementations, `Kernel_Algo1_Impl1_1995, Kernel_Algo1_Impl2_2008`, the formal algorithm only needs to define `using Kernel_Algo1_Recommend = Kernel_Algo1_Impl2_2008`.
 4) Facilitates modification, replacement, or new development. A Kernel can be replaced with a user-defined Kernel, such as
 
-```c++
+```cpp
 // realize customized Kernel_Algo1_Custom class
 kernel = build_kernel(kernel_name); // default builder
 kernel.replace(Kernel::enum::Algo1, std::shared_ptr<Kernel_Algo1_Custom>(new Kernel_Algo1_Custom()));
@@ -213,41 +206,13 @@ As mentioned above, the collector is a special type of Kernel. It contains funct
 
 Taskizer, combined with the collector, can be used for general computing tasks (Applications). First, the collector determines the required intermediate information (default) based on the type of the Taskizer, and of course, additional intermediate information can be added by the user. During base calculation, information is collected.
 
-```c++
+```cpp
 class Collection;  // A type of Kernel, serves as the interface for the entire Kernel call tree to external Applications
 class Application; // Taking hardware conditions into account, a specific computing task, such as different types of calculations, such as free energy calculation, spectrum calculation, reaction rate calculation, etc.
 ```
 
 Note that due to the differences in MPI between C++ and Python, Application in C++ and Python are implemented separately.
 
-## Plans
-
-These components and their ideas are not limited to existing dynamic frameworks and can be extended to other fields.
-
-### Molecular Force Field Engine Plan
-
-Construct Kernel classes for ForceField to implement some common force fields/machine learning force fields.
-
-### Electronic Structure Plan
-
-Construct Kernel classes for AbInitio to build electronic structures such as DFT.
-
-### External Interfaces
-
-√ Gauss Interface
-
-√ CASSCF Interface
-
-√ MNDO Interface
-
-DFT Interface
-
-OpenMM Interface (only providing OpenMM interface)
-
-### Standard for init_calc
-
-All variable references must be defined in DataSet!!!
-"
 
 <div class="section_buttons">
 
