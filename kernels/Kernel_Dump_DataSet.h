@@ -16,9 +16,12 @@ class Kernel_Dump_DataSet : public Kernel {
     inline virtual const std::string name() { return "Kernel_Dump_DataSet"; }
 
    private:
+    std::string directory;
     std::string fn;  ///< filename
 
     virtual void read_param_impl(Param* PM);
+
+    virtual void init_calc_impl(int stat = -1);
 
     virtual int exec_kernel_impl(int stat = -1);
 };

@@ -73,7 +73,6 @@ class Kernel_Record final : public Kernel {
     int* nsamp_ptr;
     bool* do_recd_ptr;
 
-    bool trace;
     double t0, dt, time_unit;
 
     std::string directory;

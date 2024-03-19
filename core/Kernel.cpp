@@ -7,29 +7,15 @@ namespace PROJECT_NS {
  */
 Kernel::Kernel(const std::string& iname) : customized_name{iname} {
     TOTAL += 1;
-    TOTAL_ROOT += 1;
     kernel_id      = TOTAL;
     max_align_size = name().size();
 };
 
 /**
- * @brief deconstructor.
- */
-Kernel::~Kernel() {
-    if (is_root) destory();
-    TOTAL_ROOT -= 1;
-}
-
-/**
  * @brief build tree structure of the kernel
  */
-Kernel& Kernel::push(std::shared_ptr<Kernel> ker, const bool& take_ownership) {
+Kernel& Kernel::push(std::shared_ptr<Kernel> ker) {
     _kernel_vector.push_back(ker);
-    if (take_ownership) {
-        _kernel_vector.back()->is_root = false;  // take the ownership
-        TOTAL_ROOT -= 1;
-    }
-
     depth = std::max(depth, ker->depth + 1);
     if (ker->name().size() > max_align_size) { max_align_size = ker->name().size(); }
 
@@ -75,21 +61,7 @@ void Kernel::init_calc_impl(int stat){};  // overwritable data reference
 
 int Kernel::exec_kernel_impl(int stat) { return 0; }  // overwritable run kernel
 
-void Kernel::destory() {
-    // automatically enabled by shared_ptr
-    /**
-    for (auto pkernel : _kernel_vector) {  // loop sub-kernels
-        if (pkernel == nullptr || pkernel->is_root == true) continue;
-        pkernel->destory();
-        Kernel* ker = pkernel;
-        delete ker;
-        // pkernel = nullptr;
-    }
-     */
-}
-
-int Kernel::TOTAL      = 0;
-int Kernel::TOTAL_ROOT = 0;
-bool Kernel::BREAK     = false;
+int Kernel::TOTAL  = 0;
+bool Kernel::BREAK = false;
 
 };  // namespace PROJECT_NS

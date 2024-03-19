@@ -994,6 +994,7 @@ static CONSTTYPE real_precision au_2_ang       = unitsys::conv(au::unit, 1e-10L 
 static CONSTTYPE real_precision au_2_ev        = unitsys::conv(au::unit, e_charge* _base_1V);
 static CONSTTYPE real_precision au_2_J_1mea    = unitsys::conv(au::unit, _base_1J / _base_1mol) * au::N;
 static CONSTTYPE real_precision au_2_kcal_1mea = unitsys::conv(au::unit, 1e+3L * _nostd_1cal / _base_1mol) * au::N;
+static CONSTTYPE real_precision au_2_g_1mea    = unitsys::conv(au::unit, 1e-3L * _base_1kg / _base_1mol) * au::N;
 static CONSTTYPE real_precision au_2_wn        = unitsys::conv(au::unit, h_Planck* c_lightspeed / (0.01L * _base_1m));
 static CONSTTYPE real_precision au_2_fs        = unitsys::conv(au::unit, 1e-15L * _base_1s);
 static CONSTTYPE real_precision au_2_ps        = unitsys::conv(au::unit, 1e-12L * _base_1s);

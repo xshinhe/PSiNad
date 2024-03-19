@@ -85,7 +85,6 @@ void Kernel_Record::read_param_impl(Param* PM) {
     dt        = PM->get<double>("dt", LOC(), phys::time_d);
     t0        = PM->get<double>("t0", LOC(), phys::time_d, 0.0f);
     time_unit = PM->get<double>("time_unit", LOC(), phys::time_d, 1.0f);
-    trace     = PM->get<bool>("trace", LOC(), false);
     directory = PM->get<std::string>("directory", LOC(), "default");
 }
 
@@ -120,7 +119,7 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
             item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _DataSet, "integrator");
             item_tmp.name    = "_";
             item_tmp.save    = "samp";
-            item_tmp.ofs_ID  = ofsm.push(item_tmp.save);
+            // item_tmp.ofs_ID  = ofsm.push(item_tmp.save);
 
             Record_List.push_back(item_tmp);
 
@@ -137,7 +136,7 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
             item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _DataSet, "integrator");
             item_tmp.name    = "_";
             item_tmp.save    = "corr";
-            item_tmp.ofs_ID  = ofsm.push(item_tmp.save);
+            // item_tmp.ofs_ID  = ofsm.push(item_tmp.save);
 
             Record_List.push_back(item_tmp);
 

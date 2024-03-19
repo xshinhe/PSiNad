@@ -148,6 +148,7 @@ class Tensor final : public Node {
         T* ptr = (T*) data();
         os << FMT(0) << as_str<T>();
         os << FMT(0) << _size;
+        os << "\n";
         for (int i = 0; i < _size; ++i) os << FMT(8) << ptr[i];
         return os.str();
     }
@@ -313,7 +314,7 @@ class DataSet final : public Node {
                 if (inode->type() == kids_dataset_type) {
                     stack.push_back(std::make_tuple(key, inode));
                 } else {
-                    os << key << inode->repr() << "\n";
+                    os << key << "\n" << inode->repr() << "\n\n";
                 }
             }
         }

@@ -10,6 +10,16 @@
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
 
+#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
+    ({                                                                                      \
+        std::cout << "Show Array <" << #_A << ">\n";                                        \
+        int _idxA = 0;                                                                      \
+        for (int _i = 0; _i < (_n1); ++_i) {                                                \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++] << ","; \
+            std::cout << std::endl;                                                         \
+        }                                                                                   \
+    })
+
 double phi(double lambda, double N0_max, int F) {
     double x     = lambda * N0_max / 2;
     double term1 = 1.0e0;
@@ -306,7 +316,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
             }
         } else {
             Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
-            for (int i = 0; i < Dimension::F; ++i) c[i] = 1.0e0 * i;
+            // for (int i = 0; i < Dimension::F; ++i) c[i] = 1.0e0 * i;
         }
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
 

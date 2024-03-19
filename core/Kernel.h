@@ -1,29 +1,36 @@
-/**
- * @file Kernel.h
- * @author xshinhe
- * @version 1.1
- * @date 2023-03
- * @brief Kernel template
+/**@file        Kernel.h
+ * @brief       this file provide Kernel class
  * @details
- *  Kernal is one of the most important classes in OpenDF, and is responsible
- *  for the implementment of algorithms and functionalities.
+ *  Kernal is one of the most important classes in KIDS, and is responsible
+ *  for the implementment of algorithms and functionalities
+ * ## Easier interfaces for getting parameters (@todo)
+ *  - Dependencies: Param & DataSet. The parameters are passed by Param class.
+ *    It is also free of storage of data, which is mapped to DataSet class.
+ *  - It's a (hierarchical) tree structure, each kernal also consists of a
+ *    list of other kernels.
+ *  - The detailed algorithms can be realized in its child. In priciple, we
+ *    don't recomment multilevel inheritance, except Kernel_Model. (refer to
+ *    `final` keyword).
+ *  - There should be no `new` or `delete` in Kernel and its derivatives!
+ *    Be clear that there are three types attributes for members in Kernel:
  *
- *  1) Dependencies: Param & DataSet. The parameters are passed by Param class.
- *      It is also free of storage of data, which is mapped to DataSet class.
- *  2) It's a (hierarchical) tree structure, each kernal also consists of a
- *      list of other kernels.
- *  3) The detailed algorithms can be realized in its child. In priciple, we
- *      don't recomment multilevel inheritance, except Kernel_Model. (refer to
- *      `final` keyword).
- *  4) There should be no `new` or `delete` in Kernel and its derivatives!
- *      Be clear that there are three types attributes for members in Kernel:
- *
- *      a) external: means only need kernel's pointer points to correct object.
- *      b) shared: means kernel's pointer points to correct object and takes
- *              ownership.
- *      c) internal: means a non-pointer data type which is not exposed to
+ *    a) external: means only need kernel's pointer points to correct object.
+ *    b) shared: means kernel's pointer points to correct object and takes
+ *            ownership.
+ *    c) internal: means a non-pointer data type which is not exposed to
  *              public domain.
+ * @author      [author]
+ * @date        [latest-date]
+ * @version     [version]
+ * @copyright   [copyright]
+ **********************************************************************************
+ * @par revision [logs]:
+ * <table>
+ * <tr><th> Date    <th> Version    <th> Author    <th> Description
+ * <tr><td>[date]   <td>[version]   <td>[author]   <td> [commit]
+ * </table>
  *
+ **********************************************************************************
  */
 
 #ifndef Kernel_H
@@ -44,7 +51,6 @@ namespace PROJECT_NS {
 class Kernel {
    public:
     static int TOTAL;
-    static int TOTAL_ROOT;
     static bool BREAK;
 
     inline virtual const std::string name() { return utils::concat("Kernel__", customized_name); }
@@ -57,12 +63,12 @@ class Kernel {
     /**
      * @brief deconstructor.
      */
-    virtual ~Kernel();
+    virtual ~Kernel(){};
 
     /**
      * @brief build tree structure of the kernel
      */
-    Kernel& push(std::shared_ptr<Kernel> ker, const bool& take_ownership = true);
+    Kernel& push(std::shared_ptr<Kernel> ker);
 
     /**
      * @brief read_param() fetch parameters
@@ -73,7 +79,7 @@ class Kernel {
         // std::cout << "read_param:" << name() << "\n";
         _Param = PM;
 
-        is_timing = PM->get<bool>("is_timing", LOC(), false);
+        is_timing = PM->get<bool>("timing", LOC(), false);
 
         read_param_impl(PM);
         for (auto& pkernel : _kernel_vector) pkernel->read_param(PM, count);
@@ -134,7 +140,6 @@ class Kernel {
     std::string scheme(double total_time = -1.0f, int current_layer = 0, int total_depth = 0, int total_align_size = 0);
 
    protected:
-    bool is_root     = true;
     bool is_timing   = false;
     int count_read   = 0;
     int count_init   = 0;
@@ -158,8 +163,6 @@ class Kernel {
     virtual void init_calc_impl(int stat = -1);
 
     virtual int exec_kernel_impl(int stat = -1);
-
-    void destory();
 };
 
 };  // namespace PROJECT_NS

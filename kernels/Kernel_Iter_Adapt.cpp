@@ -2,6 +2,16 @@
 
 #include "Kernel_Declare.h"
 
+#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
+    ({                                                                                      \
+        std::cout << "Show Array <" << #_A << ">\n";                                        \
+        int _idxA = 0;                                                                      \
+        for (int _i = 0; _i < (_n1); ++_i) {                                                \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++] << ","; \
+            std::cout << std::endl;                                                         \
+        }                                                                                   \
+    })
+
 namespace PROJECT_NS {
 
 void Kernel_Iter_Adapt::read_param_impl(Param* PM) {
@@ -63,11 +73,7 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
         // each loop
         for (auto& pkernel : _kernel_vector) { pkernel->exec_kernel(stat); }
 
-        // check success & update timer
-        // double* V = _DataSet->def<double>("model.V", Dimension::PFF);
-        // if (fabs(V[0] - V[4]) * dt_ptr[0] < 0.01) succ_ptr[0] = 1;
-
-        if (istep_ptr[0] % 2 == 0) {
+        if (succ_ptr[0]) {
             if ((tsize_ptr[0] + dtsize_ptr[0]) % msize == 0) istep_ptr[0]++;
             tsize_ptr[0] += dtsize_ptr[0];
 
@@ -75,7 +81,13 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
             int remain_dtsize = msize - (tsize_ptr[0] % msize);
             dtsize_ptr[0]     = std::min({msize, extend_dtsize, remain_dtsize});
 
+            std::cout << "T [t =" << FMT(4) << t_ptr[0] << "] and adjust [dt_dynamic/dt ="  //
+                      << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
+
         } else {
+            std::cout << "F [t =" << FMT(4) << t_ptr[0] << "] and adjust [dt_dynamic/dt ="  //
+                      << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
+
             if (dtsize_ptr[0] % 2 == 0) {
                 dtsize_ptr[0] /= 2;
                 tsize_ptr[0] += 0;
@@ -94,14 +106,9 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                 if ((tsize_ptr[0] + dtsize_ptr[0]) % msize == 0) istep_ptr[0]++;
                 tsize_ptr[0] += dtsize_ptr[0];
                 dtsize_ptr[0] = dtsize_ptr[0];
-
-                std::cout << "current dt_dynamic / dt = " << dtsize_ptr[0] / ((double) msize) << "\n";
-                std::cout << "exceed minial dt!\n";
+                std::cout << "Exceed minial dt! force proceed!\n";
             }
         }
-
-        std::cout << "dt ===== " << dt_ptr[0] << "\n";
-
         isamp_ptr[0] = istep_ptr[0] / sstep;
     }
     do_recd_ptr[0] = true;
