@@ -10,16 +10,18 @@
 #include "generate/version.h"
 #include "thirdpart/ghc/filesystem.hpp"
 
+DEFINE_bool(w, false, "Enables rewritting the output");
 DEFINE_string(p, "param.json", "paramemter inputs");
-DEFINE_string(d, "default", "directory for simulation");
-DEFINE_string(s, "ENER,TRAJ,ETRAJ,CORR", "outputers; seperated by comma");
-DEFINE_bool(w, false, "rewrite output");
-DEFINE_bool(timing, false, "timing kernels");
-DEFINE_bool(trace, false, "trace into outfilestream");
 
-DEFINE_int32(nsave_mpi, 5, "save backups during monte carlo");
-DEFINE_int32(nsave_time, 5, "save backups during a simulation");
-DEFINE_double(everysave, 1.0f, "interval for saving a context (unit in hours)");
+DEFINE_string(handler,     //
+              "parallel",  //
+              "Specifies the handler type"
+              "\n[parallel | single | single_mpi | sampling | help | help_param | help_dataset ]");
+DEFINE_string(d, "default", "Specifies the output directory");
+DEFINE_string(load, "", "Specifies the dataset file to load");
+DEFINE_string(dump, "", "Specifies the dataset file to dump");
+DEFINE_double(backup_time, -1.0, "Specifies the timestep for backup (/1h)");
+DEFINE_bool(timing, false, "Enables profiling for time costs");
 
 using namespace PROJECT_NS;
 namespace fs = ghc::filesystem;
@@ -34,22 +36,32 @@ int main(int argc, char* argv[]) {
 
     /* setup gflags */
     gflags::SetVersionString(repo_version);
+    gflags::SetUsageMessage("Kernel Integrated Dynamics Simulator");
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     /* read parameter file (json format) */
-    Param P(FLAGS_p, Param::fromFile);
+    Param PM(FLAGS_p, Param::fromFile);
+    auto&& j = *(PM.pjson());
+
+    j["directory"]   = FLAGS_d;
+    j["timing"]      = FLAGS_timing;
+    j["handler"]     = FLAGS_handler;
+    j["backup_time"] = FLAGS_backup_time;
+    if (FLAGS_load != "") j["load"] = FLAGS_load;
+    if (FLAGS_dump != "") j["dump"] = FLAGS_dump;
 
     /* creat directory for simulation */
-    FLAGS_d = P.get<std::string>("jobid", LOC(), FLAGS_d);
     if (fs::exists(FLAGS_d) && FLAGS_w == false) {
         throw std::runtime_error(
             utils::concat("Working directory = [", FLAGS_d, "] already exists. Please specify -w to force start.\n"));
     }
     try {
-        fs::create_directory(FLAGS_d);
-    } catch (std::runtime_error& e) { std::cout << "some error!!\n"; }
+        fs::create_directory(FLAGS_d);  // sometime it raise bugs
+    } catch (std::runtime_error& e) {
+        throw std::runtime_error("create_directory failed");
+        std::cout << "some error!!!\n";
+    }
 
-    auto&& j = *(P.pjson());
     if (j.count("model_file") > 0 && j.count("model_id") > 0) {
         Param TEMP(j["model_file"].as_string(), Param::fromFile);
         j["model_param"] = (*(TEMP.pjson()))[j["model_id"].as_string()];
@@ -74,17 +86,12 @@ int main(int argc, char* argv[]) {
     FLAGS_stop_logging_if_full_disk = true;  // If disk is full
 
     /* task block */
-    std::string model_name   = P.get<std::string>("model", LOC());
-    std::string solver_name  = P.get<std::string>("solver", LOC());
-    std::string handler_name = P.get<std::string>("handler", LOC(), "single");
+    std::string model_name   = PM.get<std::string>("model", LOC());
+    std::string solver_name  = PM.get<std::string>("solver", LOC());
+    std::string handler_name = PM.get<std::string>("handler", LOC(), "single");
 
-    (*P.pjson())["trace"]     = FLAGS_trace;
-    (*P.pjson())["is_timing"] = FLAGS_timing;
-    (*P.pjson())["directory"] = FLAGS_d;
-
-    Handler myhandler = Handler(Handler::multiple, solver_name, model_name);
-
-    myhandler.run(&P);
+    Handler myhandler = Handler(solver_name, model_name);
+    myhandler.run(&PM);
 
     /* finalize */
     gflags::ShutDownCommandLineFlags();
