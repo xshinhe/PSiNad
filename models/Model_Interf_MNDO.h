@@ -10,12 +10,12 @@
 
 namespace PROJECT_NS {
 
-struct MNDO99KW {
+struct MNDOKW {
     std::string key;
     int val;
 };
 
-using MNDO99KW_map = std::map<std::string, int>;
+using MNDOKW_map = std::map<std::string, int>;
 
 class Model_Interf_MNDO final : public Kernel {
    public:
@@ -28,11 +28,20 @@ class Model_Interf_MNDO final : public Kernel {
    private:
     kids_real temp, beta;
     bool diff_nac;
-    std::string init_nuclinp, savename;
-    std::vector<std::string> mndo99_data;
-    std::string mndo99_keyword, mndo99_comment, mndo99_addition;
 
-    std::vector<MNDO99KW> keyword;  // keyword wrapper
+    std::string exec_file;
+    std::string init_nuclinp;
+    std::string savename;
+
+    std::vector<std::string> mndo_data;
+    std::string mndo_keyword;
+    std::string mndo_comment;
+    std::string mndo_addition;
+
+    std::vector<MNDOKW> keyword;  // keyword wrapper
+
+    std::string task_control;
+    std::string directory;
 
     // integrator
     kids_real *x, *p;
@@ -47,13 +56,17 @@ class Model_Interf_MNDO final : public Kernel {
     kids_real* mass;
     kids_real *vpes, *grad, *hess, *Tmod;
     kids_real *V, *dV;
-    kids_real *E, *dE;
+    kids_real *T, *E, *dE;
     kids_real *nac, *nac_prev;
+
+    kids_real *f_r, *f_p, *f_rp;
 
     int natom;
     int read_flag;
+    int nciref;
     int ncigrd;
     int iroot;
+    int lroot;
     bool refer;
 
     void read_param_impl(Param* PM);
@@ -64,12 +77,13 @@ class Model_Interf_MNDO final : public Kernel {
 
     int exec_kernel_impl(int stat = -1);
 
-    int parse_mndo99(const std::string& mndo99inp);
-    std::string new_keyword(const MNDO99KW_map& newkeyword);
+    int parse_mndo(const std::string& mndoinp);
+    std::string new_keyword(const MNDOKW_map& newkeyword);
     int new_task(const std::string& file, const std::string& task_flag);
     int track_nac_sign();
-    int parse_standard(const std::string& log);
+    int parse_standard(const std::string& log, int stat);
     int parse_hessian(const std::string& log);
+    int parse_hessian2(const std::string& log);
     int calc_normalmode();
     int calc_samp();
     int calc_scan();

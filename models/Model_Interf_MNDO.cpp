@@ -7,19 +7,19 @@
 #include "../kernels/Kernel_Representation.h"
 // #include "../mpi_utils.h"
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
+#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
+    ({                                                                                      \
+        std::cout << "Show Array <" << #_A << ">\n";                                        \
+        int _idxA = 0;                                                                      \
+        for (int _i = 0; _i < (_n1); ++_i) {                                                \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++] << ","; \
+            std::cout << std::endl;                                                         \
+        }                                                                                   \
     })
 
-inline int removeFile(std::string& filename) { return remove(filename.c_str()); }
+inline int removeFile(const std::string& filename) { return remove(filename.c_str()); }
 
-inline void clearFile(std::string& filename) { std::ofstream clear(filename, std::ios::trunc); }
+inline void clearFile(const std::string& filename) { std::ofstream clear(filename, std::ios::trunc); }
 
 inline void closeOFS(std::ofstream& ofs) {
     if (ofs.is_open()) ofs.close();
@@ -32,12 +32,17 @@ namespace PROJECT_NS {
 void Model_Interf_MNDO::read_param_impl(Param* PM) {
     Kernel_Representation::onthefly = true;
 
-    // parse mndo99 input
-    std::string mndo99inp = PM->get<std::string>("mndo99inp", LOC(), "null");
-    natom                 = parse_mndo99(mndo99inp);
+    // parse mndo input
+    exec_file = PM->get<std::string>("exec_file", LOC(), "mndo");
+    directory = PM->get<std::string>("directory", LOC());
+
+    std::string mndoinp = PM->get<std::string>("mndoinp", LOC(), "null");
+    natom               = parse_mndo(mndoinp);
 
     assert(Dimension::N == 3 * natom);
     assert(Dimension::F <= ncigrd);
+    assert(Dimension::F <= nciref);
+    assert(directory != "");
 }
 
 void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
@@ -57,23 +62,31 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
     grad  = DS->def<double>("model.grad", Dimension::N);
     hess  = DS->def<double>("model.hess", Dimension::NN);
     Tmod  = DS->def<double>("model.Tmod", Dimension::NN);
+    f_r   = DS->def<double>("model.f_r", nciref);
+    f_p   = DS->def<double>("model.f_p", nciref);
+    f_rp  = DS->def<double>("model.f_rp", nciref);
 
     V  = DS->def<double>("model.V", Dimension::FF);
     dV = DS->def<double>("model.dV", Dimension::NFF);
     // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
     E  = DS->def<double>("model.rep.E", Dimension::F);
+    T  = DS->def<double>("model.rep.T", Dimension::FF);  // diabatic-to-adiabatic matrix. set to I as default
     dE = DS->def<double>("model.rep.dE", Dimension::NFF);
     // ddE  = DS->def<double>("model.rep.ddE", Dimension::NNFF);
     nac      = DS->def<double>("model.rep.nac", Dimension::NFF);
     nac_prev = DS->def<double>("model.rep.nac_prev", Dimension::NFF);
 
+    for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+        for (int k = 0; k < Dimension::F; ++k, ++ik) T[ik] = (i == k) ? 1.0e0 : 0.0e0;
+    }
+
     // read z index
     for (int i = 0, idx = 0, idxR = 0; i < natom; ++i) {
-        atoms[i] = stoi(mndo99_data[idx++]);
+        atoms[i] = stoi(mndo_data[idx++]);
         for (int j = 0; j < 3; ++j, ++idxR) {
-            mass[idxR] = ELEMENTS_MASS[atoms[i]] / phys::au_2_amu;   // convert amu to au
-            x0[idxR]   = stod(mndo99_data[idx++]) / phys::au_2_ang;  // convert angstrom into au
-            idx++;                                                   // skip fixflag
+            mass[idxR] = ELEMENTS_MASS[atoms[i]] / phys::au_2_amu;  // convert amu to au
+            x0[idxR]   = stod(mndo_data[idx++]) / phys::au_2_ang;   // convert angstrom into au
+            idx++;                                                  // skip fixflag
         }
     }
 
@@ -83,7 +96,6 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
 
     // read task
     init_nuclinp = _Param->get<std::string>("init_nuclinp", LOC(), "#hess");
-    read_flag    = _Param->get<int>("read_flag", LOC(), 0);
 
     if (init_nuclinp == "#normalmode") {
         calc_normalmode();
@@ -98,25 +110,13 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
         exit(0);
     }
 
+    // read hessian from hessian calculation (jop=2 kprint=1)
     if (init_nuclinp == "#hess") {
-        std::ifstream ifs(".hess");  // read from .hess (saves in au)
-        kids_real tmp;
-        if (ifs) {
-            for (int i = 0, idx = 0; i < Dimension::N; ++i)  // hessian
-                for (int j = 0; j < Dimension::N; ++j, ++idx) {
-                    if (ifs >> tmp) hess[idx] = tmp;       // Hessian without mass-weighted (in au)
-                    hess[idx] /= sqrt(mass[i] * mass[j]);  // make it mass-weighted Hessian
-                }
-            for (int i = 0; i < Dimension::N; ++i)  // read frequency (in au)
-                if (ifs >> tmp) w[i] = tmp;
-            for (int i = 0, idx = 0; i < Dimension::N; ++i)  // read normal-mode vectors (in au)
-                for (int j = 0; j < Dimension::N; ++j, ++idx) {
-                    if (ifs >> tmp) Tmod[idx] = tmp;
-                }
-        } else {
-            throw std::runtime_error("loss of .hess in currect directory");
-        }
-        ifs.close();
+        std::string hess_log = _Param->get<std::string>("hess_log", LOC(), "hess.out");
+        if (!isFileExists(hess_log))
+            throw std::runtime_error(utils::concat("hess_log file [", hess_log, "] is missed!"));
+
+        parse_hessian(hess_log);
 
         // from hessian & temperature to prepare initial sampling
         for (int j = 0; j < Dimension::N; ++j) {
@@ -130,14 +130,21 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
             }
         }
     }
+    if (init_nuclinp == "#hess2") {
+        std::string hess_mol = _Param->get<std::string>("hess_mol", LOC(), "hess_molden.dat");
+        if (!isFileExists(hess_mol))
+            throw std::runtime_error(utils::concat("hess_mol file [", hess_mol, "] is missed!"));
+
+        parse_hessian2(hess_mol);
+    }
 }
 
 /**
- * @brief ForceField_init for mndo99
+ * @brief ForceField_init for mndo
  * @param
  *     nr:  nuclear configuration
  *     np:  nuclear momentum
- *     m:  nuclear mass
+ *     m:   nuclear mass
  *   erho:  electronic density
  *   eeac:  electronic amplititude
  *   eocc:  electronic occupation
@@ -147,7 +154,7 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
  * @bug none
  */
 void Model_Interf_MNDO::init_calc_impl(int stat) {
-    if (init_nuclinp == "#hess") {  // assuming .hess is given
+    if (init_nuclinp == "#hess" || init_nuclinp == "#hess2") {  // assuming .hess is given
         // sampling normal-mode
         Kernel_Random::rand_gaussian(x, Dimension::N);
         Kernel_Random::rand_gaussian(p, Dimension::N);
@@ -156,7 +163,6 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
             x[i] *= x_sigma[i];
             p[i] *= p_sigma[i];
         }
-
         // transfrom normal-mode to cartesian coordinates
         ARRAY_MATMUL(x, Tmod, x, Dimension::N, Dimension::N, 1);  // .eval()!
         ARRAY_MATMUL(p, Tmod, p, Dimension::N, Dimension::N, 1);  // .eval()!
@@ -164,35 +170,37 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
             x[i] = x[i] / std::sqrt(mass[i]) + x0[i];
             p[i] = p[i] * std::sqrt(mass[i]) + p0[i];
         }
-
-        ARRAY_SHOW(x, 1, Dimension::N);
-        ARRAY_SHOW(p, 1, Dimension::N);
-
     } else if (init_nuclinp == "#fix") {  // for initial md
         for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i], p[i] = 0.0f;
-    } else {
-        kids_real tmp;
-        std::string stmp;
-        std::ifstream ifs(utils::concat(init_nuclinp, stat));
-        if (!ifs.is_open()) throw std::runtime_error("init_nuclinp cannot open");
-        getline(ifs, stmp);  // skip atoms number
-        getline(ifs, stmp);  // skip comments
-        for (int iatom = 0, idx1 = 0, idx2 = 0; iatom < natom; ++iatom) {
-            ifs >> stmp;                           // skip atomic flag
-            for (int i = 0; i < 3; ++i, ++idx1) {  // read in [angstrom]
-                if (ifs >> tmp) x[idx1] = tmp / phys::au_2_ang;
+    } else {  // init_nuclinp as dataset from which we read x and p
+        std::string stmp, eachline;
+        std::ifstream ifs(utils::concat(init_nuclinp, stat, ".ds"));
+        while (getline(ifs, eachline)) {
+            if (eachline.find("init.x") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> x[i];
             }
-            for (int i = 0; i < 3; ++i, ++idx2) {  // read in [angstrom/ps]
-                if (ifs >> tmp) p[idx2] = tmp / phys::au_2_angoverps * mass[idx2];
+            if (eachline.find("init.p") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> p[i];
             }
         }
+
+        // ARRAY_SHOW(x, 1, Dimension::N);
+        // ARRAY_SHOW(p, 1, Dimension::N);
     }
+
     _DataSet->def("init.x", x, Dimension::N);
     _DataSet->def("init.p", p, Dimension::N);
 
-    refer = false;
+    std::string hdlr_str = _Param->get<std::string>("handler", LOC());
+
+    refer        = false;
+    task_control = (hdlr_str == "sampling") ? "samp" : "nad";
+    removeFile(utils::concat(directory, "/imomap.dat"));
     exec_kernel_impl(stat);
-    refer = true;
+    refer        = true;
+    task_control = "nad";
 }
 
 int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
@@ -201,21 +209,21 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     ARRAY_CLEAR(E, Dimension::F);
     ARRAY_CLEAR(dE, Dimension::NFF);
 
-    // prepare a mndo99 input file
-    std::string inpfile = utils::concat(".mndo99inp.", stat_in);
-    std::string outfile = utils::concat(".mndo99out.", stat_in);
+    // prepare a mndo input file
+    std::string inpfile = utils::concat(".mndoinp.", stat_in);
+    std::string outfile = utils::concat(".mndoout.", stat_in);
 
-    new_task(inpfile, "def");  ///< generate a default task
+    new_task(utils::concat(directory, "/", inpfile), task_control);
 
-    std::string cmd_exe = utils::concat("mndo99 < ", inpfile, " > ", outfile);
+    std::string cmd_exe = utils::concat("cd ", directory, " && ", exec_file, " < ", inpfile, " > ", outfile);
     int stat            = system(cmd_exe.c_str());
-    if (stat != 0) return stat;
 
-    parse_standard(outfile);  // parse in MNDO's units
+    parse_standard(utils::concat(directory, "/", outfile), stat_in);  // parse in MNDO's units
 
-    ARRAY_SHOW(E, 1, Dimension::F);
+    // ARRAY_SHOW(x, 1, Dimension::N);
+    // ARRAY_SHOW(E, 1, Dimension::F);
     // ARRAY_SHOW(dE, 1, Dimension::F);
-    ARRAY_SHOW(nac, Dimension::N, Dimension::FF);
+    // ARRAY_SHOW(nac, Dimension::N, Dimension::FF);
 
     track_nac_sign();  // @note track_nac_sign is important
     for (int i = 0, idx = 0; i < Dimension::N; ++i) {
@@ -233,6 +241,7 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     for (int i = 0; i < Dimension::NFF; ++i)
         dE[i] /= (phys::au_2_kcal_1mea / phys::au_2_ang);  ///< convert to Hartree/Bohr
 
+    // @TODO
     // if (!ARRAY_ISFINITE(R, Dimension::N) || !ARRAY_ISFINITE(E, F) || !ARRAY_ISFINITE(dE, NFF)) {
     //     std::cout << "Problem for calling forcefield";
     //     stat = -1;
@@ -240,31 +249,27 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     return stat;
 }
 
-
-namespace MNDO99_PARSE {
-enum _enum { KEYWORD, COMMENT, DATA, ADDITION };
-};  // namespace MNDO99_PARSE
-
 /**
- * @brief this function parse mndo99 input (only support cartesian format)
+ * @brief this function parse mndo input (only support cartesian format)
  * @return int: total atom number parsed
  * @todo:   support zmat format parser
  */
-int Model_Interf_MNDO::parse_mndo99(const std::string& mndo99inp) {
-    int parse_type = MNDO99_PARSE::KEYWORD;
+int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
+    enum Stage { KEYWORD, COMMENT, DATA, ADDITION };
+    Stage istage = KEYWORD;
 
-    std::stringstream mndo99_keyword_sstr;
-    std::stringstream mndo99_comment_sstr;
-    std::stringstream mndo99_addition_sstr;
+    std::stringstream mndo_keyword_sstr;
+    std::stringstream mndo_comment_sstr;
+    std::stringstream mndo_addition_sstr;
 
     int count_atom = 0;
-    std::ifstream ifs(mndo99inp);
+    std::ifstream ifs(mndoinp);
     std::string eachline;
     while (getline(ifs, eachline)) {
         eachline.erase(eachline.find_last_not_of(" ") + 1);  // remove last blank
-        switch (parse_type) {
-            case MNDO99_PARSE::KEYWORD: {
-                mndo99_keyword_sstr << eachline << std::endl;
+        switch (istage) {
+            case KEYWORD: {
+                mndo_keyword_sstr << eachline << std::endl;
                 std::string data, key, val;
                 std::istringstream input(eachline);
                 while (input >> data) {
@@ -275,51 +280,47 @@ int Model_Interf_MNDO::parse_mndo99(const std::string& mndo99inp) {
                     std::for_each(key.begin(), key.end(), [](char& c) { c = ::tolower(c); });
 
                     if (key == "ncigrd") ncigrd = std::stoi(val);
+                    if (key == "nciref") nciref = std::stoi(val);
                     if (key == "iroot") iroot = std::stoi(val);
 
                     keyword.push_back({key, std::stoi(val)});
                 }
-                if (eachline.back() != '+') parse_type = MNDO99_PARSE::COMMENT;
+                if (eachline.back() != '+') istage = COMMENT;
                 break;
             }
-            case MNDO99_PARSE::COMMENT: {
-                mndo99_comment_sstr << eachline << std::endl;
+            case COMMENT: {
+                mndo_comment_sstr << eachline << std::endl;
                 getline(ifs, eachline);
-                mndo99_comment_sstr << eachline << std::endl;
-                parse_type = MNDO99_PARSE::DATA;
+                mndo_comment_sstr << eachline << std::endl;
+                istage = DATA;
                 break;
             }
-            case MNDO99_PARSE::DATA: {
+            case DATA: {
                 int ndata = 0;
                 std::string data, databuf[16];
                 std::istringstream input(eachline);
                 while (input >> data) databuf[ndata++] = data;
-                /** @comment
-                    for cartesian format: ndata should be 7
-                    for zmat format: ndata should be 10
-                */
-                if (std::stoi(databuf[0]) != 0) {  // normal data
+                if (std::stoi(databuf[0]) != 0) {
                     count_atom++;
-                    for (int i = 0; i < ndata; ++i) mndo99_data.push_back(databuf[i]);
+                    for (int i = 0; i < ndata; ++i) mndo_data.push_back(databuf[i]);
                 } else {
-                    parse_type = MNDO99_PARSE::ADDITION;
-                    mndo99_addition_sstr << eachline << std::endl;
+                    istage = ADDITION;
+                    mndo_addition_sstr << eachline << std::endl;
                 }
                 break;
             }
-            case MNDO99_PARSE::ADDITION: {
-                mndo99_addition_sstr << eachline << std::endl;
+            case ADDITION: {
+                mndo_addition_sstr << eachline << std::endl;
                 break;
             }
         }
     }
     ifs.close();
-    mndo99_keyword  = mndo99_keyword_sstr.str();
-    mndo99_comment  = mndo99_comment_sstr.str();
-    mndo99_addition = mndo99_addition_sstr.str();
-
+    mndo_keyword  = mndo_keyword_sstr.str();
+    mndo_comment  = mndo_comment_sstr.str();
+    mndo_addition = mndo_addition_sstr.str();
     assert(count_atom > 0);
-    int data_size = mndo99_data.size();
+    int data_size = mndo_data.size();
     if (7 * count_atom == data_size) std::cout << "read from cartesian format";
     if (10 * count_atom == data_size) throw std::runtime_error("cannot read from zmat format");
     return count_atom;
@@ -327,17 +328,14 @@ int Model_Interf_MNDO::parse_mndo99(const std::string& mndo99inp) {
 
 
 /**
- * @brief this function generates a set of keywords
- * @return std::string: describe keywords
- * @bug none
+ * generate a new set of keywords
  */
-std::string Model_Interf_MNDO::new_keyword(const MNDO99KW_map& newkeyword) {
+std::string Model_Interf_MNDO::new_keyword(const MNDOKW_map& newkeyword) {
     std::stringstream sstr;
     int i                  = 0;
     const int ntermperline = 8;
-
     for (auto iter = keyword.begin(); iter != keyword.end(); ++iter, ++i) {
-        MNDO99KW& kw = *iter;
+        MNDOKW& kw = *iter;
         if (i != 0 && i % ntermperline == 0) sstr << "+" << std::endl;
         if (newkeyword.find(kw.key) != newkeyword.end()) {
             sstr << kw.key << "=" << newkeyword.at(kw.key) << " ";
@@ -350,50 +348,33 @@ std::string Model_Interf_MNDO::new_keyword(const MNDO99KW_map& newkeyword) {
 }
 
 
-namespace MNDO99_TASK {
-enum _enum { SP, FORCE, NAD, HESS, DEF };
-const std::map<std::string, _enum> _dict = {{"sp", SP}, {"force", FORCE}, {"nad", NAD}, {"hess", HESS}, {"def", DEF}};
-};  // namespace MNDO99_TASK
-
 /**
- * @brief this function generates a input file
- * @return int
- * @bug none
+ * generate input file for a new task based on the template
  */
 int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task_flag) {
-    // parse task_flag
-    int task_type = MNDO99_TASK::_dict.at(task_flag);
-
     std::string revised_keyword, revised_addition;
-    switch (task_type) {
-        case MNDO99_TASK::SP:
-            revised_keyword = new_keyword({{"jop", -1}, {"icross", 0}});  ///< @bug: cannot find energies
-            break;
-        case MNDO99_TASK::FORCE:
-            /** @comment
-                for icross != 0. additional lines needed in mndo99_addition part
-                be careful.
-            */
-            revised_keyword = new_keyword({{"jop", -1}, {"icross", 1}});
-            break;
-        case MNDO99_TASK::NAD:
-            /** @comment
-                for icross != 0. additional lines needed in mndo99_addition part
-                be careful.
-            */
-            revised_keyword = new_keyword({{"jop", -1}, {"icross", 7}, {"mprint", 1}});
-            break;
-        case MNDO99_TASK::HESS:
-            revised_keyword = new_keyword({{"jop", 2}, {"icross", 0}, {"kprint", 1}});
-            break;
-        default:
-            revised_keyword = mndo99_keyword;
-            break;
+    if (task_flag == "sp") {                                          // single point calculation
+        revised_keyword = new_keyword({{"jop", -1}, {"icross", 0}});  ///< @bug: cannot find energies
+    } else if (task_flag == "samp") {                                 // single point calculation
+        revised_keyword =
+            new_keyword({{"jop", -1}, {"icross", 7}, {"mprint", 1}, {"iuvcd", 2}, {"imomap", 0}, {"mapthr", 90}});
+    } else if (task_flag == "force") {  // force calculation
+        revised_keyword = new_keyword({{"jop", -1}, {"icross", 1}});
+        // revised_addition = ...; // additional lines
+    } else if (task_flag == "nad") {  // non-adiabatic coupling calculation
+        revised_keyword = new_keyword({{"jop", -1}, {"icross", 7}, {"mprint", 1}, {"imomap", 3}, {"mapthr", 95}});
+        // revised_addition = ...; // additional lines
+    } else if (task_flag == "hess") {  // hessian calculation
+        revised_keyword = new_keyword({{"jop", 2}, {"icross", 0}, {"kprint", 1}});
+    } else {  // default
+        revised_keyword = mndo_keyword;
     }
+
+    revised_addition  = mndo_addition;
     const int fixflag = 0;
     std::ofstream ofs(file);
     ofs << revised_keyword;
-    ofs << mndo99_comment;
+    ofs << mndo_comment;
     for (int i = 0, idx = 0; i < natom; ++i) {
         ofs << FMT(4) << atoms[i]                       // Atom index
             << FMT(8) << x[idx++] << FMT(4) << fixflag  // Xk, flag_Xk
@@ -401,7 +382,7 @@ int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task
             << FMT(8) << x[idx++] << FMT(4) << fixflag  // Zk, flag_Zk
             << std::endl;
     }
-    ofs << mndo99_addition;
+    ofs << revised_addition;
     ofs.close();
     return 0;
 }
@@ -460,17 +441,28 @@ int Model_Interf_MNDO::track_nac_sign() {
  * @return status
  * @bug none
  */
-int Model_Interf_MNDO::parse_standard(const std::string& log) {
-    int stat = -1;
+int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
+    int stat         = -1;
+    int istate_force = 0;
     int istate, jstate;
 
     std::ifstream ifs(log);
     std::string stmp, eachline;
-    while (getline(ifs, eachline)) {
+    while (getline(ifs, eachline, '\n')) {
         /**
          * @brief find energy surfaces (for icross=0, this section is missed)
          */
-        if (eachline.find("SUMMARY OF MULTIPLE CI CALCULATIONS") != eachline.npos) {
+        if (eachline.find("Properties of transitions   1 -> #") != eachline.npos) {
+            for (int i = 0; i < 2; ++i) getline(ifs, eachline);  // blankline + headline
+            for (int i = 1; i < nciref; ++i) {                   ///< E in [kcalpmol]
+                ifs >> stmp >> stmp >> stmp >> stmp >> stmp >> stmp >> f_r[i] >> f_p[i] >> f_rp[i] >> stmp;
+            }
+            stat = 0;
+        }
+        /**
+         * @brief find energy surfaces (for icross=0, this section is missed)
+         */
+        else if (eachline.find("SUMMARY OF MULTIPLE CI CALCULATIONS") != eachline.npos) {
             for (int i = 0; i < 4; ++i) getline(ifs, eachline);
             for (int i = 0; i < Dimension::F; ++i) {  ///< E in [kcalpmol]
                 ifs >> stmp >> stmp >> E[i] >> stmp >> stmp;
@@ -482,33 +474,22 @@ int Model_Interf_MNDO::parse_standard(const std::string& log) {
          */
         else if (eachline.find("CI CALCULATION FOR STATE:") != eachline.npos) {
             std::istringstream sstr(eachline);
-            sstr >> stmp >> stmp >> stmp >> stmp >> istate;
-            istate--;
-            if (istate < Dimension::F) {  // skip additional state
-                while (getline(ifs, eachline)) {
-                    // if (eachline.find("Mult. 1") != eachline.npos) {
-                    //     std::istringstream sstr(eachline);
-                    //     sstr >> stmp >> jstate >> stmp >> stmp >> stmp >> stmp >> stmp >> stmp;
-                    //     jstate--;
-                    //     sstr >> E[jstate]; ///< saved in [ev]
-                    // }
-                    if (eachline.find("GRADIENTS (KCAL/(MOL*ANGSTROM))") != eachline.npos) {
-                        for (int i = 0; i < 8; ++i) ifs >> stmp;
-                        for (int i = 0, idx = 0; i < natom; ++i) {       ///< grad in kcalpmol/angstrom
-                            ifs >> stmp >> stmp >> stmp >> stmp >> stmp  // skips
-                                >> dE[(idx++) * Dimension::FF + istate * Dimension::Fadd1]   // grad(Xk,i,i)
-                                >> dE[(idx++) * Dimension::FF + istate * Dimension::Fadd1]   // grad(Yk,i,i)
-                                >> dE[(idx++) * Dimension::FF + istate * Dimension::Fadd1];  // grad(Zk,i,i)
-                        }
-                        break;
-                    }
-                }
+            sstr >> stmp >> stmp >> stmp >> stmp >> istate_force;
+            istate_force--;
+        }
+        //
+        else if (eachline.find("GRADIENTS (KCAL/(MOL*ANGSTROM))") != eachline.npos) {
+            for (int i = 0; i < 8; ++i) ifs >> stmp;
+            for (int i = 0, idx = 0; i < natom; ++i) {                                 ///< grad in kcalpmol/angstrom
+                ifs >> stmp >> stmp >> stmp >> stmp >> stmp                            // skips
+                    >> dE[(idx++) * Dimension::FF + istate_force * Dimension::Fadd1]   // grad(Xk,i,i)
+                    >> dE[(idx++) * Dimension::FF + istate_force * Dimension::Fadd1]   // grad(Yk,i,i)
+                    >> dE[(idx++) * Dimension::FF + istate_force * Dimension::Fadd1];  // grad(Zk,i,i)
             }
-            stat = 1;
         }
         /**
          * @brief find non-adiabatic coupling(NAC) terms
-         *  note we use the complete formalism (let `MPRINT=1`) in MNDO99
+         *  note we use the complete formalism (let `MPRINT=1`) in MNDO
          */
         else if (eachline.find("CI CALCULATION FOR INTERSTATE "
                                "COUPLING OF STATES:") != eachline.npos) {
@@ -537,21 +518,29 @@ int Model_Interf_MNDO::parse_standard(const std::string& log) {
         }
     }
     ifs.close();
+    if (stat != 2) {
+        bool* succ_ptr = _DataSet->def<bool>("iter.succ");
+        succ_ptr[0]    = false;
+        std::cerr << "fail in calling MNDO!\n";
+
+        int* istep_ptr      = _DataSet->def<int>("iter.istep");
+        std::string cmd_exe = utils::concat("cp ", directory, "/.mndoinp.", stat_in, "  ", directory, "/.mndoinp.",
+                                            stat_in, ".fail.", istep_ptr[0]);
+        system(cmd_exe.c_str());
+        cmd_exe = utils::concat("cp ", directory, "/.mndoout.", stat_in, "  ", directory, "/.mndoout.", stat_in,
+                                ".fail.", istep_ptr[0]);
+    } else {
+        bool* succ_ptr = _DataSet->def<bool>("iter.succ");
+        succ_ptr[0]    = true;
+    }
     return stat;
 }
 
 /**
- * @brief this function parse frequency calculation (JOP=2)
- * @param
- *    log:  log file to parse
- * @return int: if it is on equilibrium postion
- *      0: yes
- *     -1: no
- * @bug none
+ * parse frequency calculation log
+ * where the frequency should be calculated by specifying (JOP=2), (ICROSS=0) and (KPRINT=1)
  */
 int Model_Interf_MNDO::parse_hessian(const std::string& log) {
-    using namespace Dimension;
-
     std::ifstream ifs(log);
 
     // initialization of arrays
@@ -569,8 +558,9 @@ int Model_Interf_MNDO::parse_hessian(const std::string& log) {
             std::istringstream sstr(eachline);
             sstr >> stmp >> stmp >> stmp >> norm;
             eqstat = (norm < 10.0f) ? 0 : -1;
+            if (eqstat != 0) std::cerr << "Warning Hessian is not used under equilibrium!\n";
         }
-        if (eachline.find("FORCE CONSTANT MATRIX AFTER SYMMETRIZATIODimension::N.") != eachline.npos) {
+        if (eachline.find("FORCE CONSTANT MATRIX AFTER SYMMETRIZATION.") != eachline.npos) {
             for (int i = 0; i < v1; ++i) {
                 getline(ifs, eachline);                    // skip a blankline
                 for (int k = 0; k < 10; ++k) ifs >> itmp;  // skip header
@@ -579,6 +569,7 @@ int Model_Interf_MNDO::parse_hessian(const std::string& log) {
                     for (int k = 0; k < 10; ++k) ifs >> hess[Dimension::N * j + i * 10 + k];  // read
                 }
             }
+            if (v2 == 0) continue;
             getline(ifs, eachline);                    // skip a blankline
             for (int k = 0; k < v2; ++k) ifs >> itmp;  // skip header
             for (int j = 0; j < Dimension::N; ++j) {
@@ -600,6 +591,7 @@ int Model_Interf_MNDO::parse_hessian(const std::string& log) {
                     }
                 }
             }
+            if (v2 == 0) continue;
             getline(ifs, eachline);                                      // skip a blankline
             for (int k = 0; k < v2; ++k) ifs >> itmp;                    // skip header
             for (int k = 0; k < v2; ++k) {                               // read frequency
@@ -614,23 +606,49 @@ int Model_Interf_MNDO::parse_hessian(const std::string& log) {
         }
     }
     ifs.close();
-
-    std::ofstream ofs(".hess");
-    for (int i = 0, idx = 0; i < Dimension::N; ++i) {  // hessian (in au)
-        for (int j = 0; j < Dimension::N; ++j, ++idx) ofs << FMT(8) << hess[idx];
-        ofs << std::endl;
-    }
-    for (int i = 0, idx = 0; i < Dimension::N; ++i) {  // frequancey (in au)
-        ofs << FMT(8) << w[i];
-    }
-    ofs << std::endl;
-    for (int i = 0, idx = 0; i < Dimension::N; ++i) {
-        for (int j = 0; j < Dimension::N; ++j, ++idx) ofs << FMT(8) << Tmod[idx];
-        ofs << std::endl;
-    }
-    ofs.close();
-    return eqstat;
+    return 0;
 }
+
+/**
+ * parse frequency calculation (JOP=2) and (KPRINT=1)
+ */
+int Model_Interf_MNDO::parse_hessian2(const std::string& molden_file) {
+    std::ifstream ifs(molden_file);
+
+    // initialization of arrays
+    ARRAY_CLEAR(w, Dimension::N);
+    ARRAY_CLEAR(hess, Dimension::NN);
+    ARRAY_CLEAR(Tmod, Dimension::NN);
+
+    std::string stmp, eachline;
+    int itmp;
+    double dtmp = 0.0f;
+    while (getline(ifs, eachline)) {
+        if (eachline.find("[FREQ]") != eachline.npos) {
+            for (int j = 6; j < Dimension::N; ++j) {
+                getline(ifs, eachline);
+                std::stringstream sstr{eachline};
+                if (sstr >> dtmp) w[j] = dtmp / phys::au_2_wn;
+            }
+        }
+        if (eachline.find("[FR-NORM-COORD]") != eachline.npos) {
+            for (int i = 6; i < Dimension::N; ++i) {
+                ifs >> stmp >> itmp;
+                for (int j = 0; j < Dimension::N; ++j) {
+                    if (ifs >> dtmp) Tmod[j * Dimension::N + i] = dtmp * sqrt(mass[j] * phys::au_2_amu);
+                }
+            }
+        }
+    }
+    ifs.close();
+
+    // ARRAY_SHOW(w, 1, Dimension::N);
+    // ARRAY_SHOW(mass, 1, Dimension::N);
+    // ARRAY_SHOW(Tmod, Dimension::N, Dimension::N);
+    // std::cout << FMT(8) << phys::au_2_amu << "\n";
+    return 0;
+}
+
 
 /**
  * @brief this function generates normalmode trajectories
@@ -640,13 +658,13 @@ int Model_Interf_MNDO::parse_hessian(const std::string& log) {
  * @bug none
  */
 int Model_Interf_MNDO::calc_normalmode() {
-    // update mndo99hess input/output files
-    if (isFileExists(".mndo99hess.out")) {
-        new_task(".mndo99hess.in", "hess");
-        int stat = system("mndo99 < .mndo99hess.in > .mndo99hess.out");
+    // update mndohess input/output files
+    if (isFileExists(".mndohess.out")) {
+        new_task(".mndohess.in", "hess");
+        int stat = system("mndo < .mndohess.in > .mndohess.out");
         if (stat != 0) return stat;
     }
-    int stat = parse_hessian(".mndo99hess.out");
+    int stat = parse_hessian(".mndohess.out");
     assert(stat == 0);
 
     /**
@@ -689,12 +707,12 @@ int Model_Interf_MNDO::calc_normalmode() {
 int Model_Interf_MNDO::calc_samp() {
     int stat;
 
-    if (!isFileExists(".mndo99hess.out")) {
-        new_task(".mndo99hess.in", "hess");
-        stat = system("mndo99 < .mndo99hess.in > .mndo99hess.out");
+    if (!isFileExists(".mndohess.out")) {
+        new_task(".mndohess.in", "hess");
+        stat = system("mndo < .mndohess.in > .mndohess.out");
         if (stat != 0) return stat;
     }
-    stat = parse_hessian(".mndo99hess.out");
+    stat = parse_hessian(".mndohess.out");
     assert(stat == 0);
 
     /**
