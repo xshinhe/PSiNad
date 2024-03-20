@@ -2,7 +2,6 @@
 
 @subpage manu_models
 @subpage manu_solvers
-@subpage manu_md
 @subpage manu_nad
 @subpage manu_abinitio
 @subpage manu_qmmm
@@ -194,8 +193,8 @@ For example, if you want output the coordinate and momentum of each trajectory, 
 ```txt
 {
     "result": [
-        "#COORDINATE",  
-        "#MOMENTUM", 
+        "$COORDINATE",  
+        "$MOMENTUM", 
         // ... other keywords by orders
     ],
 }
@@ -204,19 +203,19 @@ The intrinsically built keywords are listed as:
 
 |   Keywords    |   Meaning                                                                                             |
 |:--------------|:------------------------------------------------------------------------------------------------------|
-|   #COORDINATE |   The coordinate of the nuclear DOFs                                                                  |
-|   #MOMENTUM   |   The momentum of the nuclear DOFs                                                                    |
-|   #VELOCITY   |   The velocity of the nuclear DOFs                                                                    |
-|   #FORCE      |   The force of the nuclear DOFs                                                                       |
-|   #RHO        |   The Ehrenfest's density of the electronic DOFs                                                      |
-|   #KK_CPS     |   The kernel-kernel time correlation function by CPS (i.e., CMM)                                      |
-|   #KK_SQC     |   The kernel-kernel time correlation function by SQC-TW (etc.)                                        |
-|   #KK_CW1     |   The kernel-kernel time correlation function by CW1                                                  |
-|   #KK_MM      |   The kernel-kernel time correlation function by Meyer-Miller form (including FOCUS dynamics)         |
-|   #KK_GDTWA   |   The kernel-kernel time correlation function by GDTWA                                                |
+|   $COORDINATE |   The coordinate of the nuclear DOFs                                                                  |
+|   $MOMENTUM   |   The momentum of the nuclear DOFs                                                                    |
+|   $VELOCITY   |   The velocity of the nuclear DOFs                                                                    |
+|   $FORCE      |   The force of the nuclear DOFs                                                                       |
+|   $RHO        |   The Ehrenfest's density of the electronic DOFs                                                      |
+|   $KK_CPS     |   The kernel-kernel time correlation function by CPS (i.e., CMM)                                      |
+|   $KK_SQC     |   The kernel-kernel time correlation function by SQC-TW (etc.)                                        |
+|   $KK_CW1     |   The kernel-kernel time correlation function by CW1                                                  |
+|   $KK_MM      |   The kernel-kernel time correlation function by Meyer-Miller form (including FOCUS dynamics)         |
+|   $KK_GDTWA   |   The kernel-kernel time correlation function by GDTWA                                                |
 
-Keywords prefixed with "#" denote several intrinsic rules. For more advanced control over the simulation outputs, you can utilize kids's result rule syntax.
-- Without the "#" prefix, you can access any variable names defined in the DataSet. The variable names follow the name syntax `NAME{field@time}<ESSHAPE>`. In this approach, if the symbol is not in the DataSet, kids will report an error. (To view available variables in the DataSet, use the `-handler=help_dataset` flag).
+Keywords prefixed with "$" denote several intrinsic rules. For more advanced control over the simulation outputs, you can utilize kids's result rule syntax.
+- Without the "$" prefix, you can access any variable names defined in the DataSet. The variable names follow the name syntax `NAME{field@time}<ESSHAPE>`. In this approach, if the symbol is not in the DataSet, kids will report an error. (To view available variables in the DataSet, use the `-handler=help_dataset` flag).
 - You can use the `NAMEOUT (NAME1, NAME2, ..., NAMEk) = FORMULA` format (where each name obeys the name syntax) to output custom-defined variables. If `NAMEOUT` is not defined in the DataSet, kids will assist in defining it.
 - This syntax also allows for more complex rules, enabling both einsum rules and formula parsing. For examples of all possible types of rules in the result, refer to the documentation.
 
@@ -225,7 +224,7 @@ Full examples of different rules is shown as:
 {
     "result": [
         // Intrinsic keywords
-        "#...",
+        "$...",
 
         // WARNING: The following usages are intended for experts only.
 

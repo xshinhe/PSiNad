@@ -57,6 +57,9 @@ void Kernel_Iter_Adapt::init_calc_impl(int stat) {
 }
 
 int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
+    bool use_remain_dtsize   = false;
+    int before_remain_dtsize = 0;
+
     while (istep_ptr[0] < nstep) {
         t_ptr[0]  = t0 + dt * (tsize_ptr[0] / ((double) msize));
         dt_ptr[0] = dt * (dtsize_ptr[0] / ((double) msize));
@@ -74,6 +77,7 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
         }
 
         // each loop
+        succ_ptr[0] = true;  // reset succ
         for (auto& pkernel : _kernel_vector) { pkernel->exec_kernel(stat); }
 
         if (succ_ptr[0]) {
@@ -81,16 +85,20 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
             tsize_ptr[0] += dtsize_ptr[0];
 
             int extend_dtsize = 2 * dtsize_ptr[0];
-            int remain_dtsize = msize - (tsize_ptr[0] % msize);
-            dtsize_ptr[0]     = std::min({msize, extend_dtsize, remain_dtsize});
+            if (use_remain_dtsize) extend_dtsize = 2 * before_remain_dtsize;
 
-            std::cout << "T [t =" << FMT(4) << t_ptr[0] << "] and adjust [dt_dynamic/dt ="  //
+            int remain_dtsize = msize - (tsize_ptr[0] % msize);
+            int new_dtsize    = std::min({msize, extend_dtsize, remain_dtsize});
+
+            use_remain_dtsize = (new_dtsize == remain_dtsize);
+            if (use_remain_dtsize) before_remain_dtsize = dtsize_ptr[0];
+
+            dtsize_ptr[0] = new_dtsize;
+
+            std::cout << "T [t =" << FMT(4) << t_ptr[0] << "|" << t_ptr[0] / tend << "] and adjust [dt_dynamic/dt ="  //
                       << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
 
         } else {
-            std::cout << "F [t =" << FMT(4) << t_ptr[0] << "] and adjust [dt_dynamic/dt ="  //
-                      << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
-
             if (dtsize_ptr[0] % 2 == 0) {
                 dtsize_ptr[0] /= 2;
                 tsize_ptr[0] += 0;
@@ -112,6 +120,9 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                 frez_ptr[0]   = true;
                 std::cout << "Exceed minial dt! force proceed!\n";
             }
+
+            std::cout << "F [t =" << FMT(4) << t_ptr[0] << "|" << t_ptr[0] / tend << "] and adjust [dt_dynamic/dt ="  //
+                      << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
         }
         isamp_ptr[0] = istep_ptr[0] / sstep;
     }

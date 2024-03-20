@@ -30,7 +30,7 @@ class Kernel_Iter_Adapt final : public Kernel {
     int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
     int nbackup;
 
-    const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin"};
+    const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot"};
 
     virtual void read_param_impl(Param *PM);
 

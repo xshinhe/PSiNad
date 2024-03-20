@@ -12,10 +12,10 @@ namespace PROJECT_NS {
 
 struct MNDOKW {
     std::string key;
-    int val;
+    std::string val;
 };
 
-using MNDOKW_map = std::map<std::string, int>;
+using MNDOKW_map = std::map<std::string, std::string>;
 
 class Model_Interf_MNDO final : public Kernel {
    public:

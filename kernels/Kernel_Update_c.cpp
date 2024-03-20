@@ -32,7 +32,7 @@ void Kernel_Update_c::init_data_impl(DataSet* DS) {
 }
 
 int Kernel_Update_c::exec_kernel_impl(int stat) {
-    if (!succ_ptr[0] || frez_ptr[0]) return 0;
+    if (frez_ptr[0]) return 0;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm

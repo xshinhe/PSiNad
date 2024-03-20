@@ -2,14 +2,14 @@
 
 #include "Kernel_Declare.h"
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
+#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
+    ({                                                                                      \
+        std::cout << "Show Array <" << #_A << ">\n";                                        \
+        int _idxA = 0;                                                                      \
+        for (int _i = 0; _i < (_n1); ++_i) {                                                \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++] << ","; \
+            std::cout << std::endl;                                                         \
+        }                                                                                   \
     })
 
 namespace PROJECT_NS {
@@ -34,7 +34,6 @@ void Kernel_Update_x::init_data_impl(DataSet* DS) {
 
 int Kernel_Update_x::exec_kernel_impl(int stat) {
     if (frez_ptr[0]) return 0;
-
     for (int i = 0; i < Dimension::PN; ++i) x[i] += p[i] * minv[i] * scale * dt_ptr[0];
     return 0;
 }

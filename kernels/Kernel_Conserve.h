@@ -14,12 +14,14 @@ class Kernel_Conserve final : public Kernel {
     kids_real* p;
     kids_real* m;
     kids_real* Etot;
+    kids_real* Etot_prev;
     kids_real* Etot_init;
     kids_real* Ekin;
     kids_real* Epot;
     kids_real* vpes;
 
     bool conserve_scale;
+    bool* succ_ptr;
 
     virtual void read_param_impl(Param* PM);
 

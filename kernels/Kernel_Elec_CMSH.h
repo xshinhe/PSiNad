@@ -32,7 +32,7 @@ class Kernel_Elec_CMSH final : public Kernel {
    public:
     virtual const std::string name() { return "Kernel_Elec_CMSH"; }
 
-    Kernel_Elec_CMSH() {
+    Kernel_Elec_CMSH(double scale = 1.0e0) : Kernel(), scale{scale} {
         push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
     }
 
@@ -47,12 +47,15 @@ class Kernel_Elec_CMSH final : public Kernel {
     bool use_gdtwa = false;
     bool use_sum   = false;
 
+    bool cread_from_ds = false;
+
     bool reflect = true;  // treatment in hopping
     int hopping_type1;
     int hopping_type2;
 
     bool dynamic_alpha;
 
+    double scale;
     double dt;
     kids_real alpha0;
     kids_real* alpha;

@@ -9,12 +9,13 @@
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                            \
     ({                                                                                      \
-        std::cout << "Show Array <" << #_A << ">\n";                                        \
+        std::cout << #_A << " = np.array([\n";                                              \
         int _idxA = 0;                                                                      \
         for (int _i = 0; _i < (_n1); ++_i) {                                                \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++] << ","; \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++] << ","; \
             std::cout << std::endl;                                                         \
         }                                                                                   \
+        { std::cout << "])\n"; }                                                            \
     })
 
 inline int removeFile(const std::string& filename) { return remove(filename.c_str()); }
@@ -215,24 +216,24 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
 
     // convert atomic unit
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;  ///< convert Bohr to Angstrom
-    ARRAY_CLEAR(E, Dimension::F);
-    ARRAY_CLEAR(dE, Dimension::NFF);
+    // ARRAY_CLEAR(E, Dimension::F); // keep the old values
+    // ARRAY_CLEAR(dE, Dimension::NFF); // keep the old values
 
     // prepare a mndo input file
     std::string inpfile = utils::concat(".mndoinp.", stat_in);
     std::string outfile = utils::concat(".mndoout.", stat_in);
+
+    int* istep_ptr = _DataSet->def<int>("iter.istep");
 
     new_task(utils::concat(directory, "/", inpfile), task_control);
 
     std::string cmd_exe = utils::concat("cd ", directory, " && ", exec_file, " < ", inpfile, " > ", outfile);
     int stat            = system(cmd_exe.c_str());
 
-    parse_standard(utils::concat(directory, "/", outfile), stat_in);  // parse in MNDO's units
+    cmd_exe = utils::concat("cd ", directory, " && cp ", outfile, " ", outfile, ".", istep_ptr[0]);
+    system(cmd_exe.c_str());
 
-    // ARRAY_SHOW(x, 1, Dimension::N);
-    // ARRAY_SHOW(E, 1, Dimension::F);
-    // ARRAY_SHOW(dE, 1, Dimension::F);
-    // ARRAY_SHOW(nac, Dimension::N, Dimension::FF);
+    parse_standard(utils::concat(directory, "/", outfile), stat_in);  // parse in MNDO's units
 
     track_nac_sign();  // @note track_nac_sign is important
     for (int i = 0, idx = 0; i < Dimension::N; ++i) {
@@ -244,11 +245,22 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
         }
     }
 
+    // std::cout << "1\n";
+    // ARRAY_SHOW(x, 1, Dimension::N);
+    // ARRAY_SHOW(E, 1, Dimension::F);
+    // ARRAY_SHOW(dE, Dimension::N, Dimension::FF);
+
     // convert units
     for (int i = 0; i < Dimension::N; ++i) x[i] /= phys::au_2_ang;        ///< convert Angstrom to Bohr
     for (int i = 0; i < Dimension::F; ++i) E[i] /= phys::au_2_kcal_1mea;  ///< convert kcalpmol to Hartree
     for (int i = 0; i < Dimension::NFF; ++i)
         dE[i] /= (phys::au_2_kcal_1mea / phys::au_2_ang);  ///< convert to Hartree/Bohr
+
+    // std::cout << "2\n";
+    // ARRAY_SHOW(x, 1, Dimension::N);
+    // ARRAY_SHOW(E, 1, Dimension::F);
+    // ARRAY_SHOW(dE, Dimension::N, Dimension::FF);
+    // ARRAY_SHOW(nac, Dimension::N, Dimension::FF);
 
     // @TODO
     // if (!ARRAY_ISFINITE(R, Dimension::N) || !ARRAY_ISFINITE(E, F) || !ARRAY_ISFINITE(dE, NFF)) {
@@ -292,7 +304,7 @@ int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
                     if (key == "nciref") nciref = std::stoi(val);
                     if (key == "iroot") iroot = std::stoi(val);
 
-                    keyword.push_back({key, std::stoi(val)});
+                    keyword.push_back({key, val});
                 }
                 if (eachline.back() != '+') istage = COMMENT;
                 break;
@@ -362,19 +374,20 @@ std::string Model_Interf_MNDO::new_keyword(const MNDOKW_map& newkeyword) {
  */
 int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task_flag) {
     std::string revised_keyword, revised_addition;
-    if (task_flag == "sp") {                                          // single point calculation
-        revised_keyword = new_keyword({{"jop", -1}, {"icross", 0}});  ///< @bug: cannot find energies
-    } else if (task_flag == "samp") {                                 // single point calculation
-        revised_keyword =
-            new_keyword({{"jop", -1}, {"icross", 7}, {"mprint", 1}, {"iuvcd", 2}, {"imomap", 0}, {"mapthr", 90}});
+    if (task_flag == "sp") {                                              // single point calculation
+        revised_keyword = new_keyword({{"jop", "-1"}, {"icross", "0"}});  ///< @bug: cannot find energies
+    } else if (task_flag == "samp") {                                     // single point calculation
+        revised_keyword = new_keyword(
+            {{"jop", "-1"}, {"icross", "7"}, {"mprint", "1"}, {"iuvcd", "2"}, {"imomap", "0"}, {"mapthr", "90"}});
     } else if (task_flag == "force") {  // force calculation
-        revised_keyword = new_keyword({{"jop", -1}, {"icross", 1}});
+        revised_keyword = new_keyword({{"jop", "-2"}, {"icross", "1"}});
         // revised_addition = ...; // additional lines
     } else if (task_flag == "nad") {  // non-adiabatic coupling calculation
-        revised_keyword = new_keyword({{"jop", -1}, {"icross", 7}, {"mprint", 1}, {"imomap", 3}, {"mapthr", 95}});
+        revised_keyword =
+            new_keyword({{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "97"}});
         // revised_addition = ...; // additional lines
     } else if (task_flag == "hess") {  // hessian calculation
-        revised_keyword = new_keyword({{"jop", 2}, {"icross", 0}, {"kprint", 1}});
+        revised_keyword = new_keyword({{"jop", "2"}, {"icross", "0"}, {"kprint", "1"}});
     } else {  // default
         revised_keyword = mndo_keyword;
     }
@@ -452,7 +465,7 @@ int Model_Interf_MNDO::track_nac_sign() {
  */
 int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
     int stat         = -1;
-    int istate_force = 0;
+    int istate_force = 0, istate_force_meet = 0;
     int istate, jstate;
 
     std::ifstream ifs(log);
@@ -487,7 +500,9 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
             istate_force--;
         }
         //
-        else if (eachline.find("GRADIENTS (KCAL/(MOL*ANGSTROM))") != eachline.npos) {
+        else if (eachline.find("GRADIENTS (KCAL/(MOL*ANGSTROM))") != eachline.npos &&
+                 istate_force_meet == istate_force) {
+            istate_force_meet++;
             for (int i = 0; i < 8; ++i) ifs >> stmp;
             for (int i = 0, idx = 0; i < natom; ++i) {                                 ///< grad in kcalpmol/angstrom
                 ifs >> stmp >> stmp >> stmp >> stmp >> stmp                            // skips

@@ -10,6 +10,8 @@
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
 
+inline bool isFileExists(const std::string& name) { return std::ifstream{name.c_str()}.good(); }
+
 #define ARRAY_SHOW(_A, _n1, _n2)                                                            \
     ({                                                                                      \
         std::cout << "Show Array <" << #_A << ">\n";                                        \
@@ -191,6 +193,8 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     check_cxs       = PM->get<bool>("check_cxs", LOC(), false);
     dt              = PM->get<double>("dt", LOC(), phys::time_d);
 
+    cread_from_ds = PM->get<bool>("cread_from_ds", LOC(), false);
+
     hopping_type1 = 0;
     hopping_type2 = 0;
     reflect       = true;
@@ -318,6 +322,21 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
             Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
             // for (int i = 0; i < Dimension::F; ++i) c[i] = 1.0e0 * i;
         }
+        if (cread_from_ds) {
+            std::string init_nuclinp = _Param->get<std::string>("init_nuclinp", LOC());
+            std::string open_file    = init_nuclinp;
+            if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat, ".ds");
+
+            std::string stmp, eachline;
+            std::ifstream ifs(open_file);
+            while (getline(ifs, eachline)) {
+                if (eachline.find("init.c") != eachline.npos) {
+                    getline(ifs, eachline);
+                    for (int i = 0; i < Dimension::N; ++i) ifs >> c[i];
+                }
+            }
+        }
+
         Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
 
         if (use_gdtwa) {
@@ -525,7 +544,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                 break;
             }
             case 3: {
-                to = Kernel_Elec_SH::hopping_choose(rho_ele, H, *occ_nuc, dt);
+                to = Kernel_Elec_SH::hopping_choose(rho_ele, H, *occ_nuc, scale * dt);
                 break;
             }
             case 4: {
@@ -563,6 +582,8 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         *occ_nuc = hopping_impulse(direction, p, m, Efrom, Eto, *occ_nuc, to, reflect);
         Epot[0]  = vpes[0] + ((*occ_nuc == to) ? Eto : Efrom);
 
+        // if (*occ_nuc == to && Eto != Efrom) std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
+
         // smooth dynamics (BOSD & CVSD)
         if (cmsh_type == CMSHPolicy::BOSD || cmsh_type == CMSHPolicy::CVSD) {
             ARRAY_CLEAR(fadd, Dimension::N);
@@ -584,7 +605,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
             if (Ew_new != Ew_old) {
                 double vdotd = 0.0e0;
                 for (int j = 0; j < Dimension::N; ++j) vdotd += p[j] / m[j] * dE[j * Dimension::FF + 1];
-                double xsolve = (Ew_new - Ew_old) / dt / vdotd;
+                double xsolve = (Ew_new - Ew_old) / (scale * dt) / vdotd;
                 for (int j = 0; j < Dimension::N; ++j) fadd[j] += xsolve * dE[j * Dimension::FF + 1];
             }
             for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = wrho[ik];
