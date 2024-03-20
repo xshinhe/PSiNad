@@ -24,15 +24,16 @@ void Kernel_NADForce::read_param_impl(Param* PM) {
 };
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
-    f     = DS->def<double>("integrator.f", Dimension::PN);
-    p     = DS->def<double>("integrator.p", Dimension::PN);
-    m     = DS->def<double>("integrator.m", Dimension::PN);
-    fadd  = DS->def<double>("integrator.fadd", Dimension::PN);
-    fproj = DS->def<double>("integrator.tmp.fporj", Dimension::N);
-    grad  = DS->def<double>("model.grad", Dimension::PN);
-    dV    = DS->def<double>("model.dV", Dimension::PNFF);
-    dE    = DS->def<double>("model.rep.dE", Dimension::PNFF);
-    T     = DS->def<double>("model.rep.T", Dimension::PFF);
+    f        = DS->def<double>("integrator.f", Dimension::PN);
+    p        = DS->def<double>("integrator.p", Dimension::PN);
+    m        = DS->def<double>("integrator.m", Dimension::PN);
+    fadd     = DS->def<double>("integrator.fadd", Dimension::PN);
+    fproj    = DS->def<double>("integrator.tmp.fporj", Dimension::N);
+    grad     = DS->def<double>("model.grad", Dimension::PN);
+    dV       = DS->def<double>("model.dV", Dimension::PNFF);
+    dE       = DS->def<double>("model.rep.dE", Dimension::PNFF);
+    T        = DS->def<double>("model.rep.T", Dimension::PFF);
+    succ_ptr = DS->def<bool>("iter.succ");
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:
@@ -47,6 +48,8 @@ void Kernel_NADForce::init_data_impl(DataSet* DS) {
 void Kernel_NADForce::init_calc_impl(int stat) { exec_kernel(stat); }
 
 int Kernel_NADForce::exec_kernel_impl(int stat) {
+    if (!succ_ptr[0]) return 0;
+
     for (int iP = 0; iP < Dimension::P; ++iP) {
         int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
         kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;

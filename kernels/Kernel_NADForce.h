@@ -32,6 +32,8 @@ class Kernel_NADForce : public Kernel {
     kids_real *p, *m;
     kids_real *fadd, *fproj;
 
+    bool *succ_ptr;
+
     virtual void read_param_impl(Param *PM);
 
     virtual void init_data_impl(DataSet *DS);

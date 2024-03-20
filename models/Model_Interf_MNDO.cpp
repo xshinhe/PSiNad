@@ -33,8 +33,9 @@ void Model_Interf_MNDO::read_param_impl(Param* PM) {
     Kernel_Representation::onthefly = true;
 
     // parse mndo input
-    exec_file = PM->get<std::string>("exec_file", LOC(), "mndo");
-    directory = PM->get<std::string>("directory", LOC());
+    exec_file      = PM->get<std::string>("exec_file", LOC(), "mndo");
+    directory      = PM->get<std::string>("directory", LOC());
+    classical_bath = PM->get<bool>("classical_bath", LOC(), false);
 
     std::string mndoinp = PM->get<std::string>("mndoinp", LOC(), "null");
     natom               = parse_mndo(mndoinp);
@@ -75,6 +76,7 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
     // ddE  = DS->def<double>("model.rep.ddE", Dimension::NNFF);
     nac      = DS->def<double>("model.rep.nac", Dimension::NFF);
     nac_prev = DS->def<double>("model.rep.nac_prev", Dimension::NFF);
+    frez_ptr = DS->def<bool>("iter.frez");
 
     for (int i = 0, ik = 0; i < Dimension::F; ++i) {
         for (int k = 0; k < Dimension::F; ++k, ++ik) T[ik] = (i == k) ? 1.0e0 : 0.0e0;
@@ -125,8 +127,10 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
                 p_sigma[j] = 0.0f;
             } else {  // NOTE: it's for normal-mode!
                 double Qoverbeta = 0.5f * w[j] / std::tanh(0.5f * beta * w[j]);
-                x_sigma[j]       = std::sqrt(Qoverbeta / (w[j] * w[j]));
-                p_sigma[j]       = std::sqrt(Qoverbeta);
+                if (classical_bath) Qoverbeta = 1.0e0 / beta;
+
+                x_sigma[j] = std::sqrt(Qoverbeta / (w[j] * w[j]));
+                p_sigma[j] = std::sqrt(Qoverbeta);
             }
         }
     }
@@ -173,8 +177,11 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
     } else if (init_nuclinp == "#fix") {  // for initial md
         for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i], p[i] = 0.0f;
     } else {  // init_nuclinp as dataset from which we read x and p
+        std::string open_file = init_nuclinp;
+        if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat, ".ds");
+
         std::string stmp, eachline;
-        std::ifstream ifs(utils::concat(init_nuclinp, stat, ".ds"));
+        std::ifstream ifs(open_file);
         while (getline(ifs, eachline)) {
             if (eachline.find("init.x") != eachline.npos) {
                 getline(ifs, eachline);
@@ -204,6 +211,8 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
 }
 
 int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
+    if (frez_ptr[0]) return 0;
+
     // convert atomic unit
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;  ///< convert Bohr to Angstrom
     ARRAY_CLEAR(E, Dimension::F);

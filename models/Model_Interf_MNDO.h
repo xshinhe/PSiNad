@@ -43,6 +43,8 @@ class Model_Interf_MNDO final : public Kernel {
     std::string task_control;
     std::string directory;
 
+    bool classical_bath;
+
     // integrator
     kids_real *x, *p;
 
@@ -68,6 +70,7 @@ class Model_Interf_MNDO final : public Kernel {
     int iroot;
     int lroot;
     bool refer;
+    bool* frez_ptr;
 
     void read_param_impl(Param* PM);
 

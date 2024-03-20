@@ -26,6 +26,8 @@ class Kernel_Update_c final : public Kernel {
     kids_complex* invexpidiagdt;  ///< temporary variables
 
     double scale, *dt_ptr;
+    bool* succ_ptr;
+    bool* frez_ptr;
 
     virtual void init_data_impl(DataSet* S);
 

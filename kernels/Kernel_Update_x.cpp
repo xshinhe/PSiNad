@@ -21,6 +21,7 @@ void Kernel_Update_x::init_data_impl(DataSet* DS) {
     m               = DS->def<kids_real>("integrator.m", Dimension::PN);
     minv            = DS->def<kids_real>("integrator.minv", Dimension::PN);
     kids_real* mass = DS->def<kids_real>("model.mass", Dimension::N);
+    frez_ptr        = DS->def<bool>("iter.frez");
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* m    = this->m + iP * Dimension::N;
         kids_real* minv = this->minv + iP * Dimension::N;
@@ -32,6 +33,8 @@ void Kernel_Update_x::init_data_impl(DataSet* DS) {
 }
 
 int Kernel_Update_x::exec_kernel_impl(int stat) {
+    if (frez_ptr[0]) return 0;
+
     for (int i = 0; i < Dimension::PN; ++i) x[i] += p[i] * minv[i] * scale * dt_ptr[0];
     return 0;
 }

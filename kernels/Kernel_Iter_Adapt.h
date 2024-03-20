@@ -20,6 +20,7 @@ class Kernel_Iter_Adapt final : public Kernel {
     double dt, *dt_ptr;
     double tend, *tend_ptr;
     bool *succ_ptr;
+    bool *frez_ptr;
     bool *do_recd_ptr;
     bool *do_prec_ptr;
 

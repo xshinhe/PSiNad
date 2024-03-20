@@ -19,17 +19,21 @@ namespace PROJECT_NS {
 void Kernel_Update_c::init_data_impl(DataSet* DS) {
     dt_ptr = DS->def<kids_real>("iter.dt");
 
-    E   = DS->def<kids_real>("model.rep.E", Dimension::PF);
-    T   = DS->def<kids_real>("model.rep.T", Dimension::PFF);
-    L   = DS->def<kids_real>("model.rep.L", Dimension::PF);
-    R   = DS->def<kids_complex>("model.rep.R", Dimension::PFF);
-    U   = DS->def<kids_complex>("integrator.U", Dimension::PFF);
-    Udt = DS->def<kids_complex>("integrator.Udt", Dimension::PFF);
+    E        = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    T        = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    L        = DS->def<kids_real>("model.rep.L", Dimension::PF);
+    R        = DS->def<kids_complex>("model.rep.R", Dimension::PFF);
+    U        = DS->def<kids_complex>("integrator.U", Dimension::PFF);
+    Udt      = DS->def<kids_complex>("integrator.Udt", Dimension::PFF);
+    succ_ptr = DS->def<bool>("iter.succ");
+    frez_ptr = DS->def<bool>("iter.frez");
 
     invexpidiagdt = DS->def<kids_complex>("integrator.tmp.invexpidiagdt", Dimension::F);
 }
 
 int Kernel_Update_c::exec_kernel_impl(int stat) {
+    if (!succ_ptr[0] || frez_ptr[0]) return 0;
+
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm
         kids_real* E      = this->E + iP * Dimension::F;

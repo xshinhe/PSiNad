@@ -15,6 +15,7 @@ class Kernel_Update_p : public Kernel {
     double *p, *f, *minv;
     double* Ekin;
     double scale, *dt_ptr;
+    bool* frez_ptr;
 
     virtual void init_data_impl(DataSet* DS);
 

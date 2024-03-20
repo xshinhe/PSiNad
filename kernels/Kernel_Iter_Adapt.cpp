@@ -34,6 +34,7 @@ void Kernel_Iter_Adapt::init_data_impl(DataSet* DS) {
     dtsize_ptr = DS->def<int>("iter.dtsize");
 
     succ_ptr    = DS->def<bool>("iter.succ");
+    frez_ptr    = DS->def<bool>("iter.frez");
     do_recd_ptr = DS->def<bool>("iter.do_recd");
     do_prec_ptr = DS->def<bool>("iter.do_prec");
 
@@ -51,6 +52,8 @@ void Kernel_Iter_Adapt::init_calc_impl(int stat) {
     istep_ptr[0]  = 0;
     tsize_ptr[0]  = 0;
     dtsize_ptr[0] = msize;
+    succ_ptr[0]   = true;
+    frez_ptr[0]   = false;
 }
 
 int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
@@ -106,6 +109,7 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                 if ((tsize_ptr[0] + dtsize_ptr[0]) % msize == 0) istep_ptr[0]++;
                 tsize_ptr[0] += dtsize_ptr[0];
                 dtsize_ptr[0] = dtsize_ptr[0];
+                frez_ptr[0]   = true;
                 std::cout << "Exceed minial dt! force proceed!\n";
             }
         }

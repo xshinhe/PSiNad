@@ -15,11 +15,12 @@
 namespace PROJECT_NS {
 
 void Kernel_Update_p::init_data_impl(DataSet* DS) {
-    dt_ptr = DS->def<kids_real>("iter.dt");
-    f      = DS->def<kids_real>("integrator.f", Dimension::PN);
-    p      = DS->def<kids_real>("integrator.p", Dimension::PN);
-    minv   = DS->def<kids_real>("integrator.minv", Dimension::PN);
-    Ekin   = DS->def<kids_real>("integrator.Ekin", Dimension::P);
+    dt_ptr   = DS->def<kids_real>("iter.dt");
+    f        = DS->def<kids_real>("integrator.f", Dimension::PN);
+    p        = DS->def<kids_real>("integrator.p", Dimension::PN);
+    minv     = DS->def<kids_real>("integrator.minv", Dimension::PN);
+    Ekin     = DS->def<kids_real>("integrator.Ekin", Dimension::P);
+    frez_ptr = DS->def<bool>("iter.frez");
 }
 
 void Kernel_Update_p::init_calc_impl(int stat) {
@@ -34,6 +35,8 @@ void Kernel_Update_p::init_calc_impl(int stat) {
 }
 
 int Kernel_Update_p::exec_kernel_impl(int stat) {
+    if (frez_ptr[0]) return 0;
+
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* f    = this->f + iP * Dimension::N;
         kids_real* p    = this->p + iP * Dimension::N;
