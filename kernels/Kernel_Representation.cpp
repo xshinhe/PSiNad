@@ -189,9 +189,14 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
                 // calc H = E - im * nacv * p / m, and note here nacv_{ij} = dEij / (Ej - Ei)
                 for (int i = 0; i < Dimension::N; ++i) ve[i] = p[i] / m[i];
                 ARRAY_MATMUL(vedE, ve, dE, 1, Dimension::N, Dimension::FF);
+
+                double Emean = 0.0e0;
+                for (int i = 0; i < Dimension::F; ++i) Emean += E[i];
+                Emean /= Dimension::F;
+
                 for (int i = 0, ij = 0; i < Dimension::F; ++i) {
                     for (int j = 0; j < Dimension::F; ++j, ++ij) {  //
-                        H[ij] = ((i == j) ? E[i] : -phys::math::im * vedE[ij] / (E[j] - E[i]));
+                        H[ij] = ((i == j) ? E[i] - Emean : -phys::math::im * vedE[ij] / (E[j] - E[i]));
                     }
                 }
 

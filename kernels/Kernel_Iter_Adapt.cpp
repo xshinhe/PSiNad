@@ -33,10 +33,13 @@ void Kernel_Iter_Adapt::init_data_impl(DataSet* DS) {
     tsize_ptr  = DS->def<int>("iter.tsize");
     dtsize_ptr = DS->def<int>("iter.dtsize");
 
-    succ_ptr    = DS->def<bool>("iter.succ");
-    frez_ptr    = DS->def<bool>("iter.frez");
     do_recd_ptr = DS->def<bool>("iter.do_recd");
     do_prec_ptr = DS->def<bool>("iter.do_prec");
+
+    succ_ptr         = DS->def<bool>("iter.succ");
+    last_attempt_ptr = DS->def<bool>("iter.last_attempt_ptr");
+    frez_ptr         = DS->def<bool>("iter.frez");
+    fail_type_ptr    = DS->def<int>("iter.fail_type");
 
     // initializarion
     DS->def<int>("iter.sstep", &sstep);
@@ -52,8 +55,11 @@ void Kernel_Iter_Adapt::init_calc_impl(int stat) {
     istep_ptr[0]  = 0;
     tsize_ptr[0]  = 0;
     dtsize_ptr[0] = msize;
-    succ_ptr[0]   = true;
-    frez_ptr[0]   = false;
+
+    succ_ptr[0]         = true;
+    last_attempt_ptr[0] = false;
+    frez_ptr[0]         = false;
+    fail_type_ptr[0]    = 0;
 }
 
 int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
@@ -77,10 +83,10 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
         }
 
         // each loop
-        succ_ptr[0] = true;  // reset succ
+        succ_ptr[0] = true;  // reset succ but fail_type_ptr! (the latter keep the reason of previous failure!)
         for (auto& pkernel : _kernel_vector) { pkernel->exec_kernel(stat); }
 
-        if (succ_ptr[0]) {
+        if (succ_ptr[0] || frez_ptr[0]) {
             if ((tsize_ptr[0] + dtsize_ptr[0]) % msize == 0) istep_ptr[0]++;
             tsize_ptr[0] += dtsize_ptr[0];
 
@@ -114,13 +120,36 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                 }
 
             } else {
-                if ((tsize_ptr[0] + dtsize_ptr[0]) % msize == 0) istep_ptr[0]++;
-                tsize_ptr[0] += dtsize_ptr[0];
-                dtsize_ptr[0] = dtsize_ptr[0];
-                frez_ptr[0]   = true;
-                std::cout << "Exceed minial dt! force proceed!\n";
-            }
+                if (last_attempt_ptr[0]) {
+                    // save breakdown information
+                    std::string directory = _Param->get<std::string>("directory", LOC());
+                    std::ofstream ofs{utils::concat(directory, "/fail", stat, "-", istep_ptr[0], ".ds")};
+                    _DataSet->dump(ofs);
+                    ofs.close();
 
+                    if ((tsize_ptr[0] + dtsize_ptr[0]) % msize == 0) istep_ptr[0]++;
+                    tsize_ptr[0] += dtsize_ptr[0];
+                    dtsize_ptr[0] = dtsize_ptr[0];
+
+                    frez_ptr[0] = true;
+                    std::cout << "Exceed minial dt! force proceed!\n";
+
+                } else {
+                    last_attempt_ptr[0] = true;           // try last attemp
+                    dtsize_ptr[0]       = dtsize_ptr[0];  // keep the minimal size
+                    tsize_ptr[0] += 0;
+                    // recover backups
+                    for (auto& fname : backup_fields) {
+                        _DataSet->_def(utils::concat("integrator.", fname),     //
+                                       utils::concat("backup.", 1, ".", fname)  //
+                        );
+                        for (int bto = nbackup, bfrom = bto - 1; bto > 1; --bto, --bfrom) {
+                            _DataSet->_def(utils::concat("backup.", bfrom, ".", fname),
+                                           utils::concat("backup.", bto, ".", fname));
+                        }
+                    }
+                }
+            }
             std::cout << "F [t =" << FMT(4) << t_ptr[0] << "|" << t_ptr[0] / tend << "] and adjust [dt_dynamic/dt ="  //
                       << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
         }

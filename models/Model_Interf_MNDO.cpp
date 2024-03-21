@@ -77,7 +77,11 @@ void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
     // ddE  = DS->def<double>("model.rep.ddE", Dimension::NNFF);
     nac      = DS->def<double>("model.rep.nac", Dimension::NFF);
     nac_prev = DS->def<double>("model.rep.nac_prev", Dimension::NFF);
-    frez_ptr = DS->def<bool>("iter.frez");
+
+    succ_ptr         = DS->def<bool>("iter.succ");
+    last_attempt_ptr = DS->def<bool>("iter.last_attempt");
+    frez_ptr         = DS->def<bool>("iter.frez");
+    fail_type_ptr    = DS->def<int>("iter.fail_type");
 
     for (int i = 0, ik = 0; i < Dimension::F; ++i) {
         for (int k = 0; k < Dimension::F; ++k, ++ik) T[ik] = (i == k) ? 1.0e0 : 0.0e0;
@@ -223,15 +227,12 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     std::string inpfile = utils::concat(".mndoinp.", stat_in);
     std::string outfile = utils::concat(".mndoout.", stat_in);
 
-    int* istep_ptr = _DataSet->def<int>("iter.istep");
-
-    new_task(utils::concat(directory, "/", inpfile), task_control);
+    std::string control_copy = task_control;
+    if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) control_copy = "nad-hard";
+    new_task(utils::concat(directory, "/", inpfile), control_copy);
 
     std::string cmd_exe = utils::concat("cd ", directory, " && ", exec_file, " < ", inpfile, " > ", outfile);
     int stat            = system(cmd_exe.c_str());
-
-    cmd_exe = utils::concat("cd ", directory, " && cp ", outfile, " ", outfile, ".", istep_ptr[0]);
-    system(cmd_exe.c_str());
 
     parse_standard(utils::concat(directory, "/", outfile), stat_in);  // parse in MNDO's units
 
@@ -386,6 +387,10 @@ int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task
         revised_keyword =
             new_keyword({{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "97"}});
         // revised_addition = ...; // additional lines
+    } else if (task_flag == "nad-hard") {  // non-adiabatic coupling calculation (hard case)
+        revised_keyword = new_keyword(
+            {{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "90"}, {"kitscf", "400"}});
+        // revised_addition = ...; // additional lines
     } else if (task_flag == "hess") {  // hessian calculation
         revised_keyword = new_keyword({{"jop", "2"}, {"icross", "0"}, {"kprint", "1"}});
     } else {  // default
@@ -524,18 +529,31 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
                 int IJ = istate * Dimension::F + jstate;
                 int JI = jstate * Dimension::F + istate;
                 while (getline(ifs, eachline)) {
-                    if (eachline.find("COMPLETE EXPRESSION.") != eachline.npos) {  // let `MPRINT=1`
-                        for (int i = 0, idx = 0; i < natom; ++i) {                 ///< found nacv in 1/angstrom
-                            ifs >> stmp                                            // skips
-                                >> nac[(idx++) * Dimension::FF + IJ]               // nac(Xk, i, j)
-                                >> nac[(idx++) * Dimension::FF + IJ]               // nac(Yk, i, j)
-                                >> nac[(idx++) * Dimension::FF + IJ];              // nac(Zk, i, j)
+                    if (eachline.find("GRADIENTS (KCAL/(MOL*ANGSTROM))") != eachline.npos) {
+                        for (int i = 0; i < 8; ++i) ifs >> stmp;
+                        for (int i = 0, idx = 0; i < natom; ++i) {       ///< grad in kcalpmol/angstrom
+                            ifs >> stmp >> stmp >> stmp >> stmp >> stmp  // skips
+                                >> nac[(idx++) * Dimension::FF + IJ]     // nac(Xk,i,i)
+                                >> nac[(idx++) * Dimension::FF + IJ]     // nac(Yk,i,i)
+                                >> nac[(idx++) * Dimension::FF + IJ];    // nac(Zk,i,i)
                         }
                         for (int idx = 0; idx < Dimension::N; ++idx) {  // copy to the other half-side nacv
                             nac[idx * Dimension::FF + JI] = -nac[idx * Dimension::FF + IJ];
                         }
                         break;
                     }
+                    // if (eachline.find("COMPLETE EXPRESSION.") != eachline.npos) {  // let `MPRINT=1`
+                    //     for (int i = 0, idx = 0; i < natom; ++i) {                 ///< found nacv in 1/angstrom
+                    //         ifs >> stmp                                            // skips
+                    //             >> nac[(idx++) * Dimension::FF + IJ]               // nac(Xk, i, j)
+                    //             >> nac[(idx++) * Dimension::FF + IJ]               // nac(Yk, i, j)
+                    //             nac[(idx++) * Dimension::FF + IJ]               // nac(Zk, i, j)
+                    //     }
+                    //     for (int idx = 0; idx < Dimension::N; ++idx) {  // copy to the other half-side nacv
+                    //         nac[idx * Dimension::FF + JI] = -nac[idx * Dimension::FF + IJ];
+                    //     }
+                    //     break;
+                    // }
                 }
             }
             stat = 2;
@@ -543,19 +561,20 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
     }
     ifs.close();
     if (stat != 2) {
-        bool* succ_ptr = _DataSet->def<bool>("iter.succ");
-        succ_ptr[0]    = false;
+        succ_ptr[0]      = false;
+        fail_type_ptr[0] = 1;
         std::cerr << "fail in calling MNDO!\n";
 
         int* istep_ptr      = _DataSet->def<int>("iter.istep");
         std::string cmd_exe = utils::concat("cp ", directory, "/.mndoinp.", stat_in, "  ", directory, "/.mndoinp.",
-                                            stat_in, ".fail.", istep_ptr[0]);
+                                            stat_in, ".err.", istep_ptr[0]);
         system(cmd_exe.c_str());
         cmd_exe = utils::concat("cp ", directory, "/.mndoout.", stat_in, "  ", directory, "/.mndoout.", stat_in,
-                                ".fail.", istep_ptr[0]);
+                                ".err.", istep_ptr[0]);
+        system(cmd_exe.c_str());
     } else {
-        bool* succ_ptr = _DataSet->def<bool>("iter.succ");
-        succ_ptr[0]    = true;
+        succ_ptr[0]      = true;
+        fail_type_ptr[0] = 0;
     }
     return stat;
 }

@@ -6,14 +6,15 @@
 #include "Kernel_Representation.h"
 #include "Kernel_Update.h"
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
+#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
+    ({                                                                                      \
+        std::cout << #_A << " = np.array([\n";                                              \
+        int _idxA = 0;                                                                      \
+        for (int _i = 0; _i < (_n1); ++_i) {                                                \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++] << ","; \
+            std::cout << std::endl;                                                         \
+        }                                                                                   \
+        { std::cout << "])\n"; }                                                            \
     })
 
 namespace PROJECT_NS {
@@ -120,9 +121,9 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                     }
                 }
                 if (offd_projected) {  // then the offdiagonal force is projected
-                    double fdotR = 0.0e0, vnorm2 = 0.0e0;
-                    for (int j = 0; j < Dimension::N; ++j) fdotR += fproj[j] * p[j], vnorm2 += p[j] * p[j];
-                    for (int j = 0; j < Dimension::N; ++j) fproj[j] -= fdotR / vnorm2 * p[j];
+                    double fdotR = 0.0e0, PdotR = 0.0e0;
+                    for (int j = 0; j < Dimension::N; ++j) fdotR += fproj[j] * p[j] / m[j], PdotR += p[j] * p[j] / m[j];
+                    for (int j = 0; j < Dimension::N; ++j) fproj[j] -= fdotR / PdotR * p[j];
                 }
                 for (int j = 0; j < Dimension::N; ++j) f[j] += fproj[j];
 

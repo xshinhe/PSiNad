@@ -22,6 +22,9 @@ class Kernel_Conserve final : public Kernel {
 
     bool conserve_scale;
     bool* succ_ptr;
+    bool* frez_ptr;
+    bool* last_attempt_ptr;
+    int* fail_type_ptr;
 
     virtual void read_param_impl(Param* PM);
 

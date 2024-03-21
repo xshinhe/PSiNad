@@ -14,12 +14,13 @@ inline bool isFileExists(const std::string& name) { return std::ifstream{name.c_
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                            \
     ({                                                                                      \
-        std::cout << "Show Array <" << #_A << ">\n";                                        \
+        std::cout << #_A << " = np.array([\n";                                              \
         int _idxA = 0;                                                                      \
         for (int _i = 0; _i < (_n1); ++_i) {                                                \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++] << ","; \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++] << ","; \
             std::cout << std::endl;                                                         \
         }                                                                                   \
+        { std::cout << "])\n"; }                                                            \
     })
 
 double phi(double lambda, double N0_max, int F) {
@@ -461,6 +462,8 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
         int* occ_nuc               = Kernel_Elec::occ_nuc + iP;
         kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
+        kids_complex* c            = Kernel_Elec::c + iP * Dimension::F;
+        kids_complex* c_init       = Kernel_Elec::c_init + iP * Dimension::F;
         kids_complex* rho_ele      = Kernel_Elec::rho_ele + iP * Dimension::FF;
         kids_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
         kids_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
@@ -499,8 +502,13 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         // * additional evolution can be appended here
 
         // 1) transform from inp_repr => ele_repr
+        for (int i = 0; i < Dimension::F; ++i) c[i] = c_init[i];  // @debug
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_nuc_init[ik];
+        Kernel_Representation::transform(c, T_init, Dimension::F,               //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         Kernel_Representation::ele_repr_type,  //
+                                         SpacePolicy::H);
         Kernel_Representation::transform(rho_ele, T_init, Dimension::F,         //
                                          Kernel_Representation::inp_repr_type,  //
                                          Kernel_Representation::ele_repr_type,  //
@@ -511,6 +519,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                          SpacePolicy::L);
 
         // 2) propagte along ele_repr
+        ARRAY_MATMUL(c, U, c, 1, Dimension::F, Dimension::F);
         ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
         ARRAY_MATMUL3_TRANS2(rho_nuc, U, rho_nuc, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
 

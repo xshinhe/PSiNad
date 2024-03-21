@@ -84,7 +84,7 @@ int Handler::run_parallel(Param* PM) {
     {
         solver->read_param(PM);
         solver->init_data(&DS);
-        solver->init_calc(0);
+        solver->init_calc(0);  // required!!!
 
         auto& corr     = Kernel_Record::get_correlation();
         int nframe     = corr.frame;

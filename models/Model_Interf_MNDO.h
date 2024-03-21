@@ -70,7 +70,11 @@ class Model_Interf_MNDO final : public Kernel {
     int iroot;
     int lroot;
     bool refer;
+
+    bool* succ_ptr;
     bool* frez_ptr;
+    bool* last_attempt_ptr;
+    int* fail_type_ptr;
 
     void read_param_impl(Param* PM);
 

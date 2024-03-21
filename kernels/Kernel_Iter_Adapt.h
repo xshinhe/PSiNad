@@ -19,10 +19,13 @@ class Kernel_Iter_Adapt final : public Kernel {
     double t, *t_ptr;
     double dt, *dt_ptr;
     double tend, *tend_ptr;
-    bool *succ_ptr;
-    bool *frez_ptr;
-    bool *do_recd_ptr;
-    bool *do_prec_ptr;
+    bool* do_recd_ptr;
+    bool* do_prec_ptr;
+
+    bool* succ_ptr;
+    bool* frez_ptr;
+    bool* last_attempt_ptr;
+    int* fail_type_ptr;  // record the failure information (longtime keeped)
 
     int msize, *tsize_ptr, *dtsize_ptr;
     int sstep, *sstep_ptr;
@@ -32,11 +35,11 @@ class Kernel_Iter_Adapt final : public Kernel {
 
     const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot"};
 
-    virtual void read_param_impl(Param *PM);
+    virtual void read_param_impl(Param* PM);
 
     virtual void init_calc_impl(int stat = -1);
 
-    virtual void init_data_impl(DataSet *DS);
+    virtual void init_data_impl(DataSet* DS);
 
     virtual int exec_kernel_impl(int stat = -1);
 };
