@@ -47,6 +47,8 @@ class Kernel_Representation final : public Kernel {
     std::complex<double> *R, *dL, *ddL;
     std::complex<double> *H, *dH, *ddH;
 
+    double *E_copy;
+
     double *x, *p, *m;
     int *occ_nuc;
     kids_complex *rho_ele;

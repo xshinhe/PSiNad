@@ -167,7 +167,7 @@ int Handler::run_parallel(Param* PM) {
         for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {
             for (int isize = 0; isize < nsize; ++isize, ++i) corr_sum.data[i] /= corr_sum.stat[iframe];
         }
-        corr_sum.save(utils::concat(directory, "/corr-mpi", MPI_Guard::rank, ".dat"), 0, -1, true);
+        // corr_sum.save(utils::concat(directory, "/corr-mpi", MPI_Guard::rank, ".dat"), 0, -1, true); // @debug
         if (MPI_Guard::isroot) {
             for (int iframe = 0, i = 0; iframe < nframe; ++iframe) {
                 for (int isize = 0; isize < nsize; ++isize, ++i) corr_mpi.data[i] /= corr_mpi.stat[iframe];

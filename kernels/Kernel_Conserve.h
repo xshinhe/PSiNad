@@ -26,6 +26,8 @@ class Kernel_Conserve final : public Kernel {
     bool* last_attempt_ptr;
     int* fail_type_ptr;
 
+	int cnt_loose = 0;
+
     virtual void read_param_impl(Param* PM);
 
     virtual void init_data_impl(DataSet* DS);

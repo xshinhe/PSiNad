@@ -228,7 +228,13 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     std::string outfile = utils::concat(".mndoout.", stat_in);
 
     std::string control_copy = task_control;
-    if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) control_copy = "nad-hard";
+    if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) { 
+        control_copy = "nad-hard";
+        removeFile(utils::concat(directory, "/imomap.dat"));
+        std::string rm_exe = utils::concat("rm ", directory, "/imomap.dat");
+        system(rm_exe.c_str());
+        std::cout << "mndo last try\n";
+    }
     new_task(utils::concat(directory, "/", inpfile), control_copy);
 
     std::string cmd_exe = utils::concat("cd ", directory, " && ", exec_file, " < ", inpfile, " > ", outfile);
@@ -389,7 +395,7 @@ int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task
         // revised_addition = ...; // additional lines
     } else if (task_flag == "nad-hard") {  // non-adiabatic coupling calculation (hard case)
         revised_keyword = new_keyword(
-            {{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "90"}, {"kitscf", "400"}});
+            {{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "75"}, {"kitscf", "500"}});
         // revised_addition = ...; // additional lines
     } else if (task_flag == "hess") {  // hessian calculation
         revised_keyword = new_keyword({{"jop", "2"}, {"icross", "0"}, {"kprint", "1"}});
@@ -563,7 +569,7 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
     if (stat != 2) {
         succ_ptr[0]      = false;
         fail_type_ptr[0] = 1;
-        std::cerr << "fail in calling MNDO!\n";
+        std::cout << "fail in calling MNDO!\n";
 
         int* istep_ptr      = _DataSet->def<int>("iter.istep");
         std::string cmd_exe = utils::concat("cp ", directory, "/.mndoinp.", stat_in, "  ", directory, "/.mndoinp.",
@@ -574,7 +580,10 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
         system(cmd_exe.c_str());
     } else {
         succ_ptr[0]      = true;
-        fail_type_ptr[0] = 0;
+        if(fail_type_ptr[0] == 1) fail_type_ptr[0] = 0;
+        if(last_attempt_ptr[0]){
+            std::cout << "survive in mndo last attempt\n";
+        }
     }
     return stat;
 }

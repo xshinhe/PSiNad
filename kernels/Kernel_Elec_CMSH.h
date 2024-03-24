@@ -47,7 +47,8 @@ class Kernel_Elec_CMSH final : public Kernel {
     bool use_gdtwa = false;
     bool use_sum   = false;
 
-    bool cread_from_ds = false;
+    bool cread_from_ds        = false;
+    bool disable_inner_switch = false;
 
     bool reflect = true;  // treatment in hopping
     int hopping_type1;

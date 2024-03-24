@@ -214,6 +214,8 @@ The intrinsically built keywords are listed as:
 |   $KK_MM      |   The kernel-kernel time correlation function by Meyer-Miller form (including FOCUS dynamics)         |
 |   $KK_GDTWA   |   The kernel-kernel time correlation function by GDTWA                                                |
 
+**Advanced Usage**
+
 Keywords prefixed with "$" denote several intrinsic rules. For more advanced control over the simulation outputs, you can utilize kids's result rule syntax.
 - Without the "$" prefix, you can access any variable names defined in the DataSet. The variable names follow the name syntax `NAME{field@time}<ESSHAPE>`. In this approach, if the symbol is not in the DataSet, kids will report an error. (To view available variables in the DataSet, use the `-handler=help_dataset` flag).
 - You can use the `NAMEOUT (NAME1, NAME2, ..., NAMEk) = FORMULA` format (where each name obeys the name syntax) to output custom-defined variables. If `NAMEOUT` is not defined in the DataSet, kids will assist in defining it.

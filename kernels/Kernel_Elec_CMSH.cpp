@@ -194,7 +194,8 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     check_cxs       = PM->get<bool>("check_cxs", LOC(), false);
     dt              = PM->get<double>("dt", LOC(), phys::time_d);
 
-    cread_from_ds = PM->get<bool>("cread_from_ds", LOC(), false);
+    cread_from_ds        = PM->get<bool>("cread_from_ds", LOC(), false);
+    disable_inner_switch = PM->get<bool>("disable_inner_switch", LOC(), false);
 
     hopping_type1 = 0;
     hopping_type2 = 0;
@@ -533,63 +534,66 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
 
-        // step 1: determine where to hop (BOSH & CVSH)
-        /// 1.1 calc Efrom
-        kids_real Efrom, Eto;
-        Efrom = calc_Ew(E, rho_nuc, *occ_nuc);
-        /// 1.2 calc to
-        int to;
-        switch (hopping_type1) {
-            case 0: {
-                to = Kernel_Elec_SH::max_choose(rho_ele);
-                break;
+        if (!disable_inner_switch) {
+            std::cout << "****\n";
+            // step 1: determine where to hop (BOSH & CVSH)
+            /// 1.1 calc Efrom
+            kids_real Efrom, Eto;
+            Efrom = calc_Ew(E, rho_nuc, *occ_nuc);
+            /// 1.2 calc to
+            int to;
+            switch (hopping_type1) {
+                case 0: {
+                    to = Kernel_Elec_SH::max_choose(rho_ele);
+                    break;
+                }
+                case 1: {
+                    to = Kernel_Elec_SH::max_choose(rho_nuc);
+                    break;
+                }
+                case 2: {
+                    to = Kernel_Elec_SH::pop_choose(rho_ele);
+                    break;
+                }
+                case 3: {
+                    to = Kernel_Elec_SH::hopping_choose(rho_ele, H, *occ_nuc, scale * dt);
+                    break;
+                }
+                case 4: {
+                    to = Kernel_Elec_SH::pop_choose(rho_nuc);
+                    break;
+                }
+                case 5: {
+                    to = Kernel_Elec_SH::pop_neg_choose(rho_nuc);
+                    break;
+                }
             }
-            case 1: {
-                to = Kernel_Elec_SH::max_choose(rho_nuc);
-                break;
+            Eto = calc_Ew(E, rho_nuc, to);
+            // step 2: determine direction to hop
+            switch (hopping_type2) {
+                case 0: {
+                    Kernel_Elec_MMSH::hopping_direction(direction, E, dE, rho_ele, *occ_nuc, to);
+                    break;
+                }
+                case 1: {
+                    Kernel_Elec_SH::hopping_direction(direction, dE, *occ_nuc, to);
+                    break;
+                }
+                case 2: {
+                    for (int j = 0; j < Dimension::N; ++j) direction[j] = p[j];
+                    break;
+                }
+                case 3: {
+                    for (int j = 0; j < Dimension::N; ++j)
+                        direction[j] = dE[j * Dimension::FF + to * Dimension::Fadd1] -
+                                       dE[j * Dimension::FF + (*occ_nuc) * Dimension::Fadd1];
+                    break;
+                }
             }
-            case 2: {
-                to = Kernel_Elec_SH::pop_choose(rho_ele);
-                break;
-            }
-            case 3: {
-                to = Kernel_Elec_SH::hopping_choose(rho_ele, H, *occ_nuc, scale * dt);
-                break;
-            }
-            case 4: {
-                to = Kernel_Elec_SH::pop_choose(rho_nuc);
-                break;
-            }
-            case 5: {
-                to = Kernel_Elec_SH::pop_neg_choose(rho_nuc);
-                break;
-            }
+            // step 3: try hop
+            *occ_nuc = hopping_impulse(direction, p, m, Efrom, Eto, *occ_nuc, to, reflect);
+            Epot[0]  = vpes[0] + ((*occ_nuc == to) ? Eto : Efrom);
         }
-        Eto = calc_Ew(E, rho_nuc, to);
-        // step 2: determine direction to hop
-        switch (hopping_type2) {
-            case 0: {
-                Kernel_Elec_MMSH::hopping_direction(direction, E, dE, rho_ele, *occ_nuc, to);
-                break;
-            }
-            case 1: {
-                Kernel_Elec_SH::hopping_direction(direction, dE, *occ_nuc, to);
-                break;
-            }
-            case 2: {
-                for (int j = 0; j < Dimension::N; ++j) direction[j] = p[j];
-                break;
-            }
-            case 3: {
-                for (int j = 0; j < Dimension::N; ++j)
-                    direction[j] = dE[j * Dimension::FF + to * Dimension::Fadd1] -
-                                   dE[j * Dimension::FF + (*occ_nuc) * Dimension::Fadd1];
-                break;
-            }
-        }
-        // step 3: try hop
-        *occ_nuc = hopping_impulse(direction, p, m, Efrom, Eto, *occ_nuc, to, reflect);
-        Epot[0]  = vpes[0] + ((*occ_nuc == to) ? Eto : Efrom);
 
         // if (*occ_nuc == to && Eto != Efrom) std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 

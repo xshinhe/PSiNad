@@ -56,7 +56,19 @@ int Kernel_Conserve::exec_kernel_impl(int stat) {
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
 
         double thres = 0.02;
-        if (last_attempt_ptr[0] && fail_type_ptr[0] == 2) thres = 0.1;  // loose threshold
+        if (last_attempt_ptr[0] && fail_type_ptr[0] != 2) {
+            cnt_loose = 3;
+        }
+        if(cnt_loose > 0) {
+            thres = cnt_loose*cnt_loose;  // help for last_attempt of mndo failure
+            std::cout << "not conserve before and after mndo last try and fail\n";
+            cnt_loose--;
+        }
+
+        if (last_attempt_ptr[0] && fail_type_ptr[0] == 2) {
+            thres = 0.5;  // loose threshold
+            std::cout << "conserve last try\n";
+        }
 
         if (fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
             std::cout << "ABS ERROR: " << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << "\n";
@@ -72,7 +84,7 @@ int Kernel_Conserve::exec_kernel_impl(int stat) {
         if (conserve_scale) {
             double scale = std::sqrt(std::max({Etot_init[0] - Epot[0], 0.0e0}) / Ekin[0]);
             for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
-            Ekin[0] = Etot_init[0] - Epot[0];
+            // Ekin[0] = Etot_init[0] - Epot[0];
         }
     }
     return 0;

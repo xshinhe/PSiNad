@@ -37,7 +37,7 @@ void Kernel_Iter_Adapt::init_data_impl(DataSet* DS) {
     do_prec_ptr = DS->def<bool>("iter.do_prec");
 
     succ_ptr         = DS->def<bool>("iter.succ");
-    last_attempt_ptr = DS->def<bool>("iter.last_attempt_ptr");
+    last_attempt_ptr = DS->def<bool>("iter.last_attempt");
     frez_ptr         = DS->def<bool>("iter.frez");
     fail_type_ptr    = DS->def<int>("iter.fail_type");
 
@@ -87,6 +87,8 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
         for (auto& pkernel : _kernel_vector) { pkernel->exec_kernel(stat); }
 
         if (succ_ptr[0] || frez_ptr[0]) {
+            last_attempt_ptr[0] = false;
+
             if ((tsize_ptr[0] + dtsize_ptr[0]) % msize == 0) istep_ptr[0]++;
             tsize_ptr[0] += dtsize_ptr[0];
 
@@ -102,10 +104,10 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
             dtsize_ptr[0] = new_dtsize;
 
             std::cout << "T [t =" << FMT(4) << t_ptr[0] << "|" << t_ptr[0] / tend << "] and adjust [dt_dynamic/dt ="  //
-                      << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
+                      << FMT(4) << dtsize_ptr[0] << "]\n";
 
         } else {
-            if (dtsize_ptr[0] % 2 == 0) {
+            if (dtsize_ptr[0] > 1) {
                 dtsize_ptr[0] /= 2;
                 tsize_ptr[0] += 0;
                 // recover backups
@@ -118,6 +120,7 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                                        utils::concat("backup.", bto, ".", fname));
                     }
                 }
+                std::cout << "minimize dt because type = " << fail_type_ptr[0] << "\n";
 
             } else {
                 if (last_attempt_ptr[0]) {
@@ -138,6 +141,9 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                     last_attempt_ptr[0] = true;           // try last attemp
                     dtsize_ptr[0]       = dtsize_ptr[0];  // keep the minimal size
                     tsize_ptr[0] += 0;
+
+                    std::cout << "last try!\n";
+
                     // recover backups
                     for (auto& fname : backup_fields) {
                         _DataSet->_def(utils::concat("integrator.", fname),     //
@@ -151,7 +157,7 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                 }
             }
             std::cout << "F [t =" << FMT(4) << t_ptr[0] << "|" << t_ptr[0] / tend << "] and adjust [dt_dynamic/dt ="  //
-                      << FMT(4) << dtsize_ptr[0] / ((double) msize) << "]\n";
+                      << FMT(4) << dtsize_ptr[0] << "]\n";
         }
         isamp_ptr[0] = istep_ptr[0] / sstep;
     }

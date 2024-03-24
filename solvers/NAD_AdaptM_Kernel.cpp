@@ -7,6 +7,7 @@
 #include "../kernels/Kernel_Elec_MMSH.h"
 #include "../kernels/Kernel_Elec_SH.h"
 #include "../kernels/Kernel_Elec_SQC.h"
+#include "../kernels/Kernel_Elec_Switch.h"
 #include "../kernels/Kernel_GWP.h"
 #include "../kernels/Kernel_Load_DataSet.h"
 #include "../kernels/Kernel_NADForce.h"
@@ -77,6 +78,9 @@ std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::s
         kinte->push(ku_p);
         kinte->push(krepr);
     }
+    kinte->push(std::shared_ptr<Kernel_Elec_Switch>(new Kernel_Elec_Switch()));
+    kinte->push(kforc);
+
     kinte->push(std::shared_ptr<Kernel_Conserve>(new Kernel_Conserve()));
 
     std::shared_ptr<Kernel_Iter_Adapt> kiter(new Kernel_Iter_Adapt());

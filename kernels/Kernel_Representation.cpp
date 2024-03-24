@@ -47,6 +47,7 @@ void Kernel_Representation::init_data_impl(DataSet* DS) {
     V  = DS->def<kids_real>("model.V", Dimension::PFF);
     dV = DS->def<kids_real>("model.dV", Dimension::PNFF);
     // ddV = DS->def<kids_real>("model.ddV", Dimension::NNFF);
+    E_copy = DS->def<kids_real>("integrator.E", Dimension::PF);
     E    = DS->def<kids_real>("model.rep.E", Dimension::PF);
     T    = DS->def<kids_real>("model.rep.T", Dimension::PFF);
     Told = DS->def<kids_real>("model.rep.Told", Dimension::PFF);
@@ -191,7 +192,10 @@ int Kernel_Representation::exec_kernel_impl(int stat) {
                 ARRAY_MATMUL(vedE, ve, dE, 1, Dimension::N, Dimension::FF);
 
                 double Emean = 0.0e0;
-                for (int i = 0; i < Dimension::F; ++i) Emean += E[i];
+                for (int i = 0; i < Dimension::F; ++i) {
+                    Emean += E[i];
+                    E_copy[i] = E[i];
+                }
                 Emean /= Dimension::F;
 
                 for (int i = 0, ij = 0; i < Dimension::F; ++i) {
