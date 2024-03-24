@@ -19,8 +19,8 @@ class Kernel_Iter final : public Kernel {
     double tend, *tend_ptr;
     double tsec, *tsec_ptr;
     int *succ_ptr;
-    bool *do_recd_ptr;
-    bool *do_prec_ptr;
+    bool *at_samplingstep_initially_ptr;
+    bool *at_samplingstep_finally_ptr;
 
     int sstep, *sstep_ptr;
     int istep, *istep_ptr, nstep, *nstep_ptr;

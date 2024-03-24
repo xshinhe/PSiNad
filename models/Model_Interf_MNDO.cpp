@@ -228,12 +228,12 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     std::string outfile = utils::concat(".mndoout.", stat_in);
 
     std::string control_copy = task_control;
-    if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) { 
+    if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) {
         control_copy = "nad-hard";
         removeFile(utils::concat(directory, "/imomap.dat"));
         std::string rm_exe = utils::concat("rm ", directory, "/imomap.dat");
         system(rm_exe.c_str());
-        std::cout << "mndo last try\n";
+        std::cout << "last try mndo\n";
     }
     new_task(utils::concat(directory, "/", inpfile), control_copy);
 
@@ -481,7 +481,14 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
 
     std::ifstream ifs(log);
     std::string stmp, eachline;
+    std::string ERROR_MSG;
     while (getline(ifs, eachline, '\n')) {
+        if (eachline.find("ERROR: ACTIVE ORBITAL MAPPING FAILED")) {
+            ERROR_MSG = "ERROR: ACTIVE ORBITAL MAPPING FAILED";
+        }
+
+        if (eachline.find("UNABLE TO ACHIEVE SCF CONVERGENCE")) { ERROR_MSG = "UNABLE TO ACHIEVE SCF CONVERGENCE"; }
+
         /**
          * @brief find energy surfaces (for icross=0, this section is missed)
          */
@@ -569,7 +576,7 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
     if (stat != 2) {
         succ_ptr[0]      = false;
         fail_type_ptr[0] = 1;
-        std::cout << "fail in calling MNDO!\n";
+        std::cout << "fail in calling MNDO! " << ERROR_MSG << "\n";
 
         int* istep_ptr      = _DataSet->def<int>("iter.istep");
         std::string cmd_exe = utils::concat("cp ", directory, "/.mndoinp.", stat_in, "  ", directory, "/.mndoinp.",
@@ -579,11 +586,13 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
                                 ".err.", istep_ptr[0]);
         system(cmd_exe.c_str());
     } else {
-        succ_ptr[0]      = true;
-        if(fail_type_ptr[0] == 1) fail_type_ptr[0] = 0;
-        if(last_attempt_ptr[0]){
-            std::cout << "survive in mndo last attempt\n";
+        succ_ptr[0] = true;
+        if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) {
+            std::cout << "survive in last try mndo\n";
+        } else if (last_attempt_ptr[0] && fail_type_ptr[0] == 2) {
+            std::cout << "mndo pass during last try conservation\n";
         }
+        if (fail_type_ptr[0] == 1) fail_type_ptr[0] = 0;
     }
     return stat;
 }

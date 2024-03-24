@@ -12,12 +12,12 @@ void Kernel_Iter::read_param_impl(Param* PM) {
 }
 
 void Kernel_Iter::init_data_impl(DataSet* DS) {
-    t_ptr       = DS->def<kids_real>("iter.t");
-    dt_ptr      = DS->def<kids_real>("iter.dt");
-    istep_ptr   = DS->def<int>("iter.istep");
-    isamp_ptr   = DS->def<int>("iter.isamp");
-    do_recd_ptr = DS->def<bool>("iter.do_recd");
-    do_prec_ptr = DS->def<bool>("iter.do_prec");
+    t_ptr                         = DS->def<kids_real>("iter.t");
+    dt_ptr                        = DS->def<kids_real>("iter.dt");
+    istep_ptr                     = DS->def<int>("iter.istep");
+    isamp_ptr                     = DS->def<int>("iter.isamp");
+    at_samplingstep_initially_ptr = DS->def<bool>("iter.at_samplingstep_initially");
+    at_samplingstep_finally_ptr   = DS->def<bool>("iter.at_samplingstep_finally");
     // initializarion
     DS->def<int>("iter.sstep", &sstep);
     DS->def<int>("iter.nstep", &nstep);
@@ -33,8 +33,8 @@ void Kernel_Iter::init_calc_impl(int stat) {
 
 int Kernel_Iter::exec_kernel_impl(int stat) {
     while (istep_ptr[0] < nstep) {
-        do_prec_ptr[0] = ((istep_ptr[0] + 1) % sstep == 0);
-        do_recd_ptr[0] = (istep_ptr[0] % sstep == 0);
+        at_samplingstep_finally_ptr[0]   = ((istep_ptr[0] + 1) % sstep == 0);
+        at_samplingstep_initially_ptr[0] = (istep_ptr[0] % sstep == 0);
 
         for (auto& pkernel : _kernel_vector) { pkernel->exec_kernel(stat); }
 
@@ -43,8 +43,8 @@ int Kernel_Iter::exec_kernel_impl(int stat) {
         istep_ptr[0]++;
         isamp_ptr[0] = istep_ptr[0] / sstep;
     }
-    do_recd_ptr[0] = true;  // only record!
-    dt_ptr[0]      = 0;     // no-dynamics!
+    at_samplingstep_initially_ptr[0] = true;  // only record!
+    dt_ptr[0]                        = 0;     // no-dynamics!
     return 0;
 }
 };  // namespace PROJECT_NS

@@ -65,7 +65,7 @@ class Kernel_Elec_Switch final : public Kernel {
     kids_real* sqcw;
     kids_real *sqcIA, *sqcID;
 
-    bool* do_prec_ptr;
+    bool* at_samplingstep_finally_ptr;
 
     //
     bool use_sqc;

@@ -236,24 +236,24 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
-    alpha       = DS->def<kids_real>("integrator.alpha", Dimension::P);
-    Epot        = DS->def<kids_real>("integrator.Epot", Dimension::P);
-    p           = DS->def<kids_real>("integrator.p", Dimension::PN);
-    m           = DS->def<kids_real>("integrator.m", Dimension::PN);
-    fadd        = DS->def<kids_real>("integrator.fadd", Dimension::PN);
-    ftmp        = DS->def<kids_real>("integrator.tmp.ftmp", Dimension::N);
-    wrho        = DS->def<kids_complex>("integrator.tmp.wrho", Dimension::FF);
-    vpes        = DS->def<kids_real>("model.vpes", Dimension::P);
-    V           = DS->def<kids_real>("model.V", Dimension::PFF);
-    E           = DS->def<kids_real>("model.rep.E", Dimension::PF);
-    dE          = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
-    T           = DS->def<kids_real>("model.rep.T", Dimension::PFF);
-    H           = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
-    direction   = DS->def<kids_real>("integrator.tmp.direction", Dimension::N);
-    sqcw        = DS->def<kids_real>("integrator.sqcw", Dimension::F);
-    sqcIA       = DS->def<kids_real>("integrator.sqcIA", 1);
-    sqcID       = DS->def<kids_real>("integrator.sqcID", 1);
-    do_prec_ptr = DS->def<kids_bool>("iter.do_prec");
+    alpha                       = DS->def<kids_real>("integrator.alpha", Dimension::P);
+    Epot                        = DS->def<kids_real>("integrator.Epot", Dimension::P);
+    p                           = DS->def<kids_real>("integrator.p", Dimension::PN);
+    m                           = DS->def<kids_real>("integrator.m", Dimension::PN);
+    fadd                        = DS->def<kids_real>("integrator.fadd", Dimension::PN);
+    ftmp                        = DS->def<kids_real>("integrator.tmp.ftmp", Dimension::N);
+    wrho                        = DS->def<kids_complex>("integrator.tmp.wrho", Dimension::FF);
+    vpes                        = DS->def<kids_real>("model.vpes", Dimension::P);
+    V                           = DS->def<kids_real>("model.V", Dimension::PFF);
+    E                           = DS->def<kids_real>("model.rep.E", Dimension::PF);
+    dE                          = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
+    T                           = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    H                           = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
+    direction                   = DS->def<kids_real>("integrator.tmp.direction", Dimension::N);
+    sqcw                        = DS->def<kids_real>("integrator.sqcw", Dimension::F);
+    sqcIA                       = DS->def<kids_real>("integrator.sqcIA", 1);
+    sqcID                       = DS->def<kids_real>("integrator.sqcID", 1);
+    at_samplingstep_finally_ptr = DS->def<kids_bool>("iter.at_samplingstep_finally");
 }
 
 void Kernel_Elec_CMSH::init_calc_impl(int stat) {
@@ -443,7 +443,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     Kernel_Elec::rho_nuc_init = _DataSet->def("init.rho_nuc", Kernel_Elec::rho_nuc, Dimension::PFF);
     Kernel_Elec::T_init       = _DataSet->def("init.T", Kernel_Elec::T, Dimension::PFF);
 
-    do_prec_ptr[0] = true;
+    at_samplingstep_finally_ptr[0] = true;
     exec_kernel(stat);
     // for (int iP = 0; iP < Dimension::P; ++iP) {  // @debug only for scattering problem
     //     kids_real* vpes = this->vpes + iP;
@@ -644,7 +644,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                                              SpacePolicy::L);
         }
 
-        if (!do_prec_ptr[0]) continue;
+        if (!at_samplingstep_finally_ptr[0]) continue;
 
         // 4) calculated TCF in adiabatic rep & diabatic rep respectively
         // 4-1) Adiabatic rep

@@ -89,11 +89,11 @@ void Kernel_Record::read_param_impl(Param* PM) {
 }
 
 void Kernel_Record::init_data_impl(DataSet* DS) {
-    istep_ptr   = DS->def<int>("iter.istep");
-    sstep_ptr   = DS->def<int>("iter.sstep");
-    isamp_ptr   = DS->def<int>("iter.isamp");
-    nsamp_ptr   = DS->def<int>("iter.nsamp");
-    do_recd_ptr = DS->def<bool>("iter.do_recd");
+    istep_ptr                     = DS->def<int>("iter.istep");
+    sstep_ptr                     = DS->def<int>("iter.sstep");
+    isamp_ptr                     = DS->def<int>("iter.isamp");
+    nsamp_ptr                     = DS->def<int>("iter.nsamp");
+    at_samplingstep_initially_ptr = DS->def<bool>("iter.at_samplingstep_initially");
 }
 
 inline std::string contacted_hdr(const std::string& s1, int i1, const std::string& s2, int i2) {
@@ -212,7 +212,7 @@ void Kernel_Record::init_calc_impl(int stat) {
 
 int Kernel_Record::exec_kernel_impl(int stat) {
     Result& correlation = get_correlation();
-    if (do_recd_ptr[0]) {
+    if (at_samplingstep_initially_ptr[0]) {
         int correlation_idx0 = ((*isamp_ptr) % correlation.frame) * correlation.size;
         for (int i = 0, idx = correlation_idx0; i < Record_List.size(); ++i) {
             auto& f1 = Formula::GLOBAL[Record_List[i].fml_ID0];

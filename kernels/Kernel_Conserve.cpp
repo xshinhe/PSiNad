@@ -56,23 +56,21 @@ int Kernel_Conserve::exec_kernel_impl(int stat) {
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
 
         double thres = 0.02;
-        if (last_attempt_ptr[0] && fail_type_ptr[0] != 2) {
-            cnt_loose = 3;
-        }
-        if(cnt_loose > 0) {
-            thres = cnt_loose*cnt_loose;  // help for last_attempt of mndo failure
-            std::cout << "not conserve before and after mndo last try and fail\n";
+        if (last_attempt_ptr[0] && fail_type_ptr[0] != 2) { cnt_loose = 3; }
+        if (cnt_loose > 0) {
+            thres = cnt_loose * cnt_loose;  // help for last_attempt of mndo failure
+            std::cout << "disable conserve around last try mndo\n";
             cnt_loose--;
         }
 
         if (last_attempt_ptr[0] && fail_type_ptr[0] == 2) {
             thres = 0.5;  // loose threshold
-            std::cout << "conserve last try\n";
+            std::cout << "last try conservation with thres = " << thres << "\n";
         }
 
         if (fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
-            std::cout << "ABS ERROR: " << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << "\n";
-            std::cout << "REL ERROR: " << (Ekin[0] + Epot[0]) / (Etot_prev[0]) << "\n";
+            std::cout << "fail in conserve ERROR: "  //
+                      << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << " > " << thres << "\n";
             succ_ptr[0]      = false;
             fail_type_ptr[0] = 2;
         } else {

@@ -10,17 +10,12 @@ class Kernel_Iter_Adapt final : public Kernel {
     inline virtual const std::string name() { return "Kernel_Iter_Adapt"; }
 
    private:
-    // KData<OnlyRead> t0; // read from Param
-    // KData<OnlyRead> tend;
-    // KData<Register> dt;
-    // KData<OnlyRefs> other;
-
     double t0, *t0_ptr;
     double t, *t_ptr;
     double dt, *dt_ptr;
     double tend, *tend_ptr;
-    bool* do_recd_ptr;
-    bool* do_prec_ptr;
+    bool* at_samplingstep_initially_ptr;
+    bool* at_samplingstep_finally_ptr;
 
     bool* succ_ptr;
     bool* frez_ptr;
@@ -32,6 +27,8 @@ class Kernel_Iter_Adapt final : public Kernel {
     int istep, *istep_ptr, nstep, *nstep_ptr;
     int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
     int nbackup;
+
+    double time_unit;
 
     const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot"};
 

@@ -71,7 +71,7 @@ class Kernel_Record final : public Kernel {
     int* sstep_ptr;
     int* isamp_ptr;
     int* nsamp_ptr;
-    bool* do_recd_ptr;
+    bool* at_samplingstep_initially_ptr;
 
     double t0, dt, time_unit;
 
