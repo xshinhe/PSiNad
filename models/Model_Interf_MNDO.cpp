@@ -395,7 +395,7 @@ int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task
         // revised_addition = ...; // additional lines
     } else if (task_flag == "nad-hard") {  // non-adiabatic coupling calculation (hard case)
         revised_keyword = new_keyword(
-            {{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "75"}, {"kitscf", "500"}});
+            {{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "75"}, {"kitscf", "800"}});
         // revised_addition = ...; // additional lines
     } else if (task_flag == "hess") {  // hessian calculation
         revised_keyword = new_keyword({{"jop", "2"}, {"icross", "0"}, {"kprint", "1"}});
@@ -481,13 +481,11 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
 
     std::ifstream ifs(log);
     std::string stmp, eachline;
-    std::string ERROR_MSG;
+    std::string ERROR_MSG = "";
     while (getline(ifs, eachline, '\n')) {
-        if (eachline.find("ERROR: ACTIVE ORBITAL MAPPING FAILED")) {
-            ERROR_MSG = "ERROR: ACTIVE ORBITAL MAPPING FAILED";
+        if (eachline.find("ERROR") != eachline.npos || eachline.find("UNABLE") != eachline.npos) {
+            ERROR_MSG += eachline;
         }
-
-        if (eachline.find("UNABLE TO ACHIEVE SCF CONVERGENCE")) { ERROR_MSG = "UNABLE TO ACHIEVE SCF CONVERGENCE"; }
 
         /**
          * @brief find energy surfaces (for icross=0, this section is missed)
