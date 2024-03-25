@@ -113,6 +113,9 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
         if (!succ_ptr[0] && !last_attempt_ptr[0] && dtsize_ptr[0] == 1) statc = 'L';
         if (frez_ptr[0]) statc = 'Z';
 
+        if (std::ifstream{"X_STAT"}.good() && !frez_ptr[0]) statc = 'X';
+        if (std::ifstream{utils::concat("X_STAT", stat)}.good() && !frez_ptr[0]) statc = 'X';
+
         switch (statc) {
             case 'X': {
                 // save breakdown information
@@ -131,7 +134,7 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
                 if (at_fullstep_finally) istep_ptr[0]++;
                 tsize_ptr[0] += dtsize_ptr[0];
 
-                int extend_dtsize = (at_fullstep_finally) ? last_tried_dtsize : 2 * dtsize_ptr[0];
+                int extend_dtsize = (at_fullstep_finally) ? 2 * last_tried_dtsize : 2 * dtsize_ptr[0];
                 int remain_dtsize = msize - (tsize_ptr[0] % msize);
                 int new_dtsize    = std::min({msize, extend_dtsize, remain_dtsize});
                 last_tried_dtsize = dtsize_ptr[0];
