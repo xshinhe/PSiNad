@@ -395,7 +395,7 @@ int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task
         // revised_addition = ...; // additional lines
     } else if (task_flag == "nad-hard") {  // non-adiabatic coupling calculation (hard case)
         revised_keyword = new_keyword(
-            {{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "75"}, {"kitscf", "800"}});
+            {{"jop", "-2"}, {"icross", "7"}, {"mprint", "1"}, {"imomap", "3"}, {"mapthr", "75"}, {"kitscf", "5000"}});
         // revised_addition = ...; // additional lines
     } else if (task_flag == "hess") {  // hessian calculation
         revised_keyword = new_keyword({{"jop", "2"}, {"icross", "0"}, {"kprint", "1"}});

@@ -244,6 +244,26 @@ One can perform the simulation by:
 
 then each run will generate a `res.dat` file. And then can be treated with pandas.
 
+
+statistic of breakdown trajectory
+
+|   Method          |   No. of traj.                            |   breakdown       |
+|:------------------|:------------------------------------------|:------------------|
+|   NaF-TW(old)     |   398 (38,169)                            |   59 (43+15+1)    |
+|   NaF-TW          |   391 (17,56,71,126,185,241,204,331,363)  |   52 (37+14+1)    |
+|   NaF-TW2         |   397 (23,199,382)                        |   63 (47+16)      |
+|   Ehrenfest       |   399 (17)                                |   30 (24+6)       |
+|   FSSH            |   397 (184,191,230)                       |   61 (49+12)      |
+|   NaF(1/3)        |   391 (17,101,105,272,304,307,318,347,369)|   64 (50+13+1)    |
+|   NaF(1/2)        |   396 (107,237,333,359)                   |   47 (37+9+1)     |
+
+How to solve issue:
+
+1. `UNABLE TO ACHIEVE SCF CONVERGENCE  … DIIS ERROR`: 
+2. `Energy CONSERVATION ERROR: ...`: 
+3. `ERROR: ENERGY SEPARATION FOR ACTIVE REDUNDANT PAIR`: 
+
+
 ## Step 3: analysis result
 
 ```
