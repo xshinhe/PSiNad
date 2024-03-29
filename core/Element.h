@@ -84,10 +84,10 @@ const double ELEMENTS_MASS_NOAVG[] =
 namespace Elements {
 
 struct ElemInfo {
-    int znum;
-    int fmly;
-    int perd;
-    double mass;
+    int         znum;
+    int         fmly;
+    int         perd;
+    double      mass;
     std::string name;
 };
 

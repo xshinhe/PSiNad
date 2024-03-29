@@ -1,11 +1,11 @@
-#include "Kernel_Elec_CMSH.h"
+#include "Kernel_Elec_NAD.h"
 
 #include "../core/linalg.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Elec_CMM.h"
 #include "Kernel_Elec_MMSH.h"
-#include "Kernel_Elec_SH.h"
 #include "Kernel_Elec_SQC.h"
+#include "Kernel_Hopping.h"
 #include "Kernel_NADForce.h"
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
@@ -169,8 +169,8 @@ int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm,  //
     return from;
 }
 
-void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
-    cmsh_type = CMSHPolicy::_from(PM->get<std::string>("cmsh_flag", LOC(), "CVSH"));
+void Kernel_Elec_NAD::read_param_impl(Param* PM) {
+    cmsh_type = NADPolicy::_from(PM->get<std::string>("cmsh_flag", LOC(), "CVSH"));
 
     alpha0 = PM->get<kids_real>("alpha0", LOC(), 0.5);
     gamma1 = PM->get<kids_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
@@ -203,27 +203,27 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     use_cv        = false;
     dynamic_alpha = false;
     switch (cmsh_type) {
-        case CMSHPolicy::EHR:
+        case NADPolicy::EHR:
             Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
             break;
-        case CMSHPolicy::BOSH:
+        case NADPolicy::BOSH:
             Kernel_NADForce::NADForce_type = NADForcePolicy::BO;
             hopping_type1                  = 0;  // max(rho_ele)
             hopping_type2                  = 0;  // MASH direction
             reflect                        = true;
             break;
-        case CMSHPolicy::CVSH:
+        case NADPolicy::CVSH:
             Kernel_NADForce::NADForce_type = NADForcePolicy::CV;
             hopping_type1                  = 1;  // max(rho_nuc)
             hopping_type2                  = 2;  // P direction
             reflect                        = false;
             use_cv                         = true;
             break;
-        case CMSHPolicy::BOSD:
+        case NADPolicy::BOSD:
             Kernel_NADForce::NADForce_type = NADForcePolicy::BOSD;
             dynamic_alpha                  = true;
             break;
-        case CMSHPolicy::CVSD:
+        case NADPolicy::CVSD:
             Kernel_NADForce::NADForce_type = NADForcePolicy::CVSD;
             dynamic_alpha                  = true;
             break;
@@ -235,7 +235,7 @@ void Kernel_Elec_CMSH::read_param_impl(Param* PM) {
     dynamic_alpha = PM->get<bool>("dynamic_alpha", LOC(), dynamic_alpha);
 }
 
-void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
+void Kernel_Elec_NAD::init_data_impl(DataSet* DS) {
     alpha                       = DS->def<kids_real>("integrator.alpha", Dimension::P);
     Epot                        = DS->def<kids_real>("integrator.Epot", Dimension::P);
     p                           = DS->def<kids_real>("integrator.p", Dimension::PN);
@@ -256,7 +256,7 @@ void Kernel_Elec_CMSH::init_data_impl(DataSet* DS) {
     at_samplingstep_finally_ptr = DS->def<kids_bool>("iter.at_samplingstep_finally");
 }
 
-void Kernel_Elec_CMSH::init_calc_impl(int stat) {
+void Kernel_Elec_NAD::init_calc_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_complex* w       = Kernel_Elec::w + iP;
         kids_complex* wz_A    = Kernel_Elec::wz_A + iP;
@@ -404,8 +404,8 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                                          Kernel_Representation::inp_repr_type,  //
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
-        *occ_nuc = Kernel_Elec_SH::max_choose(rho_nuc);
-        if (use_fssh) *occ_nuc = Kernel_Elec_SH::pop_choose(rho_nuc);
+        *occ_nuc = Kernel_Hopping::max_choose(rho_nuc);
+        if (use_fssh) *occ_nuc = Kernel_Hopping::pop_choose(rho_nuc);
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
@@ -417,7 +417,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
         wz_A[0]        = std::abs(rho_ele[0] - rho_ele[3]);
-        int max_pop    = Kernel_Elec_SH::max_choose(rho_ele);
+        int max_pop    = Kernel_Hopping::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
         Kernel_Representation::transform(rho_ele, T, Dimension::F,         //
@@ -425,7 +425,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
                                          RepresentationPolicy::Diabatic,   //
                                          SpacePolicy::L);
         wz_D[0] = std::abs(rho_ele[0] - rho_ele[3]);
-        max_pop = Kernel_Elec_SH::max_choose(rho_ele);
+        max_pop = Kernel_Hopping::max_choose(rho_ele);
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
         Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
@@ -459,7 +459,7 @@ void Kernel_Elec_CMSH::init_calc_impl(int stat) {
     // }
 }
 
-int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
+int Kernel_Elec_NAD::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
         int* occ_nuc               = Kernel_Elec::occ_nuc + iP;
         kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
@@ -544,27 +544,27 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
             int to;
             switch (hopping_type1) {
                 case 0: {
-                    to = Kernel_Elec_SH::max_choose(rho_ele);
+                    to = Kernel_Hopping::max_choose(rho_ele);
                     break;
                 }
                 case 1: {
-                    to = Kernel_Elec_SH::max_choose(rho_nuc);
+                    to = Kernel_Hopping::max_choose(rho_nuc);
                     break;
                 }
                 case 2: {
-                    to = Kernel_Elec_SH::pop_choose(rho_ele);
+                    to = Kernel_Hopping::pop_choose(rho_ele);
                     break;
                 }
                 case 3: {
-                    to = Kernel_Elec_SH::hopping_choose(rho_ele, H, *occ_nuc, scale * dt);
+                    to = Kernel_Hopping::hopping_choose(rho_ele, H, *occ_nuc, scale * dt);
                     break;
                 }
                 case 4: {
-                    to = Kernel_Elec_SH::pop_choose(rho_nuc);
+                    to = Kernel_Hopping::pop_choose(rho_nuc);
                     break;
                 }
                 case 5: {
-                    to = Kernel_Elec_SH::pop_neg_choose(rho_nuc);
+                    to = Kernel_Hopping::pop_neg_choose(rho_nuc);
                     break;
                 }
             }
@@ -576,7 +576,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
                     break;
                 }
                 case 1: {
-                    Kernel_Elec_SH::hopping_direction(direction, dE, *occ_nuc, to);
+                    Kernel_Hopping::hopping_direction(direction, dE, *occ_nuc, to);
                     break;
                 }
                 case 2: {
@@ -598,7 +598,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         // if (*occ_nuc == to && Eto != Efrom) std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 
         // smooth dynamics (BOSD & CVSD)
-        if (cmsh_type == CMSHPolicy::BOSD || cmsh_type == CMSHPolicy::CVSD) {
+        if (cmsh_type == NADPolicy::BOSD || cmsh_type == NADPolicy::CVSD) {
             ARRAY_CLEAR(fadd, Dimension::N);
 
             // Win is for calculate energy
@@ -648,7 +648,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
 
         // 4) calculated TCF in adiabatic rep & diabatic rep respectively
         // 4-1) Adiabatic rep
-        int max_pop    = Kernel_Elec_SH::max_choose(rho_ele);
+        int max_pop    = Kernel_Hopping::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
         ww_A[0]        = std::min({abs(ww_A[0]), abs(ww_A_init[0])});
@@ -694,7 +694,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
         Kernel_Elec::ker_from_rho(K1, rho_ele, xi1, gamma1, Dimension::F);
         Kernel_Elec::ker_from_rho(K2, rho_ele, xi2, gamma2, Dimension::F);
 
-        max_pop = Kernel_Elec_SH::max_choose(rho_ele);  // (in dia rep)
+        max_pop = Kernel_Hopping::max_choose(rho_ele);  // (in dia rep)
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
 
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
@@ -762,7 +762,7 @@ int Kernel_Elec_CMSH::exec_kernel_impl(int stat) {
             for (int i = 0; i < Dimension::F; ++i) sqcID[0] += std::real(K2QD[i * Dimension::Fadd1]);
 
             if (sqc_init == 2) {  // overload for K2QD
-                int imax    = Kernel_Elec_SH::max_choose(rho_ele);
+                int imax    = Kernel_Hopping::max_choose(rho_ele);
                 double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
                 for (int ik = 0; ik < Dimension::FF; ++ik) K2QD[ik] = 0.0e0;
                 if (vmax * vmax * 8.0e0 / 7.0e0 * (Dimension::F + 0.5e0) > 1) K2QD[imax * Dimension::Fadd1] = 1.0e0;

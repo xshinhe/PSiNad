@@ -176,7 +176,7 @@ void Tree::load(std::istream& is, NodeGeneric::Format format) {
             break;
         }
         case NodeGeneric::Format::Json: {
-            throw basic_error("Not implemented");
+            throw kids_error("Not implemented");
             break;
         }
     }

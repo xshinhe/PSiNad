@@ -1,7 +1,6 @@
-/**@file        einsum.h
- * @brief       Provide einsum operation
+/**@file        Einsum.h
+ * @brief       this file provides einsum operation
  * @details
- *
  * ## About the rules in einsum operations provided by "einsum.h"
  *
  * In this documentation, we define key terms related to the einsum operation:
@@ -103,22 +102,31 @@
  *  [-39026  55563 -10344]]
  * ```
  *
- * @author      [author]
- * @date        [latest-date]
- * @version     [version]
- * @copyright   [copyright]
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is part of the research conducted by the Prof. Liu's Group at the
+ *  College of Chemistry and Molecular Engineering (CCME), Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
  **********************************************************************************
- * @par revision [logs]:
+ * @par [logs]:
  * <table>
- * <tr><th> Date    <th> Version    <th> Author    <th> Description
- * <tr><td>[date]   <td>[version]   <td>[author]   <td> [commit]
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-03-29  <td> initial version. The shape_inputs and shape_output are
+ *                          consistent with that interface Basic_Shape in the file
+ *                          Shape.h.
  * </table>
  *
  **********************************************************************************
  */
 
-#ifndef EINSUM_H
-#define EINSUM_H
+#ifndef KIDS_EINSUM_H
+#define KIDS_EINSUM_H
 
 #include <algorithm>
 #include <cstring>
@@ -130,7 +138,7 @@
  * EinsumIdx is a struct store information of index used in einsum operation
  */
 struct EinsumIdx {
-    char label;           ///< unique identifer for EinsumIdx
+    char        label;    ///< unique identifer for EinsumIdx
     std::size_t cnt = 0;  ///< indicate the type (0: fixed; 1: outer; >1: inner)
     std::size_t dim = 0;  ///< bound of the value of index
     std::size_t val = 0;  ///< the value of the index
@@ -196,16 +204,16 @@ class EinsumHelper {
     std::size_t total_esidx;   ///< total number of EinsumIdx in EinsumIdx System
     std::size_t total_tensor;  ///< total number of tensor in einsum rule
 
-    std::vector<EinsumIdx> einsum_idxs;    ///< the EinsumIdx System
+    std::vector<EinsumIdx>   einsum_idxs;  ///< the EinsumIdx System
     std::vector<std::size_t> einsum_dims;  ///< each dimension of EinsumIdx System
 
     std::vector<std::string> fixed_label_names;  ///< store for fixed labels
 
-    std::vector<std::string> esshape_inputs;  ///< store einsum's strings of input tensors
-    std::string esshape_output = "";          ///< store/deduct einsum's for the ouput tensor
+    std::vector<std::string> esshape_inputs;       ///< store einsum's strings of input tensors
+    std::string              esshape_output = "";  ///< store/deduct einsum's for the ouput tensor
 
     std::vector<DimenHelper> dh_inputs;  ///< DimenHelper for input tensors
-    DimenHelper dh_output;               ///< DimenHelper for ouput tensor
+    DimenHelper              dh_output;  ///< DimenHelper for ouput tensor
 
     std::vector<std::size_t> einsum_iposes;  ///< idx placeholder for EinsumIdx System
     std::vector<std::size_t> ipos_inputs;    ///< idx placeholder for input tensors
@@ -220,14 +228,14 @@ class EinsumHelper {
      * @param[in]       shape_inputs           input shapes as a vector
      * @param[in]       shape_output           output shapes
      */
-    EinsumHelper(const std::string& einsum_expression,                //
-                 std::vector<std::vector<std::size_t>> shape_inputs,  //
-                 std::vector<std::size_t> shape_output = {}           //
+    EinsumHelper(const std::string&                    einsum_expression,  //
+                 std::vector<std::vector<std::size_t>> shape_inputs,       //
+                 std::vector<std::size_t>              shape_output = {}   //
     ) {
         std::stringstream ss{einsum_expression};
-        std::string esshape = "";
-        int ishape          = 0;
-        bool auto_deduction = true;
+        std::string       esshape        = "";
+        int               ishape         = 0;
+        bool              auto_deduction = true;
         for (char c; ss >> c;) {
             switch (c) {
                 case ',': {
@@ -244,7 +252,7 @@ class EinsumHelper {
                     }
                     auto it    = std::find(fixed_label_names.begin(), fixed_label_names.end(), label_name);
                     auto found = (it != fixed_label_names.end());
-                    int ipos   = found ? int(it - fixed_label_names.begin()) : fixed_label_names.size();
+                    int  ipos  = found ? int(it - fixed_label_names.begin()) : fixed_label_names.size();
                     c          = (char) ((int) '0' + ipos);
 
                     if (!found) {
@@ -379,9 +387,9 @@ class EinsumHelper {
  * @param[inout]    data_output     pointer stored data of output tensor
  */
 template <typename T>
-void einsum(EinsumHelper& EH,                    //
+void einsum(EinsumHelper&          EH,           //
             const std::vector<T*>& data_inputs,  //
-            T* data_output                       //
+            T*                     data_output   //
 ) {
     auto& einsum_dims   = EH.einsum_dims;
     auto& einsum_iposes = EH.einsum_iposes;
@@ -425,14 +433,14 @@ void einsum(EinsumHelper& EH,                    //
  * @param[in]       shape_output        shape of the output tensor
  */
 template <typename T>
-void einsum(const std::string& einsum_expression,                       //
-            std::vector<T*> data_inputs,                                //
-            const std::vector<std::vector<std::size_t>>& shape_inputs,  //
-            T* data_output,                                             //
-            const std::vector<std::size_t>& shape_output = {}           //
+void einsum(const std::string&                           einsum_expression,  //
+            std::vector<T*>                              data_inputs,        //
+            const std::vector<std::vector<std::size_t>>& shape_inputs,       //
+            T*                                           data_output,        //
+            const std::vector<std::size_t>&              shape_output = {}   //
 ) {
     EinsumHelper EH(einsum_expression, shape_inputs, shape_output);
     einsum(EH, data_inputs, data_output);
 }
 
-#endif  // EINSUM_H
+#endif  // KIDS_EINSUM_H

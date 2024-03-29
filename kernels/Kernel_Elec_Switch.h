@@ -15,12 +15,12 @@
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
 #include "Kernel_Elec.h"
-#include "Kernel_Elec_CMSH.h"
+#include "Kernel_Elec_NAD.h"
 
 namespace PROJECT_NS {
 
 /**
- * @brief initialization kernel for electonic DOFs in CMSH
+ * @brief initialization kernel for electonic DOFs in NAD
  */
 class Kernel_Elec_Switch final : public Kernel {
    public:
@@ -31,7 +31,7 @@ class Kernel_Elec_Switch final : public Kernel {
     }
 
    private:
-    CMSHPolicy::_type cmsh_type;
+    NADPolicy::_type cmsh_type;
 
     kids_real gamma1, gamma2, xi1, xi2;
     bool use_focus = false;

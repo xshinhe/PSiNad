@@ -6,26 +6,11 @@
 
 namespace PROJECT_NS {
 
-
+/**
+ * this class provides a control of simulation
+ */
 class Handler final {
    public:
-    // enum hdlr_t {
-    //     parallel,
-    //     single,
-    //     single_mpi,
-    //     sampling,
-    //     help,
-    //     help_param,
-    //     help_dataset,
-    // };
-
-    // static const std::map<std::string, hdlr_t> _dict = {
-    //     {"parallel", parallel},
-    //     {"single", single},
-    //     {"single_mpi", single_mpi},
-    //     {"sampling", sampling},
-    // };
-
     Handler(const std::string& solver_name, const std::string& model_name);
 
     virtual ~Handler(){};

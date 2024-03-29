@@ -2,7 +2,7 @@
  * @brief       Provide struct and interfaces for input parameters
  * @details
  *
- * ## Easier interfaces for getting parameters (@todo)
+ * ## Easier interfaces for getting parameters
  * @note it is a better manner but only suits std=c++2a:
  * ```cpp
  *  template <typename T>
@@ -13,22 +13,28 @@
  *  double get(const std::string& key, const std::string& loc = "", const
  *  double& default_value = double());
  * ```
- * @author      [author]
- * @date        [latest-date]
- * @version     [version]
- * @copyright   [copyright]
- **********************************************************************************
- * @par revision [logs]:
- * <table>
- * <tr><th> Date    <th> Version    <th> Author    <th> Description
- * <tr><td>[date]   <td>[version]   <td>[author]   <td> [commit]
- * </table>
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
  *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is part of the research conducted by the Prof. Liu's Group at the
+ *  College of Chemistry and Molecular Engineering (CCME), Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ **********************************************************************************
+ * @par revision:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-03-29  <td> Initial version. Added detailed commentary by ChatGPT.
+ * </table>
  **********************************************************************************
  */
 
-#ifndef PARAM_H
-#define PARAM_H
+#ifndef KIDS_PARAM_H
+#define KIDS_PARAM_H
 
 #include <cstring>
 #include <fstream>
@@ -60,7 +66,7 @@ inline const char *basename(const char *filepath) {
 namespace PROJECT_NS {
 
 /**
- * Param class is provided as an interface wrapper for the parameter data.
+ * this class provides an interface wrapper for the parameter data.
  *
  * @note As a realization of interface to JSON format.
  * the json library is used with https://github.com/Nomango/configor.
@@ -153,7 +159,7 @@ class Param final {
         // cannot find the key
         if (!has_key(key)) {
             if (Require) {
-                throw basic_error(                             //
+                throw kids_error(                              //
                     utils::concat(loc,                         //
                                   " Type<", as_str<T>(), ">",  //
                                   " Key/", key, "/",           //
@@ -180,11 +186,11 @@ class Param final {
                     return (*pj)[key].get<T>();
                 } else if (std::is_same<T, double>::value) {
                     // parse unit
-                    phys::uval uv = phys::us::parse((*pj)[key].as_string());
-                    double qval   = phys::au::as(qdim, uv);
+                    phys::uval uv   = phys::us::parse((*pj)[key].as_string());
+                    double     qval = phys::au::as(qdim, uv);
 
                     // conversion by stringstream (stupid)
-                    T q;
+                    T                 q;
                     std::stringstream ss;
                     ss << std::setiosflags(std::ios::scientific)  //
                        << std::setprecision(32) << qval;          //
@@ -217,7 +223,7 @@ class Param final {
             }
         }
         // cannot be adapted to existing conversions
-        throw basic_error(                               //
+        throw kids_error(                                //
             utils::concat(loc,                           //
                           " Type<", as_str<T>(), ">",    //
                           " Key/", key, "/",             //
@@ -267,4 +273,4 @@ class Param final {
 
 };  // namespace PROJECT_NS
 
-#endif  // PARAM_H
+#endif  // KIDS_PARAM_H

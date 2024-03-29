@@ -6,7 +6,7 @@
 namespace PROJECT_NS {
 
 /**
- * @brief iterative kernel wrapper/(interface) for other kernels
+ * Minimal iterator for integration of the equations of motion
  */
 class Kernel_Iter final : public Kernel {
    public:

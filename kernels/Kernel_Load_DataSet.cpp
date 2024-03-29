@@ -12,7 +12,7 @@ int Kernel_Load_DataSet::exec_kernel_impl(int stat) {
         std::ifstream ifs{fn};
         _DataSet->load(ifs);
         ifs.close();
-    } catch (std::runtime_error& e) { throw basic_error(fn); }
+    } catch (std::runtime_error& e) { throw kids_error(fn); }
     return 0;
 }
 

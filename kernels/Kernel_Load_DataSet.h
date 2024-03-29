@@ -6,16 +6,14 @@
 namespace PROJECT_NS {
 
 /**
- * @brief Kernel_Load_DataSet load previous data in state stucture if restart
- *  option is specified
- *  It should be added to the first beginning of every solver's builder.
+ * this class implements a process for loading data in state stucture
  */
 class Kernel_Load_DataSet : public Kernel {
    public:
     inline virtual const std::string name() { return "Kernel_Load_DataSet"; }
 
    private:
-    std::string fn;  ///< filename
+    std::string fn;  ///< filename for loading
 
     virtual void read_param_impl(Param* PM);
 

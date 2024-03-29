@@ -63,8 +63,8 @@ class Dimen {
    private:
     friend class Shape;
 
-    bool _completed;
-    std::size_t _val;
+    bool                _completed;
+    std::size_t         _val;
     std::vector<Shape*> associated_shapes;
 };
 
@@ -105,9 +105,9 @@ class Shape {
 
     bool _completed;
 
-    std::vector<Dimen*> _dims;
+    std::vector<Dimen*>      _dims;
     std::vector<std::size_t> _ldas;
-    std::size_t nrank, _totalsize;
+    std::size_t              nrank, _totalsize;
 
     // Update dimensions and leading dimensions
     void _update() {
@@ -151,14 +151,14 @@ class VARIABLE final : public VARIABLE_BASE {
     std::string help() { return _doc; }
     std::string name() { return _name; }
     std::size_t size() { return (*_shape)(); }
-    Shape* shape() const { return _shape; }
+    Shape*      shape() const { return _shape; }
 
    private:
     std::string _name;
-    T* _data;
-    Shape* _shape;
+    T*          _data;
+    Shape*      _shape;
     std::string _doc;
-    bool allocated = false;
+    bool        allocated = false;
 };
 
 /**
@@ -181,10 +181,10 @@ class Node {
     inline DataType* data() { return _data; }
 
    protected:
-    NodeType _type  = NodeType::Void;
-    SizeType _size  = 0;
-    DataType* _data = nullptr;
-    bool _ownership = false;
+    NodeType  _type      = NodeType::Void;
+    SizeType  _size      = 0;
+    DataType* _data      = nullptr;
+    bool      _ownership = false;
 
    private:
     virtual void _delete(){};  // virtual function called by deconstructor
@@ -246,7 +246,7 @@ class Tensor final : public Node {
 
     virtual std::string repr() {
         std::ostringstream os;
-        T* ptr = (T*) data();
+        T*                 ptr = (T*) data();
         os << FMT(0) << AsString<T>();
         os << FMT(0) << _size;
         if (_shape == nullptr) {
@@ -363,7 +363,7 @@ class DataSet final : public Node {
     }
 
     virtual std::string repr() {
-        std::ostringstream os;
+        std::ostringstream                          os;
         std::vector<std::tuple<std::string, Node*>> stack;
 
         stack.push_back(std::make_tuple("", this));
@@ -375,8 +375,8 @@ class DataSet final : public Node {
             DataType* d_ptr = static_cast<DataType*>(currentNode->data());
 
             for (auto& i : (*d_ptr)) {
-                std::string key = (parent == "") ? i.first : parent + "::" + i.first;
-                Node* inode     = i.second;
+                std::string key   = (parent == "") ? i.first : parent + "::" + i.first;
+                Node*       inode = i.second;
                 if (inode->type() == Node::NodeType::DataSet) {
                     stack.push_back(std::make_tuple(key, inode));
                 } else {
@@ -391,7 +391,7 @@ class DataSet final : public Node {
 
     virtual void load(std::istream& is) {
         std::string key, typeflag;
-        int size, rank, tmp;
+        int         size, rank, tmp;
         while (is >> key >> typeflag >> size) {
             is >> rank;
             for (int i = 0; i < rank; ++i) is >> tmp;
@@ -473,7 +473,7 @@ int main() {
     ofs.close();
 
     std::ifstream ifs{"test.ds"};
-    DataSet DS2;
+    DataSet       DS2;
     DS2.load(ifs);
     ifs.close();
     std::cout << DS2.repr() << "\n";

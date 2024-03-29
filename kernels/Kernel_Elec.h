@@ -4,10 +4,9 @@
 #include "../core/Kernel.h"
 
 namespace PROJECT_NS {
+
 /**
- * @brief Kernel_Elec:
- *    1) evolve by rho_ele
- *    2) evolve by c(:,r), rank-decomposition of density rho_ele
+ * this class implements calculation/utils for electronic DOFs:
  */
 class Kernel_Elec final : public Kernel {
    public:

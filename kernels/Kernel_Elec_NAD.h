@@ -9,8 +9,8 @@
  *  Use it in Solver's Kernel_Builder();
  */
 
-#ifndef Kernel_Elec_CMSH_H
-#define Kernel_Elec_CMSH_H
+#ifndef Kernel_Elec_NAD_H
+#define Kernel_Elec_NAD_H
 
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
@@ -18,7 +18,7 @@
 
 namespace PROJECT_NS {
 
-DEFINE_POLICY(CMSHPolicy,
+DEFINE_POLICY(NADPolicy,
               EHR,    // Ehrenfest Dynamics
               BOSH,   // BO dynamics & hopping according to W(\rho)
               CVSH,   // CV dynamics & hopping acoording to W(\rho)
@@ -26,18 +26,18 @@ DEFINE_POLICY(CMSHPolicy,
               CVSD);  // CV dynamics & smoothing acoording to W(\rho)
 
 /**
- * @brief initialization kernel for electonic DOFs in CMSH
+ * @brief initialization kernel for electonic DOFs in NAD
  */
-class Kernel_Elec_CMSH final : public Kernel {
+class Kernel_Elec_NAD final : public Kernel {
    public:
-    virtual const std::string name() { return "Kernel_Elec_CMSH"; }
+    virtual const std::string name() { return "Kernel_Elec_NAD"; }
 
-    Kernel_Elec_CMSH(double scale = 1.0e0) : Kernel(), scale{scale} {
+    Kernel_Elec_NAD(double scale = 1.0e0) : Kernel(), scale{scale} {
         push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
     }
 
    private:
-    CMSHPolicy::_type cmsh_type;
+    NADPolicy::_type cmsh_type;
 
     kids_real gamma1, gamma2, xi1, xi2;
     bool use_focus = false;
@@ -94,4 +94,4 @@ class Kernel_Elec_CMSH final : public Kernel {
 
 };  // namespace PROJECT_NS
 
-#endif  // Kernel_Elec_CMSH_H
+#endif  // Kernel_Elec_NAD_H

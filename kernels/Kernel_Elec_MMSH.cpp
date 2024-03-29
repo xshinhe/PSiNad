@@ -3,7 +3,7 @@
 #include "../core/linalg.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Elec_CMM.h"
-#include "Kernel_Elec_SH.h"
+#include "Kernel_Hopping.h"
 #include "Kernel_NADForce.h"
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
@@ -101,7 +101,7 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
             } else {
                 Kernel_Elec_CMM::c_sphere(c, Dimension::F);
                 Kernel_Elec::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
-                *occ_nuc = Kernel_Elec_SH::max_choose(rho_ele);
+                *occ_nuc = Kernel_Hopping::max_choose(rho_ele);
             }
         } while (!sumover && (*occ_nuc) != (Kernel_Elec::occ0));
 
@@ -131,7 +131,7 @@ void Kernel_Elec_MMSH::init_calc_impl(int stat) {
         w_AD[0] = w_CP[0] - w_CC[0];
         w_DD[0] = w_PP[0] - 2.0e0 * w_CP[0] + w_CC[0];
 
-        *occ_nuc = Kernel_Elec_SH::max_choose(rho_ele);
+        *occ_nuc = Kernel_Hopping::max_choose(rho_ele);
 
         if (Kernel_Representation::inp_repr_type == RepresentationPolicy::Diabatic) {
             ARRAY_MATMUL3_TRANS2(rho_ele, T, rho_ele, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
@@ -181,9 +181,9 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
         ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele_init, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
         ARRAY_MATMUL3_TRANS2(rho_nuc, U, rho_nuc_init, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
 
-        int to = Kernel_Elec_SH::max_choose(rho_ele);                // step 1: determine where to hop
+        int to = Kernel_Hopping::max_choose(rho_ele);                // step 1: determine where to hop
         hopping_direction(direction, E, dE, rho_ele, *occ_nuc, to);  // step 2: determine direction to hop
-        *occ_nuc = Kernel_Elec_SH::hopping_impulse(direction, p, m, E, *occ_nuc, to, reflect);  // step 3: try hop
+        *occ_nuc = Kernel_Hopping::hopping_impulse(direction, p, m, E, *occ_nuc, to, reflect);  // step 3: try hop
 
         Kernel_Elec::ker_from_rho(K1, rho_ele, 1, 0, Dimension::F, true, *occ_nuc);
         ARRAY_MAT_DIAG(K1DA, K1, Dimension::F);
@@ -196,7 +196,7 @@ int Kernel_Elec_MMSH::exec_kernel_impl(int stat) {
             ARRAY_MATMUL3_TRANS2(K1DA, T, K1DA, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
             ARRAY_MATMUL3_TRANS2(K2, T, K2, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
         }
-        int imax_init_rep = Kernel_Elec_SH::max_choose(rho_ele);
+        int imax_init_rep = Kernel_Hopping::max_choose(rho_ele);
         Kernel_Elec::ker_from_rho(K2DA, rho_ele, xi, gamma, Dimension::F, true, imax_init_rep);
     }
     return stat;

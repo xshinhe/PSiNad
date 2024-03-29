@@ -26,6 +26,7 @@ void Kernel_Declare::read_param_impl(Param* PM) {
     Dimension::P = PM->get<int>("P", LOC(), Dimension::P);
     Dimension::N = PM->get<int>("N", LOC(), Dimension::N);
     Dimension::F = PM->get<int>("F", LOC(), Dimension::F);
+
     //
     // auxiliary dimension
     Dimension::FF    = Dimension::F * Dimension::F;

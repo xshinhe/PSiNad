@@ -1,10 +1,33 @@
+py::class_<Shape> PyShape(m, "Shape", py::dynamic_attr());
+
+PyShape.def(py::init<std::vector<std::size_t>>())
+       .def(py::init<std::size_t>());
+
 py::class_<DataSet> PyDataSet(m, "DataSet", py::dynamic_attr());
 
-PyDataSet.def(py::init<>())
-    .def("def_int32", &DataSet::_def<int>, py::arg("key") = "0", py::arg("size") = 1)
-    .def("def_float64", &DataSet::_def<double>, py::arg("key") = "0", py::arg("size") = 1)
-    .def("def_complex128", &DataSet::_def<std::complex<double>>, py::arg("key") = "0", py::arg("size") = 1)
-    .def("undef", &DataSet::_undef, py::arg("key") = "0");
+PyDataSet.def(py::init<>());
+
+PyDataSet.def("_def", [](DataSet& self, const std::string& key, py::tuple pyTuple, const std::string& dtype, const std::string& doc){
+        std::vector<std::size_t> shape;
+        shape.reserve(pyTuple.size());  // Reserve space for efficiency
+        for (size_t i = 0; i < pyTuple.size(); ++i) {
+            int value = pyTuple[i].cast<int>();
+            shape.push_back(value);
+        }
+        if(dtype == "int"){
+            self._def<kids_int>(key, Shape{shape}, doc);
+        }else if(dtype == "real"){
+            self._def<kids_real>(key, Shape{shape}, doc);
+        }else if(dtype == "bool"){
+            self._def<kids_bool>(key, Shape{shape}, doc);
+        }else if(dtype == "complex"){
+            self._def<kids_complex>(key, Shape{shape}, doc);
+        }else{
+            // throw std::runtime_error("can not define with this dtype!");
+        }
+    }, py::arg("key"), py::arg("shape"), py::arg("dtype")="int", py::arg("doc")="");
+
+PyDataSet.def("_undef", &DataSet::_undef, py::arg("key") = "0");
     
 PyDataSet.def("numpy", [](DataSet& self, const std::string& key) {
     auto inode = self.node(key);
@@ -42,4 +65,7 @@ PyDataSet.def("numpy", [](DataSet& self, const std::string& key) {
     return py::array();
 });
 
+PyDataSet.def("help", [](DataSet& self, const std::string& name) { return self.help(name); }, py::arg("name")="");
+
 PyDataSet.def("__repr__", [](DataSet& self) { return self.repr(); });
+

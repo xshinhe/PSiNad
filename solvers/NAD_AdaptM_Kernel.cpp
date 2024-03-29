@@ -2,13 +2,13 @@
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Dump_DataSet.h"
 #include "../kernels/Kernel_Elec_CMM.h"
-#include "../kernels/Kernel_Elec_CMSH.h"
 #include "../kernels/Kernel_Elec_MMD.h"
 #include "../kernels/Kernel_Elec_MMSH.h"
-#include "../kernels/Kernel_Elec_SH.h"
+#include "../kernels/Kernel_Elec_NAD.h"
 #include "../kernels/Kernel_Elec_SQC.h"
 #include "../kernels/Kernel_Elec_Switch.h"
 #include "../kernels/Kernel_GWP.h"
+#include "../kernels/Kernel_Hopping.h"
 #include "../kernels/Kernel_Load_DataSet.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
@@ -44,11 +44,11 @@ std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::s
     } else if (NAD_Kernel_name == "MMD") {
         kele = std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD());
     } else if (NAD_Kernel_name == "SH") {
-        kele = std::shared_ptr<Kernel_Elec_SH>(new Kernel_Elec_SH());
+        kele = std::shared_ptr<Kernel_Hopping>(new Kernel_Hopping());
     } else if (NAD_Kernel_name == "MMSH") {
         kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
-    } else if (NAD_Kernel_name == "CMSH") {
-        kele = std::shared_ptr<Kernel_Elec_CMSH>(new Kernel_Elec_CMSH(0.5e0 / (double) split));
+    } else if (NAD_Kernel_name == "NAD") {
+        kele = std::shared_ptr<Kernel_Elec_NAD>(new Kernel_Elec_NAD(0.5e0 / (double) split));
     } else if (NAD_Kernel_name == "MCE") {
         kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, kforc));
     } else {

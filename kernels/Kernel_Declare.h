@@ -29,6 +29,9 @@ extern int Fadd1;
 // extern int nsamp;
 };  // namespace Dimension
 
+/**
+ * This class specifies the kernels that should establish a primary connection with dataset object.
+ */
 class Kernel_Declare final : public Kernel {
    public:
     Kernel_Declare(std::vector<std::shared_ptr<Kernel>> kers) : Kernel() {
@@ -50,6 +53,9 @@ class Kernel_Declare final : public Kernel {
     virtual void init_data_impl(DataSet* DS);
 };
 
+/**
+ * This class specifies the kernels that should be initialize at first.
+ */
 class Kernel_Initialize final : public Kernel {
    public:
     Kernel_Initialize(std::vector<std::shared_ptr<Kernel>> kers) : Kernel() {

@@ -20,6 +20,9 @@ extern int nbath;
 extern int Nb;
 };  // namespace FORCE_OPT
 
+/**
+ * this class implements process of calculation of nuclear force for nonadiabatic dynamics
+ */
 class Kernel_NADForce : public Kernel {
    public:
     static NADForcePolicy::_type NADForce_type;

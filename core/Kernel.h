@@ -46,7 +46,7 @@
 namespace PROJECT_NS {
 
 /**
- * @brief Kernel class is the container and implementation of algorithms
+ * this class provides the container and implementation of algorithms
  */
 class Kernel {
    public:

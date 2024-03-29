@@ -9,8 +9,8 @@
  *  Use it in Solver's Kernel_Builder();
  */
 
-#ifndef Kernel_Elec_SH_H
-#define Kernel_Elec_SH_H
+#ifndef Kernel_Hopping_H
+#define Kernel_Hopping_H
 
 #include "../core/Kernel.h"
 #include "../core/Policy.h"
@@ -18,22 +18,14 @@
 
 namespace PROJECT_NS {
 
-DEFINE_POLICY(SHPolicy,  //
-              FSSH,      //
-              DISH,      //
-              DFSH,      //
-              AFSSH,     //
-              MASH       //
-);
-
 /**
  * @brief initialization kernel for electonic DOFs in SH
  */
-class Kernel_Elec_SH final : public Kernel {
+class Kernel_Hopping final : public Kernel {
    public:
-    virtual const std::string name() { return "Kernel_Elec_SH"; }
+    virtual const std::string name() { return "Kernel_Hopping"; }
 
-    Kernel_Elec_SH() {
+    Kernel_Hopping() {
         push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
     }
 
@@ -51,30 +43,8 @@ class Kernel_Elec_SH final : public Kernel {
 
     static int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm, kids_real* E,  //
                                int from, int to, bool reflect);
-
-   private:
-    SHPolicy::_type sh_type;
-    bool reflect;
-
-    double dt;
-    int* occ_nuc;
-    kids_real* x;
-    kids_real* p;
-    kids_real* m;
-    kids_real* direction;
-    kids_real *E, *dE, *T, *T_init;
-    kids_complex* H;
-    kids_complex* rho_ele;
-
-    virtual void read_param_impl(Param* PM);
-
-    virtual void init_data_impl(DataSet* DS);
-
-    virtual void init_calc_impl(int stat = -1);
-
-    virtual int exec_kernel_impl(int stat = -1);
 };
 
 };  // namespace PROJECT_NS
 
-#endif  // Kernel_Elec_SH_H
+#endif  // Kernel_Hopping_H
