@@ -1,5 +1,7 @@
 #include "Kernel_Iter.h"
 
+#include "../core/vars_list.h"
+
 namespace PROJECT_NS {
 
 void Kernel_Iter::read_param_impl(Param* PM) {
@@ -12,12 +14,12 @@ void Kernel_Iter::read_param_impl(Param* PM) {
 }
 
 void Kernel_Iter::init_data_impl(DataSet* DS) {
-    t_ptr                         = DS->def<kids_real>("iter.t");
-    dt_ptr                        = DS->def<kids_real>("iter.dt");
-    istep_ptr                     = DS->def<kids_int>("iter.istep");
-    isamp_ptr                     = DS->def<kids_int>("iter.isamp");
-    at_samplingstep_initially_ptr = DS->def<kids_bool>("iter.at_samplingstep_initially");
-    at_samplingstep_finally_ptr   = DS->def<kids_bool>("iter.at_samplingstep_finally");
+    t_ptr                         = DS->def(DATA::iter::t);
+    dt_ptr                        = DS->def(DATA::iter::dt);
+    istep_ptr                     = DS->def(DATA::iter::istep);
+    isamp_ptr                     = DS->def(DATA::iter::isamp);
+    at_samplingstep_initially_ptr = DS->def(DATA::iter::at_samplingstep_initially);
+    at_samplingstep_finally_ptr   = DS->def(DATA::iter::at_samplingstep_finally);
     // initializarion
     DS->def<kids_int>("iter.sstep", &sstep);
     DS->def<kids_int>("iter.nstep", &nstep);

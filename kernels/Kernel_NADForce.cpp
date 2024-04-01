@@ -1,6 +1,7 @@
 #include "Kernel_NADForce.h"
 
 #include "../core/linalg.h"
+#include "../core/vars_list.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Elec.h"
 #include "Kernel_Representation.h"
@@ -25,16 +26,16 @@ void Kernel_NADForce::read_param_impl(Param* PM) {
 };
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
-    f        = DS->def<kids_real>("integrator.f", Dimension::PN);
-    p        = DS->def<kids_real>("integrator.p", Dimension::PN);
-    m        = DS->def<kids_real>("integrator.m", Dimension::PN);
-    fadd     = DS->def<kids_real>("integrator.fadd", Dimension::PN);
-    fproj    = DS->def<kids_real>("integrator.tmp.fporj", Dimension::N);
-    grad     = DS->def<kids_real>("model.grad", Dimension::PN);
-    dV       = DS->def<kids_real>("model.dV", Dimension::PNFF);
-    dE       = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
-    T        = DS->def<kids_real>("model.rep.T", Dimension::PFF);
-    succ_ptr = DS->def<kids_bool>("iter.succ");
+    f        = DS->def(DATA::integrator::f);
+    p        = DS->def(DATA::integrator::p);
+    m        = DS->def(DATA::integrator::m);
+    fadd     = DS->def(DATA::integrator::fadd);
+    fproj    = DS->def(DATA::integrator::tmp::fproj);
+    grad     = DS->def(DATA::model::grad);
+    dV       = DS->def(DATA::model::dV);
+    dE       = DS->def(DATA::model::rep::dE);
+    T        = DS->def(DATA::model::rep::T);
+    succ_ptr = DS->def(DATA::iter::succ);
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:

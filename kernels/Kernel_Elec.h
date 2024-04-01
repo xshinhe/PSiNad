@@ -38,12 +38,12 @@ class Kernel_Elec final : public Kernel {
     static kids_complex *c, *c_init;                ///< electronic vector
     static kids_complex *rho_ele, *rho_ele_init;    ///< electronic density
     static kids_complex *rho_dual, *rho_dual_init;  ///< electronic density
-    static kids_real *T, *T_init;
+    static kids_real *   T, *T_init;
 
     /**
      * weighting density for nuclear force
      */
-    static int *occ_nuc;
+    static int *         occ_nuc;
     static kids_complex *rho_nuc, *rho_nuc_init;
 
     /**
@@ -57,17 +57,17 @@ class Kernel_Elec final : public Kernel {
     static kids_complex *ww_A_init;
     static kids_complex *ww_D_init;
     static kids_complex *w_AA, *w_AD, *w_DD, *w_CC, *w_CP, *w_PP;
-    static kids_complex *K0, *K0occ, *K0dia;        ///< partial version of K0
-    static kids_complex *K1, *K1occ, *K1dia;        ///< partial version of K1
-    static kids_complex *K2, *K2occ, *K2dia;        ///< partial version of K2
-    static kids_complex *K1QA, *K1QAocc, *K1QAdia;  ///< Simplex Quantization
-    static kids_complex *K2QA, *K2QAocc, *K2QAdia;  ///< Heaviside Quantization
-    static kids_complex *K1DA, *K1DAocc, *K1DAdia;
-    static kids_complex *K2DA, *K2DAocc, *K2DAdia;
-    static kids_complex *K1QD, *K1QDocc, *K1QDdia;  ///< Simplex Quantization
-    static kids_complex *K2QD, *K2QDocc, *K2QDdia;  ///< Heaviside Quantization
-    static kids_complex *K1DD, *K1DDocc, *K1DDdia;
-    static kids_complex *K2DD, *K2DDocc, *K2DDdia;
+    static kids_complex *K0;    ///< partial version of K0
+    static kids_complex *K1;    ///< partial version of K1
+    static kids_complex *K2;    ///< partial version of K2
+    static kids_complex *K1QA;  ///< Simplex Quantization
+    static kids_complex *K2QA;  ///< Heaviside Quantization
+    static kids_complex *K1DA;
+    static kids_complex *K2DA;
+    static kids_complex *K1QD;  ///< Simplex Quantization
+    static kids_complex *K2QD;  ///< Heaviside Quantization
+    static kids_complex *K1DD;
+    static kids_complex *K2DD;
 
     static kids_complex *OpA, *OpB;
     static kids_complex *TrK1A, *TrK2B;

@@ -1,34 +1,23 @@
 #include "Kernel_Update_c.h"
 
 #include "../core/linalg.h"
+#include "../core/vars_list.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Representation.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
 
 namespace PROJECT_NS {
 
 void Kernel_Update_c::init_data_impl(DataSet* DS) {
-    dt_ptr = DS->def<kids_real>("iter.dt");
-
-    E        = DS->def<kids_real>("model.rep.E", Dimension::PF);
-    T        = DS->def<kids_real>("model.rep.T", Dimension::PFF);
-    L        = DS->def<kids_real>("model.rep.L", Dimension::PF);
-    R        = DS->def<kids_complex>("model.rep.R", Dimension::PFF);
-    U        = DS->def<kids_complex>("integrator.U", Dimension::PFF);
-    Udt      = DS->def<kids_complex>("integrator.Udt", Dimension::PFF);
-    succ_ptr = DS->def<kids_bool>("iter.succ");
-    frez_ptr = DS->def<kids_bool>("iter.frez");
-
-    invexpidiagdt = DS->def<kids_complex>("integrator.tmp.invexpidiagdt", Dimension::F);
+    dt_ptr        = DS->def(DATA::iter::dt);
+    E             = DS->def(DATA::model::rep::E);
+    T             = DS->def(DATA::model::rep::T);
+    L             = DS->def(DATA::model::rep::L);
+    R             = DS->def(DATA::model::rep::R);
+    U             = DS->def(DATA::integrator::U);
+    Udt           = DS->def(DATA::integrator::Udt);
+    succ_ptr      = DS->def(DATA::iter::succ);
+    frez_ptr      = DS->def(DATA::iter::frez);
+    invexpidiagdt = DS->def(DATA::integrator::tmp::invexpidiagdt);
 }
 
 int Kernel_Update_c::exec_kernel_impl(int stat) {

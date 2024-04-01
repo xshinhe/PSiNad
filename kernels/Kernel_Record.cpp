@@ -2,6 +2,7 @@
 
 #include "../core/Formula.h"
 #include "../core/linalg.h"
+#include "../core/vars_list.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
     ({                                                                               \
@@ -89,11 +90,11 @@ void Kernel_Record::read_param_impl(Param* PM) {
 }
 
 void Kernel_Record::init_data_impl(DataSet* DS) {
-    istep_ptr                     = DS->def<kids_int>("iter.istep");
-    sstep_ptr                     = DS->def<kids_int>("iter.sstep");
-    isamp_ptr                     = DS->def<kids_int>("iter.isamp");
-    nsamp_ptr                     = DS->def<kids_int>("iter.nsamp");
-    at_samplingstep_initially_ptr = DS->def<kids_bool>("iter.at_samplingstep_initially");
+    istep_ptr                     = DS->def(DATA::iter::istep);
+    sstep_ptr                     = DS->def(DATA::iter::sstep);
+    isamp_ptr                     = DS->def(DATA::iter::isamp);
+    nsamp_ptr                     = DS->def(DATA::iter::nsamp);
+    at_samplingstep_initially_ptr = DS->def(DATA::iter::at_samplingstep_initially);
 }
 
 inline std::string contacted_hdr(const std::string& s1, int i1, const std::string& s2, int i2) {

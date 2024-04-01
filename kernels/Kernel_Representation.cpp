@@ -1,18 +1,9 @@
 #include "Kernel_Representation.h"
 
 #include "../core/linalg.h"
+#include "../core/vars_list.h"
 #include "Kernel_Declare.h"
 #include "Kernel_NADForce.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
 
 namespace PROJECT_NS {
 
@@ -44,27 +35,27 @@ void Kernel_Representation::read_param_impl(Param* PM) {
 }
 
 void Kernel_Representation::init_data_impl(DataSet* DS) {
-    V  = DS->def<kids_real>("model.V", Dimension::PFF);
-    dV = DS->def<kids_real>("model.dV", Dimension::PNFF);
-    // ddV = DS->def<kids_real>("model.ddV", Dimension::NNFF);
-    E_copy = DS->def<kids_real>("integrator.E", Dimension::PF);
-    E      = DS->def<kids_real>("model.rep.E", Dimension::PF);
-    T      = DS->def<kids_real>("model.rep.T", Dimension::PFF);
-    Told   = DS->def<kids_real>("model.rep.Told", Dimension::PFF);
-    dE     = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
-    // ddE = DS->def<kids_real>("model.rep.ddE", Dimension::NNFF);
-    L = DS->def<kids_real>("model.rep.L", Dimension::PF);
-    R = DS->def<kids_complex>("model.rep.R", Dimension::PFF);
-    H = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
+    V  = DS->def(DATA::model::V);
+    dV = DS->def(DATA::model::dV);
+    // ddV = DS->def(DATA::model::ddV);
+    E_copy = DS->def(DATA::integrator::E);
+    E      = DS->def(DATA::model::rep::E);
+    T      = DS->def(DATA::model::rep::T);
+    Told   = DS->def(DATA::model::rep::Told);
+    dE     = DS->def(DATA::model::rep::dE);
+    // ddE = DS->def(DATA::model::rep::ddE);
+    L = DS->def(DATA::model::rep::L);
+    R = DS->def(DATA::model::rep::R);
+    H = DS->def(DATA::model::rep::H);
 
-    m       = DS->def<kids_real>("integrator.m", Dimension::PN);
-    p       = DS->def<kids_real>("integrator.p", Dimension::PN);
-    occ_nuc = DS->def<kids_int>("integrator.occ_nuc", Dimension::P);
-    rho_ele = DS->def<kids_complex>("integrator.rho_ele", Dimension::PFF);
+    m       = DS->def(DATA::integrator::m);
+    p       = DS->def(DATA::integrator::p);
+    occ_nuc = DS->def(DATA::integrator::occ_nuc);
+    rho_ele = DS->def(DATA::integrator::rho_ele);
 
-    TtTold = DS->def<kids_real>("integrator.tmp.TtTold", Dimension::FF);
-    ve     = DS->def<kids_real>("integrator.tmp.ve", Dimension::N);
-    vedE   = DS->def<kids_real>("integrator.tmp.vedE", Dimension::FF);
+    TtTold = DS->def(DATA::integrator::tmp::TtTold);
+    ve     = DS->def(DATA::integrator::tmp::ve);
+    vedE   = DS->def(DATA::integrator::tmp::vedE);
 }
 
 void Kernel_Representation::init_calc_impl(int stat) {

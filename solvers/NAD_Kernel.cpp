@@ -1,13 +1,7 @@
 #include "../kernels/Kernel_Conserve.h"
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Dump_DataSet.h"
-#include "../kernels/Kernel_Elec_CMM.h"
-#include "../kernels/Kernel_Elec_MMD.h"
-#include "../kernels/Kernel_Elec_MMSH.h"
 #include "../kernels/Kernel_Elec_NAD.h"
-#include "../kernels/Kernel_Elec_SQC.h"
-#include "../kernels/Kernel_GWP.h"
-#include "../kernels/Kernel_Hopping.h"
 #include "../kernels/Kernel_Load_DataSet.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
@@ -28,7 +22,7 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
     std::shared_ptr<Kernel> kinte(new Kernel("BAOAB_Integrator"));
 
     std::shared_ptr<Kernel_Representation> krepr(new Kernel_Representation());
-    std::shared_ptr<Kernel_NADForce> kforc(new Kernel_NADForce());
+    std::shared_ptr<Kernel_NADForce>       kforc(new Kernel_NADForce());
 
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5));
@@ -47,20 +41,20 @@ std::shared_ptr<Kernel> NAD_Kernel(std::shared_ptr<Kernel> kmodel, std::string N
 
     std::shared_ptr<Kernel> kele;
     if (false) {
-    } else if (NAD_Kernel_name == "CMM") {
-        kele = std::shared_ptr<Kernel_Elec_CMM>(new Kernel_Elec_CMM());
-    } else if (NAD_Kernel_name == "SQC") {
-        kele = std::shared_ptr<Kernel_Elec_SQC>(new Kernel_Elec_SQC());
-    } else if (NAD_Kernel_name == "MMD") {
-        kele = std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD());
-    } else if (NAD_Kernel_name == "SH") {
-        kele = std::shared_ptr<Kernel_Hopping>(new Kernel_Hopping());
-    } else if (NAD_Kernel_name == "MMSH") {
-        kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
+        // } else if (NAD_Kernel_name == "CMM") {
+        //     kele = std::shared_ptr<Kernel_Elec_CMM>(new Kernel_Elec_CMM());
+        // } else if (NAD_Kernel_name == "SQC") {
+        //     kele = std::shared_ptr<Kernel_Elec_SQC>(new Kernel_Elec_SQC());
+        // } else if (NAD_Kernel_name == "MMD") {
+        //     kele = std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD());
+        // } else if (NAD_Kernel_name == "SH") {
+        //     kele = std::shared_ptr<Kernel_Hopping>(new Kernel_Hopping());
+        // } else if (NAD_Kernel_name == "MMSH") {
+        //     kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
     } else if (NAD_Kernel_name == "NAD") {
         kele = std::shared_ptr<Kernel_Elec_NAD>(new Kernel_Elec_NAD());
-    } else if (NAD_Kernel_name == "MCE") {
-        kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, kforc));
+        // } else if (NAD_Kernel_name == "MCE") {
+        //     kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, kforc));
     } else {
         throw std::runtime_error("unknown Elec Kernel");
     }

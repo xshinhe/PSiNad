@@ -10,8 +10,7 @@ std::shared_ptr<Kernel> SolverFactory(const std::string& name, std::shared_ptr<K
     if (false) {
     } else if (name == "Hello") {
         // return Hello_SBuilder(kmodel);
-    } else if (name == "CMM" || name == "SQC" || name == "MMD" || name == "SH" || name == "NAD" || name == "MMSH" ||
-               name == "MCE") {
+    } else if (name == "NAD") {
         return NAD_Kernel(kmodel, name);
     } else if (name == "NAF-adapt") {
         return NAD_Adapt_Kernel(kmodel, "NAD");

@@ -1,11 +1,13 @@
 #include "Kernel_Elec_Switch.h"
 
 #include "../core/linalg.h"
+#include "../core/vars_list.h"
 #include "Kernel_Declare.h"
-#include "Kernel_Elec_CMM.h"
-#include "Kernel_Elec_MMSH.h"
-#include "Kernel_Elec_SQC.h"
-#include "Kernel_Hopping.h"
+#include "Kernel_Elec_Utils.h"
+// #include "elec_utils.h"
+// #include "elec_utils.h"
+// #include "elec_utils.h"
+// #include "elec_utils.h"
 #include "Kernel_NADForce.h"
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"
@@ -29,11 +31,11 @@ namespace PROJECT_NS {
 
 extern double calc_alpha(kids_real* V, int i = 0, int k = 1, int F = 2);
 
-extern int calc_wrho(kids_complex* wrho,  // distorted rho
-                     kids_complex* rho,   // rho_ele
-                     double xi,           // xi must be 1
-                     double gamma,        // gamma must be 0
-                     double alpha);
+extern int calc_wrho(kids_complex* wrho,   // distorted rho
+                     kids_complex* rho,    // rho_ele
+                     double        xi,     // xi must be 1
+                     double        gamma,  // gamma must be 0
+                     double        alpha);
 
 extern double calc_Ew(kids_real* E, kids_complex* wrho, int occ);
 
@@ -51,12 +53,12 @@ extern double calc_Ew(kids_real* E, kids_complex* wrho, int occ);
  *
  * @return     { description_of_the_return_value }
  */
-extern int calc_distforce(kids_real* f1,       // to be calculated
-                          kids_real* E,        // (input)
-                          kids_real* dE,       // (input)
+extern int calc_distforce(kids_real*    f1,    // to be calculated
+                          kids_real*    E,     // (input)
+                          kids_real*    dE,    // (input)
                           kids_complex* wrho,  // distorted rho
                           kids_complex* rho,   // rho_ele
-                          double alpha);
+                          double        alpha);
 
 extern int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm,  //
                            kids_real Efrom, kids_real Eto, int from, int to, bool reflect);
@@ -65,10 +67,10 @@ void Kernel_Elec_Switch::read_param_impl(Param* PM) {
     cmsh_type = NADPolicy::_from(PM->get<std::string>("cmsh_flag", LOC(), "CVSH"));
 
     alpha0 = PM->get<kids_real>("alpha0", LOC(), 0.5);
-    gamma1 = PM->get<kids_real>("gamma", LOC(), Kernel_Elec_CMM::gamma_wigner(Dimension::F));
+    gamma1 = PM->get<kids_real>("gamma", LOC(), elec_utils::gamma_wigner(Dimension::F));
 
-    if (gamma1 < -1.5) gamma1 = Kernel_Elec_MMSH::gamma_opt(Dimension::F);
-    if (gamma1 < -0.5) gamma1 = Kernel_Elec_CMM::gamma_wigner(Dimension::F);
+    if (gamma1 < -1.5) gamma1 = elec_utils::gamma_opt(Dimension::F);
+    if (gamma1 < -0.5) gamma1 = elec_utils::gamma_wigner(Dimension::F);
 
     gamma2          = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
     xi1             = (1 + Dimension::F * gamma1);
@@ -127,24 +129,24 @@ void Kernel_Elec_Switch::read_param_impl(Param* PM) {
 }
 
 void Kernel_Elec_Switch::init_data_impl(DataSet* DS) {
-    alpha                       = DS->def<kids_real>("integrator.alpha", Dimension::P);
-    Epot                        = DS->def<kids_real>("integrator.Epot", Dimension::P);
-    p                           = DS->def<kids_real>("integrator.p", Dimension::PN);
-    m                           = DS->def<kids_real>("integrator.m", Dimension::PN);
-    fadd                        = DS->def<kids_real>("integrator.fadd", Dimension::PN);
-    ftmp                        = DS->def<kids_real>("integrator.tmp.ftmp", Dimension::N);
-    wrho                        = DS->def<kids_complex>("integrator.tmp.wrho", Dimension::FF);
-    vpes                        = DS->def<kids_real>("model.vpes", Dimension::P);
-    V                           = DS->def<kids_real>("model.V", Dimension::PFF);
-    E                           = DS->def<kids_real>("model.rep.E", Dimension::PF);
-    dE                          = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
-    T                           = DS->def<kids_real>("model.rep.T", Dimension::PFF);
-    H                           = DS->def<kids_complex>("model.rep.H", Dimension::PFF);
-    direction                   = DS->def<kids_real>("integrator.tmp.direction", Dimension::N);
-    sqcw                        = DS->def<kids_real>("integrator.sqcw", Dimension::F);
-    sqcIA                       = DS->def<kids_real>("integrator.sqcIA", 1);
-    sqcID                       = DS->def<kids_real>("integrator.sqcID", 1);
-    at_samplingstep_finally_ptr = DS->def<kids_bool>("iter.at_samplingstep_finally");
+    alpha                       = DS->def(DATA::integrator::alpha);
+    Epot                        = DS->def(DATA::integrator::Epot);
+    p                           = DS->def(DATA::integrator::p);
+    m                           = DS->def(DATA::integrator::m);
+    fadd                        = DS->def(DATA::integrator::fadd);
+    ftmp                        = DS->def(DATA::integrator::tmp::ftmp);
+    wrho                        = DS->def(DATA::integrator::tmp::wrho);
+    vpes                        = DS->def(DATA::model::vpes);
+    V                           = DS->def(DATA::model::V);
+    E                           = DS->def(DATA::model::rep::E);
+    dE                          = DS->def(DATA::model::rep::dE);
+    T                           = DS->def(DATA::model::rep::T);
+    H                           = DS->def(DATA::model::rep::H);
+    direction                   = DS->def(DATA::integrator::tmp::direction);
+    sqcw                        = DS->def(DATA::integrator::sqcw);
+    sqcIA                       = DS->def(DATA::integrator::sqcIA);
+    sqcID                       = DS->def(DATA::integrator::sqcID);
+    at_samplingstep_finally_ptr = DS->def(DATA::iter::at_samplingstep_finally);
 }
 
 void Kernel_Elec_Switch::init_calc_impl(int stat) {
@@ -158,10 +160,10 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
         kids_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
         kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
         kids_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
-        kids_real* T          = Kernel_Elec::T + iP * Dimension::FF;
-        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
-        kids_real* alpha      = this->alpha + iP;
-        kids_real* V          = this->V + iP * Dimension::FF;
+        kids_real*    T       = Kernel_Elec::T + iP * Dimension::FF;
+        int*          occ_nuc = Kernel_Elec::occ_nuc + iP;
+        kids_real*    alpha   = this->alpha + iP;
+        kids_real*    V       = this->V + iP * Dimension::FF;
 
         /////////////////////////////////////////////////////////////////
         alpha[0] = (dynamic_alpha) ? calc_alpha(V) : alpha0;
@@ -172,15 +174,15 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
         iocc     = ((use_sum) ? iocc : Kernel_Elec::occ0);
         *occ_nuc = iocc;
         if (use_focus) {
-            Kernel_Elec_CMM::c_focus(c, xi1, gamma1, iocc, Dimension::F);
+            elec_utils::c_focus(c, xi1, gamma1, iocc, Dimension::F);
         } else if (use_sqc) {
             switch (sqc_init) {
                 case 0: {  // traditional SQC
-                    Kernel_Elec_SQC::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
+                    elec_utils::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
                     break;
                 }
-                case 1: {                                        // simplex SQC
-                    Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
+                case 1: {                                   // simplex SQC
+                    elec_utils::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
                     for (int i = 0; i < Dimension::F; ++i) c[i] = abs(c[i] * c[i]);
                     c[iocc] += 1.0e0;
                     for (int i = 0; i < Dimension::F; ++i) {
@@ -193,15 +195,15 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
                     break;
                 }
                 case 2: {  // suggested by YHShang
-                    Kernel_Elec_CMM::c_sphere(c, Dimension::F);
+                    elec_utils::c_sphere(c, Dimension::F);
                     break;
                 }
                 case 3: {  // suggested by Liu
-                    Kernel_Elec_SQC::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
+                    elec_utils::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
                     break;
                 }
                 case 4: {  // suggested by Liu
-                    Kernel_Elec_SQC::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
+                    elec_utils::c_window(c, iocc, SQCPolicy::TRI, Dimension::F);
                     double norm = 0.0e0;
                     for (int i = 0; i < Dimension::F; ++i) norm += std::abs(c[i] * c[i]);
                     xi1    = norm;
@@ -212,7 +214,7 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
                 }
             }
         } else {
-            Kernel_Elec_CMM::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
+            elec_utils::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
             // for (int i = 0; i < Dimension::F; ++i) c[i] = 1.0e0 * i;
         }
         if (cread_from_ds) {
@@ -220,7 +222,7 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
             std::string open_file    = init_nuclinp;
             if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat, ".ds");
 
-            std::string stmp, eachline;
+            std::string   stmp, eachline;
             std::ifstream ifs(open_file);
             while (getline(ifs, eachline)) {
                 if (eachline.find("init.c") != eachline.npos) {
@@ -295,8 +297,8 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
                                          Kernel_Representation::inp_repr_type,  //
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
-        *occ_nuc = Kernel_Hopping::max_choose(rho_nuc);
-        if (use_fssh) *occ_nuc = Kernel_Hopping::pop_choose(rho_nuc);
+        *occ_nuc = elec_utils::max_choose(rho_nuc);
+        if (use_fssh) *occ_nuc = elec_utils::pop_choose(rho_nuc);
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
@@ -308,7 +310,7 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
         wz_A[0]        = std::abs(rho_ele[0] - rho_ele[3]);
-        int max_pop    = Kernel_Hopping::max_choose(rho_ele);
+        int    max_pop = elec_utils::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
         Kernel_Representation::transform(rho_ele, T, Dimension::F,         //
@@ -316,7 +318,7 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
                                          RepresentationPolicy::Diabatic,   //
                                          SpacePolicy::L);
         wz_D[0] = std::abs(rho_ele[0] - rho_ele[3]);
-        max_pop = Kernel_Hopping::max_choose(rho_ele);
+        max_pop = elec_utils::max_choose(rho_ele);
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
         Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
@@ -352,7 +354,7 @@ void Kernel_Elec_Switch::init_calc_impl(int stat) {
 
 int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        int* occ_nuc               = Kernel_Elec::occ_nuc + iP;
+        int*          occ_nuc      = Kernel_Elec::occ_nuc + iP;
         kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
         kids_complex* c            = Kernel_Elec::c + iP * Dimension::F;
         kids_complex* c_init       = Kernel_Elec::c_init + iP * Dimension::F;
@@ -360,8 +362,8 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
         kids_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
         kids_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
         kids_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
-        kids_real* T               = Kernel_Elec::T + iP * Dimension::FF;
-        kids_real* T_init          = Kernel_Elec::T_init + iP * Dimension::FF;
+        kids_real*    T            = Kernel_Elec::T + iP * Dimension::FF;
+        kids_real*    T_init       = Kernel_Elec::T_init + iP * Dimension::FF;
         kids_complex* K0           = Kernel_Elec::K0 + iP * Dimension::FF;
         kids_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
         kids_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
@@ -378,16 +380,16 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
         kids_complex* ww_A         = Kernel_Elec::ww_A + iP;
         kids_complex* ww_D         = Kernel_Elec::ww_D + iP;
 
-        kids_real* alpha = this->alpha + iP;
-        kids_real* Epot  = this->Epot + iP;
-        kids_real* vpes  = this->vpes + iP;
-        kids_real* V     = this->V + iP * Dimension::FF;
-        kids_real* E     = this->E + iP * Dimension::F;
-        kids_real* dE    = this->dE + iP * Dimension::NFF;
-        kids_real* p     = this->p + iP * Dimension::N;
-        kids_real* m     = this->m + iP * Dimension::N;
-        kids_real* fadd  = this->fadd + iP * Dimension::N;
-        kids_complex* H  = this->H + iP * Dimension::FF;
+        kids_real*    alpha = this->alpha + iP;
+        kids_real*    Epot  = this->Epot + iP;
+        kids_real*    vpes  = this->vpes + iP;
+        kids_real*    V     = this->V + iP * Dimension::FF;
+        kids_real*    E     = this->E + iP * Dimension::F;
+        kids_real*    dE    = this->dE + iP * Dimension::NFF;
+        kids_real*    p     = this->p + iP * Dimension::N;
+        kids_real*    m     = this->m + iP * Dimension::N;
+        kids_real*    fadd  = this->fadd + iP * Dimension::N;
+        kids_complex* H     = this->H + iP * Dimension::FF;
 
         //////////////////////////////////////////////////////////////////////
 
@@ -433,27 +435,27 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
         int to;
         switch (hopping_type1) {
             case 0: {
-                to = Kernel_Hopping::max_choose(rho_ele);
+                to = elec_utils::max_choose(rho_ele);
                 break;
             }
             case 1: {
-                to = Kernel_Hopping::max_choose(rho_nuc);
+                to = elec_utils::max_choose(rho_nuc);
                 break;
             }
             case 2: {
-                to = Kernel_Hopping::pop_choose(rho_ele);
+                to = elec_utils::pop_choose(rho_ele);
                 break;
             }
             case 3: {
-                to = Kernel_Hopping::hopping_choose(rho_ele, H, *occ_nuc, scale * dt);
+                to = elec_utils::hopping_choose(rho_ele, H, *occ_nuc, scale * dt);
                 break;
             }
             case 4: {
-                to = Kernel_Hopping::pop_choose(rho_nuc);
+                to = elec_utils::pop_choose(rho_nuc);
                 break;
             }
             case 5: {
-                to = Kernel_Hopping::pop_neg_choose(rho_nuc);
+                to = elec_utils::pop_neg_choose(rho_nuc);
                 break;
             }
         }
@@ -461,11 +463,11 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
         // step 2: determine direction to hop
         switch (hopping_type2) {
             case 0: {
-                Kernel_Elec_MMSH::hopping_direction(direction, E, dE, rho_ele, *occ_nuc, to);
+                elec_utils::hopping_direction(direction, E, dE, rho_ele, *occ_nuc, to);
                 break;
             }
             case 1: {
-                Kernel_Hopping::hopping_direction(direction, dE, *occ_nuc, to);
+                elec_utils::hopping_direction(direction, dE, *occ_nuc, to);
                 break;
             }
             case 2: {
@@ -536,7 +538,7 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
 
         // 4) calculated TCF in adiabatic rep & diabatic rep respectively
         // 4-1) Adiabatic rep
-        int max_pop    = Kernel_Hopping::max_choose(rho_ele);
+        int    max_pop = elec_utils::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
         ww_A[0]        = std::min({abs(ww_A[0]), abs(ww_A_init[0])});
@@ -548,7 +550,7 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
         }
         if (use_fssh) { Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, *occ_nuc); }
         if (use_sqc) {
-            Kernel_Elec_SQC::ker_binning(K2QA, rho_ele, SQCPolicy::TRI);
+            elec_utils::ker_binning(K2QA, rho_ele, SQCPolicy::TRI);
             sqcIA[0] = 0;
             for (int i = 0; i < Dimension::F; ++i) sqcIA[0] += std::real(K2QA[i * Dimension::Fadd1]);
         }
@@ -582,7 +584,7 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
         Kernel_Elec::ker_from_rho(K1, rho_ele, xi1, gamma1, Dimension::F);
         Kernel_Elec::ker_from_rho(K2, rho_ele, xi2, gamma2, Dimension::F);
 
-        max_pop = Kernel_Hopping::max_choose(rho_ele);  // (in dia rep)
+        max_pop = elec_utils::max_choose(rho_ele);  // (in dia rep)
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
 
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
@@ -636,7 +638,7 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
         }
         if (use_strange_win) calc_wrho(K2QD, rho_ele, 1, 0, 0.2);
         if (use_sqc) {
-            Kernel_Elec_SQC::ker_binning(K2QD, rho_ele, SQCPolicy::TRI);
+            elec_utils::ker_binning(K2QD, rho_ele, SQCPolicy::TRI);
             if (count_exec <= 0) {  // only count at the beginning
                 for (int k = 0; k < Dimension::F; ++k) {
                     double radius =
@@ -650,7 +652,7 @@ int Kernel_Elec_Switch::exec_kernel_impl(int stat) {
             for (int i = 0; i < Dimension::F; ++i) sqcID[0] += std::real(K2QD[i * Dimension::Fadd1]);
 
             if (sqc_init == 2) {  // overload for K2QD
-                int imax    = Kernel_Hopping::max_choose(rho_ele);
+                int    imax = elec_utils::max_choose(rho_ele);
                 double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
                 for (int ik = 0; ik < Dimension::FF; ++ik) K2QD[ik] = 0.0e0;
                 if (vmax * vmax * 8.0e0 / 7.0e0 * (Dimension::F + 0.5e0) > 1) K2QD[imax * Dimension::Fadd1] = 1.0e0;

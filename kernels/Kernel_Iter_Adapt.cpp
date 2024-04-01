@@ -1,16 +1,7 @@
 #include "Kernel_Iter_Adapt.h"
 
+#include "../core/vars_list.h"
 #include "Kernel_Declare.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
-    ({                                                                                      \
-        std::cout << "Show Array <" << #_A << ">\n";                                        \
-        int _idxA = 0;                                                                      \
-        for (int _i = 0; _i < (_n1); ++_i) {                                                \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++] << ","; \
-            std::cout << std::endl;                                                         \
-        }                                                                                   \
-    })
 
 #define FMTF(X)                                                      \
     " " << std::setiosflags(std::ios::fixed) /*scientific notation*/ \
@@ -34,20 +25,20 @@ void Kernel_Iter_Adapt::read_param_impl(Param* PM) {
 }
 
 void Kernel_Iter_Adapt::init_data_impl(DataSet* DS) {
-    t_ptr      = DS->def<kids_real>("iter.t");
-    dt_ptr     = DS->def<kids_real>("iter.dt");
-    istep_ptr  = DS->def<kids_int>("iter.istep");
-    isamp_ptr  = DS->def<kids_int>("iter.isamp");
-    tsize_ptr  = DS->def<kids_int>("iter.tsize");
-    dtsize_ptr = DS->def<kids_int>("iter.dtsize");
+    t_ptr      = DS->def(DATA::iter::t);
+    dt_ptr     = DS->def(DATA::iter::dt);
+    istep_ptr  = DS->def(DATA::iter::istep);
+    isamp_ptr  = DS->def(DATA::iter::isamp);
+    tsize_ptr  = DS->def(DATA::iter::tsize);
+    dtsize_ptr = DS->def(DATA::iter::dtsize);
 
-    at_samplingstep_initially_ptr = DS->def<kids_bool>("iter.at_samplingstep_initially");
-    at_samplingstep_finally_ptr   = DS->def<kids_bool>("iter.at_samplingstep_finally");
+    at_samplingstep_initially_ptr = DS->def(DATA::iter::at_samplingstep_initially);
+    at_samplingstep_finally_ptr   = DS->def(DATA::iter::at_samplingstep_finally);
 
-    succ_ptr         = DS->def<kids_bool>("iter.succ");
-    last_attempt_ptr = DS->def<kids_bool>("iter.last_attempt");
-    frez_ptr         = DS->def<kids_bool>("iter.frez");
-    fail_type_ptr    = DS->def<kids_int>("iter.fail_type");
+    succ_ptr         = DS->def(DATA::iter::succ);
+    last_attempt_ptr = DS->def(DATA::iter::last_attempt);
+    frez_ptr         = DS->def(DATA::iter::frez);
+    fail_type_ptr    = DS->def(DATA::iter::fail_type);
 
     // initializarion
     DS->def<kids_int>("iter.sstep", &sstep);
