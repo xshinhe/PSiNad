@@ -588,23 +588,23 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    mass = DS->def<kids_real>("model.mass", Dimension::N);
-    vpes = DS->def<kids_real>("model.vpes");                 // not used
-    grad = DS->def<kids_real>("model.grad", Dimension::N);   // not used
-    hess = DS->def<kids_real>("model.hess", Dimension::NN);  // not used
-    V    = DS->def<kids_real>("model.V", Dimension::FF);
-    dV   = DS->def<kids_real>("model.dV", Dimension::NFF);
-    // ddV  = DS->def<kids_real>("model.ddV", Dimension::Dimension::NNFF);
+    mass = DS->def(DATA::model::mass);
+    vpes = DS->def(DATA::model::vpes);
+    grad = DS->def(DATA::model::grad);
+    hess = DS->def(DATA::model::hess);
+    V    = DS->def(DATA::model::V);
+    dV   = DS->def(DATA::model::dV);
+    // ddV  = DS->def(DATA::model::ddV);
 
-    x0      = DS->def<kids_real>("model.x0", Dimension::N);
-    p0      = DS->def<kids_real>("model.p0", Dimension::N);
-    x_sigma = DS->def<kids_real>("model.x_sigma", Dimension::N);
-    p_sigma = DS->def<kids_real>("model.p_sigma", Dimension::N);
+    x0      = DS->def(DATA::model::x0);
+    p0      = DS->def(DATA::model::p0);
+    x_sigma = DS->def(DATA::model::x_sigma);
+    p_sigma = DS->def(DATA::model::p_sigma);
 
     // init & integrator
-    x      = DS->def<kids_real>("integrator.x", Dimension::N);
-    p      = DS->def<kids_real>("integrator.p", Dimension::N);
-    p_sign = DS->def<kids_complex>("integrator.p_sign", 2);
+    x      = DS->def(DATA::integrator::x);
+    p      = DS->def(DATA::integrator::p);
+    p_sign = DS->def(DATA::integrator::p_sign);
 
     double  x0_read = _Param->get<double>("x0grid", LOC(), -10.0e0);
     int     Nxgird  = _Param->get<int>("Nxgrid", LOC(), 101);

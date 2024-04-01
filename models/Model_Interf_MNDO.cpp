@@ -2,6 +2,7 @@
 
 #include "../core/Element.h"
 #include "../core/linalg.h"
+#include "../core/vars_list.h"
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
@@ -48,40 +49,36 @@ void Model_Interf_MNDO::read_param_impl(Param* PM) {
 }
 
 void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
-    x = DS->def<kids_real>("integrator.x", Dimension::N);
-    p = DS->def<kids_real>("integrator.p", Dimension::N);
+    x = DS->def(DATA::integrator::x);
+    p = DS->def(DATA::integrator::p);
 
-    x0      = DS->def<kids_real>("model.x0", Dimension::N);
-    p0      = DS->def<kids_real>("model.p0", Dimension::N);
-    w       = DS->def<kids_real>("model.w", Dimension::N);
-    x_sigma = DS->def<kids_real>("model.x_sigma", Dimension::N);
-    p_sigma = DS->def<kids_real>("model.p_sigma", Dimension::N);
+    x0      = DS->def(DATA::model::x0);
+    p0      = DS->def(DATA::model::p0);
+    w       = DS->def(DATA::model::w);
+    x_sigma = DS->def(DATA::model::x_sigma);
+    p_sigma = DS->def(DATA::model::p_sigma);
 
     // model field
-    atoms = DS->def<kids_int>("model.atoms", Dimension::N);
-    mass  = DS->def<kids_real>("model.mass", Dimension::N);
-    vpes  = DS->def<kids_real>("model.vpes");
-    grad  = DS->def<kids_real>("model.grad", Dimension::N);
-    hess  = DS->def<kids_real>("model.hess", Dimension::NN);
-    Tmod  = DS->def<kids_real>("model.Tmod", Dimension::NN);
-    f_r   = DS->def<kids_real>("model.f_r", nciref);
-    f_p   = DS->def<kids_real>("model.f_p", nciref);
-    f_rp  = DS->def<kids_real>("model.f_rp", nciref);
-
-    V  = DS->def<kids_real>("model.V", Dimension::FF);
-    dV = DS->def<kids_real>("model.dV", Dimension::NFF);
-    // ddV  = DS->def<kids_real>("model.ddV", Dimension::NNFF);
-    E  = DS->def<kids_real>("model.rep.E", Dimension::F);
-    T  = DS->def<kids_real>("model.rep.T", Dimension::FF);  // diabatic-to-adiabatic matrix. set to I as default
-    dE = DS->def<kids_real>("model.rep.dE", Dimension::NFF);
-    // ddE  = DS->def<kids_real>("model.rep.ddE", Dimension::NNFF);
-    nac      = DS->def<kids_real>("model.rep.nac", Dimension::NFF);
-    nac_prev = DS->def<kids_real>("model.rep.nac_prev", Dimension::NFF);
-
-    succ_ptr         = DS->def<kids_bool>("iter.succ");
-    last_attempt_ptr = DS->def<kids_bool>("iter.last_attempt");
-    frez_ptr         = DS->def<kids_bool>("iter.frez");
-    fail_type_ptr    = DS->def<kids_int>("iter.fail_type");
+    atoms            = DS->def(DATA::model::atoms);
+    mass             = DS->def(DATA::model::mass);
+    vpes             = DS->def(DATA::model::vpes);
+    grad             = DS->def(DATA::model::grad);
+    hess             = DS->def(DATA::model::hess);
+    Tmod             = DS->def(DATA::model::Tmod);
+    f_r              = DS->def(DATA::model::f_r);
+    f_p              = DS->def(DATA::model::f_p);
+    f_rp             = DS->def(DATA::model::f_rp);
+    V                = DS->def(DATA::model::V);
+    dV               = DS->def(DATA::model::dV);
+    E                = DS->def(DATA::model::rep::E);
+    T                = DS->def(DATA::model::rep::T);
+    dE               = DS->def(DATA::model::rep::dE);
+    nac              = DS->def(DATA::model::rep::nac);
+    nac_prev         = DS->def(DATA::model::rep::nac_prev);
+    succ_ptr         = DS->def(DATA::iter::succ);
+    last_attempt_ptr = DS->def(DATA::iter::last_attempt);
+    frez_ptr         = DS->def(DATA::iter::frez);
+    fail_type_ptr    = DS->def(DATA::iter::fail_type);
 
     for (int i = 0, ik = 0; i < Dimension::F; ++i) {
         for (int k = 0; k < Dimension::F; ++k, ++ik) T[ik] = (i == k) ? 1.0e0 : 0.0e0;

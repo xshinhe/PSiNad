@@ -1,5 +1,7 @@
 #include "Model_Bath.h"
 
+#include "../core/vars_list.h"
+
 namespace PROJECT_NS {
 
 double Model_Bath::J_Debye(double w) { return 2 * lambda * omegac * w / (w * w + omegac * omegac); }
@@ -79,8 +81,8 @@ void Model_Bath::read_param_impl(Param* PM) {
 }
 
 void Model_Bath::init_data_impl(DataSet* DS) {
-    omegas = DS->def<kids_real>("model.bath.omegas", Nb);
-    coeffs = DS->def<kids_real>("model.bath.coeffs", Nb);
+    omegas = DS->def(DATA::model::bath::omegas);
+    coeffs = DS->def(DATA::model::bath::coeffs);
     switch (bath_type) {
         case BathPolicy::Debye: {
             for (int j = 0; j < Nb; ++j) {
@@ -144,8 +146,8 @@ void Model_Bath::init_data_impl(DataSet* DS) {
         }
     }
 
-    x_sigma = DS->def<kids_real>("model.bath.x_sigma", Nb);
-    p_sigma = DS->def<kids_real>("model.bath.p_sigma", Nb);
+    x_sigma = DS->def(DATA::model::bath::x_sigma);
+    p_sigma = DS->def(DATA::model::bath::p_sigma);
     for (int j = 0; j < Nb; ++j) {
         /* note:
             for finite temperature: Qoverbeta = 0.5*freq / dtanh(0.5*beta*freq)

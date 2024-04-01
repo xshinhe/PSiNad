@@ -1,8 +1,8 @@
 #include "Model_SystemBath.h"
 
 // #include <glog/logging.h>
-
 #include "../core/linalg.h"
+#include "../core/vars_list.h"
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
@@ -129,16 +129,16 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
 
     /// 2) init Bath sub-kernel (declaration & call)
     for (auto pkernel : _kernel_vector) pkernel->init_data(DS);
-    omegas  = DS->def<kids_real>("model.bath.omegas", Nb);
-    coeffs  = DS->def<kids_real>("model.bath.coeffs", Nb);
-    x_sigma = DS->def<kids_real>("model.bath.x_sigma", Nb);
-    p_sigma = DS->def<kids_real>("model.bath.p_sigma", Nb);
+    omegas  = DS->def(DATA::model::bath::omegas);
+    coeffs  = DS->def(DATA::model::bath::coeffs);
+    x_sigma = DS->def(DATA::model::bath::x_sigma);
+    p_sigma = DS->def(DATA::model::bath::p_sigma);
 
     /// 3) bilinear Coupling (saving order: L, nbath, Nb, FF)
-    Q   = DS->def<kids_real>("model.coupling.Q", nbath * Dimension::FF);
-    CL  = DS->def<kids_real>("model.coupling.CL", L * Nb);
-    QL  = DS->def<kids_real>("model.coupling.QL", L * nbath * Dimension::FF);
-    Xnj = DS->def<kids_real>("model.coupling.Xnj", Dimension::NFF);
+    Q   = DS->def(DATA::model::coupling::Q);
+    CL  = DS->def(DATA::model::coupling::CL);
+    QL  = DS->def(DATA::model::coupling::QL);
+    Xnj = DS->def(DATA::model::coupling::Xnj);
     switch (coupling_type) {
         case CouplingPolicy::SB: {
             Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
@@ -180,25 +180,20 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    mass = DS->def<kids_real>("model.mass", Dimension::N);
+    mass = DS->def(DATA::model::mass);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
 
-    vpes = DS->def<kids_real>("model.vpes", Dimension::P);
-    grad = DS->def<kids_real>("model.grad", Dimension::PN);
-    hess = DS->def<kids_real>("model.hess", Dimension::PNN);
-    V    = DS->def<kids_real>("model.V", Dimension::PFF);
-    dV   = DS->def<kids_real>("model.dV", Dimension::PNFF);
-    // ddV  = DS->def<kids_real>("model.ddV", Dimension::NNFF);
+    vpes = DS->def(DATA::model::vpes);
+    grad = DS->def(DATA::model::grad);
+    hess = DS->def(DATA::model::hess);
+    V    = DS->def(DATA::model::V);
+    dV   = DS->def(DATA::model::dV);
+    // ddV  = DS->def(DATA::model::ddV);
 
     // init & integrator
-    x = DS->def<kids_real>("integrator.x", Dimension::PN);
-    p = DS->def<kids_real>("integrator.p", Dimension::PN);
+    x = DS->def(DATA::integrator::x);
+    p = DS->def(DATA::integrator::p);
 
-    // ARRAY_SHOW(Hsys, Dimension::F, Dimension::F);
-    // ARRAY_SHOW(omegas, 1, Nb);
-    // ARRAY_SHOW(coeffs, 1, Nb);
-    // ARRAY_SHOW(x_sigma, 1, Nb);
-    // ARRAY_SHOW(p_sigma, 1, Nb);
     // exit(-1);
 }
 
