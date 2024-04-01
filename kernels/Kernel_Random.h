@@ -18,10 +18,10 @@ class Kernel_Random : public Kernel {
 
     static rng_t rand_rng;
 
-    static std::uniform_int_distribution<int> rand_uid;         ///< catalog distribution
+    static std::uniform_int_distribution<int>        rand_uid;  ///< catalog distribution
     static std::uniform_real_distribution<kids_real> rand_udd;  ///< uniform distribution
-    static std::normal_distribution<kids_real> rand_nd;         ///< normal distribution
-    static std::poisson_distribution<int> rand_pd;              ///< possion distribution
+    static std::normal_distribution<kids_real>       rand_nd;   ///< normal distribution
+    static std::poisson_distribution<int>            rand_pd;   ///< possion distribution
 
     inline virtual const std::string name() { return "Kernel_Random"; }
 
@@ -96,7 +96,7 @@ class Kernel_Random : public Kernel {
     bool restart;
 
     virtual void init_data_impl(DataSet* DS) {
-        seed = DS->def<int>("random.seed", rng_t::state_size);  //
+        seed = DS->def<kids_int>("random.seed", rng_t::state_size);  //
     }
 
     virtual void init_calc_impl(int stat = -1) {

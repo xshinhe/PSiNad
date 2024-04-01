@@ -111,15 +111,15 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             break;
         }
         case SystemPolicy::Read: {
-            std::string system_readfile = _Param->get<std::string>("system_readfile", LOC(), "system.dat");
+            std::string   system_readfile = _Param->get<std::string>("system_readfile", LOC(), "system.dat");
             std::ifstream ifs(system_readfile);
-            std::string H_unit_str;
-            std::string firstline;
+            std::string   H_unit_str;
+            std::string   firstline;
             getline(ifs, firstline);
             std::stringstream sstr(firstline);
             sstr >> H_unit_str;  ///< the firstline stores H's unit
 
-            double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
+            double    H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
             kids_real val;
             for (int i = 0; i < Dimension::FF; ++i)
                 if (ifs >> val) Hsys[i] = val / H_unit;
@@ -129,16 +129,16 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
 
     /// 2) init Bath sub-kernel (declaration & call)
     for (auto pkernel : _kernel_vector) pkernel->init_data(DS);
-    omegas  = DS->def<double>("model.bath.omegas", Nb);
-    coeffs  = DS->def<double>("model.bath.coeffs", Nb);
-    x_sigma = DS->def<double>("model.bath.x_sigma", Nb);
-    p_sigma = DS->def<double>("model.bath.p_sigma", Nb);
+    omegas  = DS->def<kids_real>("model.bath.omegas", Nb);
+    coeffs  = DS->def<kids_real>("model.bath.coeffs", Nb);
+    x_sigma = DS->def<kids_real>("model.bath.x_sigma", Nb);
+    p_sigma = DS->def<kids_real>("model.bath.p_sigma", Nb);
 
     /// 3) bilinear Coupling (saving order: L, nbath, Nb, FF)
-    Q   = DS->def<double>("model.coupling.Q", nbath * Dimension::FF);
-    CL  = DS->def<double>("model.coupling.CL", L * Nb);
-    QL  = DS->def<double>("model.coupling.QL", L * nbath * Dimension::FF);
-    Xnj = DS->def<double>("model.coupling.Xnj", Dimension::NFF);
+    Q   = DS->def<kids_real>("model.coupling.Q", nbath * Dimension::FF);
+    CL  = DS->def<kids_real>("model.coupling.CL", L * Nb);
+    QL  = DS->def<kids_real>("model.coupling.QL", L * nbath * Dimension::FF);
+    Xnj = DS->def<kids_real>("model.coupling.Xnj", Dimension::NFF);
     switch (coupling_type) {
         case CouplingPolicy::SB: {
             Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
@@ -154,9 +154,9 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             break;
         }
         default: {
-            std::string coupling_readfile = _Param->get<std::string>("coupling_readfile", LOC(), "coupling.dat");
+            std::string   coupling_readfile = _Param->get<std::string>("coupling_readfile", LOC(), "coupling.dat");
             std::ifstream ifs(coupling_readfile);
-            kids_real tmp;
+            kids_real     tmp;
             for (int i = 0; i < nbath * Dimension::FF; ++i)
                 if (ifs >> tmp) Q[i] = tmp;
             ifs.close();
@@ -180,19 +180,19 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    mass = DS->def<double>("model.mass", Dimension::N);
+    mass = DS->def<kids_real>("model.mass", Dimension::N);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
 
-    vpes = DS->def<double>("model.vpes", Dimension::P);
-    grad = DS->def<double>("model.grad", Dimension::PN);
-    hess = DS->def<double>("model.hess", Dimension::PNN);
-    V    = DS->def<double>("model.V", Dimension::PFF);
-    dV   = DS->def<double>("model.dV", Dimension::PNFF);
-    // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
+    vpes = DS->def<kids_real>("model.vpes", Dimension::P);
+    grad = DS->def<kids_real>("model.grad", Dimension::PN);
+    hess = DS->def<kids_real>("model.hess", Dimension::PNN);
+    V    = DS->def<kids_real>("model.V", Dimension::PFF);
+    dV   = DS->def<kids_real>("model.dV", Dimension::PNFF);
+    // ddV  = DS->def<kids_real>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x = DS->def<double>("integrator.x", Dimension::PN);
-    p = DS->def<double>("integrator.p", Dimension::PN);
+    x = DS->def<kids_real>("integrator.x", Dimension::PN);
+    p = DS->def<kids_real>("integrator.p", Dimension::PN);
 
     // ARRAY_SHOW(Hsys, Dimension::F, Dimension::F);
     // ARRAY_SHOW(omegas, 1, Nb);

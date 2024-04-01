@@ -5,3 +5,6 @@
 2) delete thing irrelavent to CCC
 3) xxxxxx
 
+NAD's conserve module is conficted with that of Adaptive version!
+
+

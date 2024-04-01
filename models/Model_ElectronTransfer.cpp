@@ -74,33 +74,33 @@ void Model_ElectronTransfer::init_data_impl(DataSet* DS) {
 
     /// 2) init Bath sub-kernel (declaration & call)
     for (auto pkernel : _kernel_vector) pkernel->init_data(DS);
-    omegas  = DS->def<double>("model.bath.omegas", Nb);
-    coeffs  = DS->def<double>("model.bath.coeffs", Nb);
-    x_sigma = DS->def<double>("model.bath.x_sigma", Nb);
-    p_sigma = DS->def<double>("model.bath.p_sigma", Nb);
+    omegas  = DS->def<kids_real>("model.bath.omegas", Nb);
+    coeffs  = DS->def<kids_real>("model.bath.coeffs", Nb);
+    x_sigma = DS->def<kids_real>("model.bath.x_sigma", Nb);
+    p_sigma = DS->def<kids_real>("model.bath.p_sigma", Nb);
 
     double w2 = omega0 * omega0;
     for (int j = 0; j < Nb; ++j) { w2 += (coeffs[j] * coeffs[j]) / (omegas[j] * omegas[j]); }
     omega0 = std::sqrt(w2);
 
     /// 3) bilinear Coupling (saving order: L, nbath, Nb, FF)
-    Q    = DS->def<double>("model.coupling.Q", nbath * Dimension::FF);
+    Q    = DS->def<kids_real>("model.coupling.Q", nbath * Dimension::FF);
     Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
 
     // model field
-    mass = DS->def<double>("model.mass", Dimension::N);
+    mass = DS->def<kids_real>("model.mass", Dimension::N);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
 
-    vpes = DS->def<double>("model.vpes", Dimension::P);
-    grad = DS->def<double>("model.grad", Dimension::PN);
-    hess = DS->def<double>("model.hess", Dimension::PNN);
-    V    = DS->def<double>("model.V", Dimension::PFF);
-    dV   = DS->def<double>("model.dV", Dimension::PNFF);
-    // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
+    vpes = DS->def<kids_real>("model.vpes", Dimension::P);
+    grad = DS->def<kids_real>("model.grad", Dimension::PN);
+    hess = DS->def<kids_real>("model.hess", Dimension::PNN);
+    V    = DS->def<kids_real>("model.V", Dimension::PFF);
+    dV   = DS->def<kids_real>("model.dV", Dimension::PNFF);
+    // ddV  = DS->def<kids_real>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x = DS->def<double>("integrator.x", Dimension::PN);
-    p = DS->def<double>("integrator.p", Dimension::PN);
+    x = DS->def<kids_real>("integrator.x", Dimension::PN);
+    p = DS->def<kids_real>("integrator.p", Dimension::PN);
 
     // ARRAY_SHOW(Hsys, Dimension::F, Dimension::F);
     // ARRAY_SHOW(omegas, 1, Nb);

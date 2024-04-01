@@ -36,24 +36,24 @@ void Kernel_Iter_Adapt::read_param_impl(Param* PM) {
 void Kernel_Iter_Adapt::init_data_impl(DataSet* DS) {
     t_ptr      = DS->def<kids_real>("iter.t");
     dt_ptr     = DS->def<kids_real>("iter.dt");
-    istep_ptr  = DS->def<int>("iter.istep");
-    isamp_ptr  = DS->def<int>("iter.isamp");
-    tsize_ptr  = DS->def<int>("iter.tsize");
-    dtsize_ptr = DS->def<int>("iter.dtsize");
+    istep_ptr  = DS->def<kids_int>("iter.istep");
+    isamp_ptr  = DS->def<kids_int>("iter.isamp");
+    tsize_ptr  = DS->def<kids_int>("iter.tsize");
+    dtsize_ptr = DS->def<kids_int>("iter.dtsize");
 
-    at_samplingstep_initially_ptr = DS->def<bool>("iter.at_samplingstep_initially");
-    at_samplingstep_finally_ptr   = DS->def<bool>("iter.at_samplingstep_finally");
+    at_samplingstep_initially_ptr = DS->def<kids_bool>("iter.at_samplingstep_initially");
+    at_samplingstep_finally_ptr   = DS->def<kids_bool>("iter.at_samplingstep_finally");
 
-    succ_ptr         = DS->def<bool>("iter.succ");
-    last_attempt_ptr = DS->def<bool>("iter.last_attempt");
-    frez_ptr         = DS->def<bool>("iter.frez");
-    fail_type_ptr    = DS->def<int>("iter.fail_type");
+    succ_ptr         = DS->def<kids_bool>("iter.succ");
+    last_attempt_ptr = DS->def<kids_bool>("iter.last_attempt");
+    frez_ptr         = DS->def<kids_bool>("iter.frez");
+    fail_type_ptr    = DS->def<kids_int>("iter.fail_type");
 
     // initializarion
-    DS->def<int>("iter.sstep", &sstep);
-    DS->def<int>("iter.nstep", &nstep);
-    DS->def<int>("iter.nsamp", &nsamp);
-    DS->def<int>("iter.msize", &msize);
+    DS->def<kids_int>("iter.sstep", &sstep);
+    DS->def<kids_int>("iter.nstep", &nstep);
+    DS->def<kids_int>("iter.nsamp", &nsamp);
+    DS->def<kids_int>("iter.msize", &msize);
 }
 
 void Kernel_Iter_Adapt::init_calc_impl(int stat) {
@@ -119,7 +119,7 @@ int Kernel_Iter_Adapt::exec_kernel_impl(int stat) {
         switch (statc) {
             case 'X': {
                 // save breakdown information
-                std::string directory = _Param->get<std::string>("directory", LOC());
+                std::string   directory = _Param->get<std::string>("directory", LOC());
                 std::ofstream ofs{utils::concat(directory, "/fail", stat, "-", istep_ptr[0], ".ds")};
                 _DataSet->dump(ofs);
                 ofs.close();

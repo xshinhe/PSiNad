@@ -19,10 +19,19 @@
  *            ownership.
  *    c) internal: means a non-pointer data type which is not exposed to
  *              public domain.
- * @author      [author]
- * @date        [latest-date]
- * @version     [version]
- * @copyright   [copyright]
+ *
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
  **********************************************************************************
  * @par revision [logs]:
  * <table>
@@ -50,7 +59,7 @@ namespace PROJECT_NS {
  */
 class Kernel {
    public:
-    static int TOTAL;
+    static int  TOTAL;
     static bool BREAK;
 
     inline virtual const std::string name() { return utils::concat("Kernel__", customized_name); }
@@ -140,18 +149,18 @@ class Kernel {
     std::string scheme(double total_time = -1.0f, int current_layer = 0, int total_depth = 0, int total_align_size = 0);
 
    protected:
-    bool is_timing   = false;
-    int count_read   = 0;
-    int count_init   = 0;
-    int count_calc   = 0;
-    int count_exec   = 0;
-    int kernel_id    = 0;
-    double exec_time = 0.0f;
+    bool        is_timing  = false;
+    int         count_read = 0;
+    int         count_init = 0;
+    int         count_calc = 0;
+    int         count_exec = 0;
+    int         kernel_id  = 0;
+    double      exec_time  = 0.0f;
     std::string customized_name;
-    int depth          = 0;
-    int max_align_size = 0;
+    int         depth          = 0;
+    int         max_align_size = 0;
 
-    Param* _Param;  // store the parameter dict
+    Param*   _Param;  // store the parameter dict
     DataSet* _DataSet;
 
     std::vector<std::shared_ptr<Kernel>> _kernel_vector;

@@ -78,27 +78,22 @@
 #define KV_TERMS_1(TERM1, ...) \
     { VAR_NAME(TERM1), TERM1 }
 
-//     , KV_TERMS_0(__VA_ARGS__)
-// #define KV_TERMS_0(TERM1, ...) \
-//     { VAR_NAME(TERM1), TERM1 }
-
-
 #define KV_TERMS(...) VA_SELECT(KV_TERMS, ##__VA_ARGS__)
 
-#define DEFINE_POLICY(Policy, ...)                                             \
-    namespace Policy {                                                         \
-    enum _type { __VA_ARGS__ };                                                \
-    static const std::map<std::string, _type> _dict = {KV_TERMS(__VA_ARGS__)}; \
-    static inline void _help() {                                               \
-        std::cout << "Helps for " << #Policy << ":\n";                         \
-        for (auto& i : _dict) std::cout << i.first << " [available]\n";        \
-    }                                                                          \
-    static inline _type _from(std::string s) {                                 \
-        try {                                                                  \
-            return _dict.at(s);                                                \
-        } catch (std::out_of_range & e) { _help(); }                           \
-        return _type(0);                                                       \
-    }                                                                          \
+#define DEFINE_POLICY(Policy, ...)                                                             \
+    namespace Policy {                                                                         \
+    enum _type { __VA_ARGS__ };                                                                \
+    static const std::map<std::string, _type> _dict = {KV_TERMS(__VA_ARGS__)};                 \
+    static inline void                        _help() {                                        \
+        std::cout << "Helps for " << #Policy << ":\n";                  \
+        for (auto& i : _dict) std::cout << i.first << " [available]\n"; \
+    }                                                                                          \
+    static inline _type _from(std::string s) {                                                 \
+        try {                                                                                  \
+            return _dict.at(s);                                                                \
+        } catch (std::out_of_range & e) { _help(); }                                           \
+        return _type(0);                                                                       \
+    }                                                                                          \
     };  // namespace Policy
 
 #endif  // POLICY_H

@@ -30,9 +30,9 @@ class Model_LVCM final : public Kernel {
 
    private:
     LVCMPolicy::_type lvcm_type;
-    int N_coup;
-    int N_mode;
-    bool classical_bath;
+    int               N_coup;
+    int               N_mode;
+    bool              classical_bath;
 
 
     kids_real* Hsys;
@@ -40,8 +40,8 @@ class Model_LVCM final : public Kernel {
 
     kids_real* x_sigma;
     kids_real* p_sigma;
-    kids_real* x_0;
-    kids_real* p_0;
+    kids_real* x0;
+    kids_real* p0;
 
     // integrator
     kids_real *x, *p, *m, *w;

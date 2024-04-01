@@ -185,8 +185,8 @@ void Bath::init_data_impl(DataSet* DS) {
     }
 
     /// 2) Bath (init omegas, coeffs; m, w, x_sigma, p_sigma)
-    omegas = DS->def<double>("model.omegas", Nb);
-    coeffs = DS->def<double>("model.coeffs", Nb);
+    omegas = DS->def<kids_real>("model.omegas", Nb);
+    coeffs = DS->def<kids_real>("model.coeffs", Nb);
     switch (bath_type) {
         case BathPolicy::Debye: {  // from continuous spectrum
             for (int j = 0; j < Nb; ++j) {
@@ -249,12 +249,12 @@ void Bath::init_data_impl(DataSet* DS) {
             }
         }
     }
-    mass    = DS->def<double>("model.mass", N);
-    freq    = DS->def<double>("model.freq", N);
-    x_mean  = DS->def<double>("model.x_mean", N);
-    p_mean  = DS->def<double>("model.p_mean", N);
-    x_sigma = DS->def<double>("model.x_sigma", N);
-    p_sigma = DS->def<double>("model.p_sigma", N);
+    mass    = DS->def<kids_real>("model.mass", N);
+    freq    = DS->def<kids_real>("model.freq", N);
+    x_mean  = DS->def<kids_real>("model.x_mean", N);
+    p_mean  = DS->def<kids_real>("model.p_mean", N);
+    x_sigma = DS->def<kids_real>("model.x_sigma", N);
+    p_sigma = DS->def<kids_real>("model.p_sigma", N);
     for (int j = 0; j < N; ++j) {
         mass[j] = 1.0f;
         freq[j] = omegas[j % Nb];
@@ -269,10 +269,10 @@ void Bath::init_data_impl(DataSet* DS) {
 
 
     /// 3) Coupling (saving order: L, nbath, Nb, FF)
-    Q   = DS->def<double>("model.Q", nbath * F * F);
-    CL  = DS->def<double>("model.CL", L * Nb);
-    QL  = DS->def<double>("model.QL", L * nbath * F * F);
-    Xnj = DS->def<double>("model.Xnj", N * F * F);
+    Q   = DS->def<kids_real>("model.Q", nbath * F * F);
+    CL  = DS->def<kids_real>("model.CL", L * Nb);
+    QL  = DS->def<kids_real>("model.QL", L * nbath * F * F);
+    Xnj = DS->def<kids_real>("model.Xnj", N * F * F);
     switch (coupling_type) {
         case CouplingPolicy::SB: {
             //// CHECK_EQ(nbath, 1);
@@ -315,18 +315,18 @@ void Bath::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    vpes = DS->def<double>("model.vpes");
-    grad = DS->def<double>("model.grad", N);
-    hess = DS->def<double>("model.hess", N);
-    V    = DS->def<double>("model.V", FF);
-    dV   = DS->def<double>("model.dV", NFF);
-    ddV  = DS->def<double>("model.ddV", NNFF);
+    vpes = DS->def<kids_real>("model.vpes");
+    grad = DS->def<kids_real>("model.grad", N);
+    hess = DS->def<kids_real>("model.hess", N);
+    V    = DS->def<kids_real>("model.V", FF);
+    dV   = DS->def<kids_real>("model.dV", NFF);
+    ddV  = DS->def<kids_real>("model.ddV", NNFF);
 
     // init & integrator
-    x_init = DS->def<double>("init.x", N);
-    p_init = DS->def<double>("init.p", N);
-    x      = DS->def<double>("integrator.x", N);
-    p      = DS->def<double>("integrator.p", N);
+    x_init = DS->def<kids_real>("init.x", N);
+    p_init = DS->def<kids_real>("init.p", N);
+    x      = DS->def<kids_real>("integrator.x", N);
+    p      = DS->def<kids_real>("integrator.p", N);
 }
 
 void Model_SystemBath::init_data_impl(DataSet* DS) {
@@ -423,8 +423,8 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     }
 
     /// 2) Bath (init omegas, coeffs; m, w, x_sigma, p_sigma)
-    omegas = DS->def<double>("model.omegas", Nb);
-    coeffs = DS->def<double>("model.coeffs", Nb);
+    omegas = DS->def<kids_real>("model.omegas", Nb);
+    coeffs = DS->def<kids_real>("model.coeffs", Nb);
     switch (bath_type) {
         case BathPolicy::Debye: {  // from continuous spectrum
             for (int j = 0; j < Nb; ++j) {
@@ -487,12 +487,12 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
             }
         }
     }
-    mass    = DS->def<double>("model.mass", N);
-    freq    = DS->def<double>("model.freq", N);
-    x_mean  = DS->def<double>("model.x_mean", N);
-    p_mean  = DS->def<double>("model.p_mean", N);
-    x_sigma = DS->def<double>("model.x_sigma", N);
-    p_sigma = DS->def<double>("model.p_sigma", N);
+    mass    = DS->def<kids_real>("model.mass", N);
+    freq    = DS->def<kids_real>("model.freq", N);
+    x_mean  = DS->def<kids_real>("model.x_mean", N);
+    p_mean  = DS->def<kids_real>("model.p_mean", N);
+    x_sigma = DS->def<kids_real>("model.x_sigma", N);
+    p_sigma = DS->def<kids_real>("model.p_sigma", N);
     for (int j = 0; j < N; ++j) {
         mass[j] = 1.0f;
         freq[j] = omegas[j % Nb];
@@ -507,10 +507,10 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
 
 
     /// 3) Coupling (saving order: L, nbath, Nb, FF)
-    Q   = DS->def<double>("model.Q", nbath * F * F);
-    CL  = DS->def<double>("model.CL", L * Nb);
-    QL  = DS->def<double>("model.QL", L * nbath * F * F);
-    Xnj = DS->def<double>("model.Xnj", N * F * F);
+    Q   = DS->def<kids_real>("model.Q", nbath * F * F);
+    CL  = DS->def<kids_real>("model.CL", L * Nb);
+    QL  = DS->def<kids_real>("model.QL", L * nbath * F * F);
+    Xnj = DS->def<kids_real>("model.Xnj", N * F * F);
     switch (coupling_type) {
         case CouplingPolicy::SB: {
             //// CHECK_EQ(nbath, 1);
@@ -553,18 +553,18 @@ void Model_SystemBath::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    vpes = DS->def<double>("model.vpes");
-    grad = DS->def<double>("model.grad", N);
-    hess = DS->def<double>("model.hess", N);
-    V    = DS->def<double>("model.V", FF);
-    dV   = DS->def<double>("model.dV", NFF);
-    ddV  = DS->def<double>("model.ddV", NNFF);
+    vpes = DS->def<kids_real>("model.vpes");
+    grad = DS->def<kids_real>("model.grad", N);
+    hess = DS->def<kids_real>("model.hess", N);
+    V    = DS->def<kids_real>("model.V", FF);
+    dV   = DS->def<kids_real>("model.dV", NFF);
+    ddV  = DS->def<kids_real>("model.ddV", NNFF);
 
     // init & integrator
-    x_init = DS->def<double>("init.x", N);
-    p_init = DS->def<double>("init.p", N);
-    x      = DS->def<double>("integrator.x", N);
-    p      = DS->def<double>("integrator.p", N);
+    x_init = DS->def<kids_real>("init.x", N);
+    p_init = DS->def<kids_real>("init.p", N);
+    x      = DS->def<kids_real>("integrator.x", N);
+    p      = DS->def<kids_real>("integrator.p", N);
 }
 
 void Model_SystemBath::init_calc_impl(int stat) {

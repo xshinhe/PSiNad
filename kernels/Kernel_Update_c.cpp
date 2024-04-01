@@ -25,8 +25,8 @@ void Kernel_Update_c::init_data_impl(DataSet* DS) {
     R        = DS->def<kids_complex>("model.rep.R", Dimension::PFF);
     U        = DS->def<kids_complex>("integrator.U", Dimension::PFF);
     Udt      = DS->def<kids_complex>("integrator.Udt", Dimension::PFF);
-    succ_ptr = DS->def<bool>("iter.succ");
-    frez_ptr = DS->def<bool>("iter.frez");
+    succ_ptr = DS->def<kids_bool>("iter.succ");
+    frez_ptr = DS->def<kids_bool>("iter.frez");
 
     invexpidiagdt = DS->def<kids_complex>("integrator.tmp.invexpidiagdt", Dimension::F);
 }
@@ -36,9 +36,9 @@ int Kernel_Update_c::exec_kernel_impl(int stat) {
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm
-        kids_real* E      = this->E + iP * Dimension::F;
-        kids_real* T      = this->T + iP * Dimension::FF;
-        kids_real* L      = this->L + iP * Dimension::F;
+        kids_real*    E   = this->E + iP * Dimension::F;
+        kids_real*    T   = this->T + iP * Dimension::FF;
+        kids_real*    L   = this->L + iP * Dimension::F;
         kids_complex* R   = this->R + iP * Dimension::FF;
         kids_complex* U   = this->U + iP * Dimension::FF;
         kids_complex* Udt = this->Udt + iP * Dimension::FF;

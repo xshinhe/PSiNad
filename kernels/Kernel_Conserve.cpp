@@ -1,5 +1,6 @@
 #include "Kernel_Conserve.h"
 
+#include "../core/vars_list.h"
 #include "Kernel_Declare.h"
 #include "Kernel_Elec.h"
 
@@ -10,23 +11,22 @@ void Kernel_Conserve::read_param_impl(Param* PM) {
 }
 
 void Kernel_Conserve::init_data_impl(DataSet* DS) {
-    vpes             = DS->def<kids_real>("model.vpes", Dimension::P);
-    Ekin             = DS->def<kids_real>("integrator.Ekin", Dimension::P);
-    Epot             = DS->def<kids_real>("integrator.Epot", Dimension::P);
-    Etot             = DS->def<kids_real>("integrator.Etot", Dimension::P);
-    Etot_prev        = DS->def<kids_real>("integrator.Etot_prev", Dimension::P);
-    E                = DS->def<kids_real>("model.rep.E", Dimension::PF);
-    m                = DS->def<kids_real>("integrator.m", Dimension::PN);
-    p                = DS->def<kids_real>("integrator.p", Dimension::PN);
-    succ_ptr         = DS->def<bool>("iter.succ");
-    last_attempt_ptr = DS->def<bool>("iter.last_attempt");
-    frez_ptr         = DS->def<bool>("iter.frez");
-    fail_type_ptr    = DS->def<int>("iter.fail_type");
+    vpes             = DS->def(DATA::model::vpes);
+    Ekin             = DS->def(DATA::integrator::Ekin);
+    Epot             = DS->def(DATA::integrator::Epot);
+    Etot             = DS->def(DATA::integrator::Etot);
+    Etot_init        = DS->def(DATA::init::Etot);
+    Etot_prev        = DS->def(DATA::last::Etot);
+    E                = DS->def(DATA::model::rep::E);
+    m                = DS->def(DATA::integrator::m);
+    p                = DS->def(DATA::integrator::p);
+    succ_ptr         = DS->def(DATA::iter::succ);
+    last_attempt_ptr = DS->def(DATA::iter::last_attempt);
+    frez_ptr         = DS->def(DATA::iter::frez);
+    fail_type_ptr    = DS->def(DATA::iter::fail_type);
 }
 
 void Kernel_Conserve::init_calc_impl(int stat) {
-    Etot_init = _DataSet->def("init.Etot", Etot, Dimension::P);
-
     bool conserve_scale_bak = conserve_scale;
     conserve_scale          = false;
     exec_kernel(stat);  // calc Epot

@@ -1,5 +1,6 @@
 #include "Model_NAD1D.h"
 
+#include "../core/vars_list.h"
 #include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 
@@ -573,8 +574,8 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
 
     if (nad1d_type == NAD1DPolicy::PURE) {
         std::ifstream ifs("Hsys.dat");
-        std::string H_unit_str;
-        std::string firstline;
+        std::string   H_unit_str;
+        std::string   firstline;
         getline(ifs, firstline);
         std::stringstream sstr(firstline);
         sstr >> H_unit_str;  ///< the firstline stores H's unit
@@ -587,32 +588,32 @@ void Model_NAD1D::init_data_impl(DataSet* DS) {
     }
 
     // model field
-    mass = DS->def<double>("model.mass", Dimension::N);
-    vpes = DS->def<double>("model.vpes");                 // not used
-    grad = DS->def<double>("model.grad", Dimension::N);   // not used
-    hess = DS->def<double>("model.hess", Dimension::NN);  // not used
-    V    = DS->def<double>("model.V", Dimension::FF);
-    dV   = DS->def<double>("model.dV", Dimension::NFF);
-    // ddV  = DS->def<double>("model.ddV", Dimension::Dimension::NNFF);
+    mass = DS->def<kids_real>("model.mass", Dimension::N);
+    vpes = DS->def<kids_real>("model.vpes");                 // not used
+    grad = DS->def<kids_real>("model.grad", Dimension::N);   // not used
+    hess = DS->def<kids_real>("model.hess", Dimension::NN);  // not used
+    V    = DS->def<kids_real>("model.V", Dimension::FF);
+    dV   = DS->def<kids_real>("model.dV", Dimension::NFF);
+    // ddV  = DS->def<kids_real>("model.ddV", Dimension::Dimension::NNFF);
 
-    x0      = DS->def<double>("model.x0", Dimension::N);
-    p0      = DS->def<double>("model.p0", Dimension::N);
-    x_sigma = DS->def<double>("model.x_sigma", Dimension::N);
-    p_sigma = DS->def<double>("model.p_sigma", Dimension::N);
+    x0      = DS->def<kids_real>("model.x0", Dimension::N);
+    p0      = DS->def<kids_real>("model.p0", Dimension::N);
+    x_sigma = DS->def<kids_real>("model.x_sigma", Dimension::N);
+    p_sigma = DS->def<kids_real>("model.p_sigma", Dimension::N);
 
     // init & integrator
-    x      = DS->def<double>("integrator.x", Dimension::N);
-    p      = DS->def<double>("integrator.p", Dimension::N);
+    x      = DS->def<kids_real>("integrator.x", Dimension::N);
+    p      = DS->def<kids_real>("integrator.p", Dimension::N);
     p_sign = DS->def<kids_complex>("integrator.p_sign", 2);
 
-    double x0_read = _Param->get<double>("x0grid", LOC(), -10.0e0);
-    int Nxgird     = _Param->get<int>("Nxgrid", LOC(), 101);
-    double dx      = (2 * abs(x0_read)) / (Nxgird - 1);
-    double* xgrid  = DS->def<double>("integrator.xgrid", Nxgird);
+    double  x0_read = _Param->get<double>("x0grid", LOC(), -10.0e0);
+    int     Nxgird  = _Param->get<int>("Nxgrid", LOC(), 101);
+    double  dx      = (2 * abs(x0_read)) / (Nxgird - 1);
+    double* xgrid   = DS->def<kids_real>("integrator.xgrid", Nxgird);
     for (int i = 0; i < Nxgird; ++i) xgrid[i] = -abs(x0_read) + i * dx;
 
-    DS->def<double>("init.x", Dimension::N);
-    DS->def<double>("init.p", Dimension::N);
+    DS->def<kids_real>("init.x", Dimension::N);
+    DS->def<kids_real>("init.p", Dimension::N);
 
     mass[0]     = _Param->get<double>("m0", LOC(), 2000.0e0);
     x0[0]       = _Param->get<double>("x0", LOC(), 100.0e0);

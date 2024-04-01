@@ -25,16 +25,16 @@ void Kernel_NADForce::read_param_impl(Param* PM) {
 };
 
 void Kernel_NADForce::init_data_impl(DataSet* DS) {
-    f        = DS->def<double>("integrator.f", Dimension::PN);
-    p        = DS->def<double>("integrator.p", Dimension::PN);
-    m        = DS->def<double>("integrator.m", Dimension::PN);
-    fadd     = DS->def<double>("integrator.fadd", Dimension::PN);
-    fproj    = DS->def<double>("integrator.tmp.fporj", Dimension::N);
-    grad     = DS->def<double>("model.grad", Dimension::PN);
-    dV       = DS->def<double>("model.dV", Dimension::PNFF);
-    dE       = DS->def<double>("model.rep.dE", Dimension::PNFF);
-    T        = DS->def<double>("model.rep.T", Dimension::PFF);
-    succ_ptr = DS->def<bool>("iter.succ");
+    f        = DS->def<kids_real>("integrator.f", Dimension::PN);
+    p        = DS->def<kids_real>("integrator.p", Dimension::PN);
+    m        = DS->def<kids_real>("integrator.m", Dimension::PN);
+    fadd     = DS->def<kids_real>("integrator.fadd", Dimension::PN);
+    fproj    = DS->def<kids_real>("integrator.tmp.fporj", Dimension::N);
+    grad     = DS->def<kids_real>("model.grad", Dimension::PN);
+    dV       = DS->def<kids_real>("model.dV", Dimension::PNFF);
+    dE       = DS->def<kids_real>("model.rep.dE", Dimension::PNFF);
+    T        = DS->def<kids_real>("model.rep.T", Dimension::PFF);
+    succ_ptr = DS->def<kids_bool>("iter.succ");
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:
@@ -52,7 +52,7 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
     if (!succ_ptr[0]) return 0;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
+        int*          occ_nuc = Kernel_Elec::occ_nuc + iP;
         kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
 
         kids_real* f     = this->f + iP * Dimension::N;
@@ -74,13 +74,13 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::inp_repr_type,
                                                  Kernel_Representation::nuc_repr_type, SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
-                    int& B  = FORCE_OPT::nbath;
-                    int& J  = FORCE_OPT::Nb;
-                    int JFF = J * Dimension::FF;
+                    int& B   = FORCE_OPT::nbath;
+                    int& J   = FORCE_OPT::Nb;
+                    int  JFF = J * Dimension::FF;
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
                         double* Forceb0 = Force + b0FF;
-                        double fb0      = std::real(ARRAY_TRACE2(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double  fb0     = std::real(ARRAY_TRACE2(rho_nuc, Forceb0, Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj] = fb0 * Force[bjbb] / Force[b0bb];
                         }
@@ -100,14 +100,14 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::inp_repr_type,
                                                  Kernel_Representation::nuc_repr_type, SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
-                    int& B  = FORCE_OPT::nbath;
-                    int& J  = FORCE_OPT::Nb;
-                    int JFF = J * Dimension::FF;
+                    int& B   = FORCE_OPT::nbath;
+                    int& J   = FORCE_OPT::Nb;
+                    int  JFF = J * Dimension::FF;
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
                         double* Forceb0 = Force + b0FF;
-                        double fb0      = Forceb0[(*occ_nuc) * Dimension::Fadd1];
-                        double fprojb0  = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double  fb0     = Forceb0[(*occ_nuc) * Dimension::Fadd1];
+                        double  fprojb0 = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj]     = fb0 * Force[bjbb] / Force[b0bb];
                             fproj[bj] = fprojb0 * Force[bjbb] / Force[b0bb];
@@ -137,14 +137,14 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F, Kernel_Representation::inp_repr_type,
                                                  Kernel_Representation::nuc_repr_type, SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
-                    int& B  = FORCE_OPT::nbath;
-                    int& J  = FORCE_OPT::Nb;
-                    int JFF = J * Dimension::FF;
+                    int& B   = FORCE_OPT::nbath;
+                    int& J   = FORCE_OPT::Nb;
+                    int  JFF = J * Dimension::FF;
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
                         double* Forceb0 = Force + b0FF;
-                        double fb0      = std::real(ARRAY_TRACE2_DIAG(rho_nuc, Forceb0, Dimension::F, Dimension::F));
-                        double fprojb0  = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double  fb0     = std::real(ARRAY_TRACE2_DIAG(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        double  fprojb0 = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj]     = fb0 * Force[bjbb] / Force[b0bb];
                             fproj[bj] = fprojb0 * Force[bjbb] / Force[b0bb];
@@ -187,8 +187,8 @@ int Kernel_NADForce::exec_kernel_impl(int stat) {
 NADForcePolicy::_type Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;
 
 namespace FORCE_OPT {
-int nbath                = 1;
-int Nb                   = 1;
+int  nbath               = 1;
+int  Nb                  = 1;
 bool BATH_FORCE_BILINEAR = false;
 };  // namespace FORCE_OPT
 

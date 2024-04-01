@@ -10,13 +10,13 @@ std::shared_ptr<Kernel> SolverFactory(const std::string& name, std::shared_ptr<K
     if (false) {
     } else if (name == "Hello") {
         // return Hello_SBuilder(kmodel);
-    } else if (name == "CMM" || name == "SQC" || name == "MMD" || name == "SH" || name == "CMSH" || name == "MMSH" ||
+    } else if (name == "CMM" || name == "SQC" || name == "MMD" || name == "SH" || name == "NAD" || name == "MMSH" ||
                name == "MCE") {
         return NAD_Kernel(kmodel, name);
     } else if (name == "NAF-adapt") {
-        return NAD_Adapt_Kernel(kmodel, "CMSH");
+        return NAD_Adapt_Kernel(kmodel, "NAD");
     } else if (name == "NAF-adaptM") {
-        return NAD_AdaptM_Kernel(kmodel, "CMSH");
+        return NAD_AdaptM_Kernel(kmodel, "NAD");
     } else {
         throw std::runtime_error("unknown solver name");
     }

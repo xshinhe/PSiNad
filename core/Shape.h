@@ -13,8 +13,9 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is part of the research conducted by the Prof. Liu's Group at the
- *  College of Chemistry and Molecular Engineering (CCME), Peking University.
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
  *  You should have received a copy of the GNU Lesser General Public License along
  *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
  **********************************************************************************
@@ -76,6 +77,8 @@ class Shape {
         if (enable_dynamic) update();
         return _size;
     }
+
+    inline int operator()() { return _size; }
 
     inline std::vector<std::size_t>& dims() {
         if (enable_dynamic) update();

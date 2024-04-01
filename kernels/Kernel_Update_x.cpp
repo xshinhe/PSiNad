@@ -22,7 +22,7 @@ void Kernel_Update_x::init_data_impl(DataSet* DS) {
     m               = DS->def<kids_real>("integrator.m", Dimension::PN);
     minv            = DS->def<kids_real>("integrator.minv", Dimension::PN);
     kids_real* mass = DS->def<kids_real>("model.mass", Dimension::N);
-    frez_ptr        = DS->def<bool>("iter.frez");
+    frez_ptr        = DS->def<kids_bool>("iter.frez");
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* m    = this->m + iP * Dimension::N;
         kids_real* minv = this->minv + iP * Dimension::N;

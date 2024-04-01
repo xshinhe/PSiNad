@@ -29,7 +29,7 @@ class Handler final {
 
     int run_help_param(Param* PM) { return 0; }
 
-    int run_help_dataset(Param* PM) { return 0; }
+    int run_help_dataset(Param* PM);  // { return 0; }
 
    private:
     std::shared_ptr<Kernel> model;

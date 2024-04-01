@@ -1,5 +1,7 @@
 #include "Kernel_Declare.h"
 
+#include "../core/vars_list.h"
+
 namespace PROJECT_NS {
 
 namespace Dimension {
@@ -26,6 +28,30 @@ void Kernel_Declare::read_param_impl(Param* PM) {
     Dimension::P = PM->get<int>("P", LOC(), Dimension::P);
     Dimension::N = PM->get<int>("N", LOC(), Dimension::N);
     Dimension::F = PM->get<int>("F", LOC(), Dimension::F);
+
+    DATA::_M = PM->get<int>("M", LOC(), 1);
+    DATA::_P = PM->get<int>("P", LOC(), 1);
+    DATA::_N = PM->get<int>("N", LOC(), DATA::_N);
+    DATA::_F = PM->get<int>("F", LOC(), DATA::_F);
+
+    DATA::shape_M.static_build();
+    DATA::shape_P.static_build();
+    DATA::shape_N.static_build();
+    DATA::shape_F.static_build();
+    DATA::shape_Fadd1.static_build();
+
+    DATA::shape_MP.static_build();
+    DATA::shape_PP.static_build();
+    DATA::shape_PN.static_build();
+    DATA::shape_PNN.static_build();
+    DATA::shape_PF.static_build();
+    DATA::shape_PFF.static_build();
+    DATA::shape_PNFF.static_build();
+    DATA::shape_NF.static_build();
+    DATA::shape_NN.static_build();
+    DATA::shape_FF.static_build();
+    DATA::shape_NFF.static_build();
+    DATA::shape_NNFF.static_build();
 
     //
     // auxiliary dimension

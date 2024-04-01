@@ -21,7 +21,7 @@ void Kernel_Update_p::init_data_impl(DataSet* DS) {
     p        = DS->def<kids_real>("integrator.p", Dimension::PN);
     minv     = DS->def<kids_real>("integrator.minv", Dimension::PN);
     Ekin     = DS->def<kids_real>("integrator.Ekin", Dimension::P);
-    frez_ptr = DS->def<bool>("iter.frez");
+    frez_ptr = DS->def<kids_bool>("iter.frez");
 }
 
 void Kernel_Update_p::init_calc_impl(int stat) {

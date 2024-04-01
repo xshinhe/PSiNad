@@ -14,8 +14,9 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is part of the research conducted by the Prof. Liu's Group at the
- *  College of Chemistry and Molecular Engineering (CCME), Peking University.
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
  *  You should have received a copy of the GNU Lesser General Public License along
  *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
  **********************************************************************************
@@ -62,6 +63,7 @@
 #include "Exception.h"
 #include "Shape.h"
 #include "Types.h"
+#include "Variable.h"
 #include "concat.h"
 
 namespace PROJECT_NS {
@@ -214,6 +216,11 @@ class DataSet final : public Node {
         if (inode->type() == kids_dataset_type)
             throw std::runtime_error(std::string{key_in} + " : failed copying dataset");
         return def<T>(key, (T*) inode->data(), inode->size(), info);
+    }
+
+    template <typename T>
+    T* def(VARIABLE<T>& var) {
+        return def<T>(var.name(), var.shape(), var.doc());
     }
 
     template <typename T>

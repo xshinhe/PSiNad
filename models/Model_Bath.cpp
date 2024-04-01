@@ -30,7 +30,7 @@ int Model_Bath::fun_Cw(kids_complex* Cw, double* w, int Nw, double* w_arr, doubl
         if (w[i] != 0) {
             double sum = 0.0e0, tmp = 1.0e0, Cp, Cm;
             double wp = w[i], wm = w[i];
-            int k = 0;
+            int    k = 0;
             while (std::abs(tmp) > 1.0e-6 || std::abs(tmp / sum) > 1.0e-8) {
                 wp += dw, wm -= dw, k++;
                 Cp  = (wp == 0) ? C0_Re : J(wp, w_arr, c_arr, Nb) * (1 + 1 / (exp(beta * wp) - 1.0f));
@@ -79,8 +79,8 @@ void Model_Bath::read_param_impl(Param* PM) {
 }
 
 void Model_Bath::init_data_impl(DataSet* DS) {
-    omegas = DS->def<double>("model.bath.omegas", Nb);
-    coeffs = DS->def<double>("model.bath.coeffs", Nb);
+    omegas = DS->def<kids_real>("model.bath.omegas", Nb);
+    coeffs = DS->def<kids_real>("model.bath.coeffs", Nb);
     switch (bath_type) {
         case BathPolicy::Debye: {
             for (int j = 0; j < Nb; ++j) {
@@ -105,7 +105,7 @@ void Model_Bath::init_data_impl(DataSet* DS) {
         case BathPolicy::ReadFile:  // #b850, #pbi, #rub
         default: {
             try {
-                std::string bath_readfile = _Param->get<std::string>("bath_readfile", LOC(), "bath.spectrum");
+                std::string   bath_readfile = _Param->get<std::string>("bath_readfile", LOC(), "bath.spectrum");
                 std::ifstream ifs(bath_readfile);
 
                 std::string firstline, unit_str1, unit_str2, DIS_FLAG;
@@ -144,8 +144,8 @@ void Model_Bath::init_data_impl(DataSet* DS) {
         }
     }
 
-    x_sigma = DS->def<double>("model.bath.x_sigma", Nb);
-    p_sigma = DS->def<double>("model.bath.p_sigma", Nb);
+    x_sigma = DS->def<kids_real>("model.bath.x_sigma", Nb);
+    p_sigma = DS->def<kids_real>("model.bath.p_sigma", Nb);
     for (int j = 0; j < Nb; ++j) {
         /* note:
             for finite temperature: Qoverbeta = 0.5*freq / dtanh(0.5*beta*freq)

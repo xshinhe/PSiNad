@@ -277,19 +277,19 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
             break;
         }
         case LVCMPolicy::Read: {
-            std::string lvcm_readfile = _Param->get<std::string>("lvcm_readfile", LOC(), "lvcm.dat");
+            std::string   lvcm_readfile = _Param->get<std::string>("lvcm_readfile", LOC(), "lvcm.dat");
             std::ifstream ifs(lvcm_readfile);
-            std::string H_unit_str;
-            std::string firstline;
+            std::string   H_unit_str;
+            std::string   firstline;
             getline(ifs, firstline);
             std::stringstream sstr(firstline);
             sstr >> H_unit_str;  ///< the firstline stores H's unit
             double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
 
             // read E
-            int dsize;
+            int         dsize;
             std::string flag;
-            double val;
+            double      val;
             ifs >> flag >> dsize;
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1)
                 if (ifs >> val) Hsys[ii] = val / H_unit;
@@ -320,18 +320,18 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
     }
 
     /// 2) init Bath sub-kernel (declaration & call)
-    x_0     = DS->def<kids_real>("model.x_0", Dimension::N);
-    p_0     = DS->def<kids_real>("model.p_0", Dimension::N);
-    x_sigma = DS->def<double>("model.x_sigma", Dimension::N);
-    p_sigma = DS->def<double>("model.p_sigma", Dimension::N);
+    x0      = DS->def<kids_real>("model.x0", Dimension::N);
+    p0      = DS->def<kids_real>("model.p0", Dimension::N);
+    x_sigma = DS->def<kids_real>("model.x_sigma", Dimension::N);
+    p_sigma = DS->def<kids_real>("model.p_sigma", Dimension::N);
     switch (lvcm_type) {
         case LVCMPolicy::CRC2:
         case LVCMPolicy::CRC5: {
             double reqb[5] = {0.0f, 14.3514f, -9.9699f, -7.0189f, 0.0f};
             double alpw[5] = {0.4501f, 0.4286f, 0.6204f, 0.4535f, 0.5539f};
             for (int j = 0; j < Dimension::N; ++j) {
-                x_0[j]     = reqb[j] / sqrt(w[j]);
-                p_0[j]     = 0.0f;
+                x0[j]      = reqb[j] / sqrt(w[j]);
+                p0[j]      = 0.0f;
                 x_sigma[j] = alpw[j] / sqrt(w[j]);
                 p_sigma[j] = 0.5f * sqrt(w[j]) / alpw[j];
             }
@@ -339,8 +339,8 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
         }
         default: {
             for (int j = 0; j < Dimension::N; ++j) {
-                x_0[j]     = 0.0f;
-                p_0[j]     = 0.0f;
+                x0[j]      = 0.0f;
+                p0[j]      = 0.0f;
                 x_sigma[j] = sqrt(0.5f / w[j]);
                 p_sigma[j] = sqrt(0.5f * w[j]);
             }
@@ -349,18 +349,18 @@ void Model_LVCM::init_data_impl(DataSet *DS) {
     }
 
     // model field
-    mass = DS->def<double>("model.mass", Dimension::N);
+    mass = DS->def<kids_real>("model.mass", Dimension::N);
     for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
-    vpes = DS->def<double>("model.vpes", Dimension::P);
-    grad = DS->def<double>("model.grad", Dimension::PN);
-    hess = DS->def<double>("model.hess", Dimension::PNN);
-    V    = DS->def<double>("model.V", Dimension::PFF);
-    dV   = DS->def<double>("model.dV", Dimension::PNFF);
-    // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
+    vpes = DS->def<kids_real>("model.vpes", Dimension::P);
+    grad = DS->def<kids_real>("model.grad", Dimension::PN);
+    hess = DS->def<kids_real>("model.hess", Dimension::PNN);
+    V    = DS->def<kids_real>("model.V", Dimension::PFF);
+    dV   = DS->def<kids_real>("model.dV", Dimension::PNFF);
+    // ddV  = DS->def<kids_real>("model.ddV", Dimension::NNFF);
 
     // init & integrator
-    x = DS->def<double>("integrator.x", Dimension::PN);
-    p = DS->def<double>("integrator.p", Dimension::PN);
+    x = DS->def<kids_real>("integrator.x", Dimension::PN);
+    p = DS->def<kids_real>("integrator.p", Dimension::PN);
 }
 
 void Model_LVCM::init_calc_impl(int stat) {
@@ -372,11 +372,11 @@ void Model_LVCM::init_calc_impl(int stat) {
         Kernel_Random::rand_gaussian(p, Dimension::N);
         for (int j = 0; j < Dimension::N; ++j) {
             if (classical_bath) {
-                x[j] = x_0[j];
-                p[j] = p_0[j];
+                x[j] = x0[j];
+                p[j] = p0[j];
             } else {
-                x[j] = x_0[j] + x[j] * x_sigma[j];
-                p[j] = p_0[j] + p[j] * p_sigma[j];
+                x[j] = x0[j] + x[j] * x_sigma[j];
+                p[j] = p0[j] + p[j] * p_sigma[j];
             }
         }
     }

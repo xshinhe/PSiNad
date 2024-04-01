@@ -43,14 +43,14 @@ int Handler::run(Param* PM) {
 
 int Handler::run_single(Param* PM) {
     DataSet DS;
-    auto begin = std::chrono::steady_clock::now();
+    auto    begin = std::chrono::steady_clock::now();
     {
         solver->read_param(PM);
         solver->init_data(&DS);
         solver->init_calc();
         solver->exec_kernel();
     }
-    auto end          = std::chrono::steady_clock::now();
+    auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();
 
     std::cout << solver->scheme(total_time);
@@ -60,7 +60,7 @@ int Handler::run_single(Param* PM) {
 
 int Handler::run_single_mpi(Param* PM) {
     DataSet DS;
-    auto begin = std::chrono::steady_clock::now();
+    auto    begin = std::chrono::steady_clock::now();
     {
         MPI_Guard guard{};
         MPI_Barrier(MPI_COMM_WORLD);
@@ -70,7 +70,7 @@ int Handler::run_single_mpi(Param* PM) {
         solver->init_calc();
         solver->exec_kernel();
     }
-    auto end          = std::chrono::steady_clock::now();
+    auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();
 
     std::cout << solver->scheme(total_time);
@@ -80,25 +80,25 @@ int Handler::run_single_mpi(Param* PM) {
 
 int Handler::run_parallel(Param* PM) {
     DataSet DS;
-    auto begin = std::chrono::steady_clock::now();
+    auto    begin = std::chrono::steady_clock::now();
     {
         solver->read_param(PM);
         solver->init_data(&DS);
         solver->init_calc(0);  // required!!!
 
-        auto& corr     = Kernel_Record::get_correlation();
-        int nframe     = corr.frame;
-        int nsize      = corr.size;
-        int total_size = corr.size * corr.frame;
+        auto& corr       = Kernel_Record::get_correlation();
+        int   nframe     = corr.frame;
+        int   nsize      = corr.size;
+        int   total_size = corr.size * corr.frame;
 
         Result corr_sum(corr);
         Result corr_mpi(corr);
 
-        int M = PM->get<int>("M", LOC(), 1);
-        int istart, iend;
-        std::string directory = PM->get<std::string>("directory", LOC(), "default");
-        bool write_init       = PM->get<bool>("write_init", LOC(), false);
-        bool write_final      = PM->get<bool>("write_final", LOC(), false);
+        int         M = PM->get<int>("M", LOC(), 1);
+        int         istart, iend;
+        std::string directory   = PM->get<std::string>("directory", LOC(), "default");
+        bool        write_init  = PM->get<bool>("write_init", LOC(), false);
+        bool        write_final = PM->get<bool>("write_final", LOC(), false);
 
         MPI_Guard guard{};
         MPI_Barrier(MPI_COMM_WORLD);
@@ -175,7 +175,7 @@ int Handler::run_parallel(Param* PM) {
             corr_mpi.save(utils::concat(directory, "/corr.dat"), 0, -1, true);
         }
     }
-    auto end          = std::chrono::steady_clock::now();
+    auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();
 
     // report time cost
@@ -188,7 +188,7 @@ int Handler::run_parallel(Param* PM) {
 
 int Handler::run_sampling(Param* PM) {
     DataSet DS;
-    auto begin = std::chrono::steady_clock::now();
+    auto    begin = std::chrono::steady_clock::now();
     {
         solver->read_param(PM);
         solver->init_data(&DS);
@@ -209,7 +209,7 @@ int Handler::run_sampling(Param* PM) {
             solver->init_calc(icycle);
         }
     }
-    auto end          = std::chrono::steady_clock::now();
+    auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();
 
     // report time cost
@@ -219,5 +219,15 @@ int Handler::run_sampling(Param* PM) {
     }
     return 0;
 }
+
+int Handler::run_help_dataset(Param* PM) {
+    {
+        for (auto&& i : VARIABLE_BASE::_LIST) {  //
+            std::cout << i->name() << ", " << i->doc() << "\n";
+        }
+    }
+    return 0;
+}
+
 
 };  // namespace PROJECT_NS

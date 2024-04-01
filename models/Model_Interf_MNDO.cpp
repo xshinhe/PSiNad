@@ -48,40 +48,40 @@ void Model_Interf_MNDO::read_param_impl(Param* PM) {
 }
 
 void Model_Interf_MNDO::init_data_impl(DataSet* DS) {
-    x = DS->def<double>("integrator.x", Dimension::N);
-    p = DS->def<double>("integrator.p", Dimension::N);
+    x = DS->def<kids_real>("integrator.x", Dimension::N);
+    p = DS->def<kids_real>("integrator.p", Dimension::N);
 
-    x0      = DS->def<double>("model.x0", Dimension::N);
-    p0      = DS->def<double>("model.p0", Dimension::N);
-    w       = DS->def<double>("model.w", Dimension::N);
-    x_sigma = DS->def<double>("model.x_sigma", Dimension::N);
-    p_sigma = DS->def<double>("model.p_sigma", Dimension::N);
+    x0      = DS->def<kids_real>("model.x0", Dimension::N);
+    p0      = DS->def<kids_real>("model.p0", Dimension::N);
+    w       = DS->def<kids_real>("model.w", Dimension::N);
+    x_sigma = DS->def<kids_real>("model.x_sigma", Dimension::N);
+    p_sigma = DS->def<kids_real>("model.p_sigma", Dimension::N);
 
     // model field
-    atoms = DS->def<int>("model.atoms", Dimension::N);
-    mass  = DS->def<double>("model.mass", Dimension::N);
-    vpes  = DS->def<double>("model.vpes");
-    grad  = DS->def<double>("model.grad", Dimension::N);
-    hess  = DS->def<double>("model.hess", Dimension::NN);
-    Tmod  = DS->def<double>("model.Tmod", Dimension::NN);
-    f_r   = DS->def<double>("model.f_r", nciref);
-    f_p   = DS->def<double>("model.f_p", nciref);
-    f_rp  = DS->def<double>("model.f_rp", nciref);
+    atoms = DS->def<kids_int>("model.atoms", Dimension::N);
+    mass  = DS->def<kids_real>("model.mass", Dimension::N);
+    vpes  = DS->def<kids_real>("model.vpes");
+    grad  = DS->def<kids_real>("model.grad", Dimension::N);
+    hess  = DS->def<kids_real>("model.hess", Dimension::NN);
+    Tmod  = DS->def<kids_real>("model.Tmod", Dimension::NN);
+    f_r   = DS->def<kids_real>("model.f_r", nciref);
+    f_p   = DS->def<kids_real>("model.f_p", nciref);
+    f_rp  = DS->def<kids_real>("model.f_rp", nciref);
 
-    V  = DS->def<double>("model.V", Dimension::FF);
-    dV = DS->def<double>("model.dV", Dimension::NFF);
-    // ddV  = DS->def<double>("model.ddV", Dimension::NNFF);
-    E  = DS->def<double>("model.rep.E", Dimension::F);
-    T  = DS->def<double>("model.rep.T", Dimension::FF);  // diabatic-to-adiabatic matrix. set to I as default
-    dE = DS->def<double>("model.rep.dE", Dimension::NFF);
-    // ddE  = DS->def<double>("model.rep.ddE", Dimension::NNFF);
-    nac      = DS->def<double>("model.rep.nac", Dimension::NFF);
-    nac_prev = DS->def<double>("model.rep.nac_prev", Dimension::NFF);
+    V  = DS->def<kids_real>("model.V", Dimension::FF);
+    dV = DS->def<kids_real>("model.dV", Dimension::NFF);
+    // ddV  = DS->def<kids_real>("model.ddV", Dimension::NNFF);
+    E  = DS->def<kids_real>("model.rep.E", Dimension::F);
+    T  = DS->def<kids_real>("model.rep.T", Dimension::FF);  // diabatic-to-adiabatic matrix. set to I as default
+    dE = DS->def<kids_real>("model.rep.dE", Dimension::NFF);
+    // ddE  = DS->def<kids_real>("model.rep.ddE", Dimension::NNFF);
+    nac      = DS->def<kids_real>("model.rep.nac", Dimension::NFF);
+    nac_prev = DS->def<kids_real>("model.rep.nac_prev", Dimension::NFF);
 
-    succ_ptr         = DS->def<bool>("iter.succ");
-    last_attempt_ptr = DS->def<bool>("iter.last_attempt");
-    frez_ptr         = DS->def<bool>("iter.frez");
-    fail_type_ptr    = DS->def<int>("iter.fail_type");
+    succ_ptr         = DS->def<kids_bool>("iter.succ");
+    last_attempt_ptr = DS->def<kids_bool>("iter.last_attempt");
+    frez_ptr         = DS->def<kids_bool>("iter.frez");
+    fail_type_ptr    = DS->def<kids_int>("iter.fail_type");
 
     for (int i = 0, ik = 0; i < Dimension::F; ++i) {
         for (int k = 0; k < Dimension::F; ++k, ++ik) T[ik] = (i == k) ? 1.0e0 : 0.0e0;
@@ -185,7 +185,7 @@ void Model_Interf_MNDO::init_calc_impl(int stat) {
         std::string open_file = init_nuclinp;
         if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat, ".ds");
 
-        std::string stmp, eachline;
+        std::string   stmp, eachline;
         std::ifstream ifs(open_file);
         while (getline(ifs, eachline)) {
             if (eachline.find("init.x") != eachline.npos) {
@@ -238,7 +238,7 @@ int Model_Interf_MNDO::exec_kernel_impl(int stat_in) {
     new_task(utils::concat(directory, "/", inpfile), control_copy);
 
     std::string cmd_exe = utils::concat("cd ", directory, " && ", exec_file, " < ", inpfile, " > ", outfile);
-    int stat            = system(cmd_exe.c_str());
+    int         stat    = system(cmd_exe.c_str());
 
     parse_standard(utils::concat(directory, "/", outfile), stat_in);  // parse in MNDO's units
 
@@ -290,15 +290,15 @@ int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
     std::stringstream mndo_comment_sstr;
     std::stringstream mndo_addition_sstr;
 
-    int count_atom = 0;
+    int           count_atom = 0;
     std::ifstream ifs(mndoinp);
-    std::string eachline;
+    std::string   eachline;
     while (getline(ifs, eachline)) {
         eachline.erase(eachline.find_last_not_of(" ") + 1);  // remove last blank
         switch (istage) {
             case KEYWORD: {
                 mndo_keyword_sstr << eachline << std::endl;
-                std::string data, key, val;
+                std::string        data, key, val;
                 std::istringstream input(eachline);
                 while (input >> data) {
                     if (data == "+") continue;
@@ -324,8 +324,8 @@ int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
                 break;
             }
             case DATA: {
-                int ndata = 0;
-                std::string data, databuf[16];
+                int                ndata = 0;
+                std::string        data, databuf[16];
                 std::istringstream input(eachline);
                 while (input >> data) databuf[ndata++] = data;
                 if (std::stoi(databuf[0]) != 0) {
@@ -360,8 +360,8 @@ int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
  */
 std::string Model_Interf_MNDO::new_keyword(const MNDOKW_map& newkeyword) {
     std::stringstream sstr;
-    int i                  = 0;
-    const int ntermperline = 8;
+    int               i            = 0;
+    const int         ntermperline = 8;
     for (auto iter = keyword.begin(); iter != keyword.end(); ++iter, ++i) {
         MNDOKW& kw = *iter;
         if (i != 0 && i % ntermperline == 0) sstr << "+" << std::endl;
@@ -403,8 +403,8 @@ int Model_Interf_MNDO::new_task(const std::string& file, const std::string& task
         revised_keyword = mndo_keyword;
     }
 
-    revised_addition  = mndo_addition;
-    const int fixflag = 0;
+    revised_addition      = mndo_addition;
+    const int     fixflag = 0;
     std::ofstream ofs(file);
     ofs << revised_keyword;
     ofs << mndo_comment;
@@ -433,10 +433,10 @@ int Model_Interf_MNDO::track_nac_sign() {
                 if (i == j) continue;
 
                 const double norm_eps = 10e-14;
-                double norm_old       = 0.0f;
-                double norm_new       = 0.0f;
-                double cosangle       = 0.0f;
-                int IJ                = i * Dimension::F + j;
+                double       norm_old = 0.0f;
+                double       norm_new = 0.0f;
+                double       cosangle = 0.0f;
+                int          IJ       = i * Dimension::F + j;
                 for (int k = 0, idx = IJ; k < Dimension::N; ++k, idx += Dimension::FF) {
                     norm_old += nac_prev[idx] * nac_prev[idx];
                     norm_new += nac[idx] * nac[idx];
@@ -480,8 +480,8 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
     int istate, jstate;
 
     std::ifstream ifs(log);
-    std::string stmp, eachline;
-    std::string ERROR_MSG = "";
+    std::string   stmp, eachline;
+    std::string   ERROR_MSG = "";
     while (getline(ifs, eachline, '\n')) {
         if (eachline.find("ERROR") != eachline.npos || eachline.find("UNABLE") != eachline.npos) {
             ERROR_MSG += eachline;
@@ -576,8 +576,8 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
         fail_type_ptr[0] = 1;
         std::cout << "fail in calling MNDO! " << ERROR_MSG << "\n";
 
-        int* istep_ptr      = _DataSet->def<int>("iter.istep");
-        std::string cmd_exe = utils::concat("cp ", directory, "/.mndoinp.", stat_in, "  ", directory, "/.mndoinp.",
+        int*        istep_ptr = _DataSet->def<kids_int>("iter.istep");
+        std::string cmd_exe   = utils::concat("cp ", directory, "/.mndoinp.", stat_in, "  ", directory, "/.mndoinp.",
                                             stat_in, ".err.", istep_ptr[0]);
         system(cmd_exe.c_str());
         cmd_exe = utils::concat("cp ", directory, "/.mndoout.", stat_in, "  ", directory, "/.mndoout.", stat_in,
@@ -608,12 +608,12 @@ int Model_Interf_MNDO::parse_hessian(const std::string& log) {
     ARRAY_CLEAR(Tmod, Dimension::NN);
 
     std::string stmp, eachline;
-    int v1 = Dimension::N / 10, v2 = Dimension::N % 10, eqstat = 0, itmp;
-    double dtmp = 0.0f;
+    int         v1 = Dimension::N / 10, v2 = Dimension::N % 10, eqstat = 0, itmp;
+    double      dtmp = 0.0f;
     while (getline(ifs, eachline)) {
         if (eachline.find("GRADIENT NORM =") != eachline.npos) {
-            double norm;
-            std::string stmp;
+            double             norm;
+            std::string        stmp;
             std::istringstream sstr(eachline);
             sstr >> stmp >> stmp >> stmp >> norm;
             eqstat = (norm < 10.0f) ? 0 : -1;
@@ -680,8 +680,8 @@ int Model_Interf_MNDO::parse_hessian2(const std::string& molden_file) {
     ARRAY_CLEAR(Tmod, Dimension::NN);
 
     std::string stmp, eachline;
-    int itmp;
-    double dtmp = 0.0f;
+    int         itmp;
+    double      dtmp = 0.0f;
     while (getline(ifs, eachline)) {
         if (eachline.find("[FREQ]") != eachline.npos) {
             for (int j = 6; j < Dimension::N; ++j) {
@@ -735,7 +735,7 @@ int Model_Interf_MNDO::calc_normalmode() {
      */
     int ntime = 50;                              // report 50 points in [0,2*pi] period
     for (int iw = 0; iw < Dimension::N; ++iw) {  // iw-the mode
-        std::string save = "normalmode";
+        std::string   save = "normalmode";
         std::ofstream ofs(save + std::to_string(iw) + ".xyz");
         for (int itime = 0; itime < ntime; ++itime) {  // itime
             for (int i = 0; i < Dimension::N; ++i) {
@@ -865,8 +865,8 @@ int Model_Interf_MNDO::calc_samp() {
 }
 
 int Model_Interf_MNDO::calc_scan() {
-    int istep = 0, readn;
-    kids_real tmp;
+    int         istep = 0, readn;
+    kids_real   tmp;
     std::string eachline;
 
     // savefile_traj = utils::concat("traj-", 0, ".xyz");

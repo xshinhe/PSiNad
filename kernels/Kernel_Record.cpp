@@ -89,11 +89,11 @@ void Kernel_Record::read_param_impl(Param* PM) {
 }
 
 void Kernel_Record::init_data_impl(DataSet* DS) {
-    istep_ptr                     = DS->def<int>("iter.istep");
-    sstep_ptr                     = DS->def<int>("iter.sstep");
-    isamp_ptr                     = DS->def<int>("iter.isamp");
-    nsamp_ptr                     = DS->def<int>("iter.nsamp");
-    at_samplingstep_initially_ptr = DS->def<bool>("iter.at_samplingstep_initially");
+    istep_ptr                     = DS->def<kids_int>("iter.istep");
+    sstep_ptr                     = DS->def<kids_int>("iter.sstep");
+    isamp_ptr                     = DS->def<kids_int>("iter.isamp");
+    nsamp_ptr                     = DS->def<kids_int>("iter.nsamp");
+    at_samplingstep_initially_ptr = DS->def<kids_bool>("iter.at_samplingstep_initially");
 }
 
 inline std::string contacted_hdr(const std::string& s1, int i1, const std::string& s2, int i2) {
@@ -140,8 +140,8 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
 
             Record_List.push_back(item_tmp);
 
-            auto& f1          = Formula::GLOBAL[item_tmp.fml_ID0];
-            auto& f2          = Formula::GLOBAL[item_tmp.fml_IDt];
+            auto&      f1     = Formula::GLOBAL[item_tmp.fml_ID0];
+            auto&      f2     = Formula::GLOBAL[item_tmp.fml_IDt];
             kids_dtype f_type = (f1.get_res_type() == kids_real_type && f2.get_res_type() == kids_real_type)
                                     ? kids_real_type
                                     : kids_complex_type;
@@ -188,8 +188,8 @@ void Kernel_Record::token_object(Result& correlation, Param::JSON& j) {  // @rec
 }
 
 void Kernel_Record::init_calc_impl(int stat) {
-    bool not_parsed = Record_List.size() == 0;
-    auto& json      = *(_Param->pjson());
+    bool  not_parsed = Record_List.size() == 0;
+    auto& json       = *(_Param->pjson());
     if (not_parsed && json.count("result") == 1 && json["result"].is_array()) {
         Result& correlation = get_correlation();
         correlation.size    = 0;

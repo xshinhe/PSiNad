@@ -12,7 +12,7 @@ class Model_HO final : public Kernel {
     inline virtual const std::string name() { return "Model_HO"; }
 
    private:
-    int size;
+    int     size;
     double *x, *p;
     double *x_init, *p_init;
     double *f;
@@ -27,16 +27,16 @@ class Model_HO final : public Kernel {
 
     virtual void init_data_impl(DataSet *DS) {
         // external
-        x = DS->def<double>("integrator.x", size);
-        p = DS->def<double>("integrator.p", size);
-        f = DS->def<double>("integrator.f", size);
+        x = DS->def<kids_real>("integrator.x", size);
+        p = DS->def<kids_real>("integrator.p", size);
+        f = DS->def<kids_real>("integrator.f", size);
 
-        x_init = DS->def<double>("init.x", size);
-        p_init = DS->def<double>("init.p", size);
+        x_init = DS->def<kids_real>("init.x", size);
+        p_init = DS->def<kids_real>("init.p", size);
 
         // shared
-        w = DS->def<double>("model.w", size);
-        m = DS->def<double>("model.m", size);
+        w = DS->def<kids_real>("model.w", size);
+        m = DS->def<kids_real>("model.mass", size);
         for (int i = 0; i < size; ++i) m[i] = 1, w[i] = 1;
     }
 
@@ -70,7 +70,7 @@ class MODEL_MD1D final : public Kernel {
     inline virtual const std::string name() { return "MODEL_MD1D"; }
 
    private:
-    int size;
+    int     size;
     double *x, *f;
     double *m, *w;
 
@@ -80,11 +80,11 @@ class MODEL_MD1D final : public Kernel {
 
     virtual void init_data_impl(DataSet *DS) {
         // external
-        x = DS->def<double>("integrator.x", size);
-        f = DS->def<double>("integrator.f", size);
+        x = DS->def<kids_real>("integrator.x", size);
+        f = DS->def<kids_real>("integrator.f", size);
         // shared
-        w = DS->def<double>("model.w", size);
-        m = DS->def<double>("model.m", size);
+        w = DS->def<kids_real>("model.w", size);
+        m = DS->def<kids_real>("model.mass", size);
         for (int i = 0; i < size; ++i) m[i] = 1, w[i] = 1;
     }
 
