@@ -13,6 +13,7 @@
 #define Kernel_Elec_Utils_H
 
 #include "../core/Kernel.h"
+#include "../core/vars_list.h"
 #include "Kernel_Elec.h"
 #include "Kernel_Random.h"
 

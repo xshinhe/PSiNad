@@ -1,18 +1,9 @@
 #include "Kernel_Record.h"
 
+#include "../core/Einsum.h"
 #include "../core/Formula.h"
 #include "../core/linalg.h"
 #include "../core/vars_list.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
 
 namespace PROJECT_NS {
 
@@ -163,6 +154,174 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
     }
 }
 
+struct VarItem {
+   public:
+    VarItem(const std::string& input, DataSet* DS, bool def_in = true) : input{input} {
+        std::string            str = input;
+        std::string::size_type ipos;
+
+        ipos = str.find(":");
+        type = (ipos == std::string::npos) ? "" : str.substr(ipos + 1, str.size());
+        str  = str.substr(0, ipos);
+
+        ipos  = str.find("<");
+        index = (ipos == std::string::npos) ? "" : str.substr(ipos + 1, str.size());
+        index.erase(index.find_last_not_of(">") + 1);
+        str = str.substr(0, ipos);
+
+        ipos  = str.find("{");
+        field = (ipos == std::string::npos) ? "" : str.substr(ipos + 1, str.size());
+        field.erase(field.find_last_not_of("}") + 1);
+        name = str.substr(0, ipos);
+
+        ipos  = field.find("@");
+        time  = (ipos == std::string::npos) ? "" : field.substr(ipos + 1, str.size());
+        field = (ipos == std::string::npos) ? field : field.substr(0, ipos);
+
+        if (field == "I") field = "integrator";
+        if (field == "M") field = "model";
+        if (field == "R") field = "result";
+        if (field == "" && def_in) field = "integrator";
+        if (field == "" && !def_in) field = "result";
+        if (time == "" || time == "T") time = "t";
+        if (def_in) def(DS);
+    }
+
+    void def(DataSet* DS) {
+        std::string key                = utils::concat(field, ".", name);
+        std::tie(_type, _data, _shape) = DS->obtain(key);
+    }
+
+    std::string input;
+    std::string name;
+    std::string field;
+    std::string index;
+    std::string type;
+    std::string time;
+    kids_dtype  _type;
+    void*       _data;
+    Shape*      _shape;
+};
+
+struct Record_Rule {
+    Record_Rule(const std::string& rule, DataSet* DS, const std::string& mode = "average",
+                const std::string& save = "res.dat")
+        : rule{rule}, mode{mode}, save{save} {
+        std::string res0_str;
+        std::string vars_str;
+        std::string item_str;
+
+        // here "=" is the separator
+        auto ipos = rule.find("=");
+        vars_str  = rule.substr(0, ipos);
+        expr_str  = rule.substr(ipos + 1, rule.size());
+        expr_str.erase(0, expr_str.find_first_not_of(" "));
+        expr_str.erase(expr_str.find_last_not_of(" ") + 1);
+
+        // here "(,)" are the separators
+        ipos     = vars_str.find("(");
+        res0_str = vars_str.substr(0, ipos);
+        res0_str.erase(0, res0_str.find_first_not_of(" "));
+        res0_str.erase(res0_str.find_last_not_of(" ") + 1);
+        _res.push_back(VarItem(res0_str, DS, false));
+
+        vars_str = vars_str.substr(ipos + 1, vars_str.size());
+        while ((ipos = vars_str.find(",")) != std::string::npos) {
+            item_str = vars_str.substr(0, ipos);
+            item_str.erase(0, item_str.find_first_not_of(" "));
+            item_str.erase(item_str.find_last_not_of(" ") + 1);
+            vars_str = vars_str.substr(ipos + 1, vars_str.size());
+            vars.push_back(VarItem(item_str, DS));
+        }
+        ipos     = vars_str.find(")");
+        item_str = vars_str.substr(0, ipos);
+        item_str.erase(0, item_str.find_first_not_of(" "));
+        item_str.erase(item_str.find_last_not_of(" ") + 1);
+        vars.push_back(VarItem(item_str, DS));
+
+        std::vector<std::vector<std::size_t>> input_shapes;
+        eins_str = "";
+        for (int i = 0; i < vars.size(); ++i) {
+            if (i != 0) eins_str += ",";
+            eins_str += vars[i].index;
+            input_shapes.push_back(vars[i]._shape->dims());
+        }
+        if (_res[0].index != "") {
+            eins_str += "->";
+            eins_str += _res[0].index;
+        }
+        for (auto&& i : input_shapes) {
+            for (auto&& j : i) { std::cout << j << ","; }
+            std::cout << "\n";
+        }
+        std::cout << eins_str << "\n";
+        auto&& EH = EinsumHelper(eins_str, input_shapes);
+        for (auto&& i : EH.dh_output.dims) {
+            { std::cout << i << ","; }
+        }
+        std::cout << "\n";
+
+        DS->def<kids_complex>(utils::concat(_res[0].field, ".", _res[0].name),  //
+                              EH.dh_output.dims, "CUSTOM");
+        _res[0].def(DS);
+    }
+
+    std::string          rule;
+    std::string          mode;
+    std::string          save;
+    std::string          expr_str;
+    std::string          eins_str;
+    std::vector<VarItem> vars;
+    std::vector<int>     fids;
+    std::vector<VarItem> _res;
+};
+
+void Kernel_Record::token(Result& correlation, Param::JSON& j) {
+    std::string rule, mode, save;
+    if (j.is_string()) {
+        rule = j.get<std::string>();
+        mode = "average";
+        save = "res.dat";
+    } else if (j.is_object()) {
+        rule = j["rule"].get<std::string>();
+        mode = j["mode"].get<std::string>();
+        save = j["save"].get<std::string>();
+    } else {
+        throw std::runtime_error("parse error");
+    }
+    Record_Rule rule_item(rule, _DataSet, mode, save);
+
+    std::cout << rule_item.rule << "\n";
+    std::cout << rule_item.mode << "\n";
+    std::cout << rule_item.save << "\n";
+    std::cout << rule_item.expr_str << "\n";
+    std::cout << rule_item.eins_str << "\n";
+    for (auto&& v : rule_item.vars) {
+        std::cout << v.input << "\n";
+        std::cout << v.name << "\n";
+        std::cout << v.field << "\n";
+        std::cout << v.index << "\n";
+        std::cout << v.type << "\n";
+        std::cout << v.time << "\n";
+        std::cout << (int) v._type << "\n";
+        for (auto&& id : (*(v._shape)).dims()) { std::cout << id << ","; }
+        std::cout << "\n";
+    }
+
+    for (auto&& v : rule_item._res) {
+        std::cout << v.input << "\n";
+        std::cout << v.name << "\n";
+        std::cout << v.field << "\n";
+        std::cout << v.index << "\n";
+        std::cout << v.type << "\n";
+        std::cout << v.time << "\n";
+        std::cout << (int) v._type << "\n";
+        for (auto&& id : (*(v._shape)).dims()) { std::cout << id << ","; }
+        std::cout << "\n";
+    }
+    exit(0);
+}
+
 void Kernel_Record::token_object(Result& correlation, Param::JSON& j) {  // @recomment new format
     Record_Item item_tmp;
     item_tmp.v0      = (j.count("v0") == 1) ? j["v0"].get<std::string>() : "1";
@@ -203,6 +362,7 @@ void Kernel_Record::init_calc_impl(int stat) {
         for (auto& j : (json["result"])) {
             if (j.is_array()) token_array(correlation, j);
             if (j.is_object()) token_object(correlation, j);
+            if (j.is_string()) token(correlation, j);
         }
         correlation.t0 = t0;
         correlation.dt = sstep_ptr[0] * dt / time_unit;

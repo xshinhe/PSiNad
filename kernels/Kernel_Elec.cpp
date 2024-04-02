@@ -2,7 +2,6 @@
 
 #include "../core/linalg.h"
 #include "../core/vars_list.h"
-#include "Kernel_Declare.h"
 #include "Kernel_Random.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \

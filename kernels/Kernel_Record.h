@@ -1,3 +1,28 @@
+/**@file        Kernel_Record.h
+ * @brief       this file provides Kernel_Record class for trace data in dataset
+ *              during the dynamics.
+ *
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ **********************************************************************************
+ * @par revision:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-04-02  <td> Initial version.
+ * </table>
+ **********************************************************************************
+ */
+
 #ifndef Kernel_Record_H
 #define Kernel_Record_H
 
@@ -21,13 +46,13 @@ struct Record_Item {
 
 struct Result {
    public:
-    double t0, dt;
-    int size;
-    int frame;
-    std::vector<std::string> header;
-    std::vector<int> stat;
-    std::vector<double> data;
-    std::ofstream ofs;
+    double                      t0, dt;
+    int                         size;
+    int                         frame;
+    std::vector<std::string>    header;
+    std::vector<int>            stat;
+    std::vector<double>         data;
+    std::ofstream               ofs;
     std::vector<std::ofstream*> ofses;
 
     Result(){};
@@ -65,17 +90,19 @@ class Kernel_Record final : public Kernel {
     std::ofstream ofs_corr;
 
     std::vector<Record_Item> Record_List;
-    OFSManager ofsm;
+    OFSManager               ofsm;
 
-    int* istep_ptr;
-    int* sstep_ptr;
-    int* isamp_ptr;
-    int* nsamp_ptr;
+    int*  istep_ptr;
+    int*  sstep_ptr;
+    int*  isamp_ptr;
+    int*  nsamp_ptr;
     bool* at_samplingstep_initially_ptr;
 
     double t0, dt, time_unit;
 
     std::string directory;
+
+    virtual void token(Result& res, Param::JSON& j);
 
     virtual void token_array(Result& res, Param::JSON& j);
 

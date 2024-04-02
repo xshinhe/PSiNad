@@ -148,6 +148,8 @@ class Tensor final : public Node {
 
     virtual std::string help(const std::string& name) { return _doc_info; }
 
+    inline Shape& shape() { return _shape; }
+
    private:
     Shape       _shape;
     std::string _doc_info;
@@ -269,6 +271,36 @@ class DataSet final : public Node {
             d_ptr->erase(it);
         }
         return *this;
+    }
+
+    std::tuple<kids_dtype, void*, Shape*> obtain(const std::string& key) {
+        auto&& leaf_node = node(key);
+        switch (leaf_node->type()) {
+            case kids_int_type: {
+                auto&& conv_node = static_cast<Tensor<kids_int>*>(leaf_node);
+                return std::make_tuple(kids_int_type, conv_node->data(), &(conv_node->shape()));
+                break;
+            }
+            case kids_bool_type: {
+                auto&& conv_node = static_cast<Tensor<kids_bool>*>(leaf_node);
+                return std::make_tuple(kids_bool_type, conv_node->data(), &(conv_node->shape()));
+                break;
+            }
+            case kids_real_type: {
+                auto&& conv_node = static_cast<Tensor<kids_real>*>(leaf_node);
+                return std::make_tuple(kids_real_type, conv_node->data(), &(conv_node->shape()));
+                break;
+            }
+            case kids_complex_type: {
+                auto&& conv_node = static_cast<Tensor<kids_complex>*>(leaf_node);
+                return std::make_tuple(kids_complex_type, conv_node->data(), &(conv_node->shape()));
+                break;
+            }
+            default: {
+                throw std::runtime_error("bad obtain!");
+                break;
+            }
+        }
     }
 
     Node* node(const std::string& key) {

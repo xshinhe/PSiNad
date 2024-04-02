@@ -1,12 +1,26 @@
-/**
- * @file Kernel_Elec.h
- * @author xshinhe
- * @version 1.1
- * @date 2023-03
- * @brief initialization kernels for electonic DOFs
- * @details
- *  The initialization of electonic DOFs are tightly related to Solver.
- *  Use it in Solver's Kernel_Builder();
+/**@file        Kernel_Elec_NAD.h
+ * @brief       this file provides Kernel_Elec_NAD class for electronic dynamics
+ *              and properties in nonadiabatic trajectory dynamics.
+ *
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ **********************************************************************************
+ * @par revision:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-04-02  <td> Initial version.
+ * </table>
+ **********************************************************************************
  */
 
 #ifndef Kernel_Elec_NAD_H
@@ -40,43 +54,43 @@ class Kernel_Elec_NAD final : public Kernel {
     NADPolicy::_type cmsh_type;
 
     kids_real gamma1, gamma2, xi1, xi2;
-    bool use_focus = false;
-    bool use_cv    = true;   // adapt cv in rho_nuc
-    bool use_wmm   = false;  // in this case, gamma1 will be used as delta in wMM
-    bool use_fall  = false;
-    bool use_gdtwa = false;
-    bool use_sum   = false;
+    bool      use_focus = false;
+    bool      use_cv    = true;   // adapt cv in rho_nuc
+    bool      use_wmm   = false;  // in this case, gamma1 will be used as delta in wMM
+    bool      use_fall  = false;
+    bool      use_gdtwa = false;
+    bool      use_sum   = false;
 
     bool cread_from_ds        = false;
     bool disable_inner_switch = false;
 
     bool reflect = true;  // treatment in hopping
-    int hopping_type1;
-    int hopping_type2;
+    int  hopping_type1;
+    int  hopping_type2;
 
     bool dynamic_alpha;
 
-    double scale;
-    double dt;
-    kids_real alpha0;
-    kids_real* alpha;
-    kids_real* p;
-    kids_real* m;
-    kids_real* fadd;
-    kids_real* ftmp;
-    kids_real* direction;
-    kids_real *vpes, *V, *E, *dE, *T;
-    kids_real* Epot;
+    double        scale;
+    double        dt;
+    kids_real     alpha0;
+    kids_real*    alpha;
+    kids_real*    p;
+    kids_real*    m;
+    kids_real*    fadd;
+    kids_real*    ftmp;
+    kids_real*    direction;
+    kids_real *   vpes, *V, *E, *dE, *T;
+    kids_real*    Epot;
     kids_complex* H;
     kids_complex* wrho;
-    kids_real* sqcw;
-    kids_real *sqcIA, *sqcID;
+    kids_real*    sqcw;
+    kids_real *   sqcIA, *sqcID;
 
     bool* at_samplingstep_finally_ptr;
 
     //
     bool use_sqc;
-    int sqc_init;
+    int  sqc_init;
     bool only_adjust;
     bool check_cxs;
 

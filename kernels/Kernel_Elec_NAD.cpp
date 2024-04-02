@@ -2,9 +2,7 @@
 
 #include "../core/linalg.h"
 #include "../core/vars_list.h"
-#include "Kernel_Declare.h"
 #include "Kernel_Elec_Utils.h"
-// #include "elec_utils.h"
 #include "Kernel_NADForce.h"
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"

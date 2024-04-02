@@ -1,7 +1,6 @@
 #include "Kernel_Conserve.h"
 
 #include "../core/vars_list.h"
-#include "Kernel_Declare.h"
 #include "Kernel_Elec.h"
 
 namespace PROJECT_NS {

@@ -3,21 +3,8 @@
 #include "../core/Element.h"
 #include "../core/linalg.h"
 #include "../core/vars_list.h"
-#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 #include "../kernels/Kernel_Representation.h"
-// #include "../mpi_utils.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
-    ({                                                                                      \
-        std::cout << #_A << " = np.array([\n";                                              \
-        int _idxA = 0;                                                                      \
-        for (int _i = 0; _i < (_n1); ++_i) {                                                \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++] << ","; \
-            std::cout << std::endl;                                                         \
-        }                                                                                   \
-        { std::cout << "])\n"; }                                                            \
-    })
 
 inline int removeFile(const std::string& filename) { return remove(filename.c_str()); }
 

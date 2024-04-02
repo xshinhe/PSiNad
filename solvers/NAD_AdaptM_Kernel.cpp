@@ -1,12 +1,13 @@
 #include "../kernels/Kernel_Conserve.h"
-#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Dump_DataSet.h"
 #include "../kernels/Kernel_Elec_NAD.h"
 #include "../kernels/Kernel_Elec_Switch.h"
 #include "../kernels/Kernel_GWP.h"
 #include "../kernels/Kernel_Load_DataSet.h"
 #include "../kernels/Kernel_NADForce.h"
+#include "../kernels/Kernel_Prioritization.h"
 #include "../kernels/Kernel_Random.h"
+#include "../kernels/Kernel_Read_Dimensions.h"
 #include "../kernels/Kernel_Record.h"
 #include "../kernels/Kernel_Representation.h"
 #include "../kernels/Kernel_Update.h"
@@ -85,8 +86,9 @@ std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::s
     // /// CMM kernel
     ker->push(std::shared_ptr<Kernel_Load_DataSet>(new Kernel_Load_DataSet()))
         .push(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
-        .push(std::shared_ptr<Kernel_Declare>(new Kernel_Declare({kmodel, kinte})))
-        .push(std::shared_ptr<Kernel_Initialize>(new Kernel_Initialize({kmodel, krepr, kele, krecd})))
+        .push(std::shared_ptr<Kernel_Read_Dimensions>(new Kernel_Read_Dimensions()))
+        .push(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, kinte}, 1)))
+        .push(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, krepr, kele, krecd}, 2)))
         .push(kiter)
         .push(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
     return ker;

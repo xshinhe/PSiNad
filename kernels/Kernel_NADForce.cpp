@@ -2,21 +2,9 @@
 
 #include "../core/linalg.h"
 #include "../core/vars_list.h"
-#include "Kernel_Declare.h"
 #include "Kernel_Elec.h"
 #include "Kernel_Representation.h"
 #include "Kernel_Update.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
-    ({                                                                                      \
-        std::cout << #_A << " = np.array([\n";                                              \
-        int _idxA = 0;                                                                      \
-        for (int _i = 0; _i < (_n1); ++_i) {                                                \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++] << ","; \
-            std::cout << std::endl;                                                         \
-        }                                                                                   \
-        { std::cout << "])\n"; }                                                            \
-    })
 
 namespace PROJECT_NS {
 

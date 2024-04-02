@@ -1,7 +1,7 @@
 #include "Kernel_GWP.h"
 
 #include "../core/linalg.h"
-#include "Kernel_Declare.h"
+#include "../core/vars_list.h"
 #include "Kernel_Elec.h"
 #include "Kernel_Random.h"
 #include "Kernel_Representation.h"

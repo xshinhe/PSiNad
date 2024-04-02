@@ -1,9 +1,7 @@
 #include "Model_SystemBath.h"
 
-// #include <glog/logging.h>
 #include "../core/linalg.h"
 #include "../core/vars_list.h"
-#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_NADForce.h"
 #include "../kernels/Kernel_Random.h"
 #include "hamiltonian_data.h"

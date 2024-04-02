@@ -2,7 +2,6 @@
 
 #include "../core/linalg.h"
 #include "../core/vars_list.h"
-#include "Kernel_Declare.h"
 #include "Kernel_Representation.h"
 
 namespace PROJECT_NS {

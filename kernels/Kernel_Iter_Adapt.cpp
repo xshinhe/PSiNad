@@ -1,7 +1,6 @@
 #include "Kernel_Iter_Adapt.h"
 
 #include "../core/vars_list.h"
-#include "Kernel_Declare.h"
 
 #define FMTF(X)                                                      \
     " " << std::setiosflags(std::ios::fixed) /*scientific notation*/ \

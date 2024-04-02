@@ -1,7 +1,6 @@
 #include "Kernel_Update_T.h"
 
 #include "../core/vars_list.h"
-#include "Kernel_Declare.h"
 #include "Kernel_Random.h"
 
 namespace PROJECT_NS {

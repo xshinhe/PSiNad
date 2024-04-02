@@ -154,6 +154,7 @@ struct DimenHelper {
     std::size_t esshape_rank;  ///< the rank of the tensor
     std::size_t total_esidx;   ///< size if the EinsumIdx System
 
+    std::vector<std::size_t> dims;      ///< leading dimensions of the tensor
     std::vector<std::size_t> ldims;     ///< leading dimensions of the tensor
     std::vector<std::size_t> es_ldims;  ///< leading dimensions of the tensor represented in einsum indexes
     std::vector<std::size_t> mapldims;  ///< utils for sum of several leading dimensions as the shift step
@@ -167,6 +168,7 @@ struct DimenHelper {
      */
     DimenHelper(const std::string& esshape, std::vector<EinsumIdx>& idx_vec)
         : esshape_rank{esshape.size()}, total_esidx{idx_vec.size()} {
+        dims.resize(esshape_rank);
         ldims.resize(esshape_rank);
         es_ldims.resize(total_esidx);
         mapldims.resize(total_esidx);
@@ -176,7 +178,8 @@ struct DimenHelper {
             ldims[k] = lastsize * lastldim;
             int q    = -1;
             while (idx_vec[++q].label != esshape[k]) {};
-            lastsize = idx_vec[q].dim;
+            dims[k]  = idx_vec[q].dim;
+            lastsize = dims[k];
             lastldim = ldims[k];
         }
 
@@ -240,6 +243,9 @@ class EinsumHelper {
         for (char c; ss >> c;) {
             switch (c) {
                 case ',': {
+                    if (esshape.size() != shape_inputs[ishape].size()) {
+                        throw std::runtime_error("mismatch einsum rule with shape!");
+                    }
                     esshape_inputs.push_back(esshape);
                     esshape = "";
                     ishape++;
@@ -296,6 +302,9 @@ class EinsumHelper {
                             throw std::runtime_error("bad einsum einsum_expression!");
                         }
                         esshape_output += c;
+                    }
+                    if (esshape_output.size() != shape_output.size()) {
+                        throw std::runtime_error("mismatch einsum rule with shape!");
                     }
                     break;
                 }

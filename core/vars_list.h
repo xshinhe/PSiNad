@@ -32,13 +32,27 @@
 
 namespace PROJECT_NS {
 
-namespace DATA {
-
-extern std::size_t _M;      ///< Number of Monte Carlo calculations.
-extern std::size_t _P;      ///< Number of parallel trajectories in each run
-extern std::size_t _N;      ///< Number of nuclear degrees of freedom.
-extern std::size_t _F;      ///< Number of electronic degrees of freedom.
-extern std::size_t _Fadd1;  ///< Number of electronic degrees of freedom + 1.
+/**
+ * Dimension namespace locates read parameters for system size
+ */
+namespace Dimension {
+extern std::size_t M;  ///< Number of Monte Carlo calculations.
+extern std::size_t P;  ///< Number of parallel trajectories in each run
+extern std::size_t N;  ///< Number of nuclear degrees of freedom.
+extern std::size_t F;  ///< Number of electronic degrees of freedom.
+extern std::size_t MP;
+extern std::size_t PP;
+extern std::size_t PN;
+extern std::size_t PNN;
+extern std::size_t PF;
+extern std::size_t PFF;
+extern std::size_t PNFF;
+extern std::size_t NF;
+extern std::size_t NN;
+extern std::size_t FF;
+extern std::size_t NFF;
+extern std::size_t NNFF;
+extern std::size_t Fadd1;
 
 extern Shape shape_1;
 extern Shape shape_2;
@@ -60,6 +74,11 @@ extern Shape shape_NN;
 extern Shape shape_FF;
 extern Shape shape_NFF;
 extern Shape shape_NNFF;
+
+extern void static_build_shapes();
+};  // namespace Dimension
+
+namespace DATA {
 
 namespace init {
 extern VARIABLE<kids_real> Etot;

@@ -1,7 +1,6 @@
 #include "Model_LVCM.h"
 
 #include "../core/vars_list.h"
-#include "../kernels/Kernel_Declare.h"
 #include "../kernels/Kernel_Random.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \

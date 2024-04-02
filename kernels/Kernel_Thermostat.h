@@ -98,45 +98,45 @@ class Kernel_Update_T final : public Kernel {
                 }
                 break;
             case thermo_policy::NHC: {
-                kids_real  smalldt  = dt / nrespa;
-                kids_real  hsmalldt = 0.5f * smalldt;
-                kids_real  qsmalldt = 0.25f * smalldt;
-                kids_real  Te       = 1.0f / (phys::au::k * beta);
-                kids_real* xi       = nhc_x;
-                kids_real* pi       = nhc_p;
-                for (int i = 0; i < ndofs; ++i, xi += nchain, pi += nchain) {
+                num_real  smalldt  = dt / nrespa;
+                num_real  hsmalldt = 0.5f * smalldt;
+                num_real  qsmalldt = 0.25f * smalldt;
+                num_real  Te       = 1.0f / (phys::au::k * beta);
+                num_real* rx       = nhc_r + start;  // thermostat with (start, start + N) DOFs
+                num_real* px       = nhc_p + start;  // thermostat with (start, start + N) DOFs
+                for (int i = 0, ix = 0; i < N; ++i, rx += nchain, px += nchain) {
                     // sweep nchain
                     for (int k = 0; k < nrespa; ++k) {
                         for (int s = 0; s < size_sy; ++s) {
                             // update nhc_p from nchain tail to head
                             if (nchain > 1)
-                                pi[nchain - 1] +=
-                                    (pi[nchain - 2] * pi[nchain - 2] / nhc_Q[nchain - 2] - Te) * wgt_sy[s] * hsmalldt;
+                                px[nchain - 1] +=
+                                    (px[nchain - 2] * px[nchain - 2] / nhc_Q[nchain - 2] - Te) * wgt_sy[s] * hsmalldt;
                             for (int h = nchain - 2; h > 0; --h) {
-                                pi[h] *= exp(-pi[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
-                                pi[h] += (pi[h - 1] * pi[h - 1] / nhc_Q[h - 1] - Te) * wgt_sy[s] * hsmalldt;
-                                pi[h] *= exp(-pi[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
+                                px[h] *= exp(-px[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
+                                px[h] += (px[h - 1] * px[h - 1] / nhc_Q[h - 1] - Te) * wgt_sy[s] * hsmalldt;
+                                px[h] *= exp(-px[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
                             }
-                            if (nchain > 1) pi[0] -= pi[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
-                            pi[0] += (p[i] * p[i] / m[i] - Te) * wgt_sy[s] * hsmalldt;
-                            if (nchain > 1) pi[0] -= pi[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
+                            if (nchain > 1) px[0] -= px[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
+                            px[0] += (np[i] * np[i] / nm[i] - Te) * wgt_sy[s] * hsmalldt;
+                            if (nchain > 1) px[0] -= px[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
 
-                            // update nhc_x and p
-                            for (int h = 0; h < nchain; ++h) xi[h] += pi[h] / nhc_Q[h] * wgt_sy[s] * smalldt;
-                            p[i] *= exp(-pi[0] / nhc_Q[0] * wgt_sy[s] * smalldt);
+                            // update nhc_x and np
+                            for (int h = 0; h < nchain; ++h) rx[h] += px[h] / nhc_Q[h] * wgt_sy[s] * smalldt;
+                            np[i] *= exp(-px[0] / nhc_Q[0] * wgt_sy[s] * smalldt);
 
                             // update nhc_p from head to tail
-                            if (nchain > 1) pi[0] -= pi[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
-                            pi[0] += (p[i] * p[i] / m[i] - Te) * wgt_sy[s] * hsmalldt;
-                            if (nchain > 1) pi[0] -= pi[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
+                            if (nchain > 1) px[0] -= px[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
+                            px[0] += (np[i] * np[i] / nm[i] - Te) * wgt_sy[s] * hsmalldt;
+                            if (nchain > 1) px[0] -= px[1] / nhc_Q[1] * wgt_sy[s] * qsmalldt;
                             for (int h = 1; h < nchain - 1; ++h) {
-                                pi[h] *= exp(-pi[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
-                                pi[h] += (pi[h - 1] * pi[h - 1] / nhc_Q[h - 1] - Te) * wgt_sy[s] * hsmalldt;
-                                pi[h] *= exp(-pi[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
+                                px[h] *= exp(-px[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
+                                px[h] += (px[h - 1] * px[h - 1] / nhc_Q[h - 1] - Te) * wgt_sy[s] * hsmalldt;
+                                px[h] *= exp(-px[h + 1] / nhc_Q[h + 1] * wgt_sy[s] * qsmalldt);
                             }
                             if (nchain > 1)
-                                pi[nchain - 1] +=
-                                    (pi[nchain - 2] * pi[nchain - 2] / nhc_Q[nchain - 2] - Te) * wgt_sy[s] * hsmalldt;
+                                px[nchain - 1] +=
+                                    (px[nchain - 2] * px[nchain - 2] / nhc_Q[nchain - 2] - Te) * wgt_sy[s] * hsmalldt;
                         }
                     }
                 }
