@@ -1,0 +1,164 @@
+/**@file        DataSet.h
+ * @brief       Declaration of the DataSet class and related classes.
+ * @details     This file provides the declaration of the DataSet class. It serves
+ *              as a minimal dynamic container for storing tensors. It also
+ *              includes declarations for the following supporting classes:
+ *              - Node: An abstract interface class for tree nodes.
+ *              - Tensor: A class inherited from Node, representing tensors.
+ *              - DataSet: A class implementing a tree structure for the storage
+ *
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ **********************************************************************************
+ *
+ *  Due to this limitation, storage is managed manually in current version. Copying
+ *  a DataSet to another instance is prohibited, and reassigning a DataSet is also
+ *  disallowed.  Additionally, there is currently no interface provided for Python
+ *  for reassign a DataSet object.
+ *
+ * @par [logs]:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-03-29  <td> initial version. Seperate Shape class to another file.
+ *                          Add help() function. Review more over smart pointers.
+ *                          Improve print format.
+ * <tr><td> 2024-04-18  <td> move to smart pointers. Instead of shared_ptr<T[]>, we
+ *                          use shared_ptr<vector<T>> to manage memory.
+ *                          However, there are limits:
+ *                          1) vector<bool> is not STL, so it's not supported as a
+ *                              part of Tensor<T>.
+ *                          2) if vector is dynamically extended, the head pointer
+ *                              may be changed.
+ * <tr><td> 2024-04-23  <td> move to smart pointers. Using shared_ptr<T> and custom
+ *                              delete function to help to manage an array of data.
+ *
+ * </table>
+ *
+ **********************************************************************************
+ */
+
+#ifndef KIDS_DataSet_H
+#define KIDS_DataSet_H
+
+#include <fstream>
+#include <map>
+#include <memory>
+#include <tuple>
+#include <type_traits>
+#include <vector>
+
+#include "kids/Exception.h"
+#include "kids/Node.h"
+#include "kids/Shape.h"
+#include "kids/Tensor.h"
+#include "kids/Types.h"
+#include "kids/Variable.h"
+#include "kids/concat.h"
+
+namespace PROJECT_NS {
+
+/**
+ * DataSet class is a tree-structured container for storage of Tensor and
+ * other DataSet.
+ */
+class DataSet final : public Node {
+   private:
+    DataSet& operator=(const DataSet&) = delete;
+
+   public:
+    using DataType = std::map<std::string, std::shared_ptr<Node>>;
+    std::shared_ptr<DataType> _data;
+
+    DataSet();
+
+    kids_int*     def(VARIABLE<kids_int>& var);
+    kids_real*    def(VARIABLE<kids_real>& var);
+    kids_complex* def(VARIABLE<kids_complex>& var);
+
+    kids_int* def_int(const std::string& key, Shape S = 1, const std::string& info = "");
+    kids_int* def_int(const std::string& key, kids_int* arr_in, Shape S = 1, const std::string& info = "");
+    kids_int* def_int(const std::string& key, const std::string& key_in, const std::string& info = "");
+    DataSet&  _def_int(const std::string& key, Shape S = 1, const std::string& info = "");
+
+    kids_real* def_real(const std::string& key, Shape S = 1, const std::string& info = "");
+    kids_real* def_real(const std::string& key, kids_real* arr_in, Shape S = 1, const std::string& info = "");
+    kids_real* def_real(const std::string& key, const std::string& key_in, const std::string& info = "");
+    DataSet&   _def_real(const std::string& key, Shape S = 1, const std::string& info = "");
+
+    kids_complex* def_complex(const std::string& key, Shape S = 1, const std::string& info = "");
+    kids_complex* def_complex(const std::string& key, kids_complex* arr_in, Shape S = 1, const std::string& info = "");
+    kids_complex* def_complex(const std::string& key, const std::string& key_in, const std::string& info = "");
+    DataSet&      _def_complex(const std::string& key, Shape S = 1, const std::string& info = "");
+
+    DataSet& _def(const std::string& key, const std::string& key_in, const std::string& info = "");
+
+    DataSet& _undef(const std::string& key);
+
+    std::tuple<kids_dtype, void*, Shape*> obtain(const std::string& key);
+
+    Node* node(const std::string& key);
+
+    DataSet* at(const std::string& key);
+
+    virtual std::string help(const std::string& name);
+
+    virtual std::string repr();
+
+    virtual void dump(std::ostream& os);
+
+    virtual void load(std::istream& is);
+
+   private:
+    template <typename T>
+    T* def(const std::string& key, Shape S = 1, const std::string& info = "");
+
+    class DataSetKeyParser {
+       public:
+        std::vector<std::string> terms;
+        DataSetKeyParser(const std::string& key, const std::string& delimiter = ".") {
+            size_t start = 0, end;
+            while ((end = key.find(delimiter, start)) != std::string::npos) {
+                terms.emplace_back(key, start, end - start);
+                start = end + delimiter.length();
+            }
+            terms.emplace_back(key, start);
+        }
+    };
+};
+
+};  // namespace PROJECT_NS
+
+#endif  // KIDS_DataSet_H
+
+/**
+int main() {
+    using namespace PROJECT_NS;
+
+    DataSet DS;
+    DS.def<int>("0.1", 4);
+    DS.def<int>("a.b", 10);
+    DS.def<double>("a.c.1", 8);
+    DS.def<double>("a.c.d", 8);
+    DS.def<double>("a.c.f", Shape({1, 2, 3}));
+
+    DS.dump(std::cout);
+    DS._undef("a.c.d");
+    DS.def<int>("a.c.d", 3);
+    DS.dump(std::cout);
+
+    auto&& DS2 = DS.at("a");
+    DS2->dump(std::cout);
+
+    return 0;
+}
+*/

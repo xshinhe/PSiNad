@@ -1,4 +1,5 @@
 generate
 build
-rustkids/target
+wrappers/rustkids/target
 docs/html
+thirdpart
