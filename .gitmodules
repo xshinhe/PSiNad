@@ -1,0 +1,24 @@
+[submodule "thirdpart/catch2"]
+	path = thirdpart/catch2
+	url = https://github.com/catchorg/Catch2
+[submodule "thirdpart/pybind11"]
+	path = thirdpart/pybind11
+	url = https://github.com/pybind/pybind11
+[submodule "thirdpart/glog"]
+	path = thirdpart/glog
+	url = https://github.com/google/glog
+[submodule "thirdpart/gflags"]
+	path = thirdpart/gflags
+	url = https://github.com/gflags/gflags
+[submodule "thirdpart/Eigen"]
+	path = thirdpart/Eigen
+	url = https://gitlab.com/libeigen/eigen
+[submodule "thirdpart/palanteer"]
+	path = thirdpart/palanteer
+	url = https://github.com/dfeneyrou/palanteer
+[submodule "thirdpart/buntils"]
+	path = thirdpart/buntils
+	url = https://github.com/ErikMcClure/buntils
+[submodule "thirdpart/filesystem"]
+	path = thirdpart/filesystem
+	url = https://github.com/gulrak/filesystem

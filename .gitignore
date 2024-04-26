@@ -2,4 +2,4 @@ generate
 build
 wrappers/rustkids/target
 docs/html
-thirdpart
+# thirdpart
