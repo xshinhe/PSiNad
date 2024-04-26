@@ -3,8 +3,8 @@
 #include <cmath>
 #include <complex>
 
-#include "Eigen/Dense"
-#include "Eigen/QR"
+#include "Eigen/Eigen/Dense"
+#include "Eigen/Eigen/QR"
 #include "kids/Types.h"
 
 #define EigMajor Eigen::RowMajor
@@ -20,18 +20,18 @@ using EigMX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 template <class T>
 using EigAX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 
-typedef EigVX<kids_real>    EigVXr;
+typedef EigVX<kids_real> EigVXr;
 typedef EigVX<kids_complex> EigVXc;
-typedef EigMX<kids_real>    EigMXr;
+typedef EigMX<kids_real> EigMXr;
 typedef EigMX<kids_complex> EigMXc;
-typedef EigMX<kids_real>    EigAXr;
+typedef EigMX<kids_real> EigAXr;
 typedef EigMX<kids_complex> EigAXc;
-typedef Eigen::Map<EigVXr>  MapVXr;
-typedef Eigen::Map<EigVXc>  MapVXc;
-typedef Eigen::Map<EigMXr>  MapMXr;
-typedef Eigen::Map<EigMXc>  MapMXc;
-typedef Eigen::Map<EigAXr>  MapAXr;
-typedef Eigen::Map<EigAXc>  MapAXc;
+typedef Eigen::Map<EigVXr> MapVXr;
+typedef Eigen::Map<EigVXc> MapVXc;
+typedef Eigen::Map<EigMXr> MapMXr;
+typedef Eigen::Map<EigMXc> MapMXc;
+typedef Eigen::Map<EigAXr> MapAXr;
+typedef Eigen::Map<EigAXc> MapAXc;
 
 bool ARRAY_ISFINITE(kids_real* A, size_t n) {
     for (int i = 0; i < n; ++i)
@@ -283,63 +283,63 @@ void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, kids_c
 kids_real ARRAY_TRACE2(kids_real* B, kids_real* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2(kids_complex* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2(kids_complex* B, kids_real* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2(kids_real* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_real ARRAY_TRACE2_DIAG(kids_real* B, kids_real* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2_DIAG(kids_complex* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2_DIAG(kids_complex* B, kids_real* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2_DIAG(kids_real* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_real ARRAY_TRACE2_OFFD(kids_real* B, kids_real* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -347,7 +347,7 @@ kids_real ARRAY_TRACE2_OFFD(kids_real* B, kids_real* C, size_t N1, size_t N2) {
 kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -355,7 +355,7 @@ kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_complex* C, size_t N1, size
 kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_real* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -363,7 +363,7 @@ kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_real* C, size_t N1, size_t 
 kids_complex ARRAY_TRACE2_OFFD(kids_real* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -484,27 +484,27 @@ void LinearSolve(kids_real* x, kids_real* A, kids_real* b, size_t N) {
 }
 
 void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N) {
-    MapMXr                                MapE(E, N, 1);
-    MapMXr                                MapT(T, N, N);
-    MapMXr                                MapA(A, N, N);
+    MapMXr MapE(E, N, 1);
+    MapMXr MapT(T, N, N);
+    MapMXr MapA(A, N, N);
     Eigen::SelfAdjointEigenSolver<EigMXr> eig(MapA);
     MapE = eig.eigenvalues().real();
     MapT = eig.eigenvectors().real();
 }
 
 void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXr                                MapE(E, N, 1);
-    MapMXc                                MapT(T, N, N);
-    MapMXc                                MapA(A, N, N);
+    MapMXr MapE(E, N, 1);
+    MapMXc MapT(T, N, N);
+    MapMXc MapA(A, N, N);
     Eigen::SelfAdjointEigenSolver<EigMXc> eig(MapA);
     MapE = eig.eigenvalues().real();
     MapT = eig.eigenvectors();
 }
 
 void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXc                            MapE(E, N, 1);
-    MapMXc                            MapT(T, N, N);
-    MapMXc                            MapA(A, N, N);
+    MapMXc MapE(E, N, 1);
+    MapMXc MapT(T, N, N);
+    MapMXc MapA(A, N, N);
     Eigen::ComplexEigenSolver<EigMXc> eig(MapA);
     MapE = eig.eigenvalues();
     MapT = eig.eigenvectors();
@@ -539,22 +539,22 @@ void ARRAY_INV_MAT(kids_complex* invA, kids_complex* A, size_t N) {
 void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k, size_t N) {
     MapMXc Map_A(A, N, N);
     MapMXc Map_expkA(expkA, N, N);
-    auto   eigr = Eigen::ComplexEigenSolver<EigMXc>(Map_A);
-    auto   Er   = eigr.eigenvalues();
-    auto   Vr   = eigr.eigenvectors();
-    auto   eigl = Eigen::ComplexEigenSolver<EigMXc>(Map_A.adjoint());
-    auto   El   = eigl.eigenvalues();
-    auto   Vl   = eigl.eigenvectors();
-    auto   Slr  = (Vl.adjoint() * Vr).diagonal();
-    Map_expkA   = Vr * ((k * Er.array()).exp() / Slr.array()).matrix().asDiagonal() * Vl.adjoint();
+    auto eigr = Eigen::ComplexEigenSolver<EigMXc>(Map_A);
+    auto Er   = eigr.eigenvalues();
+    auto Vr   = eigr.eigenvectors();
+    auto eigl = Eigen::ComplexEigenSolver<EigMXc>(Map_A.adjoint());
+    auto El   = eigl.eigenvalues();
+    auto Vl   = eigl.eigenvectors();
+    auto Slr  = (Vl.adjoint() * Vr).diagonal();
+    Map_expkA = Vr * ((k * Er.array()).exp() / Slr.array()).matrix().asDiagonal() * Vl.adjoint();
 }
 
 void ARRAY_CORRECT_U(kids_complex* U, size_t N) {
     MapMXc Map_U(U, N, N);
-    auto   eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * phys::math::im * (Map_U - Map_U.adjoint()));
-    auto   Er   = eigr.eigenvalues().real();
-    auto   Vr   = eigr.eigenvectors();
-    Map_U       = Vr * ((phys::math::im * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
+    auto eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * phys::math::im * (Map_U - Map_U.adjoint()));
+    auto Er   = eigr.eigenvalues().real();
+    auto Vr   = eigr.eigenvectors();
+    Map_U     = Vr * ((phys::math::im * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
 }
 
 
