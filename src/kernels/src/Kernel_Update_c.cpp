@@ -1,10 +1,16 @@
 #include "kids/Kernel_Update_c.h"
 
 #include "kids/Kernel_Representation.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Kernel_Update_c::getName() { return "Kernel_Update_c"; }
+
+int Kernel_Update_c::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Update_c::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     dt_ptr        = DS->def(DATA::iter::dt);
@@ -20,7 +26,7 @@ void Kernel_Update_c::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
 }
 
 Status& Kernel_Update_c::executeKernel_impl(Status& stat) {
-    if (frez_ptr[0]) return 0;
+    if (frez_ptr[0]) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm
@@ -51,6 +57,6 @@ Status& Kernel_Update_c::executeKernel_impl(Status& stat) {
                 break;
         }
     }
-    return 0;
+    return stat;
 }
 };  // namespace PROJECT_NS

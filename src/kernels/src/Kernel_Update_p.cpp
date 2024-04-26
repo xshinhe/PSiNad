@@ -1,8 +1,14 @@
 #include "kids/Kernel_Update_p.h"
 
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Kernel_Update_p::getName() { return "Kernel_Update_p"; }
+
+int Kernel_Update_p::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     dt_ptr   = DS->def(DATA::iter::dt);
@@ -22,10 +28,11 @@ Status& Kernel_Update_p::initializeKernel_impl(Status& stat) {
         Ekin[0] = 0.0e0;
         for (int i = 0; i < Dimension::N; ++i) Ekin[0] += 0.5e0 * p[i] * p[i] * minv[i];
     }
+    return stat;
 }
 
 Status& Kernel_Update_p::executeKernel_impl(Status& stat) {
-    if (frez_ptr[0]) return 0;
+    if (frez_ptr[0]) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* f    = this->f + iP * Dimension::N;
@@ -40,7 +47,7 @@ Status& Kernel_Update_p::executeKernel_impl(Status& stat) {
             Ekin[0] += 0.5e0 * p[i] * p[i] * minv[i];
         }
     }
-    return 0;
+    return stat;
 }
 
 };  // namespace PROJECT_NS

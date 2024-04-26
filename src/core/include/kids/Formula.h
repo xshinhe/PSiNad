@@ -44,7 +44,7 @@ class Formula {
    public:
     static std::vector<Formula> GLOBAL;
 
-    static int regis_Formula(const std::string& str, DataSet* DS, const std::string& field) {
+    static int regis_Formula(const std::string& str, std::shared_ptr<DataSet>& DS, const std::string& field) {
         int idx = 0;
         for (auto it = GLOBAL.begin(); it != GLOBAL.end(); ++it, ++idx) {
             if (str == it->parsed_string && field == it->field) return idx;
@@ -89,7 +89,7 @@ class Formula {
     std::string name() { return unique_name; }
 
    private:
-    Formula(const std::string& str, DataSet* DS, const std::string& field) : field{field} {
+    Formula(const std::string& str, std::shared_ptr<DataSet>& DS, const std::string& field) : field{field} {
         auto ipos      = str.find("#");
         bool use_alias = (ipos != std::string::npos);
 

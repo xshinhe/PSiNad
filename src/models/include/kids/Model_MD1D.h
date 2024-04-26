@@ -3,13 +3,17 @@
 
 #include "kids/Kernel.h"
 #include "kids/Kernel_Random.h"
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 
 namespace PROJECT_NS {
 
 
 class Model_HO final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Model_HO"; }
+    virtual const std::string getName() { return "Model_HO"; }
+
+    virtual int getType() const { return utils::hash(FUNCTION_NAME); }
 
    private:
     int     size;
@@ -57,17 +61,20 @@ class Model_HO final : public Kernel {
             x[i] = x_init[i];
             p[i] = p_init[i];
         }
+        return stat;
     }
 
     virtual Status &executeKernel_impl(Status &stat) {
         for (int i = 0; i < size; ++i) f[i] = m[i] * w[i] * w[i] * x[i];
-        return 0;
+        return stat;
     }
 };
 
 class MODEL_MD1D final : public Kernel {
    public:
-    inline virtual const std::string name() { return "MODEL_MD1D"; }
+    virtual const std::string getName() { return "Model_HO"; }
+
+    virtual int getType() const { return utils::hash(FUNCTION_NAME); }
 
    private:
     int     size;
@@ -90,7 +97,7 @@ class MODEL_MD1D final : public Kernel {
 
     virtual Status &executeKernel_impl(Status &stat) {
         for (int i = 0; i < size; ++i) f[i] = m[i] * w[i] * w[i] * x[i];
-        return 0;
+        return stat;
     }
 };
 };  // namespace PROJECT_NS

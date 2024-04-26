@@ -1,9 +1,15 @@
 #include "kids/Kernel_Update_T.h"
 
 #include "kids/Kernel_Random.h"
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Kernel_Update_T::getName() { return "Kernel_Update_T"; }
+
+int Kernel_Update_T::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Update_T::setInputParam_impl(std::shared_ptr<Param>& PM) { gammal = PM->get_double("gammal", LOC(), 0.1); }
 
@@ -29,7 +35,7 @@ Status& Kernel_Update_T::executeKernel_impl(Status& stat) {
         Kernel_Random::rand_gaussian(&randu);
         p[i] = c1[i] * p[i] + c2p[i] * sqrt(m[i] / beta) * randu;
     }
-    return 0;
+    return stat;
 }
 
 };  // namespace PROJECT_NS

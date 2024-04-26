@@ -26,7 +26,9 @@ DEFINE_POLICY(StrengthPolicy,  //
 
 class Model_Bath final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Model_Bath"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     bool classical_bath = false;
 

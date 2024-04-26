@@ -40,8 +40,8 @@ int main(int argc, char* argv[]) {
     gflags::ParseCommandLineFlags(&argc, &argv, true);
 
     /* read parameter file (json format) */
-    Param  PM(FLAGS_p, Param::fromFile);
-    auto&& j = *(PM.pjson());
+    std::shared_ptr<Param> PM = std::shared_ptr<Param>(new Param(FLAGS_p, Param::fromFile));
+    auto&&                 j  = *(PM->pjson());
 
     j["directory"]   = FLAGS_d;
     j["timing"]      = FLAGS_timing;
@@ -86,12 +86,12 @@ int main(int argc, char* argv[]) {
     FLAGS_stop_logging_if_full_disk = true;  // If disk is full
 
     /* task block */
-    std::string model_name   = PM.get_string("model", LOC());
-    std::string solver_name  = PM.get_string("solver", LOC());
-    std::string handler_name = PM.get_string("handler", LOC(), "single");
+    std::string model_name   = PM->get_string("model", LOC());
+    std::string solver_name  = PM->get_string("solver", LOC());
+    std::string handler_name = PM->get_string("handler", LOC(), "single");
 
     Handler myhandler = Handler(solver_name, model_name);
-    myhandler.run(&PM);
+    myhandler.run(PM);
 
     /* finalize */
     gflags::ShutDownCommandLineFlags();

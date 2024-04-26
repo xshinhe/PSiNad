@@ -5,11 +5,13 @@ namespace PROJECT_NS {
 
 class Kernel_GWP final : public Kernel {
    public:
-    virtual const std::string name() { return "Kernel_Elec_GWP"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     Kernel_GWP(std::shared_ptr<Kernel> kmodel, std::shared_ptr<Kernel> krepr, std::shared_ptr<Kernel> kforce)
         : _kmodel{kmodel}, _krepr{krepr}, _kforce{kforce} {
-        push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
+        appendChild(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
     }
 
     static int calc_Ekin(kids_real* Ekin,  // [P]

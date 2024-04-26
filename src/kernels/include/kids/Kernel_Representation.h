@@ -31,9 +31,11 @@ class Kernel_Representation final : public Kernel {
     static RepresentationPolicy::_type tcf_repr_type;        ///< representation for intrinsic calculation of TCF
     static bool                        onthefly;             ///< flag indicated the ab inition calculation
 
-    inline virtual const std::string name() { return "Kernel_Representation"; }
+    virtual const std::string getName();
 
-    static int transform(kids_complex *A, kids_real *T, int fdim,  //
+    virtual int getType() const;
+
+    static int transform(kids_complex* A, kids_real* T, int fdim,  //
                          RepresentationPolicy::_type from, RepresentationPolicy::_type to, SpacePolicy::_type Stype);
 
    private:
@@ -41,26 +43,26 @@ class Kernel_Representation final : public Kernel {
     bool phase_correction;
     bool basis_switch;
 
-    double *              V, *dV, *ddV;
-    double *              E, *T, *Told, *dE, *ddE;
-    double *              L;
-    std::complex<double> *R, *dL, *ddL;
-    std::complex<double> *H, *dH, *ddH;
+    double *             V, *dV, *ddV;
+    double *             E, *T, *Told, *dE, *ddE;
+    double*              L;
+    std::complex<double>*R, *dL, *ddL;
+    std::complex<double>*H, *dH, *ddH;
 
-    double *E_copy;
+    double* E_copy;
 
     double *      x, *p, *m;
-    int *         occ_nuc;
-    kids_complex *rho_ele;
+    int*          occ_nuc;
+    kids_complex* rho_ele;
     double *      ve, *vedE, *TtTold;
 
-    virtual void setInputParam_impl(Param *PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
 
-    virtual void setInputDataSet_impl(DataSet *DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
 
-    virtual Status &initializeKernel_impl(Status &stat);
+    virtual Status& initializeKernel_impl(Status& stat);
 
-    virtual Status &executeKernel_impl(Status &stat);
+    virtual Status& executeKernel_impl(Status& stat);
 };
 
 };  // namespace PROJECT_NS

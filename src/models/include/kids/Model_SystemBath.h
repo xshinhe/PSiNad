@@ -32,10 +32,12 @@ DEFINE_POLICY(NSampPolicy,
 
 class Model_SystemBath final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Model_SystemBath"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     Model_SystemBath() {
-        push(std::shared_ptr<Model_Bath>(new Model_Bath()));  //
+        appendChild(std::shared_ptr<Model_Bath>(new Model_Bath()));  //
     }
 
    private:

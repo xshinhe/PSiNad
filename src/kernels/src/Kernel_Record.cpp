@@ -2,7 +2,9 @@
 
 #include "kids/Einsum.h"
 #include "kids/Formula.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
@@ -127,6 +129,11 @@ Result::~Result() {
     if (ofs.is_open()) ofs.close();
 }
 
+const std::string Kernel_Record::getName() { return "Kernel_Record"; }
+
+int Kernel_Record::getType() const { return utils::hash(FUNCTION_NAME); }
+
+
 Kernel_Record::~Kernel_Record() {
     if (ofs_corr.is_open()) ofs_corr.close();
 }
@@ -165,8 +172,8 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
         case 1: {  // 1 point sampling
             item_tmp.v0      = "1";
             item_tmp.vt      = j[0].get<std::string>();
-            item_tmp.fml_ID0 = Formula::regis_Formula(item_tmp.v0, _DataSet, "init");
-            item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _DataSet, "integrator");
+            item_tmp.fml_ID0 = Formula::regis_Formula(item_tmp.v0, _dataset, "init");
+            item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _dataset, "integrator");
             item_tmp.name    = "_";
             item_tmp.save    = "samp";
             // item_tmp.ofs_ID  = ofsm.push(item_tmp.save);
@@ -182,8 +189,8 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
         case 2: {  // 2 points correlation
             item_tmp.v0      = j[0].get<std::string>();
             item_tmp.vt      = j[1].get<std::string>();
-            item_tmp.fml_ID0 = Formula::regis_Formula(item_tmp.v0, _DataSet, "init");
-            item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _DataSet, "integrator");
+            item_tmp.fml_ID0 = Formula::regis_Formula(item_tmp.v0, _dataset, "init");
+            item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _dataset, "integrator");
             item_tmp.name    = "_";
             item_tmp.save    = "corr";
             // item_tmp.ofs_ID  = ofsm.push(item_tmp.save);
@@ -214,7 +221,7 @@ void Kernel_Record::token_array(Result& correlation, Param::JSON& j) {  // @depr
 
 struct VarItem {
    public:
-    VarItem(const std::string& input, DataSet* DS, bool def_in = true) : input{input} {
+    VarItem(const std::string& input, std::shared_ptr<DataSet>& DS, bool def_in = true) : input{input} {
         std::string            str = input;
         std::string::size_type ipos;
 
@@ -246,7 +253,7 @@ struct VarItem {
         if (def_in) def(DS);
     }
 
-    void def(DataSet* DS) {
+    void def(std::shared_ptr<DataSet>& DS) {
         std::string key                = utils::concat(field, ".", name);
         std::tie(_type, _data, _shape) = DS->obtain(key);
     }
@@ -263,7 +270,7 @@ struct VarItem {
 };
 
 struct Record_Rule {
-    Record_Rule(const std::string& rule, DataSet* DS, const std::string& mode = "average",
+    Record_Rule(const std::string& rule, std::shared_ptr<DataSet>& DS, const std::string& mode = "average",
                 const std::string& save = "res.dat", int nsamp = 1)
         : rule{rule}, mode{mode}, save{save}, nsamp{nsamp} {
         std::string res0_str;
@@ -402,7 +409,7 @@ void Kernel_Record::token(Result& correlation, Param::JSON& j) {
         throw std::runtime_error("parse error");
     }
 
-    Rules.push_back(std::shared_ptr<Record_Rule>(new Record_Rule(rule, _DataSet, mode, save, nsamp_ptr[0])));
+    Rules.push_back(std::shared_ptr<Record_Rule>(new Record_Rule(rule, _dataset, mode, save, nsamp_ptr[0])));
 
     auto&& rule_item = *(Rules[0]);
 
@@ -441,8 +448,8 @@ void Kernel_Record::token_object(Result& correlation, Param::JSON& j) {  // @rec
     item_tmp.vt      = (j.count("vt") == 1) ? j["vt"].get<std::string>() : "1";
     item_tmp.name    = (j.count("name") == 1) ? j["name"].get<std::string>() : "_";
     item_tmp.save    = (j.count("save") == 1) ? j["save"].get<std::string>() : "corr";
-    item_tmp.fml_ID0 = Formula::regis_Formula(item_tmp.v0, _DataSet, "init");
-    item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _DataSet, "integrator");
+    item_tmp.fml_ID0 = Formula::regis_Formula(item_tmp.v0, _dataset, "init");
+    item_tmp.fml_IDt = Formula::regis_Formula(item_tmp.vt, _dataset, "integrator");
     item_tmp.ofs_ID  = ofsm.push(item_tmp.save);
 
     Record_List.push_back(item_tmp);
@@ -482,6 +489,7 @@ Status& Kernel_Record::initializeKernel_impl(Status& stat) {
         correlation.stat.resize(correlation.frame);
         correlation.data.resize(correlation.size * correlation.frame);
     }
+    return stat;
 }
 
 Status& Kernel_Record::executeKernel_impl(Status& stat) {
@@ -545,7 +553,7 @@ Status& Kernel_Record::executeKernel_impl(Status& stat) {
             // Kernel::BREAK                                      = true;
         }
     }
-    return 0;
+    return stat;
 }
 
 Result Kernel_Record::_correlation;

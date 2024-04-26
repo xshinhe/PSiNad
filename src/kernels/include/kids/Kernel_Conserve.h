@@ -35,7 +35,9 @@ namespace PROJECT_NS {
  */
 class Kernel_Conserve final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Kernel_Conserve"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     kids_real* E;          ///< adiabatic energies

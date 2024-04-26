@@ -9,7 +9,9 @@ class Kernel_Update_p : public Kernel {
    public:
     Kernel_Update_p(double scale) : Kernel(), scale{scale} {};
 
-    inline virtual const std::string name() { return "Kernel_Update_p"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     double *   p, *f, *minv;

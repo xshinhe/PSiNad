@@ -7,7 +7,9 @@ namespace PROJECT_NS {
 
 class Kernel_Iter_Adapt final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Kernel_Iter_Adapt"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     double     t0, *t0_ptr;

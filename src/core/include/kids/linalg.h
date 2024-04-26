@@ -1,4 +1,11 @@
 /**@file        linalg.h
+ * @brief       Provide linalg APIs
+ * @details
+ *  unified APIs, and realization can be based on either Eigen or MKL
+ * @see
+ *  eigen: https://eigen.tuxfamily.org/dox/
+ *  mkl  : https://www.intel.com/content/www/us/en/develop/documentation/onemkl-lapack-examples/top.html
+ *
  * @author      Xin He
  * @date        2024-03
  * @version     1.0
@@ -11,438 +18,702 @@
  *  All rights are reserved by Peking University.
  *  You should have received a copy of the GNU Lesser General Public License along
  *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
- *
- * @see
- *  eigen: https://eigen.tuxfamily.org/dox/
- *  mkl  : https://www.intel.com/content/www/us/en/develop/documentation/onemkl-lapack-examples/top.html
+ **********************************************************************************
+ * @par revision:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-04-25  <td> split from tpl APIs, which is slow in compilation
+ * </table>
+ **********************************************************************************
  */
 
-#ifndef LINALG_H
-#define LINALG_H
+#ifndef KIDS_LINALG_H
+#define KIDS_LINALG_H
 
-#include <cmath>
-#include <complex>
-
-#include "Eigen/Dense"
-#include "Eigen/QR"
 #include "kids/Types.h"
 
-using namespace PROJECT_NS;
+#define KIDS_LINALG_BIND_EIGEN_NOT_USE_TEMPLATE
 
-#define EigMajor Eigen::RowMajor
+#ifndef KIDS_LINALG_BIND_EIGEN_NOT_USE_TEMPLATE
+#include "kids/linalg_tpl.h"
+#else  // KIDS_LINALG_BIND_EIGEN_NOT_USE_TEMPLATE
 
-template <class T>
-using EigVX = Eigen::Matrix<T, Eigen::Dynamic, 1, EigMajor>;
+namespace PROJECT_NS {
 
-template <class T>
-using EigMX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
+/**
+ * Check if all elements of a real array are finite.
+ *
+ * @param A Pointer to the real array.
+ * @param n Size of the array.
+ * @return True if all elements are finite, false otherwise.
+ */
+bool ARRAY_ISFINITE(kids_real* A, size_t n);
 
-template <class T>
-using EigAX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
+/**
+ * Check if all elements of a complex array are finite.
+ *
+ * @param A Pointer to the complex array.
+ * @param n Size of the array.
+ * @return True if all elements are finite, false otherwise.
+ */
+bool ARRAY_ISFINITE(kids_complex* A, size_t n);
 
-typedef EigVX<kids_real>    EigVXr;
-typedef EigVX<kids_complex> EigVXc;
-typedef EigMX<kids_real>    EigMXr;
-typedef EigMX<kids_complex> EigMXc;
-typedef EigMX<kids_real>    EigAXr;
-typedef EigMX<kids_complex> EigAXc;
-typedef Eigen::Map<EigVXr>  MapVXr;
-typedef Eigen::Map<EigVXc>  MapVXc;
-typedef Eigen::Map<EigMXr>  MapMXr;
-typedef Eigen::Map<EigMXc>  MapMXc;
-typedef Eigen::Map<EigAXr>  MapAXr;
-typedef Eigen::Map<EigAXc>  MapAXc;
+/**
+ * Set all elements of an integer array to zero.
+ *
+ * @param A Pointer to the integer array.
+ * @param N Size of the array.
+ */
+void ARRAY_CLEAR(kids_int* A, size_t N);
 
-template <class T>
-bool ARRAY_ISFINITE(T* A, size_t n) {
-    for (int i = 0; i < n; ++i)
-        if (!std::isfinite(std::abs(A[i]))) return false;
-    return true;
-}
+/**
+ * Set all elements of a real array to zero.
+ *
+ * @param A Pointer to the real array.
+ * @param N Size of the array.
+ */
+void ARRAY_CLEAR(kids_real* A, size_t N);
 
-template <class T>
-void ARRAY_CLEAR(T* A, size_t N) {
-    memset(A, 0, N * sizeof(T));
-}
+/**
+ * Set all elements of a complex array to zero.
+ *
+ * @param A Pointer to the complex array.
+ * @param N Size of the array.
+ */
+void ARRAY_CLEAR(kids_complex* A, size_t N);
 
-template <class TA, class TB, class TC>
-void ARRAY_MATMUL(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = (MapB * MapC).eval();
-}
+/**
+ * Perform matrix multiplication where A = B * C for real matrices.
+ *
+ * @param A Pointer to the result real matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL(kids_real* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3);
 
-template <class TA, class TB, class TC>
-void ARRAY_MATMUL_TRANS1(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-    Eigen::Map<EigMX<TB>> MapB(B, N2, N1);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = (MapB.adjoint() * MapC).eval();
-}
+/**
+ * Perform matrix multiplication where A = B * C for complex matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL(kids_complex* A, kids_complex* B, kids_complex* C, size_t N1, size_t N2, size_t N3);
 
-template <class TA, class TB, class TC>
-void ARRAY_MATMUL_TRANS2(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N3, N2);
-    MapA = (MapB * MapC.adjoint()).eval();
-}
+/**
+ * Perform matrix multiplication where A = B * C for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL(kids_complex* A, kids_real* B, kids_complex* C, size_t N1, size_t N2, size_t N3);
 
-template <class T>
-void ARRAY_OUTER_TRANS2(T* A, T* B, T* C, size_t N1, size_t N2) {
-    ARRAY_MATMUL_TRANS2(A, B, C, N1, 1, N2);
-}
+/**
+ * Perform matrix multiplication where A = B * C for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL(kids_complex* A, kids_complex* B, kids_real* C, size_t N1, size_t N2, size_t N3);
 
-template <class TA, class T, class TC>
-void ARRAY_MATMUL3_TRANS1(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t N0, size_t N3) {
-    if (N0 == 0) {
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N2, N1);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
-        Eigen::Map<EigMX<T>>  MapD(D, N2, N3);
-        MapA = (MapB.adjoint() * (MapC.asDiagonal() * MapD)).eval();
-    } else {  // N0 == N2
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N2, N1);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
-        Eigen::Map<EigMX<T>>  MapD(D, N2, N3);
-        MapA = (MapB.adjoint() * (MapC * MapD)).eval();
-    }
-}
+/**
+ * Perform matrix multiplication where A = B^T * C for real matrices.
+ *
+ * @param A Pointer to the result real matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B^T and A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL_TRANS1(kids_real* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3);
 
-template <class TA, class T, class TC>
-void ARRAY_MATMUL3_TRANS2(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t N0, size_t N3) {
-    if (N0 == 0) {
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N1, N2);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
-        Eigen::Map<EigMX<T>>  MapD(D, N3, N2);
-        MapA = (MapB * (MapC.asDiagonal() * MapD.adjoint())).eval();
-    } else {  // N0 == N2
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N1, N2);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
-        Eigen::Map<EigMX<T>>  MapD(D, N3, N2);
-        MapA = (MapB * (MapC * MapD.adjoint())).eval();
-    }
-}
+/**
+ * Perform matrix multiplication where A = B^T * C for complex matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B^T and A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL_TRANS1(kids_complex* A, kids_complex* B, kids_complex* C, size_t N1, size_t N2, size_t N3);
 
-template <class TB, class TC>
-TB ARRAY_TRACE2(TB* B, TC* C, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB                    res = (MapB.array() * (MapC.transpose()).array()).sum();
-    return res;
-}
+/**
+ * Perform matrix multiplication where A = B^T * C for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B^T and A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL_TRANS1(kids_complex* A, kids_real* B, kids_complex* C, size_t N1, size_t N2, size_t N3);
 
-template <class TB, class TC>
-TB ARRAY_TRACE2_DIAG(TB* B, TC* C, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB                    res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
-    return res;
-}
+/**
+ * Perform matrix multiplication where A = B^T * C for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B^T and A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N3 Number of columns in C and A.
+ */
+void ARRAY_MATMUL_TRANS1(kids_complex* A, kids_complex* B, kids_real* C, size_t N1, size_t N2, size_t N3);
 
-template <class TB, class TC>
-TB ARRAY_TRACE2_OFFD(TB* B, TC* C, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB                    res = (MapB.array() * (MapC.transpose()).array()).sum()  //
-             - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
-    return res;
-}
+/**
+ * Perform matrix multiplication where A = B * C^T for real matrices.
+ *
+ * @param A Pointer to the result real matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and A^T.
+ * @param N3 Number of columns in C^T and A.
+ */
+void ARRAY_MATMUL_TRANS2(kids_real* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3);
 
-template <class TB, class TC>
-TB ARRAY_INNER_TRANS1(TB* B, TC* C, size_t N1) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
-    Eigen::Map<EigMX<TC>> MapC(C, N1, 1);
-    return (MapB.adjoint() * MapC).sum();
-}
+/**
+ * Perform matrix multiplication where A = B * C^T for complex matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and A^T.
+ * @param N3 Number of columns in C^T and A.
+ */
+void ARRAY_MATMUL_TRANS2(kids_complex* A, kids_complex* B, kids_complex* C, size_t N1, size_t N2, size_t N3);
 
-template <class TB, class TC, class TD>
-TB ARRAY_INNER_VMV_TRANS1(TB* B, TC* C, TD* D, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
-    Eigen::Map<EigMX<TC>> MapC(C, N1, N2);
-    Eigen::Map<EigMX<TD>> MapD(D, N2, 1);
-    return (MapB.adjoint() * MapC * MapD).sum();
-}
+/**
+ * Perform matrix multiplication where A = B * C^T for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and A^T.
+ * @param N3 Number of columns in C^T and A.
+ */
+void ARRAY_MATMUL_TRANS2(kids_complex* A, kids_real* B, kids_complex* C, size_t N1, size_t N2, size_t N3);
 
-template <class T>
-void ARRAY_EYE(T* A, size_t n) {
-    Eigen::Map<EigMX<T>> MapA(A, n, n);
-    MapA = EigMX<T>::Identity(n, n);
-}
+/**
+ * Perform matrix multiplication where A = B * C^T for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and A.
+ * @param N2 Number of columns in B and A^T.
+ * @param N3 Number of columns in C^T and A.
+ */
+void ARRAY_MATMUL_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, size_t N1, size_t N2, size_t N3);
 
-template <class TA, class TB>
-void ARRAY_MAT_DIAG(TA* A, TB* B, size_t N1) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N1);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N1);
-    ARRAY_CLEAR(A, N1 * N1);
-    // MapA.array()    = TA(0);
-    MapA.diagonal() = MapB.diagonal();
-}
+/**
+ * Perform outer product with transpose where A = B^T * C for real matrices.
+ *
+ * @param A Pointer to the result real matrix.
+ * @param B Pointer to the first real vector.
+ * @param C Pointer to the second real vector.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in A.
+ */
+void ARRAY_OUTER_TRANS2(kids_real* A, kids_real* B, kids_real* C, size_t N1, size_t N2);
 
-template <class TA, class TB>
-void ARRAY_MAT_OFFD(TA* A, TB* B, size_t N1) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N1);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N1);
-    MapA                    = MapB;
-    MapA.diagonal().array() = TA(0);
-}
+/**
+ * Perform outer product with transpose where A = B^T * C for complex matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex vector.
+ * @param C Pointer to the second complex vector.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in A.
+ */
+void ARRAY_OUTER_TRANS2(kids_complex* A, kids_complex* B, kids_complex* C, size_t N1, size_t N2);
 
-/*===========================================================
-=            realize interface of linear algebra            =
-===========================================================*/
+/**
+ * Perform matrix multiplication where A = B^T * C * D for real matrices.
+ *
+ * @param A Pointer to the result real matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param D Pointer to the third real matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N0 Number of columns in B^T and rows in D; N0==0 when C is a diagonal vector and N2 is for rows of D.
+ * @param N3 Number of columns in D and A.
+ */
+void ARRAY_MATMUL3_TRANS1(kids_real* A, kids_real* B, kids_real* C, kids_real* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-inline void LinearSolve(kids_real* x, kids_real* A, kids_real* b, const int& N) {
-    MapMXr Mapx(x, N, 1);
-    MapMXr MapA(A, N, N);
-    MapMXr Mapb(b, N, 1);
-    Mapx = MapA.householderQr().solve(Mapb);
-}
+/**
+ * Perform matrix multiplication where A = B^T * C * D for complex matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param D Pointer to the third complex matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N0 Number of columns in B^T and rows in D; N0==0 when C is a diagonal vector and N2 is for rows of D.
+ * @param N3 Number of columns in D and A.
+ */
+void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_complex* B, kids_complex* C, kids_complex* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-inline void EigenSolve(kids_real* E, kids_real* T, kids_real* A, const int& N) {
-    MapMXr                                MapE(E, N, 1);
-    MapMXr                                MapT(T, N, N);
-    MapMXr                                MapA(A, N, N);
-    Eigen::SelfAdjointEigenSolver<EigMXr> eig(MapA);
-    MapE = eig.eigenvalues().real();
-    MapT = eig.eigenvectors().real();
-}
+/**
+ * Perform matrix multiplication where A = B^T * C * D for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param D Pointer to the third real matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N0 Number of columns in B^T and rows in D; N0==0 when C is a diagonal vector and N2 is for rows of D.
+ * @param N3 Number of columns in D and A.
+ */
+void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_real* B, kids_complex* C, kids_real* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-inline void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, const int& N) {
-    MapMXr                                MapE(E, N, 1);
-    MapMXc                                MapT(T, N, N);
-    MapMXc                                MapA(A, N, N);
-    Eigen::SelfAdjointEigenSolver<EigMXc> eig(MapA);
-    MapE = eig.eigenvalues().real();
-    MapT = eig.eigenvectors();
-}
+/**
+ * Perform matrix multiplication where A = B^T * C * D for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param D Pointer to the third complex matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B^T and rows in C.
+ * @param N0 Number of columns in B^T and rows in D; N0==0 when C is a diagonal vector and N2 is for rows of D.
+ * @param N3 Number of columns in D and A.
+ */
+void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_complex* B, kids_real* C, kids_complex* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-inline void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, const int& N) {
-    MapMXc                            MapE(E, N, 1);
-    MapMXc                            MapT(T, N, N);
-    MapMXc                            MapA(A, N, N);
-    Eigen::ComplexEigenSolver<EigMXc> eig(MapA);
-    MapE = eig.eigenvalues();
-    MapT = eig.eigenvectors();
-}
+/**
+ * Perform matrix multiplication where A = B * C * D^T for real matrices.
+ *
+ * @param A Pointer to the result real matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param D Pointer to the third real matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N0 Number of columns in C and rows in D^T; N0==0 when C is a diagonal vector and N2 is for rows of D^T.
+ * @param N3 Number of columns in D^T and A.
+ */
+void ARRAY_MATMUL3_TRANS2(kids_real* A, kids_real* B, kids_real* C, kids_real* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-inline void PseudoInverse(kids_real* A, kids_real* invA, const int& N, kids_real e = 1E-5) {
-    MapMXr MapA(A, N, N);
-    MapMXr MapInvA(invA, N, N);
-    MapInvA = MapA.completeOrthogonalDecomposition().pseudoInverse();
-    /* Eigen::JacobiSVD<EigMXr> svd = MapA.jacobiSvd(Eigen::ComputeFullU|Eigen::ComputeFullV);
-    EigMXr invS = EigMXr::Zero(N, N);
-    for (int i = 0; i < N; ++i) {
-        if (svd.singularValues()(i) > e || svd.singularValues()(i) < -e) {
-            invS(i, i) = 1 / svd.singularValues()(i);
-        }
-    }
-    MapInvA = svd.matrixV()*invS*svd.matrixU().transpose(); */
-}
+/**
+ * Perform matrix multiplication where A = B * C * D^T for complex matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param D Pointer to the third complex matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N0 Number of columns in C and rows in D^T; N0==0 when C is a diagonal vector and N2 is for rows of D^T.
+ * @param N3 Number of columns in D^T and A.
+ */
+void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_complex* B, kids_complex* C, kids_complex* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-/*****************************************
-    An brief introduction to Eigen library
-------------------------------------------
+/**
+ * Perform matrix multiplication where A = B * C * D^T for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param D Pointer to the third real matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N0 Number of columns in C and rows in D^T; N0==0 when C is a diagonal vector and N2 is for rows of D^T.
+ * @param N3 Number of columns in D^T and A.
+ */
+void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_real* B, kids_complex* C, kids_real* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-// Eigen        // Matlab           // comments
-x.size()        // length(x)        // vector size
-C.rows()        // size(C,1)        // number of rows
-C.cols()        // size(C,2)        // number of columns
-x(i)            // x(i+1)           // Matlab is 1-based
-C(i, j)         // C(i+1,j+1)       //
+/**
+ * Perform matrix multiplication where A = B * C * D^T for complex and real matrices.
+ *
+ * @param A Pointer to the result complex matrix.
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param D Pointer to the third complex matrix.
+ * @param N1 Number of rows in A.
+ * @param N2 Number of columns in B and rows in C.
+ * @param N0 Number of columns in C and rows in D^T; N0==0 when C is a diagonal vector and N2 is for rows of D^T.
+ * @param N3 Number of columns in D^T and A.
+ */
+void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, kids_complex* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
 
-A.resize(4, 4);   // Runtime error if assertions are on.
-B.resize(4, 9);   // Runtime error if assertions are on.
-A.resize(3, 3);   // Ok; size didn't change.
-B.resize(3, 9);   // Ok; only dynamic cols changed.
+/**
+ * Compute the trace of the matrix product B * C for real matrices.
+ *
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the matrix product B * C.
+ */
+kids_real ARRAY_TRACE2(kids_real* B, kids_real* C, size_t N1, size_t N2);
 
-A << 1, 2, 3,     // Initialize A. The elements can also be
-     4, 5, 6,     // matrices, which are stacked along cols
-     7, 8, 9;     // and then the rows are stacked.
-B << A, A, A;     // B is three horizontally stacked A's.
-A.fill(10);       // Fill A with all 10's.
+/**
+ * Compute the trace of the matrix product B * C for complex matrices.
+ *
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2(kids_complex* B, kids_complex* C, size_t N1, size_t N2);
 
+/**
+ * Compute the trace of the matrix product B * C for complex and real matrices.
+ *
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2(kids_complex* B, kids_real* C, size_t N1, size_t N2);
 
-// Eigen                            // Matlab
-MatrixXd::Identity(rows,cols)       // eye(rows,cols)
-C.setIdentity(rows,cols)            // C = eye(rows,cols)
-MatrixXd::Zero(rows,cols)           // zeros(rows,cols)
-C.setZero(rows,cols)                // C = ones(rows,cols)
-MatrixXd::Ones(rows,cols)           // ones(rows,cols)
-C.setOnes(rows,cols)                // C = ones(rows,cols)
-MatrixXd::Random(rows,cols)         // rand(rows,cols)*2-1
-C.setRandom(rows,cols)              // C = rand(rows,cols)*2-1
-VectorXd::LinSpaced(size,low,high)  // linspace(low,high,size)'
-v.setLinSpaced(size,low,high)       // v = linspace(low,high,size)'
+/**
+ * Compute the trace of the matrix product B * C for real and complex matrices.
+ *
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2(kids_real* B, kids_complex* C, size_t N1, size_t N2);
 
+/**
+ * Compute the trace of the diagonal elements of the matrix product B * C for real matrices.
+ *
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the diagonal elements of the matrix product B * C.
+ */
+kids_real ARRAY_TRACE2_DIAG(kids_real* B, kids_real* C, size_t N1, size_t N2);
 
-// Matrix slicing and blocks. All expressions listed here are read/write.
-// Templated size versions are faster. Note that Matlab is 1-based (a size N
-// vector is x(1)...x(N)).
-// Eigen                           // Matlab
-x.head(n)                          // x(1:n)
-x.head<n>()                        // x(1:n)
-x.tail(n)                          // x(end - n + 1: end)
-x.tail<n>()                        // x(end - n + 1: end)
-x.segment(i, n)                    // x(i+1 : i+n)
-x.segment<n>(i)                    // x(i+1 : i+n)
-P.block(i, j, rows, cols)          // P(i+1 : i+rows, j+1 : j+cols)
-P.block<rows, cols>(i, j)          // P(i+1 : i+rows, j+1 : j+cols)
-P.row(i)                           // P(i+1, :)
-P.col(j)                           // P(:, j+1)
-P.leftCols<cols>()                 // P(:, 1:cols)
-P.leftCols(cols)                   // P(:, 1:cols)
-P.middleCols<cols>(j)              // P(:, j+1:j+cols)
-P.middleCols(j, cols)              // P(:, j+1:j+cols)
-P.rightCols<cols>()                // P(:, end-cols+1:end)
-P.rightCols(cols)                  // P(:, end-cols+1:end)
-P.topRows<rows>()                  // P(1:rows, :)
-P.topRows(rows)                    // P(1:rows, :)
-P.middleRows<rows>(i)              // P(i+1:i+rows, :)
-P.middleRows(i, rows)              // P(i+1:i+rows, :)
-P.bottomRows<rows>()               // P(end-rows+1:end, :)
-P.bottomRows(rows)                 // P(end-rows+1:end, :)
-P.topLeftCorner(rows, cols)        // P(1:rows, 1:cols)
-P.topRightCorner(rows, cols)       // P(1:rows, end-cols+1:end)
-P.bottomLeftCorner(rows, cols)     // P(end-rows+1:end, 1:cols)
-P.bottomRightCorner(rows, cols)    // P(end-rows+1:end, end-cols+1:end)
-P.topLeftCorner<rows,cols>()       // P(1:rows, 1:cols)
-P.topRightCorner<rows,cols>()      // P(1:rows, end-cols+1:end)
-P.bottomLeftCorner<rows,cols>()    // P(end-rows+1:end, 1:cols)
-P.bottomRightCorner<rows,cols>()   // P(end-rows+1:end, end-cols+1:end)
+/**
+ * Compute the trace of the diagonal elements of the matrix product B * C for complex matrices.
+ *
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the diagonal elements of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2_DIAG(kids_complex* B, kids_complex* C, size_t N1, size_t N2);
 
+/**
+ * Compute the trace of the diagonal elements of the matrix product B * C for complex and real matrices.
+ *
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the diagonal elements of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2_DIAG(kids_complex* B, kids_real* C, size_t N1, size_t N2);
 
+/**
+ * Compute the trace of the diagonal elements of the matrix product B * C for real and complex matrices.
+ *
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the diagonal elements of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2_DIAG(kids_real* B, kids_complex* C, size_t N1, size_t N2);
 
+/**
+ * Compute the trace of the off-diagonal elements of the matrix product B * C for real matrices.
+ *
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the off-diagonal elements of the matrix product B * C.
+ */
+kids_real ARRAY_TRACE2_OFFD(kids_real* B, kids_real* C, size_t N1, size_t N2);
 
-// Of particular note is Eigen's swap function which is highly optimized.
-// Eigen                           // Matlab
-R.row(i) = P.col(j);               // R(i, :) = P(:, i)
-R.col(j1).swap(mat1.col(j2));      // R(:, [j1 j2]) = R(:, [j2, j1])
+/**
+ * Compute the trace of the off-diagonal elements of the matrix product B * C for complex matrices.
+ *
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the off-diagonal elements of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_complex* C, size_t N1, size_t N2);
 
-// Views, transpose, etc; all read-write except for .adjoint().
-// Eigen                           // Matlab
-R.adjoint()                        // R'
-R.transpose()                      // R.' or conj(R')
-R.diagonal()                       // diag(R)
-x.asDiagonal()                     // diag(x)
-R.transpose().colwise().reverse(); // rot90(R)
-R.conjugate()                      // conj(R)
+/**
+ * Compute the trace of the off-diagonal elements of the matrix product B * C for complex and real matrices.
+ *
+ * @param B Pointer to the first complex matrix.
+ * @param C Pointer to the second real matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the off-diagonal elements of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_real* C, size_t N1, size_t N2);
 
-// All the same as Matlab, but matlab doesn't have *= style operators.
-// Matrix-vector.  Matrix-matrix.   Matrix-scalar.
-y  = M*x;          R  = P*Q;        R  = P*s;
-a  = b*M;          R  = P - Q;      R  = s*P;
-a *= M;            R  = P + Q;      R  = P/s;
-                   R *= Q;          R  = s*P;
-                   R += Q;          R *= s;
-                   R -= Q;          R /= s;
+/**
+ * Compute the trace of the off-diagonal elements of the matrix product B * C for real and complex matrices.
+ *
+ * @param B Pointer to the first real matrix.
+ * @param C Pointer to the second complex matrix.
+ * @param N1 Number of rows in B and columns in C.
+ * @param N2 Number of columns in B and rows in C.
+ * @return The trace of the off-diagonal elements of the matrix product B * C.
+ */
+kids_complex ARRAY_TRACE2_OFFD(kids_real* B, kids_complex* C, size_t N1, size_t N2);
 
+/**
+ * Compute the inner product of the transpose of B with C for real matrices.
+ *
+ * @param B Pointer to the real matrix B.
+ * @param C Pointer to the real matrix C.
+ * @param N1 Number of elements in B and C (length of vectors).
+ * @return The inner product of transpose(B) and C.
+ */
+kids_real ARRAY_INNER_TRANS1(kids_real* B, kids_real* C, size_t N1);
 
-// Vectorized operations on each element independently
-// Eigen                  // Matlab
-R = P.cwiseProduct(Q);    // R = P .* Q
-R = P.array() * s.array();// R = P .* s
-R = P.cwiseQuotient(Q);   // R = P ./ Q
-R = P.array() / Q.array();// R = P ./ Q
-R = P.array() + s.array();// R = P + s
-R = P.array() - s.array();// R = P - s
-R.array() += s;           // R = R + s
-R.array() -= s;           // R = R - s
-R.array() < Q.array();    // R < Q
-R.array() <= Q.array();   // R <= Q
-R.cwiseInverse();         // 1 ./ P
-R.array().inverse();      // 1 ./ P
-R.array().sin()           // sin(P)
-R.array().cos()           // cos(P)
-R.array().pow(s)          // P .^ s
-R.array().square()        // P .^ 2
-R.array().cube()          // P .^ 3
-R.cwiseSqrt()             // sqrt(P)
-R.array().sqrt()          // sqrt(P)
-R.array().exp()           // exp(P)
-R.array().log()           // log(P)
-R.cwiseMax(P)             // max(R, P)
-R.array().max(P.array())  // max(R, P)
-R.cwiseMin(P)             // min(R, P)
-R.array().min(P.array())  // min(R, P)
-R.cwiseAbs()              // abs(P)
-R.array().abs()           // abs(P)
-R.cwiseAbs2()             // abs(P.^2)
-R.array().abs2()          // abs(P.^2)
-(R.array() < s).select(P,Q);  // (R < s ? P : Q)
+/**
+ * Compute the inner product of the conjugate transpose of B with C for complex matrices.
+ *
+ * @param B Pointer to the complex matrix B.
+ * @param C Pointer to the complex matrix C.
+ * @param N1 Number of elements in B and C (length of vectors).
+ * @return The inner product of conjugate transpose(B) and C.
+ */
+kids_complex ARRAY_INNER_TRANS1(kids_complex* B, kids_complex* C, size_t N1);
 
-// Reductions.
-int r, c;
-// Eigen                  // Matlab
-R.minCoeff()              // min(R(:))
-R.maxCoeff()              // max(R(:))
-s = R.minCoeff(&r, &c)    // [s, i] = min(R(:)); [r, c] = ind2sub(size(R), i);
-s = R.maxCoeff(&r, &c)    // [s, i] = max(R(:)); [r, c] = ind2sub(size(R), i);
-R.sum()                   // sum(R(:))
-R.colwise().sum()         // sum(R)
-R.rowwise().sum()         // sum(R, 2) or sum(R')'
-R.prod()                  // prod(R(:))
-R.colwise().prod()        // prod(R)
-R.rowwise().prod()        // prod(R, 2) or prod(R')'
-R.trace()                 // trace(R)
-R.all()                   // all(R(:))
-R.colwise().all()         // all(R)
-R.rowwise().all()         // all(R, 2)
-R.any()                   // any(R(:))
-R.colwise().any()         // any(R)
-R.rowwise().any()         // any(R, 2)
+/**
+ * Compute the inner product of the conjugate transpose of B with C for complex and real matrices.
+ *
+ * @param B Pointer to the complex matrix B.
+ * @param C Pointer to the real matrix C.
+ * @param N1 Number of elements in B and C (length of vectors).
+ * @return The inner product of conjugate transpose(B) and C.
+ */
+kids_complex ARRAY_INNER_TRANS1(kids_complex* B, kids_real* C, size_t N1);
 
+/**
+ * Compute the inner product of the transpose of B with C for real and complex matrices.
+ *
+ * @param B Pointer to the real matrix B.
+ * @param C Pointer to the complex matrix C.
+ * @param N1 Number of elements in B and C (length of vectors).
+ * @return The inner product of transpose(B) and C.
+ */
+kids_complex ARRAY_INNER_TRANS1(kids_real* B, kids_complex* C, size_t N1);
 
+/**
+ * Compute the inner product of the transpose of the real vector B with the matrix C,
+ * element-wise multiplication with the real vector D.
+ *
+ * @param B Pointer to the real vector B.
+ * @param C Pointer to the real matrix C.
+ * @param D Pointer to the real vector D.
+ * @param N1 Number of elements in B and rows in C and D.
+ * @param N2 Number of columns in C and elements in D.
+ * @return The inner product of transpose(B) * C * D.
+ */
+kids_real ARRAY_INNER_VMV_TRANS1(kids_real* B, kids_real* C, kids_real* D, size_t N1, size_t N2);
 
+/**
+ * Compute the inner product of the conjugate transpose of the complex vector B with
+ * the complex matrix C, element-wise multiplication with the complex vector D.
+ *
+ * @param B Pointer to the complex vector B.
+ * @param C Pointer to the complex matrix C.
+ * @param D Pointer to the complex vector D.
+ * @param N1 Number of elements in B and rows in C and D.
+ * @param N2 Number of columns in C and elements in D.
+ * @return The inner product of conjugate transpose(B) * C * D.
+ */
+kids_complex ARRAY_INNER_VMV_TRANS1(kids_complex* B, kids_complex* C, kids_complex* D, size_t N1, size_t N2);
 
-// Dot products, norms, etc.
-// Eigen                  // Matlab
-x.norm()                  // norm(x).    Note that norm(R) doesn't work in Eigen.
-x.squaredNorm()           // dot(x, x)   Note the equivalence is not true for complex
-x.dot(y)                  // dot(x, y)
-x.cross(y)                // cross(x, y) Requires #include <Eigen/Geometry>
+/**
+ * Compute the inner product of the conjugate transpose of the complex vector B with the real matrix C,
+ * element-wise multiplication with the complex vector D.
+ *
+ * @param B Pointer to the complex vector B.
+ * @param C Pointer to the real matrix C.
+ * @param D Pointer to the complex vector D.
+ * @param N1 Number of elements in B and rows in C and D.
+ * @param N2 Number of columns in C and elements in D.
+ * @return The inner product of conjugate transpose(B) * C * D.
+ */
+kids_complex ARRAY_INNER_VMV_TRANS1(kids_complex* B, kids_real* C, kids_complex* D, size_t N1, size_t N2);
 
-//// Type conversion
-// Eigen                           // Matlab
-A.cast<kids_real>();                  // kids_real(A)
-A.cast<float>();                   // single(A)
-A.cast<int>();                     // int32(A)
-A.real();                          // real(A)
-A.imag();                          // imag(A)
-// if the original type equals destination type, no work is done
+/**
+ * Compute the inner product of the transpose of the real vector B with the complex matrix C,
+ * element-wise multiplication with the real vector D.
+ *
+ * @param B Pointer to the real vector B.
+ * @param C Pointer to the complex matrix C.
+ * @param D Pointer to the real vector D.
+ * @param N1 Number of elements in B and rows in C and D.
+ * @param N2 Number of columns in C and elements in D.
+ * @return The inner product of transpose(B) * C * D.
+ */
+kids_complex ARRAY_INNER_VMV_TRANS1(kids_real* B, kids_complex* C, kids_real* D, size_t N1, size_t N2);
 
+/**
+ * Generate an identity matrix of size n for real numbers.
+ *
+ * @param A Pointer to the real matrix A to store the result.
+ * @param n Size of the identity matrix.
+ */
+void ARRAY_EYE(kids_real* A, size_t n);
 
-// Solve Ax = b. Result stored in x. Matlab: x = A \ b.
-x = A.ldlt().solve(b));  // A sym. p.s.d.    #include <Eigen/Cholesky>
-x = A.llt() .solve(b));  // A sym. p.d.      #include <Eigen/Cholesky>
-x = A.lu()  .solve(b));  // Stable and fast. #include <Eigen/LU>
-x = A.qr()  .solve(b));  // No pivoting.     #include <Eigen/QR>
-x = A.svd() .solve(b));  // Stable, slowest. #include <Eigen/SVD>
-// .ldlt() -> .matrixL() and .matrixD()
-// .llt()  -> .matrixL()
-// .lu()   -> .matrixL() and .matrixU()
-// .qr()   -> .matrixQ() and .matrixR()
-// .svd()  -> .matrixU(), .singularValues(), and .matrixV()
+/**
+ * Generate an identity matrix of size n for complex numbers.
+ *
+ * @param A Pointer to the complex matrix A to store the result.
+ * @param n Size of the identity matrix.
+ */
+void ARRAY_EYE(kids_complex* A, size_t n);
 
-// Eigenvalue problems
-// Eigen                          // Matlab
-A.eigenvalues();                  // eig(A);
-EigenSolver<Matrix3d> eig(A);     // [vec val] = eig(A)
-eig.eigenvalues();                // diag(val)
-eig.eigenvectors();               // vec
-// For self-adjoint matrices use SelfAdjointEigenSolver<>
+/**
+ * Copy the diagonal elements from matrix B to matrix A for real matrices.
+ *
+ * @param A Pointer to the real matrix A.
+ * @param B Pointer to the real matrix B.
+ * @param N1 Number of rows and columns in A and B.
+ */
+void ARRAY_MAT_DIAG(kids_real* A, kids_real* B, size_t N1);
 
+/**
+ * Copy the diagonal elements from matrix B to matrix A for complex matrices.
+ *
+ * @param A Pointer to the complex matrix A.
+ * @param B Pointer to the complex matrix B.
+ * @param N1 Number of rows and columns in A and B.
+ */
+void ARRAY_MAT_DIAG(kids_complex* A, kids_complex* B, size_t N1);
 
-// Use Map of Eigen, associate Map class with C++ pointer
+/**
+ * Copy the diagonal elements from matrix B to matrix A for complex and real matrices.
+ *
+ * @param A Pointer to the complex matrix A.
+ * @param B Pointer to the real matrix B.
+ * @param N1 Number of rows and columns in A and B.
+ */
+void ARRAY_MAT_DIAG(kids_complex* A, kids_real* B, size_t N1);
 
-MapMd W(pW,1,N/F);
-std::cout << std::setiosflags(std::ios::scientific)
-          << std::setprecision(8) << W << std::endl;
+/**
+ * Copy the off-diagonal elements from matrix B to matrix A for real matrices.
+ *
+ * @param A Pointer to the real matrix A.
+ * @param B Pointer to the real matrix B.
+ * @param N1 Number of rows and columns in A and B.
+ */
+void ARRAY_MAT_OFFD(kids_real* A, kids_real* B, size_t N1);
 
-*****************************************/
+/**
+ * Copy the off-diagonal elements from matrix B to matrix A for complex matrices.
+ *
+ * @param A Pointer to the complex matrix A.
+ * @param B Pointer to the complex matrix B.
+ * @param N1 Number of rows and columns in A and B.
+ */
+void ARRAY_MAT_OFFD(kids_complex* A, kids_complex* B, size_t N1);
 
+/**
+ * Copy the off-diagonal elements from matrix B to matrix A for complex and real matrices.
+ *
+ * @param A Pointer to the complex matrix A.
+ * @param B Pointer to the real matrix B.
+ * @param N1 Number of rows and columns in A and B.
+ */
+void ARRAY_MAT_OFFD(kids_complex* A, kids_real* B, size_t N1);
 
-#endif  // LINALG_H
+/**
+ * Solve a linear system Ax = b for real matrices.
+ *
+ * @param x Pointer to the solution vector x.
+ * @param A Pointer to the coefficient matrix A.
+ * @param b Pointer to the right-hand side vector b.
+ * @param N Size of the system (number of rows or columns in A).
+ */
+void LinearSolve(kids_real* x, kids_real* A, kids_real* b, const int& N);
+
+/**
+ * Solve the eigenvalue problem for real matrices.
+ *
+ * @param E Pointer to the array to store the eigenvalues.
+ * @param T Pointer to the temporary matrix.
+ * @param A Pointer to the matrix for eigenvalue computation.
+ * @param N Size of the matrix (number of rows or columns in A).
+ */
+void EigenSolve(kids_real* E, kids_real* T, kids_real* A, const int& N);
+
+/**
+ * Solve the eigenvalue problem for (hermite) complex matrices.
+ *
+ * @param E Pointer to the array to store the eigenvalues.
+ * @param T Pointer to the temporary complex matrix.
+ * @param A Pointer to the complex matrix for eigenvalue computation.
+ * @param N Size of the matrix (number of rows or columns in A).
+ */
+void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, const int& N);
+
+/**
+ * Solve the eigenvalue problem for general complex matrices.
+ *
+ * @param E Pointer to the array to store the eigenvalues.
+ * @param T Pointer to the temporary complex matrix.
+ * @param A Pointer to the complex matrix for eigenvalue computation.
+ * @param N Size of the matrix (number of rows or columns in A).
+ */
+void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, const int& N);
+
+/**
+ * Compute the pseudo-inverse of a matrix for real numbers.
+ *
+ * @param A Pointer to the matrix A.
+ * @param invA Pointer to the matrix to store the pseudo-inverse of A.
+ * @param N Size of the matrix (number of rows or columns in A).
+ * @param e Tolerance value for singular values.
+ */
+void PseudoInverse(kids_real* A, kids_real* invA, const int& N, kids_real e = 1E-5);
+
+};  // namespace PROJECT_NS
+
+#endif  // KIDS_LINALG_BIND_EIGEN_NOT_USE_TEMPLATE
+
+#endif  // KIDS_LINALG_H

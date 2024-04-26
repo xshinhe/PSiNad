@@ -9,7 +9,9 @@ class Kernel_Update_c final : public Kernel {
    public:
     Kernel_Update_c(double scale) : Kernel(), scale{scale} {};
 
-    inline virtual const std::string name() { return "Kernel_Update_c"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     kids_complex* Udt;  ///< short time propagator
@@ -29,7 +31,7 @@ class Kernel_Update_c final : public Kernel {
     kids_bint* succ_ptr;
     kids_bint* frez_ptr;
 
-    virtual void setInputDataSet_impl(DataSet* S);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
 
     virtual Status& executeKernel_impl(Status& stat);
 };

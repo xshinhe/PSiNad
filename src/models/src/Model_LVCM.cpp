@@ -1,26 +1,22 @@
 #include "kids/Model_LVCM.h"
 
 #include "kids/Kernel_Random.h"
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
 
 namespace PROJECT_NS {
 
-void Model_LVCM::setInputParam_impl(Param *PM) {
+const std::string Model_LVCM::getName() { return "Model_LVCM"; }
+
+int Model_LVCM::getType() const { return utils::hash(FUNCTION_NAME); }
+
+void Model_LVCM::setInputParam_impl(std::shared_ptr<Param> &PM) {
     lvcm_type      = LVCMPolicy::_from(_param->get_string("lvcm_flag", LOC(), "PYR3"));
     classical_bath = _param->get_bool("classical_bath", LOC(), false);
 }
 
-void Model_LVCM::setInputDataSet_impl(DataSet *DS) {
+void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> &DS) {
     Hsys = DS->def(DATA::model::Hsys);
     w    = DS->def(DATA::model::w);
     memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
@@ -384,6 +380,7 @@ Status &Model_LVCM::initializeKernel_impl(Status &stat) {
     _dataset->def_real("init.x", x, Dimension::PN);
     _dataset->def_real("init.p", p, Dimension::PN);
     executeKernel(stat);
+    return stat;
 }
 
 Status &Model_LVCM::executeKernel_impl(Status &stat) {
@@ -438,7 +435,7 @@ Status &Model_LVCM::executeKernel_impl(Status &stat) {
             }
         }
     }
-    return 0;
+    return stat;
 }
 
 

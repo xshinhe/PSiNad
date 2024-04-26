@@ -4,6 +4,8 @@
 #include <ctime>
 
 #include "kids/Exception.h"
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 
 namespace PROJECT_NS {
 
@@ -25,17 +27,17 @@ void Kernel::setInputParam(std::shared_ptr<Param>& PM) {
 
 void Kernel::setInputDataSet(std::shared_ptr<DataSet>& DS) {
     if (!_param) throw kids_error("Param must be passed before");
-    _dataSet = DS;
+    _dataset = DS;
     setInputDataSet_impl(DS);
     for (auto& pkernel : _child_kernels) pkernel->setInputDataSet(DS);
 }
 
 std::shared_ptr<Param> Kernel::getParam() const { return _param; }
 
-std::shared_ptr<DataSet> Kernel::getDataSet() const { return _dataSet; }
+std::shared_ptr<DataSet> Kernel::getDataSet() const { return _dataset; }
 
 Status& Kernel::initializeKernel(Status& stat) {
-    if (!_dataSet) throw kids_error("DataSet must be passed before");
+    if (!_dataset) throw kids_error("DataSet must be passed before");
     // @todo: Consider if the load option is available and ensure it is not overwritten by this function.
     initializeKernel_impl(stat);
     for (auto& pkernel : _child_kernels) pkernel->initializeKernel(stat);
@@ -44,7 +46,7 @@ Status& Kernel::initializeKernel(Status& stat) {
 }
 
 Status& Kernel::executeKernel(Status& stat) {
-    if (!_dataSet) throw kids_error("DataSet must be passed before");
+    if (!_dataset) throw kids_error("DataSet must be passed before");
     std::chrono::time_point<std::chrono::steady_clock> begin, end;
     if (is_timing) begin = std::chrono::steady_clock::now();
     {
@@ -63,23 +65,25 @@ Status& Kernel::finalizeKernel(Status& stat) {
     return stat;
 }
 
+int Kernel::getType() const { return utils::hash(FUNCTION_NAME); }
+
 int Kernel::getID() const { return kernel_id; }
 
 bool Kernel::operator==(const Kernel& ker) { return getID() == ker.getID(); }
 
-Kernel& Kernel::appendChild(std::shared_ptr<Kernel>& ker) {
+Kernel& Kernel::appendChild(std::shared_ptr<Kernel> ker) {
     ker->_order_in_parent = _child_kernels.size();
     _child_kernels.push_back(ker);
     ker->_parent_kernel = this;
     ker->has_parent     = true;
 
     depth = std::max(depth, ker->depth + 1);
-    if (ker->name().size() > max_align_size) { max_align_size = ker->name().size(); }
+    if (ker->getName().size() > max_align_size) { max_align_size = ker->getName().size(); }
 
     return *this;
 }
 
-Kernel& Kernel::insertAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel>& ker) {
+Kernel& Kernel::insertAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel> ker) {
     if (indexes.size() <= 0) throw kids_error("Bad indexes for accessing Kernel");
     std::size_t idx0 = indexes[0];
     if (idx0 > _child_kernels.size()) throw kids_error("Bad indexes for accessing Kernel");
@@ -114,7 +118,7 @@ Kernel& Kernel::removeAt(std::vector<std::size_t> indexes) {
 /**
  * @brief build tree structure of the kernel
  */
-Kernel& Kernel::updateAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel>& ker) {
+Kernel& Kernel::updateAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel> ker) {
     if (indexes.size() <= 0) throw kids_error("Bad indexes for accessing Kernel");
     std::size_t idx0 = indexes[0];
     if (idx0 >= _child_kernels.size()) throw kids_error("Bad indexes for accessing Kernel");
@@ -135,7 +139,7 @@ Kernel& Kernel::updateAt(std::vector<std::size_t> indexes, std::shared_ptr<Kerne
 }
 
 std::tuple<Kernel*, std::size_t> Kernel::getLastParentKernelAndChildOrder() {
-    if (has_parent) return std::make_tuple(_parent_kernel.get(), _order_in_parent);
+    if (has_parent) return std::make_tuple(_parent_kernel, _order_in_parent);
     return std::make_tuple(nullptr, 0);
 }
 
@@ -158,16 +162,16 @@ const std::string Kernel::generateInformationString(double total_time, int curre
            << std::right << std::setw(11) << "[Percent]" << std::endl;
     }
 
-    ss << std::setw(2 * current_layer + 1) << "#"                                        //
-       << std::setfill('0') << std::setw(2) << kernel_id                                 //
-       << std::setfill('.') << std::setw(2 * (total_depth - current_layer) + 2) << ": "  //
-       << std::setfill(' ') << std::left << std::setw(total_align_size + 10) << name()   //
-       << std::fixed << std::setprecision(3) << exec_time << "s"                         //
-       << std::right << std::setw(10) << std::fixed << std::setprecision(2)              //
-       << 100 * exec_time / total_time << "%"                                            //
+    ss << std::setw(2 * current_layer + 1) << "#"                                          //
+       << std::setfill('0') << std::setw(2) << kernel_id                                   //
+       << std::setfill('.') << std::setw(2 * (total_depth - current_layer) + 2) << ": "    //
+       << std::setfill(' ') << std::left << std::setw(total_align_size + 10) << getName()  //
+       << std::fixed << std::setprecision(3) << exec_time << "s"                           //
+       << std::right << std::setw(10) << std::fixed << std::setprecision(2)                //
+       << 100 * exec_time / total_time << "%"                                              //
        << std::endl;
     for (auto pkernel : _child_kernels) {
-        ss << pkernel->scheme(total_time, current_layer + 1, total_depth, total_align_size);
+        ss << pkernel->generateInformationString(total_time, current_layer + 1, total_depth, total_align_size);
     }
     return ss.str();
 }
@@ -182,11 +186,18 @@ Status& Kernel::executeKernel_impl(Status& stat) { return stat; }
 
 Status& Kernel::finalizeKernel_impl(Status& stat) { return stat; }
 
-void connectRelatedKernels(std::shared_ptr<Kernel>& ker) {
+void Kernel::connectRelatedKernels(std::shared_ptr<Kernel>& ker) {
     bool found_kernel = false;
-    for (auto&& pkernel : _all_kernels)
-        if (*ker == *pkernel) found_kernel = true;
-    if (!found_kernel) _all_kernels.push_back(ker);
+    for (auto&& pkernel : _all_kernels) {
+        if (*ker == *pkernel) {
+            found_kernel = true;
+            break;
+        }
+    }
+    if (!found_kernel) {
+        _all_kernels.push_back(ker);
+        for (auto&& pkernel : ker->_child_kernels) connectRelatedKernels(pkernel);
+    }
 }
 
 std::map<std::string, Kernel*>& getDictOfKernels() {

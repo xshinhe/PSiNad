@@ -24,7 +24,9 @@ DEFINE_POLICY(LVCMPolicy,  //
 
 class Model_LVCM final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Model_LVCM"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     Model_LVCM(){};
 

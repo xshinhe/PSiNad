@@ -1,8 +1,14 @@
 #include "kids/Model_Bath.h"
 
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Model_Bath::getName() { return "Model_Bath"; }
+
+int Model_Bath::getType() const { return utils::hash(FUNCTION_NAME); }
 
 double Model_Bath::J_Debye(double w) { return 2 * lambda * omegac * w / (w * w + omegac * omegac); }
 

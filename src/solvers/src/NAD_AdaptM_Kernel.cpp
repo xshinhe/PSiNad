@@ -1,4 +1,5 @@
 #include "kids/Kernel_Conserve.h"
+#include "kids/Kernel_Custom.h"
 #include "kids/Kernel_Dump_DataSet.h"
 #include "kids/Kernel_Elec_NAD.h"
 #include "kids/Kernel_Elec_Switch.h"
@@ -20,10 +21,10 @@ std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::s
     int split = 4;
 
     // Root Kernel
-    std::shared_ptr<Kernel> ker(new Kernel(NAD_Kernel_name));
+    std::shared_ptr<Kernel> ker(new Kernel_Custom(NAD_Kernel_name));
 
     /// Integrator Kernel
-    std::shared_ptr<Kernel> kinte(new Kernel("MULTI_Integrator"));
+    std::shared_ptr<Kernel> kinte(new Kernel_Custom("MULTI_Integrator"));
 
     std::shared_ptr<Kernel_Representation> krepr(new Kernel_Representation());
     std::shared_ptr<Kernel_NADForce>       kforc(new Kernel_NADForce());
@@ -55,42 +56,42 @@ std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::s
     std::shared_ptr<Kernel_Record> krecd(new Kernel_Record());
 
     for (int i = 0; i < split; ++i) {
-        kinte->push(ku_p);
-        kinte->push(krepr);
-        kinte->push(ku_c);
-        kinte->push(kele);
-        kinte->push(kforc);
+        kinte->appendChild(ku_p);
+        kinte->appendChild(krepr);
+        kinte->appendChild(ku_c);
+        kinte->appendChild(kele);
+        kinte->appendChild(kforc);
     }
 
-    kinte->push(ku_x);
-    kinte->push(ku_x);
-    kinte->push(kmodel);
-    kinte->push(krepr);
+    kinte->appendChild(ku_x);
+    kinte->appendChild(ku_x);
+    kinte->appendChild(kmodel);
+    kinte->appendChild(krepr);
 
     for (int i = 0; i < split; ++i) {
-        kinte->push(ku_c);
-        kinte->push(kele);
-        kinte->push(kforc);
-        kinte->push(ku_p);
-        kinte->push(krepr);
+        kinte->appendChild(ku_c);
+        kinte->appendChild(kele);
+        kinte->appendChild(kforc);
+        kinte->appendChild(ku_p);
+        kinte->appendChild(krepr);
     }
-    kinte->push(std::shared_ptr<Kernel_Elec_Switch>(new Kernel_Elec_Switch()));
-    kinte->push(kforc);
+    kinte->appendChild(std::shared_ptr<Kernel_Elec_Switch>(new Kernel_Elec_Switch()));
+    kinte->appendChild(kforc);
 
-    kinte->push(std::shared_ptr<Kernel_Conserve>(new Kernel_Conserve()));
+    kinte->appendChild(std::shared_ptr<Kernel_Conserve>(new Kernel_Conserve()));
 
     std::shared_ptr<Kernel_Iter_Adapt> kiter(new Kernel_Iter_Adapt());
-    kiter->push(krecd);  // stacked in iteration
-    kiter->push(kinte);  // stacked in iteration
+    kiter->appendChild(krecd);  // stacked in iteration
+    kiter->appendChild(kinte);  // stacked in iteration
 
     // /// CMM kernel
-    ker->push(std::shared_ptr<Kernel_Load_DataSet>(new Kernel_Load_DataSet()))
-        .push(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
-        .push(std::shared_ptr<Kernel_Read_Dimensions>(new Kernel_Read_Dimensions()))
-        .push(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, kinte}, 1)))
-        .push(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, krepr, kele, krecd}, 2)))
-        .push(kiter)
-        .push(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
+    ker->appendChild(std::shared_ptr<Kernel_Load_DataSet>(new Kernel_Load_DataSet()))
+        .appendChild(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
+        .appendChild(std::shared_ptr<Kernel_Read_Dimensions>(new Kernel_Read_Dimensions()))
+        .appendChild(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, kinte}, 1)))
+        .appendChild(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, krepr, kele, krecd}, 2)))
+        .appendChild(kiter)
+        .appendChild(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
     return ker;
 }
 

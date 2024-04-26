@@ -2,12 +2,16 @@
 #define MODEL_HELLO
 
 #include "kids/Kernel.h"
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 
 namespace PROJECT_NS {
 
 class Model_Hello final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Model_Hello"; }
+    virtual const std::string getName() { return "Model_Hello"; }
+
+    virtual int getType() const { return utils::hash(FUNCTION_NAME); }
 
    private:
     int     N, F;

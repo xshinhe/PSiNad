@@ -1,5 +1,7 @@
 #include "kids/Kernel_Iter_Adapt.h"
 
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 #define FMTF(X)                                                      \
@@ -8,6 +10,10 @@
         << std::setw(X + 4)                  /*precision*/
 
 namespace PROJECT_NS {
+
+const std::string Kernel_Iter_Adapt::getName() { return "Kernel_Iter_Adapt"; }
+
+int Kernel_Iter_Adapt::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Iter_Adapt::setInputParam_impl(std::shared_ptr<Param>& PM) {
     t0   = PM->get_double("t0", LOC(), phys::time_d, 0.0f);
@@ -58,6 +64,7 @@ Status& Kernel_Iter_Adapt::initializeKernel_impl(Status& stat) {
     last_attempt_ptr[0] = false;
     frez_ptr[0]         = false;
     fail_type_ptr[0]    = 0;
+    return stat;
 }
 
 Status& Kernel_Iter_Adapt::executeKernel_impl(Status& stat) {
@@ -104,13 +111,13 @@ Status& Kernel_Iter_Adapt::executeKernel_impl(Status& stat) {
         if (frez_ptr[0]) statc = 'Z';
 
         if (std::ifstream{"X_STAT"}.good() && !frez_ptr[0]) statc = 'X';
-        if (std::ifstream{utils::concat("X_STAT", stat)}.good() && !frez_ptr[0]) statc = 'X';
+        if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good() && !frez_ptr[0]) statc = 'X';
 
         switch (statc) {
             case 'X': {
                 // save breakdown information
                 std::string   directory = _param->get_string("directory", LOC());
-                std::ofstream ofs{utils::concat(directory, "/fail", stat, "-", istep_ptr[0], ".ds")};
+                std::ofstream ofs{utils::concat(directory, "/fail", stat.icalc, "-", istep_ptr[0], ".ds")};
                 _dataset->dump(ofs);
                 ofs.close();
 
@@ -162,7 +169,7 @@ Status& Kernel_Iter_Adapt::executeKernel_impl(Status& stat) {
     }
     at_samplingstep_initially_ptr[0] = true;
     dt_ptr[0]                        = 0;
-    return 0;
+    return stat;
 }
 
 };  // namespace PROJECT_NS

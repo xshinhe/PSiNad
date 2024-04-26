@@ -1,9 +1,15 @@
 #include "kids/Kernel_Conserve.h"
 
 #include "kids/Kernel_Elec.h"
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Kernel_Conserve::getName() { return "Kernel_Conserve"; }
+
+int Kernel_Conserve::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Conserve::setInputParam_impl(std::shared_ptr<Param>& PM) {
     conserve_scale = PM->get_bool("conserve_scale", LOC(), false);  // default as false
@@ -35,11 +41,16 @@ Status& Kernel_Conserve::initializeKernel_impl(Status& stat) {
         Etot[iP] = Ekin[iP] + Epot[iP], Etot_init[iP] = Etot[iP];
         Etot_prev[iP] = Etot_init[iP];
     }
+    return stat;
 };
 
 Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
-    if (!succ_ptr[0] && fail_type_ptr[0] == 1) return 0;
-    if (frez_ptr[0]) return 0;
+    if (!succ_ptr[0] && fail_type_ptr[0] == 1) {
+        return stat;  //
+    }
+    if (frez_ptr[0]) {
+        return stat;  //
+    }
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* E         = this->E + iP * Dimension::F;
@@ -84,7 +95,7 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
             // Ekin[0] = Etot_init[0] - Epot[0];
         }
     }
-    return 0;
+    return stat;
 }
 
 

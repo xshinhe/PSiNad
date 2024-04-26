@@ -39,18 +39,14 @@ namespace PROJECT_NS {
  */
 class Kernel_Read_Dimensions final : public Kernel {
    public:
-    Kernel_Read_Dimensions() : Kernel(){};
+    Kernel_Read_Dimensions();
 
-    inline virtual const std::string name() { return "Kernel_Read_Dimensions"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM) {
-        Dimension::M = PM->get_int("M", LOC(), 1);
-        Dimension::P = PM->get_int("P", LOC(), 1);
-        Dimension::N = PM->get_int("N", LOC(), 1);
-        Dimension::F = PM->get_int("F", LOC(), 1);
-        Dimension::static_build_shapes();
-    };
+    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
 };
 
 };  // namespace PROJECT_NS

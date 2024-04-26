@@ -4,7 +4,9 @@
 #include "kids/Kernel_NADForce.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 inline bool isFileExists(const std::string& name) { return std::ifstream{name.c_str()}.good(); }
@@ -154,6 +156,10 @@ int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm,  //
     }
     return from;
 }
+
+const std::string Kernel_Elec_NAD::getName() { return "Kernel_Elec_NAD"; }
+
+int Kernel_Elec_NAD::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Elec_NAD::setInputParam_impl(std::shared_ptr<Param>& PM) {
     cmsh_type = NADPolicy::_from(PM->get_string("cmsh_flag", LOC(), "CVSH"));
@@ -313,7 +319,7 @@ Status& Kernel_Elec_NAD::initializeKernel_impl(Status& stat) {
         if (cread_from_ds) {
             std::string init_nuclinp = _param->get_string("init_nuclinp", LOC());
             std::string open_file    = init_nuclinp;
-            if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat, ".ds");
+            if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat.icalc, ".ds");
 
             std::string   stmp, eachline;
             std::ifstream ifs(open_file);
@@ -431,6 +437,7 @@ Status& Kernel_Elec_NAD::initializeKernel_impl(Status& stat) {
 
     at_samplingstep_finally_ptr[0] = true;
     executeKernel(stat);
+    return stat;
 }
 
 Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {

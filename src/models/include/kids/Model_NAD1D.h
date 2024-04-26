@@ -32,7 +32,9 @@ DEFINE_POLICY(NAD1DPolicy,
 
 class Model_NAD1D final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Model_NAD1D"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     NAD1DPolicy::_type nad1d_type;

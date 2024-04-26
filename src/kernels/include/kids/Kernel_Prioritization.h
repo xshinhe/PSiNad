@@ -37,35 +37,21 @@ namespace PROJECT_NS {
  */
 class Kernel_Prioritization final : public Kernel {
    public:
-    Kernel_Prioritization(std::vector<std::shared_ptr<Kernel>> kers, int ptype_in) : Kernel(), ptype{ptype_in} {
-        for (auto& ker : kers) { _ref_kernels.push_back(ker); }
-    }
+    Kernel_Prioritization(std::vector<std::shared_ptr<Kernel>> kers, int ptype_in);
 
-    inline virtual const std::string name() {
-        std::stringstream ss;
-        ss << "Kernel_Prioritization [" << ptype << "]";
-        for (auto& ker : _ref_kernels) ss << " #" << std::setfill('0') << std::setw(2) << ker->id();
-        return ss.str();
-    }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     int                                  ptype;
     std::vector<std::shared_ptr<Kernel>> _ref_kernels;
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM) {
-        if (ptype == 0)
-            for (auto& ker : _ref_kernels) ker->setInputParam(PM);
-    }
+    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
-        if (ptype == 1)
-            for (auto& ker : _ref_kernels) ker->setInputDataSet(DS);
-    }
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
 
-    virtual Status& initializeKernel_impl(Status& stat) {
-        if (ptype == 2)
-            for (auto& ker : _ref_kernels) ker->initializeKernel(stat);
-    }
+    virtual Status& initializeKernel_impl(Status& stat);
 };
 
 };  // namespace PROJECT_NS

@@ -3,7 +3,9 @@
 #include "kids/Kernel_Elec.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
@@ -17,6 +19,11 @@
     })
 
 namespace PROJECT_NS {
+
+const std::string Kernel_GWP::getName() { return "Kernel_GWP"; }
+
+int Kernel_GWP::getType() const { return utils::hash(FUNCTION_NAME); }
+
 
 int Kernel_GWP::calc_Ekin(kids_real* Ekin,  // [P]
                           kids_real* p,     // [P,N]
@@ -500,8 +507,8 @@ Status& Kernel_GWP::initializeKernel_impl(Status& stat) {
             for (int istep_displace = 0; istep_displace < time_displace_step; ++istep_displace) {
                 for (int j = 0; j < Dimension::N; ++j) p_now[j] -= f_now[j] * 0.5 * signdt;
                 for (int j = 0; j < Dimension::N; ++j) x_now[j] += p_now[j] / m[j] * signdt;
-                _kmodel->executeKernel();  // only iP needed
-                _krepr->executeKernel();   // only iP needed
+                _kmodel->executeKernel(stat);  // only iP needed
+                _krepr->executeKernel(stat);   // only iP needed
                 switch (Kernel_Representation::ele_repr_type) {
                     case RepresentationPolicy::Diabatic: {
                         for (int i = 0; i < Dimension::F; ++i) fun_diag_F[i] = exp(-phys::math::im * E_now[i] * signdt);
@@ -513,7 +520,7 @@ Status& Kernel_GWP::initializeKernel_impl(Status& stat) {
                 ARRAY_MATMUL(U_now, Udt_now, U_prev, Dimension::F, Dimension::F, Dimension::F);
                 ARRAY_MATMUL(c_now, U_now, c, Dimension::F, Dimension::F, 1);
                 Kernel_Elec::ker_from_c(rho_nuc_now, c_now, xi, gamma, Dimension::F);
-                _kforce->executeKernel();
+                _kforce->executeKernel(stat);
                 for (int j = 0; j < Dimension::N; ++j) p_now[j] -= f_now[j] * 0.5 * signdt;
             }
             // ARRAY_SHOW(x_now, 1, Dimension::N);
@@ -540,8 +547,8 @@ Status& Kernel_GWP::initializeKernel_impl(Status& stat) {
         }
     }
 
-    _kmodel->executeKernel();
-    _krepr->executeKernel();
+    _kmodel->executeKernel(stat);
+    _krepr->executeKernel(stat);
 
     for (int i = 0; i < Dimension::N; ++i) alpha[i] = alpha0;
     for (int a = 0; a < Dimension::P; ++a) g[a] = 0.0e0;
@@ -582,8 +589,10 @@ Status& Kernel_GWP::initializeKernel_impl(Status& stat) {
 
     double dt_backup = dt;
     dt               = 0.0e0;
-    executeKernel();  // don't evolve!!!
+    executeKernel(stat);  // don't evolve!!!
     dt = dt_backup;
+
+    return stat;
 }
 
 Status& Kernel_GWP::impl_0(Status& stat) {
@@ -647,7 +656,7 @@ Status& Kernel_GWP::impl_0(Status& stat) {
 
     cloning();
     death();
-    return 0;
+    return stat;
 }
 
 Status& Kernel_GWP::impl_1(Status& stat) {
@@ -743,7 +752,7 @@ Status& Kernel_GWP::impl_1(Status& stat) {
     for (int ai = 0; ai < Dimension::PF; ++ai) c_last[ai] = c[ai];
     // update phase
     for (int a = 0; a < Dimension::P; ++a) g[a] += Ekin[a] * dt;
-    return 0;
+    return stat;
 }
 Status& Kernel_GWP::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
@@ -766,7 +775,7 @@ Status& Kernel_GWP::executeKernel_impl(Status& stat) {
                                          Kernel_Representation::ele_repr_type,  //
                                          SpacePolicy::H);
         // 2) propagte along ele_repr
-        if (stat >= 0) ARRAY_MATMUL(c, U, c, Dimension::F, Dimension::F, 1);
+        ARRAY_MATMUL(c, U, c, Dimension::F, Dimension::F, 1);
 
         // 3) transform back from ele_repr => inp_repr
         Kernel_Representation::transform(c, T, Dimension::F,                    //
@@ -798,7 +807,7 @@ Status& Kernel_GWP::executeKernel_impl(Status& stat) {
         for (int ik = 0; ik < Dimension::FF; ++ik, ++aik) rhored2[ik] += Kernel_Elec::K1[aik];
     }
     for (int ik = 0; ik < Dimension::FF; ++ik) rhored2[ik] /= double(P_used);
-    return 0;
+    return stat;
 }
 
 int Kernel_GWP::cloning() {

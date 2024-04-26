@@ -1,17 +1,9 @@
 #include "kids/Model_NAD1D.h"
 
 #include "kids/Kernel_Random.h"
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
-
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
 
 namespace PROJECT_NS {
 
@@ -518,6 +510,9 @@ int mspes_NA_I(double* V, double* dV, double* ddV, double* R, int flag, int rdim
     return 0;
 }
 
+const std::string Model_NAD1D::getName() { return "Model_NAD1D"; }
+
+int Model_NAD1D::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param>& PM) {
     nad1d_type = NAD1DPolicy::_from(_param->get_string("nad1d_flag", LOC(), "SAC"));
@@ -732,6 +727,7 @@ Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
     _dataset->def_real("init.p", p, Dimension::N);
 
     executeKernel(stat);
+    return stat;
 }
 
 Status& Model_NAD1D::executeKernel_impl(Status& stat) {

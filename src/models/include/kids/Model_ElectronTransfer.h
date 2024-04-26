@@ -9,10 +9,12 @@ namespace PROJECT_NS {
 
 class Model_ElectronTransfer final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Model_ElectronTransfer"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     Model_ElectronTransfer() {
-        push(std::shared_ptr<Model_Bath>(new Model_Bath()));  //
+        appendChild(std::shared_ptr<Model_Bath>(new Model_Bath()));  //
     }
 
    private:

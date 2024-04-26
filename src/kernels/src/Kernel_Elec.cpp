@@ -1,20 +1,16 @@
 #include "kids/Kernel_Elec.h"
 
 #include "kids/Kernel_Random.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
-
 namespace PROJECT_NS {
+
+const std::string Kernel_Elec::getName() { return "Kernel_Elec"; }
+
+int Kernel_Elec::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Elec::setInputParam_impl(std::shared_ptr<Param>& PM) {
     occ0 = PM->get_int("occ", LOC(), -1);
@@ -78,9 +74,10 @@ Status& Kernel_Elec::initializeKernel_impl(Status& stat) {
     _dataset->def_complex("init.K2QD", K2QD, Dimension::PFF);
     _dataset->def_complex("init.K1DD", K1DD, Dimension::PFF);
     _dataset->def_complex("init.K2DD", K2DD, Dimension::PFF);
+    return stat;
 }
 
-Status& Kernel_Elec::executeKernel_impl(Status& stat) { return 0; }
+Status& Kernel_Elec::executeKernel_impl(Status& stat) { return stat; }
 
 /**
  * @brief convert c (electonic amplititude) to kernel (affine map of the density)

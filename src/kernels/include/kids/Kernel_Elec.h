@@ -10,7 +10,9 @@ namespace PROJECT_NS {
  */
 class Kernel_Elec final : public Kernel {
    public:
-    virtual const std::string name() { return "Kernel_Elec"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     /**
      * @brief convert c (electonic amplititude) to kernel (affine map of the density)
@@ -73,9 +75,9 @@ class Kernel_Elec final : public Kernel {
     static kids_complex *TrK1A, *TrK2B;
 
    private:
-    void setInputParam_impl(Param *PM);
+    void setInputParam_impl(std::shared_ptr<Param> &PM);
 
-    void setInputDataSet_impl(DataSet *DS);
+    void setInputDataSet_impl(std::shared_ptr<DataSet> &DS);
 
     Status &initializeKernel_impl(Status &stat);
 

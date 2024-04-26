@@ -15,23 +15,23 @@ class Handler final {
 
     virtual ~Handler(){};
 
-    int run(Param* PM);
+    int run(std::shared_ptr<Param>& PM);
 
-    int run_single(Param* PM);
+    int run_single(std::shared_ptr<Param>& PM);
 
-    int run_single_mpi(Param* PM);
+    int run_single_mpi(std::shared_ptr<Param>& PM);
 
-    int run_parallel(Param* PM);
+    int run_parallel(std::shared_ptr<Param>& PM);
 
-    int run_parallel_22(Param* PM);
+    int run_parallel_22(std::shared_ptr<Param>& PM);
 
-    int run_sampling(Param* PM);  //{ return 0; }
+    int run_sampling(std::shared_ptr<Param>& PM);  //{ return 0; }
 
-    int run_help(Param* PM) { return 0; }
+    int run_help(std::shared_ptr<Param>& PM) { return 0; }
 
-    int run_help_param(Param* PM) { return 0; }
+    int run_help_param(std::shared_ptr<Param>& PM) { return 0; }
 
-    int run_help_dataset(Param* PM);  // { return 0; }
+    int run_help_dataset(std::shared_ptr<Param>& PM);  // { return 0; }
 
    private:
     std::shared_ptr<Kernel> model;

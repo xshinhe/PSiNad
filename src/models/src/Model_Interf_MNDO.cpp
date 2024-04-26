@@ -3,7 +3,9 @@
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"
 #include "kids/chem.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 inline int removeFile(const std::string& filename) { return remove(filename.c_str()); }
@@ -17,6 +19,10 @@ inline void closeOFS(std::ofstream& ofs) {
 inline bool isFileExists(const std::string& name) { return std::ifstream{name.c_str()}.good(); }
 
 namespace PROJECT_NS {
+
+const std::string Model_Interf_MNDO::getName() { return "Model_Interf_MNDO"; }
+
+int Model_Interf_MNDO::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Model_Interf_MNDO::setInputParam_impl(std::shared_ptr<Param>& PM) {
     Kernel_Representation::onthefly = true;
@@ -167,7 +173,7 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
         for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i], p[i] = 0.0f;
     } else {  // init_nuclinp as dataset from which we read x and p
         std::string open_file = init_nuclinp;
-        if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat, ".ds");
+        if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat.icalc, ".ds");
 
         std::string   stmp, eachline;
         std::ifstream ifs(open_file);
@@ -197,10 +203,11 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
     executeKernel_impl(stat);
     refer        = true;
     task_control = "nad";
+    return stat;
 }
 
-int Model_Interf_MNDO::executeKernel_impl(int stat_in) {
-    if (frez_ptr[0]) return 0;
+Status& Model_Interf_MNDO::executeKernel_impl(Status& stat_in) {
+    if (frez_ptr[0]) return stat_in;
 
     // convert atomic unit
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;  ///< convert Bohr to Angstrom
@@ -208,8 +215,8 @@ int Model_Interf_MNDO::executeKernel_impl(int stat_in) {
     // ARRAY_CLEAR(dE, Dimension::NFF); // keep the old values
 
     // prepare a mndo input file
-    std::string inpfile = utils::concat(".mndoinp.", stat_in);
-    std::string outfile = utils::concat(".mndoout.", stat_in);
+    std::string inpfile = utils::concat(".mndoinp.", stat_in.icalc);
+    std::string outfile = utils::concat(".mndoout.", stat_in.icalc);
 
     std::string control_copy = task_control;
     if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) {
@@ -258,7 +265,7 @@ int Model_Interf_MNDO::executeKernel_impl(int stat_in) {
     //     std::cout << "Problem for calling forcefield";
     //     stat = -1;
     // }
-    return stat;
+    return stat_in;
 }
 
 /**
@@ -458,7 +465,7 @@ int Model_Interf_MNDO::track_nac_sign() {
  * @return status
  * @bug none
  */
-int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
+Status& Model_Interf_MNDO::parse_standard(const std::string& log, Status& stat_in) {
     int stat         = -1;
     int istate_force = 0, istate_force_meet = 0;
     int istate, jstate;
@@ -561,11 +568,11 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
         std::cout << "fail in calling MNDO! " << ERROR_MSG << "\n";
 
         int*        istep_ptr = _dataset->def_int("iter.istep");
-        std::string cmd_exe   = utils::concat("cp ", directory, "/.mndoinp.", stat_in, "  ", directory, "/.mndoinp.",
-                                            stat_in, ".err.", istep_ptr[0]);
+        std::string cmd_exe   = utils::concat("cp ", directory, "/.mndoinp.", stat_in.icalc, "  ", directory,
+                                            "/.mndoinp.", stat_in.icalc, ".err.", istep_ptr[0]);
         system(cmd_exe.c_str());
-        cmd_exe = utils::concat("cp ", directory, "/.mndoout.", stat_in, "  ", directory, "/.mndoout.", stat_in,
-                                ".err.", istep_ptr[0]);
+        cmd_exe = utils::concat("cp ", directory, "/.mndoout.", stat_in.icalc, "  ", directory, "/.mndoout.",
+                                stat_in.icalc, ".err.", istep_ptr[0]);
         system(cmd_exe.c_str());
     } else {
         succ_ptr[0] = true;
@@ -576,7 +583,7 @@ int Model_Interf_MNDO::parse_standard(const std::string& log, int stat_in) {
         }
         if (fail_type_ptr[0] == 1) fail_type_ptr[0] = 0;
     }
-    return stat;
+    return stat_in;
 }
 
 /**
@@ -748,15 +755,15 @@ int Model_Interf_MNDO::calc_normalmode() {
  * @bug none
  */
 int Model_Interf_MNDO::calc_samp() {
-    int stat;
+    Status stat;
 
     if (!isFileExists(".mndohess.out")) {
         new_task(".mndohess.in", "hess");
-        stat = system("mndo < .mndohess.in > .mndohess.out");
-        if (stat != 0) return stat;
+        system("mndo < .mndohess.in > .mndohess.out");
+        // if (stat != 0) return stat;
     }
-    stat = parse_hessian(".mndohess.out");
-    assert(stat == 0);
+    parse_hessian(".mndohess.out");
+    // assert(stat == 0);
 
     /**
      * mass-weighted Hessian to obtain normalmode
@@ -782,7 +789,7 @@ int Model_Interf_MNDO::calc_samp() {
     std::cout << "Qeff = " << Qeff;
 
     for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i];
-    executeKernel_impl();
+    executeKernel_impl(stat);
     double ref_ener = E[0];
     std::cout << ref_ener;
 
@@ -807,7 +814,7 @@ int Model_Interf_MNDO::calc_samp() {
         for (int i = 0; i < Dimension::N; ++i) Ekin += 0.5f * p[i] * p[i] / mass[i];
 
         // fluctuation of potential energy
-        executeKernel_impl();
+        executeKernel_impl(stat);
         double Epot = (E[0] - ref_ener);  // convert to au
         std::cout << Epot;
         std::cout << "::: " << beta * Epot / Qeff << " " << beta * Ekin / Qeff;
@@ -852,6 +859,7 @@ int Model_Interf_MNDO::calc_scan() {
     int         istep = 0, readn;
     kids_real   tmp;
     std::string eachline;
+    Status      stat;
 
     // savefile_traj = utils::concat("traj-", 0, ".xyz");
     // savefile_ener = utils::concat("ener-", 0, ".dat");
@@ -877,7 +885,7 @@ int Model_Interf_MNDO::calc_scan() {
             }
         }
         getline(ifs, eachline);  // a line!!!
-        executeKernel_impl();
+        executeKernel_impl(stat);
         istep++;
     }
     ifs.close();

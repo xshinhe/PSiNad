@@ -3,10 +3,16 @@
 #include "kids/Kernel_Elec.h"
 #include "kids/Kernel_Representation.h"
 #include "kids/Kernel_Update.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Kernel_NADForce::getName() { return "Kernel_NADForce"; }
+
+int Kernel_NADForce::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_NADForce::setInputParam_impl(std::shared_ptr<Param>& PM) {
     FORCE_OPT::BATH_FORCE_BILINEAR = _param->get_bool("BATH_FORCE_BILINEAR", LOC(), false);
@@ -35,10 +41,10 @@ void Kernel_NADForce::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     }
 }
 
-Status& Kernel_NADForce::initializeKernel_impl(Status& stat) { executeKernel(stat); }
+Status& Kernel_NADForce::initializeKernel_impl(Status& stat) { return executeKernel(stat); }
 
 Status& Kernel_NADForce::executeKernel_impl(Status& stat) {
-    if (!succ_ptr[0]) return 0;
+    if (!succ_ptr[0]) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         int*          occ_nuc = Kernel_Elec::occ_nuc + iP;
@@ -170,7 +176,7 @@ Status& Kernel_NADForce::executeKernel_impl(Status& stat) {
         for (int j = 0; j < Dimension::N; ++j) f[j] += grad[j];
         for (int j = 0; j < Dimension::N; ++j) f[j] += fadd[j];  // additional force
     }
-    return 0;
+    return stat;
 }
 
 NADForcePolicy::_type Kernel_NADForce::NADForce_type = NADForcePolicy::EHR;

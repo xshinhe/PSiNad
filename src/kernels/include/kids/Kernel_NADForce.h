@@ -51,8 +51,11 @@ extern int  Nb;
  */
 class Kernel_NADForce : public Kernel {
    public:
-    static NADForcePolicy::_type     NADForce_type;
-    inline virtual const std::string name() { return "Kernel_NADForce"; }
+    static NADForcePolicy::_type NADForce_type;
+
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     bool offd_projected;
@@ -61,15 +64,15 @@ class Kernel_NADForce : public Kernel {
     kids_real *p, *m;
     kids_real *fadd, *fproj;
 
-    kids_bint *succ_ptr;
+    kids_bint* succ_ptr;
 
-    virtual void setInputParam_impl(Param *PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
 
-    virtual void setInputDataSet_impl(DataSet *DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
 
-    virtual Status &initializeKernel_impl(Status &stat);
+    virtual Status& initializeKernel_impl(Status& stat);
 
-    virtual Status &executeKernel_impl(Status &stat);
+    virtual Status& executeKernel_impl(Status& stat);
 };
 
 };  // namespace PROJECT_NS

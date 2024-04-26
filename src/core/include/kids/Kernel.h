@@ -138,6 +138,17 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
     Status& finalizeKernel(Status& stat);
 
     /**
+     * Get the type of the kernel.
+     *
+     * This function returns the type of the kernel.
+     *
+     * @note This function should be implemented in derived classes to return the specific type of the kernel.
+     *
+     * @return The type of the kernel.
+     */
+    virtual int getType() const;
+
+    /**
      * Get the ID of the kernel.
      *
      * @return The ID of the kernel.
@@ -158,7 +169,7 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      * @param ker The kernel to append as the last child.
      * @return Reference to the modified kernel.
      */
-    Kernel& appendChild(std::shared_ptr<Kernel>& ker);
+    Kernel& appendChild(std::shared_ptr<Kernel> ker);
 
     /**
      * Insert a kernel at specified indexes in the tree.
@@ -167,7 +178,7 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      * @param ker The kernel to insert.
      * @return Reference to the modified kernel.
      */
-    Kernel& insertAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel>& ker);
+    Kernel& insertAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel> ker);
 
     /**
      * Remove kernels at specified indexes from the tree.
@@ -184,7 +195,7 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      * @param ker The kernel to update with.
      * @return Reference to the modified kernel.
      */
-    Kernel& updateAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel>& ker);
+    Kernel& updateAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel> ker);
 
     /**
      * Retrieve the last parent kernel along with the order of its child kernels, if available.
@@ -277,17 +288,6 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      * @brief Vector containing shared pointers to all descendant kernels of this kernel.
      */
     std::vector<std::shared_ptr<Kernel>> _all_kernels;
-
-    /**
-     * Get the type of the kernel.
-     *
-     * This function returns the type of the kernel.
-     *
-     * @note This function should be implemented in derived classes to return the specific type of the kernel.
-     *
-     * @return The type of the kernel.
-     */
-    virtual int getType() const = 0;
 
     /**
      * @brief Virtual function to set input parameters for the kernel implementation.

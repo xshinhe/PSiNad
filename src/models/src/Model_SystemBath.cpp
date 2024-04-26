@@ -3,20 +3,16 @@
 #include "kids/Kernel_NADForce.h"
 #include "kids/Kernel_Random.h"
 #include "kids/hamiltonian_data.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
-
 namespace PROJECT_NS {
+
+const std::string Model_SystemBath::getName() { return "Model_SystemBath"; }
+
+int Model_SystemBath::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Model_SystemBath::setInputParam_impl(std::shared_ptr<Param>& PM) {
     // size information
@@ -225,6 +221,7 @@ Status& Model_SystemBath::initializeKernel_impl(Status& stat) {
     _dataset->def_real("init.x", x, Dimension::PN);
     _dataset->def_real("init.p", p, Dimension::PN);
     executeKernel(stat);
+    return stat;
 }
 
 Status& Model_SystemBath::executeKernel_impl(Status& stat) {
@@ -300,7 +297,7 @@ Status& Model_SystemBath::executeKernel_impl(Status& stat) {
             // for (int i = 0; i < NNFF; ++i) ddV[i] = 0;
         }
     }
-    return 0;
+    return stat;
 }
 
 };  // namespace PROJECT_NS

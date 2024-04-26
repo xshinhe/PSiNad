@@ -1,10 +1,17 @@
 #include "kids/Kernel_Representation.h"
 
 #include "kids/Kernel_NADForce.h"
+#include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Kernel_Representation::getName() { return "Kernel_Representation"; }
+
+int Kernel_Representation::getType() const { return utils::hash(FUNCTION_NAME); }
+
 
 int Kernel_Representation::transform(kids_complex* A, kids_real* T, int fdim,  //
                                      RepresentationPolicy::_type from, RepresentationPolicy::_type to,
@@ -62,10 +69,11 @@ Status& Kernel_Representation::initializeKernel_impl(Status& stat) {
     executeKernel(stat);
     do_refer = true;
     _dataset->def_real("init.T", T, Dimension::PFF);
+    return stat;
 }
 
 Status& Kernel_Representation::executeKernel_impl(Status& stat) {
-    if (Dimension::F <= 1) return 0;
+    if (Dimension::F <= 1) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real*    V    = this->V + iP * Dimension::FF;
@@ -217,7 +225,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
         }
     }
 
-    return 0;
+    return stat;
 }
 
 RepresentationPolicy::_type Kernel_Representation::representation_type;

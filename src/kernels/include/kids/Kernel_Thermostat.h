@@ -19,7 +19,9 @@ class Kernel_Update_T final : public Kernel {
    public:
     Kernel_Update_T(double scale) : Kernel(), scale{scale} {};
 
-    inline virtual const std::string name() { return "Kernel_Update_T"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     Option thermo_option;

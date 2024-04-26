@@ -34,7 +34,9 @@ namespace PROJECT_NS {
  */
 class Kernel_Dump_DataSet : public Kernel {
    public:
-    inline virtual const std::string name() { return "Kernel_Dump_DataSet"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     std::string directory;  ///< path for dumping

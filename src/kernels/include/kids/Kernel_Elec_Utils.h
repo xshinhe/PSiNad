@@ -305,8 +305,7 @@ class elec_utils {
         }
         return 0;
     };
-
-};  // namespace elec_utils
+};
 
 };  // namespace PROJECT_NS
 

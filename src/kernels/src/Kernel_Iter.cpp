@@ -1,8 +1,14 @@
 #include "kids/Kernel_Iter.h"
 
+#include "kids/hash_fnv1a.h"
+#include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
 namespace PROJECT_NS {
+
+const std::string Kernel_Iter::getName() { return "Kernel_Iter"; }
+
+int Kernel_Iter::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Iter::setInputParam_impl(std::shared_ptr<Param>& PM) {
     t0    = PM->get_double("t0", LOC(), phys::time_d, 0.0f);
@@ -31,6 +37,7 @@ Status& Kernel_Iter::initializeKernel_impl(Status& stat) {
     dt_ptr[0]    = dt;
     istep_ptr[0] = 0;
     isamp_ptr[0] = 0;
+    return stat;
 }
 
 Status& Kernel_Iter::executeKernel_impl(Status& stat) {
@@ -47,6 +54,6 @@ Status& Kernel_Iter::executeKernel_impl(Status& stat) {
     }
     at_samplingstep_initially_ptr[0] = true;  // only record!
     dt_ptr[0]                        = 0;     // no-dynamics!
-    return 0;
+    return stat;
 }
 };  // namespace PROJECT_NS

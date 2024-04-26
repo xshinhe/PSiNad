@@ -10,7 +10,9 @@ namespace PROJECT_NS {
  */
 class Kernel_Load_DataSet : public Kernel {
    public:
-    inline virtual const std::string name() { return "Kernel_Load_DataSet"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
    private:
     std::string fn;  ///< filename for loading

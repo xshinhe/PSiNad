@@ -24,10 +24,12 @@ namespace PROJECT_NS {
  */
 class Kernel_Elec_Switch final : public Kernel {
    public:
-    virtual const std::string name() { return "Kernel_Elec_Switch"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     Kernel_Elec_Switch(double scale = 1.0e0) : Kernel(), scale{scale} {
-        push(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
+        appendChild(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
     }
 
    private:

@@ -79,7 +79,9 @@ struct Record_Rule;
 
 class Kernel_Record final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Kernel_Record"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     Kernel_Record(){};
 
@@ -124,7 +126,9 @@ class Kernel_Record final : public Kernel {
 
 class Kernel_Report final : public Kernel {
    public:
-    inline virtual const std::string name() { return "Kernel_Report"; }
+    virtual const std::string getName();
+
+    virtual int getType() const;
 
     Kernel_Report(std::shared_ptr<Kernel_Record> ker) : _recd_ker{ker} { _rules = &(ker->Rules); }
 
@@ -132,7 +136,7 @@ class Kernel_Report final : public Kernel {
 
     virtual Status& executeKernel_impl(Status& stat) {
         // clear correlation information
-        return 0;
+        return stat;
     };
 
    private:
