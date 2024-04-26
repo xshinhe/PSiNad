@@ -79,7 +79,7 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdpart)
 
 # set(CMAKE_BUILD_TYPE <Config>)
 ## Please -DCMAKE_BUILD_TYPE=<Config> : Debug, Release, RelWithDebInfo, MinsizeRel
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -march=native -fPIC")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -march=native")
 
 # ################################################################################
 # # configure libraries

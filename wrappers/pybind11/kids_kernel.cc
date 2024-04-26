@@ -4,54 +4,54 @@ class PyKernel : public Kernel {
     using Kernel::Kernel;
 
     /* Trampoline (need one for each virtual function) */
-    const std::string name() override {
+    const std::string getName() override {
         PYBIND11_OVERRIDE_PURE(const std::string, /* Return type */
                                Kernel,            /* Parent class */
-                               name,              /* Name of function in C++ (must match Python name) */
+                               getName,           /* Name of function in C++ (must match Python name) */
         );
     }
 
-    void inputParam_impl(Param* PM) override {
-        PYBIND11_OVERRIDE_PURE(void,            /* Return type */
-                               Kernel,          /* Parent class */
-                               inputParam_impl, /* Name of function in C++ (must match Python name) */
+    void setInputParam_impl(std::shared_ptr<Param>& PM) override {
+        PYBIND11_OVERRIDE_PURE(void,               /* Return type */
+                               Kernel,             /* Parent class */
+                               setInputParam_impl, /* Name of function in C++ (must match Python name) */
                                PM);
     }
 
-    void inputDataSet_impl(DataSet* DS) override {
-        PYBIND11_OVERRIDE_PURE(void,              /* Return type */
-                               Kernel,            /* Parent class */
-                               inputDataSet_impl, /* Name of function in C++ (must match Python name) */
+    void setInputDataSet_impl(std::shared_ptr<DataSet>& DS) override {
+        PYBIND11_OVERRIDE_PURE(void,                 /* Return type */
+                               Kernel,               /* Parent class */
+                               setInputDataSet_impl, /* Name of function in C++ (must match Python name) */
                                DS);
     }
 
-    Status& initKernel_impl(Status& stat) override {
-        PYBIND11_OVERRIDE_PURE(void,            /* Return type */
-                               Kernel,          /* Parent class */
-                               initKernel_impl, /* Name of function in C++ (must match Python name) */
+    Status& initializeKernel_impl(Status& stat) override {
+        PYBIND11_OVERRIDE_PURE(Status&,               /* Return type */
+                               Kernel,                /* Parent class */
+                               initializeKernel_impl, /* Name of function in C++ (must match Python name) */
                                stat);
     }
-    Status& execkernel_impl(Status& stat) override {
-        PYBIND11_OVERRIDE_PURE(int,             /* Return type */
-                               Kernel,          /* Parent class */
-                               execKernel_impl, /* Name of function in C++ (must match Python name) */
+    Status& executeKernel_impl(Status& stat) override {
+        PYBIND11_OVERRIDE_PURE(Status&,            /* Return type */
+                               Kernel,             /* Parent class */
+                               executeKernel_impl, /* Name of function in C++ (must match Python name) */
                                stat);
     }
 };
 
 py::class_<Kernel, PyKernel, std::shared_ptr<Kernel>>(m, "Kernel", py::dynamic_attr())  //
     .def(py::init<const std::string&>())
-    .def("name", &Kernel::name)
-    .def("push", &Kernel::push)
-    .def("insert", &Kernel::insert)
-    .def("erase", &Kernel::erase)
-    .def("update", &Kernel::update)
-    .def("scheme", &Kernel::scheme)
-    .def("inputParam", &Kernel::inputParam)
-    .def("inputDataSet", &Kernel::inputDataSet)
-    .def("initKernel", &Kernel::initKernel)
-    .def("execKernel", &Kernel::execKernel)
-    .def("finalKernel", &Kernel::finalKernel);
+    .def("getName", &Kernel::getName)
+    .def("appendChild", &Kernel::appendChild)
+    .def("insertAt", &Kernel::insertAt)
+    .def("removeAt", &Kernel::removeAt)
+    .def("updateAt", &Kernel::updateAt)
+    .def("generateInformationString", &Kernel::generateInformationString)
+    .def("setInputParam", &Kernel::setInputParam)
+    .def("setInputDataSet", &Kernel::setInputDataSet)
+    .def("initializeKernel", &Kernel::initializeKernel)
+    .def("executeKernel", &Kernel::executeKernel)
+    .def("finalizeKernel", &Kernel::finalizeKernel);
 
 m.def("modelfactory", &ModelFactory);
 
