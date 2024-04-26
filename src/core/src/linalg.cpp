@@ -476,14 +476,14 @@ void ARRAY_MAT_OFFD(kids_complex* A, kids_real* B, size_t N1) {
 =            realize interface of linear algebra            =
 ===========================================================*/
 
-void LinearSolve(kids_real* x, kids_real* A, kids_real* b, const int& N) {
+void LinearSolve(kids_real* x, kids_real* A, kids_real* b, size_t N) {
     MapMXr Mapx(x, N, 1);
     MapMXr MapA(A, N, N);
     MapMXr Mapb(b, N, 1);
     Mapx = MapA.householderQr().solve(Mapb);
 }
 
-void EigenSolve(kids_real* E, kids_real* T, kids_real* A, const int& N) {
+void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N) {
     MapMXr                                MapE(E, N, 1);
     MapMXr                                MapT(T, N, N);
     MapMXr                                MapA(A, N, N);
@@ -492,7 +492,7 @@ void EigenSolve(kids_real* E, kids_real* T, kids_real* A, const int& N) {
     MapT = eig.eigenvectors().real();
 }
 
-void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, const int& N) {
+void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N) {
     MapMXr                                MapE(E, N, 1);
     MapMXc                                MapT(T, N, N);
     MapMXc                                MapA(A, N, N);
@@ -501,7 +501,7 @@ void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, const int& N) {
     MapT = eig.eigenvectors();
 }
 
-void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, const int& N) {
+void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N) {
     MapMXc                            MapE(E, N, 1);
     MapMXc                            MapT(T, N, N);
     MapMXc                            MapA(A, N, N);
@@ -510,7 +510,7 @@ void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, const int& N)
     MapT = eig.eigenvectors();
 }
 
-void PseudoInverse(kids_real* A, kids_real* invA, const int& N, kids_real e) {
+void PseudoInverse(kids_real* A, kids_real* invA, size_t N, kids_real e) {
     MapMXr MapA(A, N, N);
     MapMXr MapInvA(invA, N, N);
     MapInvA = MapA.completeOrthogonalDecomposition().pseudoInverse();
@@ -523,5 +523,39 @@ void PseudoInverse(kids_real* A, kids_real* invA, const int& N, kids_real e) {
     }
     MapInvA = svd.matrixV()*invS*svd.matrixU().transpose(); */
 }
+
+void ARRAY_INV_MAT(kids_real* invA, kids_real* A, size_t N) {
+    MapMXr Map_invA(invA, N, N);
+    MapMXr Map_A(A, N, N);
+    Map_invA = Map_A.lu().inverse();
+}
+
+void ARRAY_INV_MAT(kids_complex* invA, kids_complex* A, size_t N) {
+    MapMXc Map_invA(invA, N, N);
+    MapMXc Map_A(A, N, N);
+    Map_invA = Map_A.lu().inverse();
+}
+
+void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k, size_t N) {
+    MapMXc Map_A(A, N, N);
+    MapMXc Map_expkA(expkA, N, N);
+    auto   eigr = Eigen::ComplexEigenSolver<EigMXc>(Map_A);
+    auto   Er   = eigr.eigenvalues();
+    auto   Vr   = eigr.eigenvectors();
+    auto   eigl = Eigen::ComplexEigenSolver<EigMXc>(Map_A.adjoint());
+    auto   El   = eigl.eigenvalues();
+    auto   Vl   = eigl.eigenvectors();
+    auto   Slr  = (Vl.adjoint() * Vr).diagonal();
+    Map_expkA   = Vr * ((k * Er.array()).exp() / Slr.array()).matrix().asDiagonal() * Vl.adjoint();
+}
+
+void ARRAY_CORRECT_U(kids_complex* U, size_t N) {
+    MapMXc Map_U(U, N, N);
+    auto   eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * phys::math::im * (Map_U - Map_U.adjoint()));
+    auto   Er   = eigr.eigenvalues().real();
+    auto   Vr   = eigr.eigenvectors();
+    Map_U       = Vr * ((phys::math::im * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
+}
+
 
 };  // namespace PROJECT_NS

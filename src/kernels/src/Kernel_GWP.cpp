@@ -8,16 +8,6 @@
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
-    ({                                                                               \
-        std::cout << "Show Array <" << #_A << ">\n";                                 \
-        int _idxA = 0;                                                               \
-        for (int _i = 0; _i < (_n1); ++_i) {                                         \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
-            std::cout << std::endl;                                                  \
-        }                                                                            \
-    })
-
 namespace PROJECT_NS {
 
 const std::string Kernel_GWP::getName() { return "Kernel_GWP"; }
@@ -29,10 +19,14 @@ int Kernel_GWP::calc_Ekin(kids_real* Ekin,  // [P]
                           kids_real* p,     // [P,N]
                           kids_real* m,     // [P,N]
                           int P, int N) {
-    Eigen::Map<EigMX<kids_real>> Map_Ekin(Ekin, P, 1);
-    Eigen::Map<EigMX<kids_real>> Map_p(p, P, N);
-    Eigen::Map<EigMX<kids_real>> Map_m(m, P, N);
-    Map_Ekin = (Map_p.array() * Map_p.array() / (2.0e0 * Map_m.array())).matrix().rowwise().sum();
+    for (int iP = 0; iP < P; ++iP) {
+        kids_real* Ekin = Ekin + iP;
+        kids_real* p    = p + iP * N;
+        kids_real* m    = m + iP * N;
+        Ekin[0]         = 0;
+        for (int j = 0; j < N; ++j) Ekin[0] += p[j] * p[j] / m[j];
+        Ekin[0] /= 2;
+    }
     return 0;
 }
 
@@ -50,62 +44,63 @@ int Kernel_GWP::calc_Snuc(kids_complex* Snuc,   // [P,P]
                           kids_real*    g2,     // [P]
                           kids_real*    alpha,  // [N]
                           int P, int N) {
-    Eigen::Map<EigMX<kids_complex>> Map_Snuc(Snuc, P, P);
-    Eigen::Map<EigMX<kids_real>>    Map_x1(x1, P, N);
-    Eigen::Map<EigMX<kids_real>>    Map_p1(p1, P, N);
-    Eigen::Map<EigMX<kids_real>>    Map_m1(m1, P, N);
-    Eigen::Map<EigMX<kids_real>>    Map_g1(g1, P, 1);
+    // Eigen::Map<EigMX<kids_complex>> Map_Snuc(Snuc, P, P);
+    // Eigen::Map<EigMX<kids_real>>    Map_x1(x1, P, N);
+    // Eigen::Map<EigMX<kids_real>>    Map_p1(p1, P, N);
+    // Eigen::Map<EigMX<kids_real>>    Map_m1(m1, P, N);
+    // Eigen::Map<EigMX<kids_real>>    Map_g1(g1, P, 1);
 
-    Eigen::Map<EigMX<kids_real>> Map_x2(x2, P, N);
-    Eigen::Map<EigMX<kids_real>> Map_p2(p2, P, N);
-    Eigen::Map<EigMX<kids_real>> Map_m2(m2, P, N);
-    Eigen::Map<EigMX<kids_real>> Map_g2(g2, P, 1);
+    // Eigen::Map<EigMX<kids_real>> Map_x2(x2, P, N);
+    // Eigen::Map<EigMX<kids_real>> Map_p2(p2, P, N);
+    // Eigen::Map<EigMX<kids_real>> Map_m2(m2, P, N);
+    // Eigen::Map<EigMX<kids_real>> Map_g2(g2, P, 1);
 
-    Eigen::Map<EigMX<kids_real>> Map_a(alpha, N, 1);
+    // Eigen::Map<EigMX<kids_real>> Map_a(alpha, N, 1);
 
-    auto O_NP = EigMX<kids_real>::Ones(N, P);
-    auto O_P1 = EigMX<kids_real>::Ones(P, 1);
+    // auto O_NP = EigMX<kids_real>::Ones(N, P);
+    // auto O_P1 = EigMX<kids_real>::Ones(P, 1);
 
-    auto x1_mul = Map_x1 * Map_a.asDiagonal();
-    auto x2_mul = Map_x2 * Map_a.asDiagonal();
+    // auto x1_mul = Map_x1 * Map_a.asDiagonal();
+    // auto x2_mul = Map_x2 * Map_a.asDiagonal();
 
-    auto p1_div = Map_p1 * (1.0e0 / Map_a.array()).matrix().asDiagonal();
-    auto p2_div = Map_p2 * (1.0e0 / Map_a.array()).matrix().asDiagonal();
+    // auto p1_div = Map_p1 * (1.0e0 / Map_a.array()).matrix().asDiagonal();
+    // auto p2_div = Map_p2 * (1.0e0 / Map_a.array()).matrix().asDiagonal();
 
-    auto ax1x1_I = (Map_x1.array() * x1_mul.array()).matrix() * O_NP;
-    auto ax1_x2  = x1_mul * Map_x2.transpose();
-    auto I_ax2x2 = ((Map_x2.array() * x2_mul.array()).matrix() * O_NP).transpose();
-    auto term1   = ax1x1_I + I_ax2x2 - 2 * ax1_x2;
+    // auto ax1x1_I = (Map_x1.array() * x1_mul.array()).matrix() * O_NP;
+    // auto ax1_x2  = x1_mul * Map_x2.transpose();
+    // auto I_ax2x2 = ((Map_x2.array() * x2_mul.array()).matrix() * O_NP).transpose();
+    // auto term1   = ax1x1_I + I_ax2x2 - 2 * ax1_x2;
 
-    auto bp1p1_I = (Map_p1.array() * p1_div.array()).matrix() * O_NP;
-    auto bp1_p2  = p1_div * Map_p2.transpose();
-    auto I_bp2p2 = ((Map_p2.array() * p2_div.array()).matrix() * O_NP).transpose();
-    auto term2   = bp1p1_I + I_bp2p2 - 2 * bp1_p2;
+    // auto bp1p1_I = (Map_p1.array() * p1_div.array()).matrix() * O_NP;
+    // auto bp1_p2  = p1_div * Map_p2.transpose();
+    // auto I_bp2p2 = ((Map_p2.array() * p2_div.array()).matrix() * O_NP).transpose();
+    // auto term2   = bp1p1_I + I_bp2p2 - 2 * bp1_p2;
 
-    auto x1p1_I = (Map_x1.array() * Map_p1.array()).matrix() * O_NP;
-    auto I_x2p2 = ((Map_x2.array() * Map_p2.array()).matrix() * O_NP).transpose();
-    auto x1_p2  = Map_x1 * Map_p2.transpose();
-    auto p1_x2  = Map_p1 * Map_x2.transpose();
-    auto term3  = x1p1_I + x1_p2 - p1_x2 - I_x2p2;
+    // auto x1p1_I = (Map_x1.array() * Map_p1.array()).matrix() * O_NP;
+    // auto I_x2p2 = ((Map_x2.array() * Map_p2.array()).matrix() * O_NP).transpose();
+    // auto x1_p2  = Map_x1 * Map_p2.transpose();
+    // auto p1_x2  = Map_p1 * Map_x2.transpose();
+    // auto term3  = x1p1_I + x1_p2 - p1_x2 - I_x2p2;
 
-    auto g1_I  = Map_g1 * O_P1.transpose();
-    auto I_g2  = O_P1 * Map_g2.transpose();
-    auto term4 = g1_I - I_g2;
+    // auto g1_I  = Map_g1 * O_P1.transpose();
+    // auto I_g2  = O_P1 * Map_g2.transpose();
+    // auto term4 = g1_I - I_g2;
 
-    Map_Snuc = (-0.25 * (term1 + term2) + 0.5 * phys::math::im * term3 - phys::math::im * term4).array().exp().matrix();
+    // Map_Snuc = (-0.25 * (term1 + term2) + 0.5 * phys::math::im * term3 - phys::math::im *
+    // term4).array().exp().matrix();
 
     // // ARRAY_SHOW(Snuc, P, P);
-    // for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
-    //     for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
-    //         kids_complex term = 0.0e0;
-    //         for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
-    //             term += -0.25 * alpha[j] * (x1[aj] - x2[bj]) * (x1[aj] - x2[bj])         //
-    //                     - 0.25 / alpha[j] * (p1[aj] - p2[bj]) * (p1[aj] - p2[bj])        //
-    //                     + 0.5 * phys::math::im * (p1[aj] + p2[bj]) * (x1[aj] - x2[bj]);  //
-    //         }
-    //         Snuc[ab] = std::exp(term - phys::math::im * (g1[a] - g2[b]));
-    //     }
-    // }
+    for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
+        for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
+            kids_complex term = 0.0e0;
+            for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
+                term += -0.25 * alpha[j] * (x1[aj] - x2[bj]) * (x1[aj] - x2[bj])         //
+                        - 0.25 / alpha[j] * (p1[aj] - p2[bj]) * (p1[aj] - p2[bj])        //
+                        + 0.5 * phys::math::im * (p1[aj] + p2[bj]) * (x1[aj] - x2[bj]);  //
+            }
+            Snuc[ab] = std::exp(term - phys::math::im * (g1[a] - g2[b]));
+        }
+    }
     // // ARRAY_SHOW(Snuc, P, P);
     return 0;
 }
@@ -131,52 +126,52 @@ int Kernel_GWP::calc_dtlnSnuc(kids_complex* dtlnSnuc,  // [P,P]
                               kids_real*    alpha,     // [N]
                               kids_real*    Ekin,      // [P]
                               int P, int N) {
-    Eigen::Map<EigMX<kids_complex>> Map_dtlnSnuc(dtlnSnuc, P, P);
-    Eigen::Map<EigMX<kids_real>>    Map_x(x, P, N);
-    Eigen::Map<EigMX<kids_real>>    Map_p(p, P, N);
-    Eigen::Map<EigMX<kids_real>>    Map_m(m, P, N);
-    Eigen::Map<EigMX<kids_real>>    Map_f(f, P, N);
-    Eigen::Map<EigMX<kids_real>>    Map_Ekin(Ekin, P, 1);
-    Eigen::Map<EigMX<kids_real>>    Map_a(alpha, N, 1);
+    // Eigen::Map<EigMX<kids_complex>> Map_dtlnSnuc(dtlnSnuc, P, P);
+    // Eigen::Map<EigMX<kids_real>>    Map_x(x, P, N);
+    // Eigen::Map<EigMX<kids_real>>    Map_p(p, P, N);
+    // Eigen::Map<EigMX<kids_real>>    Map_m(m, P, N);
+    // Eigen::Map<EigMX<kids_real>>    Map_f(f, P, N);
+    // Eigen::Map<EigMX<kids_real>>    Map_Ekin(Ekin, P, 1);
+    // Eigen::Map<EigMX<kids_real>>    Map_a(alpha, N, 1);
 
-    auto O_NP = EigMX<kids_real>::Ones(N, P);
-    auto O_P1 = EigMX<kids_real>::Ones(P, 1);
+    // auto O_NP = EigMX<kids_real>::Ones(N, P);
+    // auto O_P1 = EigMX<kids_real>::Ones(P, 1);
 
-    auto x_mul = Map_x * Map_a.asDiagonal();
-    auto p_div = Map_p * (1.0e0 / Map_a.array()).matrix().asDiagonal();
+    // auto x_mul = Map_x * Map_a.asDiagonal();
+    // auto p_div = Map_p * (1.0e0 / Map_a.array()).matrix().asDiagonal();
 
-    auto ve     = (Map_p.array() / Map_m.array()).matrix();
-    auto ax_ve  = x_mul * ve.transpose();
-    auto I_axve = O_NP.transpose() * (x_mul.array() * ve.array()).matrix().transpose();
-    auto p_ve   = Map_p * ve.transpose();
-    auto I_pve  = O_NP.transpose() * (Map_p.array() * ve.array()).matrix().transpose();
+    // auto ve     = (Map_p.array() / Map_m.array()).matrix();
+    // auto ax_ve  = x_mul * ve.transpose();
+    // auto I_axve = O_NP.transpose() * (x_mul.array() * ve.array()).matrix().transpose();
+    // auto p_ve   = Map_p * ve.transpose();
+    // auto I_pve  = O_NP.transpose() * (Map_p.array() * ve.array()).matrix().transpose();
 
-    auto bp_f  = p_div * Map_f.transpose();
-    auto I_bpf = O_NP.transpose() * (p_div.array() * Map_f.array()).matrix().transpose();
-    auto x_f   = Map_x * Map_f.transpose();
-    auto I_xf  = O_NP.transpose() * (Map_x.array() * Map_f.array()).matrix().transpose();
+    // auto bp_f  = p_div * Map_f.transpose();
+    // auto I_bpf = O_NP.transpose() * (p_div.array() * Map_f.array()).matrix().transpose();
+    // auto x_f   = Map_x * Map_f.transpose();
+    // auto I_xf  = O_NP.transpose() * (Map_x.array() * Map_f.array()).matrix().transpose();
 
-    auto I_Ekin = O_P1 * Map_Ekin.transpose();
+    // auto I_Ekin = O_P1 * Map_Ekin.transpose();
 
-    auto term1 = 0.5e0 * (ax_ve - I_axve) - 0.5e0 * phys::math::im * (p_ve + I_pve);
-    auto term2 = -(0.5e0 * (bp_f - I_bpf) + 0.5e0 * phys::math::im * (x_f - I_xf));
-    auto term3 = phys::math::im * I_Ekin;
+    // auto term1 = 0.5e0 * (ax_ve - I_axve) - 0.5e0 * phys::math::im * (p_ve + I_pve);
+    // auto term2 = -(0.5e0 * (bp_f - I_bpf) + 0.5e0 * phys::math::im * (x_f - I_xf));
+    // auto term3 = phys::math::im * I_Ekin;
 
-    Map_dtlnSnuc = term1 + term2 + term3;
+    // Map_dtlnSnuc = term1 + term2 + term3;
 
     // // ARRAY_SHOW(dtlnSnuc, P, P);
-    // for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
-    //     for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
-    //         kids_complex term = 0.0e0;
-    //         for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
-    //             term +=
-    //                 p[bj] / m[bj] * 0.5 * alpha[j] * (x[aj] - x[bj] + (p[aj] + p[bj]) / (phys::math::im * alpha[j]));
-    //             term += (-f[bj]) * 0.5 / alpha[j] * ((p[aj] - p[bj]) + phys::math::im * alpha[j] * (x[aj] - x[bj]));
-    //             term += phys::math::im * p[bj] * p[bj] / (2 * m[bj]);
-    //         }
-    //         dtlnSnuc[ab] = term;
-    //     }
-    // }
+    for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
+        for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
+            kids_complex term = 0.0e0;
+            for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
+                term +=
+                    p[bj] / m[bj] * 0.5 * alpha[j] * (x[aj] - x[bj] + (p[aj] + p[bj]) / (phys::math::im * alpha[j]));
+                term += (-f[bj]) * 0.5 / alpha[j] * ((p[aj] - p[bj]) + phys::math::im * alpha[j] * (x[aj] - x[bj]));
+                term += phys::math::im * p[bj] * p[bj] / (2 * m[bj]);
+            }
+            dtlnSnuc[ab] = term;
+        }
+    }
     // // ARRAY_SHOW(dtlnSnuc, P, P);
     return 0;
 }
@@ -212,15 +207,6 @@ int Kernel_GWP::calc_dtSele(kids_complex* dtSele,  // [P,P]
     return 0;
 }
 
-int Kernel_GWP::calc_invS(kids_complex* invS, kids_complex* S, int P) {
-    Eigen::Map<EigMX<kids_complex>> Map_invS(invS, Dimension::P, Dimension::P);
-    Eigen::Map<EigMX<kids_complex>> Map_S(S, Dimension::P, Dimension::P);
-
-    Map_invS = Map_S.lu().inverse();
-
-    return 0;
-}
-
 double Kernel_GWP::calc_density(kids_complex* rhored,        // [F,F]
                                 kids_complex* Acoeff,        // [P]
                                 kids_complex* Snuc,          // [P,P]
@@ -228,14 +214,15 @@ double Kernel_GWP::calc_density(kids_complex* rhored,        // [F,F]
                                 kids_real     xi,            // for kernel
                                 kids_real     gamma,         // for kernel
                                 int P_used, int P, int F) {  //@bug
-    Eigen::Map<EigMX<kids_complex>> Map_rhored(rhored, Dimension::F, Dimension::F);
-    Eigen::Map<EigMX<kids_complex>> Map_Acoeff(Acoeff, Dimension::P, 1);
-    Eigen::Map<EigMX<kids_complex>> Map_Snuc(Snuc, Dimension::P, Dimension::P);
-    Eigen::Map<EigMX<kids_complex>> Map_c(c, Dimension::P, Dimension::F);
-    Map_rhored =
-        (xi * Map_c.adjoint() * Map_Acoeff.adjoint().asDiagonal() * Map_Snuc * Map_Acoeff.asDiagonal() * Map_c -
-         gamma * (Map_Acoeff.adjoint() * Map_Snuc * Map_Acoeff).sum() * EigMXc::Identity(F, F));
-    return std::abs(Map_rhored.trace());
+    // Eigen::Map<EigMX<kids_complex>> Map_rhored(rhored, Dimension::F, Dimension::F);
+    // Eigen::Map<EigMX<kids_complex>> Map_Acoeff(Acoeff, Dimension::P, 1);
+    // Eigen::Map<EigMX<kids_complex>> Map_Snuc(Snuc, Dimension::P, Dimension::P);
+    // Eigen::Map<EigMX<kids_complex>> Map_c(c, Dimension::P, Dimension::F);
+    // Map_rhored =
+    //     (xi * Map_c.adjoint() * Map_Acoeff.adjoint().asDiagonal() * Map_Snuc * Map_Acoeff.asDiagonal() * Map_c -
+    //      gamma * (Map_Acoeff.adjoint() * Map_Snuc * Map_Acoeff).sum() * EigMXc::Identity(F, F));
+    // return std::abs(Map_rhored.trace());
+    return 0;  //@bug FATAL
 }
 
 int Kernel_GWP::calc_Hbasis(kids_complex* Hbasis,  // [P,P]
@@ -417,6 +404,7 @@ void Kernel_GWP::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     P_used_ptr = DS->def_real("integrator.P_used");
     norm_ptr   = DS->def_real("integrator.norm");
     veF        = DS->def_real("integrator.veF", Dimension::FF);
+    ve         = DS->def_real("integrator.ve", Dimension::N);
 }
 
 Status& Kernel_GWP::initializeKernel_impl(Status& stat) {
@@ -629,17 +617,7 @@ Status& Kernel_GWP::impl_0(Status& stat) {
     ARRAY_MATMUL(Hcoeff, invS, Hcoeff, Dimension::P, Dimension::P, Dimension::P);
 
     // ARRAY_SHOW(Hcoeff, Dimension::P, Dimension::P);
-
-    Eigen::Map<EigMXc> Map_Hcoeff(Hcoeff, Dimension::P, Dimension::P);
-    Eigen::Map<EigMXc> Map_UXdt(UXdt, Dimension::P, Dimension::P);
-    auto               eigr = Eigen::ComplexEigenSolver<EigMXc>(Map_Hcoeff);
-    auto               Er   = eigr.eigenvalues();
-    auto               Vr   = eigr.eigenvectors();
-    auto               eigl = Eigen::ComplexEigenSolver<EigMXc>(Map_Hcoeff.adjoint());
-    auto               El   = eigl.eigenvalues();
-    auto               Vl   = eigl.eigenvectors();
-    auto               Slr  = (Vl.adjoint() * Vr).diagonal();
-    Map_UXdt = Vr * ((-phys::math::im * Er.array() * dt).exp() / Slr.array()).matrix().asDiagonal() * Vl.adjoint();
+    ARRAY_EXP_MAT(UXdt, Hcoeff, -phys::math::im * dt, Dimension::P);
 
     // ARRAY_SHOW(UXdt, Dimension::P, Dimension::P);
 
@@ -707,15 +685,9 @@ Status& Kernel_GWP::impl_1(Status& stat) {
     for (int a = 0; a < Dimension::P; ++a) fun_diag_P[a] = exp(-phys::math::im * L[a] * dt);
     ARRAY_MATMUL3_TRANS2(UXdt, R, fun_diag_P, R, Dimension::P, Dimension::P, 0, Dimension::P);
 
-    Eigen::Map<EigMXc> Map_invS1h(invS1h, Dimension::P, Dimension::P);
-    Eigen::Map<EigMXc> Map_invS2h(invS2h, Dimension::P, Dimension::P);
-    Eigen::Map<EigMXc> Map_Sx(Sx, Dimension::P, Dimension::P);
-    Eigen::Map<EigMXc> Map_UYdt(UYdt, Dimension::P, Dimension::P);
-    auto               bad_UYdt = Map_invS2h * Map_Sx * Map_invS1h;
-    auto eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * phys::math::im * (bad_UYdt - bad_UYdt.adjoint()));
-    auto Er   = eigr.eigenvalues().real();
-    auto Vr   = eigr.eigenvectors();
-    Map_UYdt  = Vr * ((phys::math::im * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
+    ARRAY_MATMUL(UYdt, Sx, invS1h, Dimension::P, Dimension::P, Dimension::P);
+    ARRAY_MATMUL(UYdt, invS2h, UYdt, Dimension::P, Dimension::P, Dimension::P);
+    ARRAY_CORRECT_U(UYdt, Dimension::P);
 
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     ARRAY_MATMUL(Xcoeff, S1h, Acoeff, Dimension::P, Dimension::P, 1);
@@ -840,13 +812,16 @@ int Kernel_GWP::cloning() {
 
         /////////////////////////////////////////////////
 
-        double             max_break_val = 0.0e0;
-        int                break_state_i = -1, break_state_k = -1;
-        Eigen::Map<EigMXr> Map_veF(veF, Dimension::FF, 1);
-        Eigen::Map<EigMXr> Map_dV(dV, Dimension::N, Dimension::FF);
-        Eigen::Map<EigMXr> Map_p(p, Dimension::N, 1);
-        Eigen::Map<EigMXr> Map_m(m, Dimension::N, 1);
-        Map_veF = Map_dV.transpose() * (Map_p.array() / Map_m.array()).matrix();
+        double max_break_val = 0.0e0;
+        int    break_state_i = -1, break_state_k = -1;
+        // Eigen::Map<EigMXr> Map_veF(veF, Dimension::FF, 1);
+        // Eigen::Map<EigMXr> Map_dV(dV, Dimension::N, Dimension::FF);
+        // Eigen::Map<EigMXr> Map_p(p, Dimension::N, 1);
+        // Eigen::Map<EigMXr> Map_m(m, Dimension::N, 1);
+        // Map_veF = Map_dV.transpose() * (Map_p.array() / Map_m.array()).matrix();
+        for (int j = 0; j < Dimension::N; ++j) ve[j] = p[j] / m[j];
+        ARRAY_MATMUL(veF, ve, F, 1, Dimension::N, Dimension::FF);
+
 
         for (int i = 0; i < Dimension::F; ++i) {
             for (int k = i + 1; k < Dimension::F; ++k) {

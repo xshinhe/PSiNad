@@ -104,7 +104,7 @@ class Kernel_GWP final : public Kernel {
     kids_real *x, *p, *m, *f, *g;
     kids_real* alpha;
     kids_real* Ekin;
-    kids_real* veF;
+    kids_real *ve, *veF;
 
     kids_real *   vpes, *grad;
     kids_real *   V, *dV, *E, *dE, *T;

@@ -670,7 +670,7 @@ void ARRAY_MAT_OFFD(kids_complex* A, kids_real* B, size_t N1);
  * @param b Pointer to the right-hand side vector b.
  * @param N Size of the system (number of rows or columns in A).
  */
-void LinearSolve(kids_real* x, kids_real* A, kids_real* b, const int& N);
+void LinearSolve(kids_real* x, kids_real* A, kids_real* b, size_t N);
 
 /**
  * Solve the eigenvalue problem for real matrices.
@@ -680,7 +680,7 @@ void LinearSolve(kids_real* x, kids_real* A, kids_real* b, const int& N);
  * @param A Pointer to the matrix for eigenvalue computation.
  * @param N Size of the matrix (number of rows or columns in A).
  */
-void EigenSolve(kids_real* E, kids_real* T, kids_real* A, const int& N);
+void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N);
 
 /**
  * Solve the eigenvalue problem for (hermite) complex matrices.
@@ -690,7 +690,7 @@ void EigenSolve(kids_real* E, kids_real* T, kids_real* A, const int& N);
  * @param A Pointer to the complex matrix for eigenvalue computation.
  * @param N Size of the matrix (number of rows or columns in A).
  */
-void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, const int& N);
+void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N);
 
 /**
  * Solve the eigenvalue problem for general complex matrices.
@@ -700,7 +700,7 @@ void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, const int& N);
  * @param A Pointer to the complex matrix for eigenvalue computation.
  * @param N Size of the matrix (number of rows or columns in A).
  */
-void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, const int& N);
+void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N);
 
 /**
  * Compute the pseudo-inverse of a matrix for real numbers.
@@ -710,7 +710,29 @@ void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, const int& N)
  * @param N Size of the matrix (number of rows or columns in A).
  * @param e Tolerance value for singular values.
  */
-void PseudoInverse(kids_real* A, kids_real* invA, const int& N, kids_real e = 1E-5);
+void PseudoInverse(kids_real* A, kids_real* invA, size_t N, kids_real e = 1E-5);
+
+/**
+ * Compute the inverse of a matrix for real numbers.
+ *
+ * @param invA Pointer to the matrix to store the inverse of A.
+ * @param A Pointer to the matrix A.
+ * @param N Size of the matrix (number of rows or columns in A).
+ */
+void MatrixInverse(kids_real* invA, kids_real* A, size_t N);
+
+/**
+ * Compute the inverse of a matrix for complex numbers.
+ *
+ * @param invA Pointer to the matrix to store the inverse of A.
+ * @param A Pointer to the matrix A.
+ * @param N Size of the matrix (number of rows or columns in A).
+ */
+void ARRAY_INV_MAT(kids_complex* invA, kids_complex* A, size_t N);
+
+void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k, size_t N);
+
+void ARRAY_CORRECT_U(kids_complex* U, size_t N);
 
 };  // namespace PROJECT_NS
 

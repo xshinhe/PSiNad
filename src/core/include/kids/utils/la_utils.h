@@ -1,43 +1,64 @@
-/**@file        linalg_tpl.h
- * @brief       Provide linalg APIs by templating
+/**
+ * @file la_utils.h
+ * @author xshinhe
+ * @version 1.0
+ * @date 2019-01-01
+ * @brief linear algebra for array
  * @details
- *  using Eigen APIs
+ *      here we use eigen for linear algebra (with EIGEN_USE_MKL)
+ *
  * @see
  *  eigen: https://eigen.tuxfamily.org/dox/
- *
- * @author      Xin He
- * @date        2024-03
- * @version     1.0
- * @copyright   GNU Lesser General Public License (LGPL)
- *
- *              Copyright (c) 2024 Xin He, Liu-Group
- *
- *  This software is a product of Xin's PhD research conducted by Professor Liu's
- *  Group at the College of Chemistry and Molecular Engineering, Peking University.
- *  All rights are reserved by Peking University.
- *  You should have received a copy of the GNU Lesser General Public License along
- *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
- **********************************************************************************
- * @par revision:
- * <table>
- * <tr><th> Date        <th> Description
- * <tr><td> 2024-04-25  <td> rename to linalg_tpl.h and clean code. please use
- *                          linalg.h instead!
- * </table>
- **********************************************************************************
+ *  mkl  : https://www.intel.com/content/www/us/en/develop/documentation/onemkl-lapack-examples/top.html
  */
 
-#ifndef KIDS_LINALG_TPL_H
-#define KIDS_LINALG_TPL_H
+#ifndef LA_Utils_H
+#define LA_Utils_H
+#include "array_utils.h"
+#include "types.h"
 
-#include <cmath>
-#include <complex>
+/*==============================================
+=            la_utils configuration            =
+==============================================*/
 
-#include "Eigen/Dense"
-#include "Eigen/QR"
-#include "kids/Types.h"
 
-using namespace PROJECT_NS;
+#define ARRAY_USE_EIGEN
+// #define EIGEN_USE_MKL
+
+/*=====  End of la_utils configuration  ======*/
+
+
+
+/*===========================================================
+=            realize interface of linear algebra            =
+===========================================================*/
+
+/*----------  MKL interface to linear algebra  ----------*/
+
+#ifdef ARRAY_USE_MKL
+
+extern lapack_int LAPACKE_dsyev(int matrix_layout, char jobz, char uplo, lapack_int n, double* a, lapack_int lda,
+                                double* w);
+
+extern lapack_int LAPACKE_zheev(int matrix_layout, char jobz, char uplo, lapack_int n, lapack_complex_double* a,
+                                lapack_int lda, double* w);
+
+extern lapack_int LAPACKE_zgeev(int matrix_layout, char jobvl, char jobvr, lapack_int n, lapack_complex_double* a,
+                                lapack_int lda, lapack_complex_double* w, lapack_complex_double* vl, lapack_int ldvl,
+                                lapack_complex_double* vr, lapack_int ldvr);
+
+void EigenSolve(num_real* E, num_real* T, num_real* A, const int& N);
+
+void EigenSolve(num_real* E, num_complex* T, num_complex* A, const int& N);
+
+void EigenSolve_zgeev(num_complex* E, num_complex* Tl, num_complex* Tr, num_complex* A, const int& N);
+
+/*----------  Eigen interface to linear algebra  ----------*/
+
+#elif defined(ARRAY_USE_EIGEN)
+
+#include "../thirdpart/Eigen/Dense"
+#include "../thirdpart/Eigen/QR"
 
 #define EigMajor Eigen::RowMajor
 
@@ -50,208 +71,61 @@ using EigMX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 template <class T>
 using EigAX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 
-typedef EigVX<kids_real>    EigVXr;
-typedef EigVX<kids_complex> EigVXc;
-typedef EigMX<kids_real>    EigMXr;
-typedef EigMX<kids_complex> EigMXc;
-typedef EigMX<kids_real>    EigAXr;
-typedef EigMX<kids_complex> EigAXc;
-typedef Eigen::Map<EigVXr>  MapVXr;
-typedef Eigen::Map<EigVXc>  MapVXc;
-typedef Eigen::Map<EigMXr>  MapMXr;
-typedef Eigen::Map<EigMXc>  MapMXc;
-typedef Eigen::Map<EigAXr>  MapAXr;
-typedef Eigen::Map<EigAXc>  MapAXc;
+typedef EigVX<num_real> EigVXr;
+typedef EigVX<num_complex> EigVXc;
+typedef EigMX<num_real> EigMXr;
+typedef EigMX<num_complex> EigMXc;
+typedef EigMX<num_real> EigAXr;
+typedef EigMX<num_complex> EigAXc;
+typedef Eigen::Map<EigVXr> MapVXr;
+typedef Eigen::Map<EigVXc> MapVXc;
+typedef Eigen::Map<EigMXr> MapMXr;
+typedef Eigen::Map<EigMXc> MapMXc;
+typedef Eigen::Map<EigAXr> MapAXr;
+typedef Eigen::Map<EigAXc> MapAXc;
 
-template <class T>
-bool ARRAY_ISFINITE(T* A, size_t n) {
-    for (int i = 0; i < n; ++i)
-        if (!std::isfinite(std::abs(A[i]))) return false;
-    return true;
-}
+void LinearSolve(num_real* x, num_real* A, num_real* b, const int& N);
 
-template <class T>
-void ARRAY_CLEAR(T* A, size_t N) {
-    memset(A, 0, N * sizeof(T));
-}
+void EigenSolve(num_real* E, num_real* T, num_real* A, const int& N);
 
-template <class TA, class TB, class TC>
-void ARRAY_MATMUL(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = (MapB * MapC).eval();
-}
+void EigenSolve(num_real* E, num_complex* T, num_complex* A, const int& N);
 
-template <class TA, class TB, class TC>
-void ARRAY_MATMUL_TRANS1(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-    Eigen::Map<EigMX<TB>> MapB(B, N2, N1);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N3);
-    MapA = (MapB.adjoint() * MapC).eval();
-}
+void EigenSolve(num_complex* E, num_complex* T, num_complex* A, const int& N);
 
-template <class TA, class TB, class TC>
-void ARRAY_MATMUL_TRANS2(TA* A, TB* B, TC* C, size_t N1, size_t N2, size_t N3) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N3, N2);
-    MapA = (MapB * MapC.adjoint()).eval();
-}
+void PseudoInverse(num_real* A, num_real* invA, const int& N, num_real e = 1E-5);
 
-template <class T>
-void ARRAY_OUTER_TRANS2(T* A, T* B, T* C, size_t N1, size_t N2) {
-    ARRAY_MATMUL_TRANS2(A, B, C, N1, 1, N2);
-}
 
-template <class TA, class T, class TC>
-void ARRAY_MATMUL3_TRANS1(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t N0, size_t N3) {
-    if (N0 == 0) {
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N2, N1);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
-        Eigen::Map<EigMX<T>>  MapD(D, N2, N3);
-        MapA = (MapB.adjoint() * (MapC.asDiagonal() * MapD)).eval();
-    } else {  // N0 == N2
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N2, N1);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
-        Eigen::Map<EigMX<T>>  MapD(D, N2, N3);
-        MapA = (MapB.adjoint() * (MapC * MapD)).eval();
-    }
-}
+/**
+ * @brief each pointer associate with an eigen container
+ */
+#define DEFINE_POINTER(T, name)                               \
+   public:                                                    \
+    EigMX<T>& ref_##name() { return name##_eigen_container; } \
+    T* name;                                                  \
+    EigMX<T> name##_eigen_container;
 
-template <class TA, class T, class TC>
-void ARRAY_MATMUL3_TRANS2(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t N0, size_t N3) {
-    if (N0 == 0) {
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N1, N2);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
-        Eigen::Map<EigMX<T>>  MapD(D, N3, N2);
-        MapA = (MapB * (MapC.asDiagonal() * MapD.adjoint())).eval();
-    } else {  // N0 == N2
-        Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>>  MapB(B, N1, N2);
-        Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
-        Eigen::Map<EigMX<T>>  MapD(D, N3, N2);
-        MapA = (MapB * (MapC * MapD.adjoint())).eval();
-    }
-}
+#define DEFINE_POINTER_PROTECTED(T, name)                     \
+   public:                                                    \
+    EigMX<T>& ref_##name() { return name##_eigen_container; } \
+                                                              \
+   protected:                                                 \
+    T* name;                                                  \
+    EigMX<T> name##_eigen_container;
 
-template <class TB, class TC>
-TB ARRAY_TRACE2(TB* B, TC* C, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB                    res = (MapB.array() * (MapC.transpose()).array()).sum();
-    return res;
-}
+/**
+ * @brief allocate eigen container, then refer ptr to the container
+ */
+#define ALLOCATE_PTR_TO_VECTOR(name, size)  \
+    name##_eigen_container.resize(size, 1); \
+    name = name##_eigen_container.data();
 
-template <class TB, class TC>
-TB ARRAY_TRACE2_DIAG(TB* B, TC* C, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB                    res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
-    return res;
-}
+/**
+ * @brief allocate eigen container, then refer ptr to the container
+ */
+#define ALLOCATE_PTR_TO_MATRIX(name, size1, size2) \
+    name##_eigen_container.resize(size1, size2);   \
+    name = name##_eigen_container.data();
 
-template <class TB, class TC>
-TB ARRAY_TRACE2_OFFD(TB* B, TC* C, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
-    Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB                    res = (MapB.array() * (MapC.transpose()).array()).sum()  //
-             - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
-    return res;
-}
-
-template <class TB, class TC>
-TB ARRAY_INNER_TRANS1(TB* B, TC* C, size_t N1) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
-    Eigen::Map<EigMX<TC>> MapC(C, N1, 1);
-    return (MapB.adjoint() * MapC).sum();
-}
-
-template <class TB, class TC, class TD>
-TB ARRAY_INNER_VMV_TRANS1(TB* B, TC* C, TD* D, size_t N1, size_t N2) {
-    Eigen::Map<EigMX<TB>> MapB(B, N1, 1);
-    Eigen::Map<EigMX<TC>> MapC(C, N1, N2);
-    Eigen::Map<EigMX<TD>> MapD(D, N2, 1);
-    return (MapB.adjoint() * MapC * MapD).sum();
-}
-
-template <class T>
-void ARRAY_EYE(T* A, size_t n) {
-    Eigen::Map<EigMX<T>> MapA(A, n, n);
-    MapA = EigMX<T>::Identity(n, n);
-}
-
-template <class TA, class TB>
-void ARRAY_MAT_DIAG(TA* A, TB* B, size_t N1) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N1);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N1);
-    ARRAY_CLEAR(A, N1 * N1);
-    // MapA.array()    = TA(0);
-    MapA.diagonal() = MapB.diagonal();
-}
-
-template <class TA, class TB>
-void ARRAY_MAT_OFFD(TA* A, TB* B, size_t N1) {
-    Eigen::Map<EigMX<TA>> MapA(A, N1, N1);
-    Eigen::Map<EigMX<TB>> MapB(B, N1, N1);
-    MapA                    = MapB;
-    MapA.diagonal().array() = TA(0);
-}
-
-/*===========================================================
-=            realize interface of linear algebra            =
-===========================================================*/
-
-inline void LinearSolve(kids_real* x, kids_real* A, kids_real* b, size_t N) {
-    MapMXr Mapx(x, N, 1);
-    MapMXr MapA(A, N, N);
-    MapMXr Mapb(b, N, 1);
-    Mapx = MapA.householderQr().solve(Mapb);
-}
-
-inline void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N) {
-    MapMXr                                MapE(E, N, 1);
-    MapMXr                                MapT(T, N, N);
-    MapMXr                                MapA(A, N, N);
-    Eigen::SelfAdjointEigenSolver<EigMXr> eig(MapA);
-    MapE = eig.eigenvalues().real();
-    MapT = eig.eigenvectors().real();
-}
-
-inline void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXr                                MapE(E, N, 1);
-    MapMXc                                MapT(T, N, N);
-    MapMXc                                MapA(A, N, N);
-    Eigen::SelfAdjointEigenSolver<EigMXc> eig(MapA);
-    MapE = eig.eigenvalues().real();
-    MapT = eig.eigenvectors();
-}
-
-inline void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXc                            MapE(E, N, 1);
-    MapMXc                            MapT(T, N, N);
-    MapMXc                            MapA(A, N, N);
-    Eigen::ComplexEigenSolver<EigMXc> eig(MapA);
-    MapE = eig.eigenvalues();
-    MapT = eig.eigenvectors();
-}
-
-inline void PseudoInverse(kids_real* A, kids_real* invA, size_t N, kids_real e = 1E-5) {
-    MapMXr MapA(A, N, N);
-    MapMXr MapInvA(invA, N, N);
-    MapInvA = MapA.completeOrthogonalDecomposition().pseudoInverse();
-    /* Eigen::JacobiSVD<EigMXr> svd = MapA.jacobiSvd(Eigen::ComputeFullU|Eigen::ComputeFullV);
-    EigMXr invS = EigMXr::Zero(N, N);
-    for (int i = 0; i < N; ++i) {
-        if (svd.singularValues()(i) > e || svd.singularValues()(i) < -e) {
-            invS(i, i) = 1 / svd.singularValues()(i);
-        }
-    }
-    MapInvA = svd.matrixV()*invS*svd.matrixU().transpose(); */
-}
 
 /*****************************************
     An brief introduction to Eigen library
@@ -417,7 +291,7 @@ x.cross(y)                // cross(x, y) Requires #include <Eigen/Geometry>
 
 //// Type conversion
 // Eigen                           // Matlab
-A.cast<kids_real>();                  // kids_real(A)
+A.cast<num_real>();                  // num_real(A)
 A.cast<float>();                   // single(A)
 A.cast<int>();                     // int32(A)
 A.real();                          // real(A)
@@ -455,4 +329,10 @@ std::cout << std::setiosflags(std::ios::scientific)
 *****************************************/
 
 
-#endif  // KIDS_LINALG_TPL_H
+/*=====  End of realize interface of linear algebra  ======*/
+
+
+
+#endif  // ARRAY_USE_MKL & ARRAY_USE_EIGEN
+
+#endif  // LA_Utils_H
