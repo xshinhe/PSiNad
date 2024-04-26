@@ -10,9 +10,6 @@
 [submodule "thirdpart/gflags"]
 	path = thirdpart/gflags
 	url = https://github.com/gflags/gflags
-[submodule "thirdpart/Eigen"]
-	path = thirdpart/Eigen
-	url = https://gitlab.com/libeigen/eigen
 [submodule "thirdpart/palanteer"]
 	path = thirdpart/palanteer
 	url = https://github.com/dfeneyrou/palanteer
