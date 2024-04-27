@@ -1,5 +1,7 @@
 #include "mpi_utils.h"
 
+#include <tuple>
+
 namespace PROJECT_NS {
 MPI_Guard::MPI_Guard() {
     MPI_Init(NULL, NULL);
@@ -16,8 +18,8 @@ int MPI_Guard::range(const int& idx1, const int& idx2, int& ista, int& iend) {
 }
 
 int MPI_Guard::reduce(const std::vector<std::tuple<kids_dtype, void*, void*, std::size_t>>& info_list) {
-    kids_dtype  dtype;
-    void *      from_data, *to_data;
+    kids_dtype dtype;
+    void *from_data, *to_data;
     std::size_t ndata;
     for (auto&& info : info_list) {
         std::tie(dtype, from_data, to_data, ndata) = info;
@@ -45,8 +47,8 @@ int MPI_Guard::reduce(const std::vector<std::tuple<kids_dtype, void*, void*, std
 MPI_Guard::~MPI_Guard() { MPI_Finalize(); }
 
 
-int  MPI_Guard::rank   = 0;
-int  MPI_Guard::nprocs = 1;
+int MPI_Guard::rank    = 0;
+int MPI_Guard::nprocs  = 1;
 bool MPI_Guard::isroot = true;
 
 };  // namespace PROJECT_NS

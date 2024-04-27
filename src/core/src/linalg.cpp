@@ -3,8 +3,8 @@
 #include <cmath>
 #include <complex>
 
-#include "Eigen/Eigen/Dense"
-#include "Eigen/Eigen/QR"
+#include "Eigen/Dense"
+#include "Eigen/QR"
 #include "kids/Types.h"
 
 #define EigMajor Eigen::RowMajor
@@ -551,10 +551,10 @@ void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k,
 
 void ARRAY_CORRECT_U(kids_complex* U, size_t N) {
     MapMXc Map_U(U, N, N);
-    auto eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * phys::math::im * (Map_U - Map_U.adjoint()));
+    auto eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * kids_complex(0, 1) * (Map_U - Map_U.adjoint()));
     auto Er   = eigr.eigenvalues().real();
     auto Vr   = eigr.eigenvectors();
-    Map_U     = Vr * ((phys::math::im * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
+    Map_U     = Vr * ((kids_complex(0, 1) * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
 }
 
 

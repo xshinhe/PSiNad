@@ -3,6 +3,8 @@
 set (BUILD_TESTING OFF)
 # enable gflags/glog shared library
 set (BUILD_SHARED_LIBS ON)
+set (WITH_GTEST OFF)
+set (WITH_PKGCONFIG ON)
 
 # one some old computer (old centos), after GCC5.1 it add new realization for
 #     std::string & std::list in `libstdc++`. By adding `__cxx11` namespace.
@@ -10,7 +12,10 @@ set (BUILD_SHARED_LIBS ON)
 #     by gflags/glog here
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 add_subdirectory(gflags)
-add_subdirectory(glog)
+if(NOT TARGET gflags)
+    add_subdirectory(glog)
+endif()
+# add_subdirectory(glog)
 # add_subdirectory(gperftools)
 #add_subdirectory(palanteer)
 #add_subdirectory(fparser)

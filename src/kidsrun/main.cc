@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     /* read parameter file (json format) */
     std::shared_ptr<Param> PM = std::shared_ptr<Param>(new Param(FLAGS_p, Param::fromFile));
-    auto&&                 j  = *(PM->pjson());
+    auto&& j                  = *(PM->pjson());
 
     j["directory"]   = FLAGS_d;
     j["timing"]      = FLAGS_timing;

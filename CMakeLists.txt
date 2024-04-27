@@ -15,6 +15,7 @@ endif()
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL  "Whether to verbose in compilation")
 
 # Don't create a new project name if this is part of the parent directory
+set(PROJECT_NAME KIDS)
 if(NOT PROJECT_NAME)
     project(kids LANGUAGES C CXX Fortran)
 endif(NOT PROJECT_NAME)
@@ -26,14 +27,14 @@ mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
 find_package(Git QUIET)
 mark_as_advanced(CLEAR GIT_EXECUTABLE)
 if(GIT_FOUND)
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} pull --recurse-submodules
-    OUTPUT_VARIABLE _dummy
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_QUIET
-    WORKING_DIRECTORY
-      ${CMAKE_CURRENT_SOURCE_DIR}
-    )
+#  execute_process(
+#    COMMAND ${GIT_EXECUTABLE} pull --recurse-submodules
+#    OUTPUT_VARIABLE _dummy
+#    OUTPUT_STRIP_TRAILING_WHITESPACE
+#    ERROR_QUIET
+#    WORKING_DIRECTORY
+#      ${CMAKE_CURRENT_SOURCE_DIR}
+#    )
 else()
     message(STATUS "GIT is not found! Please manually download the libraries in thirdpart")
 endif(GIT_FOUND)
@@ -73,12 +74,12 @@ set(KIDS_BUILD_STATIC_LIB ON CACHE BOOL  "Whether to build static KIDS libraries
 # module_config()
 
 # help to optimize and measure the compilation time
-find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_PROGRAM)
-    message(STATUS "set up ccache ...")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif()
+# find_program(CCACHE_PROGRAM ccache)
+# if(CCACHE_PROGRAM)
+#     message(STATUS "set up ccache ...")
+#     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+#     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+# endif()
 
 find_package(compile-time-perf) # https://github.com/jrmadsen/compile-time-perf
 if(compile-time-perf_FOUND)
@@ -87,6 +88,8 @@ endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/generate)
 include_directories(${CMAKE_SOURCE_DIR}/thirdpart)
+include_directories(${CMAKE_SOURCE_DIR}/thirdpart/Eigen)
+include_directories(${CMAKE_SOURCE_DIR}/thirdpart/filesystem/include)
 
 ################################################################################
 # set esssential variables
@@ -116,6 +119,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -march=native")
 # ################################################################################
 # # compilation of different parts
 # ################################################################################
+
 
 # # thirdpart library
 add_subdirectory(thirdpart)
@@ -410,10 +414,9 @@ install_files(/include/kids             FILES ${TOP_HEADERS})
 # CXX backends
 set(KIDS_BUILD_CXX_BACKENDS ON CACHE BOOL "Build backend for C++")
 if(KIDS_BUILD_CXX_BACKENDS)
-    find_package(MPIMod REQUIRED)
-
     # add_subdirectory(thirdpart/gflags)
     # add_subdirectory(thirdpart/glog)
+    find_package(MPIMod REQUIRED)
 
     add_executable(kids src/kidsrun/main.cc src/kidsrun/Handler.cpp src/kidsrun/mpi_utils.cpp)
 

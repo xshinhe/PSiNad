@@ -19,3 +19,7 @@
 [submodule "thirdpart/filesystem"]
 	path = thirdpart/filesystem
 	url = https://github.com/gulrak/filesystem
+[submodule "thirdpart/Eigen"]
+	path = thirdpart/Eigen
+	url = https://gitlab.com/libeigen/eigen
+	branch = 3.4
