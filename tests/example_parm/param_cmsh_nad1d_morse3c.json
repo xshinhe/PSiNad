@@ -1,0 +1,71 @@
+{
+    "model": "NAD1D",
+    "solver": "NAD",
+    "nad1d_flag": "MORSE3C",
+	"cmsh_flag": "CVSD",
+    "N": 1,
+    "F": 3,
+    "occ": 0,
+    "dt": "0.01 fs",
+    "tend":"80.0 fs",
+    "time_unit": "1.0 fs",
+    "sstep": 50,
+    "M": 10,
+    "msize": 4,
+    "gamma": 0.5,
+    "representation_flag": "Adiabatic",
+    "inp_repr_flag": "Diabatic",
+    "ele_repr_flag": "Diabatic",
+	"hopping_type1": 1,
+	"hopping_type2": 2,
+	"reflect": false,
+	"use_cv": true,
+	"offd_projected": true,
+	"conserve_scale": true,
+	"basis_switch": true,
+    "result": [
+        //["1 # I", "x"],		// time-correlation function
+        //["1 # I", "p"],		// time-correlation function
+        ["1 # I", "Ekin"],		// time-correlation function
+        ["1 # I", "Epot"],		// time-correlation function
+        ["1 # I", "R(Ekin,Epot)=Ekin+Epot # Etot"],		// time-correlation function
+        ["1 # I", "K0 # K0"],		// time-correlation function
+	],
+    "result1": [
+        ["1 # I", "R(alpha)=abs(alpha) # alpha"],		// time-correlation function
+        ["1 # I", "Ekin"],		// time-correlation function
+        ["1 # I", "Epot"],		// time-correlation function
+        ["1 # I", "R(Ekin,Epot)=Ekin+Epot # Etot"],		// time-correlation function
+        ["1 # I", "K0dia # K0"],		// time-correlation function
+        ["K0occ # K0", "K0dia # K0"],	// time-correlation function
+        ["1 # I", "K1QDdia # K1QD"],	// time-correlation function
+        ["1 # I", "K2QDdia # K2QD"],	// time-correlation function
+        ["K0occ # K0", "K1QDdia # K1QD"], // time-correlation function
+        ["K0occ # K0", "K2QDdia # K2QD"], // time-correlation function
+        ["K1QAocc # K1QA", "K0dia # K0"], // time-correlation function
+        ["K1QDocc # K1QD", "K0dia # K0"], // time-correlation function
+        ["K1QAocc # K1QA", "K1QAdia # K1QA"], // time-correlation function
+        ["K1QAocc # K1QA", "K1DAdia # K1DA"], // time-correlation function
+        ["K1DAocc # K1DA", "K1QAdia # K1QA"], // time-correlation function
+        ["K1DAocc # K1DA", "K1DAdia # K1DA"], // time-correlation function
+        ["C(wz_A,K1DAocc)=wz_A*K1DAocc # wK1DA", "K1DAdia # K1DA"], // time-correlation function
+        ["K1QDocc # K1QD", "K1QDdia # K1QD"], // time-correlation function
+        ["K1QDocc # K1QD", "K1DDdia # K1DD"], // time-correlation function
+        ["K1DDocc # K1DD", "K1QDdia # K1QD"], // time-correlation function
+        ["K1DDocc # K1DD", "K1DDdia # K1DD"], // time-correlation function
+        ["C(wz_D,K1DDocc)=wz_D*K1DDocc # wK1DD", "K1DDdia # K1DD"], // time-correlation function
+        ["K1QDocc # K1QD", "C(ww_D,K1QDdia)=ww_D*K1QDdia # wwK1QD"], // time-correlation function
+    ],
+    "result2": [
+        ["x"], ["p"], ["f"],
+        ["C(w,K1occ)=w*K1occ # wK1occ", "K2dia"],
+        // ["C(w,K1occ)=w*K1occ # wK1occ", "C(K2dia,p_sign)=K2dia*p_sign"],
+    ],
+	"record_dis": [
+		[0,2,4],
+		{"v0": "1", "vt": "x", "v0":"y", "save": "bb"},
+		{"v0": "1", "vt": "x", "aa": {"v0":"y"}, "save": "bb"},
+		{"v0": "1", "vt": "x", "save": "bb"},
+	],
+}
+
