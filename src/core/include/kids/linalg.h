@@ -734,6 +734,11 @@ void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k,
 
 void ARRAY_CORRECT_U(kids_complex* U, size_t N);
 
+void ARRAY_TRANSPOSE(kids_real* A, size_t N1, size_t N2);
+
+void ARRAY_TRANSPOSE(kids_complex* A, size_t N1, size_t N2);
+
+
 };  // namespace PROJECT_NS
 
 #endif  // KIDS_LINALG_BIND_EIGEN_NOT_USE_TEMPLATE

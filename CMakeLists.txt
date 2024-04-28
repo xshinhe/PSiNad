@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.17)
 
-cmake_policy(SET CMP0042 OLD)
+#cmake_policy(SET CMP0042 OLD)
 cmake_policy(SET CMP0003 NEW)
 cmake_policy(SET CMP0005 NEW)
 cmake_policy(SET CMP0011 NEW)
@@ -15,7 +15,6 @@ endif()
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL  "Whether to verbose in compilation")
 
 # Don't create a new project name if this is part of the parent directory
-set(PROJECT_NAME KIDS)
 if(NOT PROJECT_NAME)
     project(kids LANGUAGES C CXX Fortran)
 endif(NOT PROJECT_NAME)

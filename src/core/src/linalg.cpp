@@ -557,5 +557,16 @@ void ARRAY_CORRECT_U(kids_complex* U, size_t N) {
     Map_U     = Vr * ((kids_complex(0, 1) * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
 }
 
+void ARRAY_TRANSPOSE(kids_real* A, size_t N1, size_t N2) {
+    MapMXr Map_A(A, N1, N2);
+    MapMXr Map_Anew(A, N2, N1);
+    Map_Anew = Map_A.adjoint().eval();
+}
+
+void ARRAY_TRANSPOSE(kids_complex* A, size_t N1, size_t N2) {
+    MapMXc Map_A(A, N1, N2);
+    MapMXc Map_Anew(A, N2, N1);
+    Map_Anew = Map_A.adjoint().eval();
+}
 
 };  // namespace PROJECT_NS
