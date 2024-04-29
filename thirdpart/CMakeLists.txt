@@ -16,10 +16,6 @@ add_subdirectory(glog)
 # add_subdirectory(gperftools)
 add_subdirectory(fparser)
 # add_subdirectory(googletest) # depreciated; catch2 as alternative (header-only)
-set(CATCH_BUILD_TESTING OFF)
-set(CATCH_BUILD_EXAMPLES OFF)
-set(CATCH_BUILD_EXTRA_TESTS OFF)
-add_subdirectory(catch2)
 
 set (BUILD_TESTING ON)       # recover unit testing
 set (BUILD_SHARED_LIBS OFF)  # disable shared library

@@ -96,7 +96,7 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdpart/filesystem/include)
 
 # set(CMAKE_BUILD_TYPE <Config>)
 ## Please -DCMAKE_BUILD_TYPE=<Config> : Debug, Release, RelWithDebInfo, MinsizeRel
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -march=native")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -march=native")
 
 # ################################################################################
 # # configure libraries
@@ -320,7 +320,8 @@ foreach(subdir ${KIDS_SOURCE_SUBDIRS})
     include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
 endforeach(subdir)
 
-
+set_source_files_properties(${CMAKE_SOURCE_DIR}/src/core/src/linalg.cpp PROPERTIES COMPILE_FLAGS "-ffast-math -DHAVE_SSE2=1")
+set_source_files_properties(${CMAKE_SOURCE_DIR}/src/core/src/linalg_1.cpp PROPERTIES COMPILE_FLAGS "-ffast-math -DHAVE_SSE2=1")
 
 if(X86)
     set_source_files_properties(${CMAKE_SOURCE_DIR}/libraries/sfmt/src/SFMT.cpp PROPERTIES COMPILE_FLAGS "-DHAVE_SSE2=1")
@@ -444,8 +445,10 @@ endif (EXECUTABLE_OUTPUT_PATH)
 # add_subdirectory(docs)
 set(KIDS_BUILD_TESTS OFF CACHE BOOL "Build tests")
 if(KIDS_BUILD_TESTS)
+    set(CATCH_BUILD_TESTING OFF)
+    set(CATCH_BUILD_EXAMPLES OFF)
+    set(CATCH_BUILD_EXTRA_TESTS OFF)
     add_subdirectory(thirdpart/catch2)
-
     enable_testing()
     include_directories(${CMAKE_SOURCE_DIR}/tests)
     add_subdirectory(tests)

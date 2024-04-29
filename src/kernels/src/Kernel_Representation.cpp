@@ -3,6 +3,7 @@
 #include "kids/Kernel_NADForce.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
+// #include "kids/linalg_tpl.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
@@ -171,6 +172,16 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                             }
                         }
                     } else {
+                        // Eigen::Map<EigMX<double>> Map_T(T, Dimension::F, Dimension::F);
+                        // Eigen::Map<EigMX<double>> Map_dV(dV, Dimension::NF, Dimension::F);
+                        // Eigen::Map<EigMX<double>> Map_dE1(dE, Dimension::NF, Dimension::F);
+                        // Eigen::Map<EigMX<double>> Map_dE2(dE, Dimension::F, Dimension::NF);
+
+                        // Map_dE2 = Map_dV.transpose();
+                        // Map_dE2 = (Map_T.adjoint() * Map_dE2).eval();
+                        // Map_dE1 = (Map_dE1 * Map_T).eval();
+                        // Map_dE1 = Map_dE2.transpose().eval();
+
                         ARRAY_MATMUL(dE, dV, T, Dimension::NF, Dimension::F, Dimension::F);
                         ARRAY_TRANSPOSE(dE, Dimension::N, Dimension::FF);
                         ARRAY_MATMUL_TRANS1(dE, T, dE, Dimension::F, Dimension::F, Dimension::NF);

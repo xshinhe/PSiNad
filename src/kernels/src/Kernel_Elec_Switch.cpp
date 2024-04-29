@@ -11,28 +11,17 @@
 
 inline bool isFileExists(const std::string& name) { return std::ifstream{name.c_str()}.good(); }
 
-#define ARRAY_SHOW(_A, _n1, _n2)                                                            \
-    ({                                                                                      \
-        std::cout << #_A << " = np.array([\n";                                              \
-        int _idxA = 0;                                                                      \
-        for (int _i = 0; _i < (_n1); ++_i) {                                                \
-            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(8) << (_A)[_idxA++] << ","; \
-            std::cout << std::endl;                                                         \
-        }                                                                                   \
-        { std::cout << "])\n"; }                                                            \
-    })
-
 extern double phi(double lambda, double N0_max, int F);
 
 namespace PROJECT_NS {
 
 extern double calc_alpha(kids_real* V, int i = 0, int k = 1, int F = 2);
 
-extern int calc_wrho(kids_complex* wrho,   // distorted rho
-                     kids_complex* rho,    // rho_ele
-                     double        xi,     // xi must be 1
-                     double        gamma,  // gamma must be 0
-                     double        alpha);
+extern int calc_wrho(kids_complex* wrho,  // distorted rho
+                     kids_complex* rho,   // rho_ele
+                     double xi,           // xi must be 1
+                     double gamma,        // gamma must be 0
+                     double alpha);
 
 extern double calc_Ew(kids_real* E, kids_complex* wrho, int occ);
 
@@ -50,12 +39,12 @@ extern double calc_Ew(kids_real* E, kids_complex* wrho, int occ);
  *
  * @return     { description_of_the_return_value }
  */
-extern int calc_distforce(kids_real*    f1,    // to be calculated
-                          kids_real*    E,     // (input)
-                          kids_real*    dE,    // (input)
+extern int calc_distforce(kids_real* f1,       // to be calculated
+                          kids_real* E,        // (input)
+                          kids_real* dE,       // (input)
                           kids_complex* wrho,  // distorted rho
                           kids_complex* rho,   // rho_ele
-                          double        alpha);
+                          double alpha);
 
 extern int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm,  //
                            kids_real Efrom, kids_real Eto, int from, int to, bool reflect);
@@ -163,10 +152,10 @@ Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) {
         kids_complex* rho_ele = Kernel_Elec::rho_ele + iP * Dimension::FF;
         kids_complex* rho_nuc = Kernel_Elec::rho_nuc + iP * Dimension::FF;
         kids_complex* U       = Kernel_Elec::U + iP * Dimension::FF;
-        kids_real*    T       = Kernel_Elec::T + iP * Dimension::FF;
-        int*          occ_nuc = Kernel_Elec::occ_nuc + iP;
-        kids_real*    alpha   = this->alpha + iP;
-        kids_real*    V       = this->V + iP * Dimension::FF;
+        kids_real* T          = Kernel_Elec::T + iP * Dimension::FF;
+        int* occ_nuc          = Kernel_Elec::occ_nuc + iP;
+        kids_real* alpha      = this->alpha + iP;
+        kids_real* V          = this->V + iP * Dimension::FF;
 
         /////////////////////////////////////////////////////////////////
         alpha[0] = (dynamic_alpha) ? calc_alpha(V) : alpha0;
@@ -225,7 +214,7 @@ Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) {
             std::string open_file    = init_nuclinp;
             if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat.icalc, ".ds");
 
-            std::string   stmp, eachline;
+            std::string stmp, eachline;
             std::ifstream ifs(open_file);
             while (getline(ifs, eachline)) {
                 if (eachline.find("init.c") != eachline.npos) {
@@ -313,7 +302,7 @@ Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
         wz_A[0]        = std::abs(rho_ele[0] - rho_ele[3]);
-        int    max_pop = elec_utils::max_choose(rho_ele);
+        int max_pop    = elec_utils::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
         Kernel_Representation::transform(rho_ele, T, Dimension::F,         //
@@ -358,7 +347,7 @@ Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) {
 
 Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        int*          occ_nuc      = Kernel_Elec::occ_nuc + iP;
+        int* occ_nuc               = Kernel_Elec::occ_nuc + iP;
         kids_complex* U            = Kernel_Elec::U + iP * Dimension::FF;
         kids_complex* c            = Kernel_Elec::c + iP * Dimension::F;
         kids_complex* c_init       = Kernel_Elec::c_init + iP * Dimension::F;
@@ -366,8 +355,8 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
         kids_complex* rho_ele_init = Kernel_Elec::rho_ele_init + iP * Dimension::FF;
         kids_complex* rho_nuc      = Kernel_Elec::rho_nuc + iP * Dimension::FF;
         kids_complex* rho_nuc_init = Kernel_Elec::rho_nuc_init + iP * Dimension::FF;
-        kids_real*    T            = Kernel_Elec::T + iP * Dimension::FF;
-        kids_real*    T_init       = Kernel_Elec::T_init + iP * Dimension::FF;
+        kids_real* T               = Kernel_Elec::T + iP * Dimension::FF;
+        kids_real* T_init          = Kernel_Elec::T_init + iP * Dimension::FF;
         kids_complex* K0           = Kernel_Elec::K0 + iP * Dimension::FF;
         kids_complex* K1           = Kernel_Elec::K1 + iP * Dimension::FF;
         kids_complex* K2           = Kernel_Elec::K2 + iP * Dimension::FF;
@@ -384,16 +373,16 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
         kids_complex* ww_A         = Kernel_Elec::ww_A + iP;
         kids_complex* ww_D         = Kernel_Elec::ww_D + iP;
 
-        kids_real*    alpha = this->alpha + iP;
-        kids_real*    Epot  = this->Epot + iP;
-        kids_real*    vpes  = this->vpes + iP;
-        kids_real*    V     = this->V + iP * Dimension::FF;
-        kids_real*    E     = this->E + iP * Dimension::F;
-        kids_real*    dE    = this->dE + iP * Dimension::NFF;
-        kids_real*    p     = this->p + iP * Dimension::N;
-        kids_real*    m     = this->m + iP * Dimension::N;
-        kids_real*    fadd  = this->fadd + iP * Dimension::N;
-        kids_complex* H     = this->H + iP * Dimension::FF;
+        kids_real* alpha = this->alpha + iP;
+        kids_real* Epot  = this->Epot + iP;
+        kids_real* vpes  = this->vpes + iP;
+        kids_real* V     = this->V + iP * Dimension::FF;
+        kids_real* E     = this->E + iP * Dimension::F;
+        kids_real* dE    = this->dE + iP * Dimension::NFF;
+        kids_real* p     = this->p + iP * Dimension::N;
+        kids_real* m     = this->m + iP * Dimension::N;
+        kids_real* fadd  = this->fadd + iP * Dimension::N;
+        kids_complex* H  = this->H + iP * Dimension::FF;
 
         //////////////////////////////////////////////////////////////////////
 
@@ -542,7 +531,7 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
 
         // 4) calculated TCF in adiabatic rep & diabatic rep respectively
         // 4-1) Adiabatic rep
-        int    max_pop = elec_utils::max_choose(rho_ele);
+        int max_pop    = elec_utils::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
         ww_A[0]        = std::min({abs(ww_A[0]), abs(ww_A_init[0])});
@@ -656,7 +645,7 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
             for (int i = 0; i < Dimension::F; ++i) sqcID[0] += std::real(K2QD[i * Dimension::Fadd1]);
 
             if (sqc_init == 2) {  // overload for K2QD
-                int    imax = elec_utils::max_choose(rho_ele);
+                int imax    = elec_utils::max_choose(rho_ele);
                 double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
                 for (int ik = 0; ik < Dimension::FF; ++ik) K2QD[ik] = 0.0e0;
                 if (vmax * vmax * 8.0e0 / 7.0e0 * (Dimension::F + 0.5e0) > 1) K2QD[imax * Dimension::Fadd1] = 1.0e0;
