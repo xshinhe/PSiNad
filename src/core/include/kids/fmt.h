@@ -16,6 +16,11 @@ constexpr inline int FMT_WIDTH(int X) { return X + 7; }
         << std::right                             /*alignment*/           \
         << std::setw(FMT_WIDTH(X))                /*width of text*/
 
+/**
+ * show the location information for debug
+ */
+#define LOC() (std::string(basename(__FILE__)) + ":" + std::to_string(__LINE__))
+
 };  // namespace PROJECT_NS
 
 #endif  // KIDS_FMT_H

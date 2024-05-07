@@ -234,14 +234,14 @@ class elec_utils {
             }
             case SQCPolicy::SPX: {
                 c_sphere(c, Dimension::F);
-                for (int i = 0; i < Dimension::F; ++i) c[i] = abs(c[i] * c[i]);
+                for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(c[i] * c[i]);
                 c[iocc] += 1.0e0;
                 break;
             }
             case SQCPolicy::BIG: {
                 kids_complex* cadd1 = new kids_complex[Dimension::Fadd1];
                 c_sphere(cadd1, Dimension::Fadd1);
-                for (int i = 0; i < Dimension::F; ++i) c[i] = abs(cadd1[i] * cadd1[i]);
+                for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(cadd1[i] * cadd1[i]);
                 c[iocc] += 1.0e0;
                 delete[] cadd1;
                 break;

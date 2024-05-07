@@ -26,6 +26,7 @@ void Kernel_Iter::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     isamp_ptr                     = DS->def(DATA::iter::isamp);
     at_samplingstep_initially_ptr = DS->def(DATA::iter::at_samplingstep_initially);
     at_samplingstep_finally_ptr   = DS->def(DATA::iter::at_samplingstep_finally);
+    succ_ptr                      = DS->def(DATA::iter::succ);
     // initializarion
     DS->def_int("iter.sstep", &sstep);
     DS->def_int("iter.nstep", &nstep);
@@ -37,6 +38,7 @@ Status& Kernel_Iter::initializeKernel_impl(Status& stat) {
     dt_ptr[0]    = dt;
     istep_ptr[0] = 0;
     isamp_ptr[0] = 0;
+    succ_ptr[0]  = true;
     return stat;
 }
 

@@ -1,5 +1,6 @@
 #include "kids/Kernel_Update_x.h"
 
+#include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"

@@ -1,6 +1,7 @@
 #include "kids/Kernel_Update_c.h"
 
 #include "kids/Kernel_Representation.h"
+#include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 #include "kids/macro_utils.h"

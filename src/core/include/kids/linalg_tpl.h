@@ -50,18 +50,18 @@ using EigMX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 template <class T>
 using EigAX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 
-typedef EigVX<kids_real> EigVXr;
+typedef EigVX<kids_real>    EigVXr;
 typedef EigVX<kids_complex> EigVXc;
-typedef EigMX<kids_real> EigMXr;
+typedef EigMX<kids_real>    EigMXr;
 typedef EigMX<kids_complex> EigMXc;
-typedef EigMX<kids_real> EigAXr;
+typedef EigMX<kids_real>    EigAXr;
 typedef EigMX<kids_complex> EigAXc;
-typedef Eigen::Map<EigVXr> MapVXr;
-typedef Eigen::Map<EigVXc> MapVXc;
-typedef Eigen::Map<EigMXr> MapMXr;
-typedef Eigen::Map<EigMXc> MapMXc;
-typedef Eigen::Map<EigAXr> MapAXr;
-typedef Eigen::Map<EigAXc> MapAXc;
+typedef Eigen::Map<EigVXr>  MapVXr;
+typedef Eigen::Map<EigVXc>  MapVXc;
+typedef Eigen::Map<EigMXr>  MapMXr;
+typedef Eigen::Map<EigMXc>  MapMXc;
+typedef Eigen::Map<EigAXr>  MapAXr;
+typedef Eigen::Map<EigAXc>  MapAXc;
 
 template <class T>
 bool ARRAY_ISFINITE(T* A, size_t n) {
@@ -108,15 +108,15 @@ template <class TA, class T, class TC>
 void ARRAY_MATMUL3_TRANS1(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t N0, size_t N3) {
     if (N0 == 0) {
         Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>> MapB(B, N2, N1);
+        Eigen::Map<EigMX<T>>  MapB(B, N2, N1);
         Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
-        Eigen::Map<EigMX<T>> MapD(D, N2, N3);
+        Eigen::Map<EigMX<T>>  MapD(D, N2, N3);
         MapA = (MapB.adjoint() * (MapC.asDiagonal() * MapD)).eval();
     } else {  // N0 == N2
         Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>> MapB(B, N2, N1);
+        Eigen::Map<EigMX<T>>  MapB(B, N2, N1);
         Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
-        Eigen::Map<EigMX<T>> MapD(D, N2, N3);
+        Eigen::Map<EigMX<T>>  MapD(D, N2, N3);
         MapA = (MapB.adjoint() * (MapC * MapD)).eval();
     }
 }
@@ -125,15 +125,15 @@ template <class TA, class T, class TC>
 void ARRAY_MATMUL3_TRANS2(TA* A, T* B, TC* C, T* D, size_t N1, size_t N2, size_t N0, size_t N3) {
     if (N0 == 0) {
         Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>> MapB(B, N1, N2);
+        Eigen::Map<EigMX<T>>  MapB(B, N1, N2);
         Eigen::Map<EigMX<TC>> MapC(C, N2, 1);
-        Eigen::Map<EigMX<T>> MapD(D, N3, N2);
+        Eigen::Map<EigMX<T>>  MapD(D, N3, N2);
         MapA = (MapB * (MapC.asDiagonal() * MapD.adjoint())).eval();
     } else {  // N0 == N2
         Eigen::Map<EigMX<TA>> MapA(A, N1, N3);
-        Eigen::Map<EigMX<T>> MapB(B, N1, N2);
+        Eigen::Map<EigMX<T>>  MapB(B, N1, N2);
         Eigen::Map<EigMX<TC>> MapC(C, N2, N2);
-        Eigen::Map<EigMX<T>> MapD(D, N3, N2);
+        Eigen::Map<EigMX<T>>  MapD(D, N3, N2);
         MapA = (MapB * (MapC * MapD.adjoint())).eval();
     }
 }
@@ -142,7 +142,7 @@ template <class TB, class TC>
 TB ARRAY_TRACE2(TB* B, TC* C, size_t N1, size_t N2) {
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB res = (MapB.array() * (MapC.transpose()).array()).sum();
+    TB                    res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
@@ -150,7 +150,7 @@ template <class TB, class TC>
 TB ARRAY_TRACE2_DIAG(TB* B, TC* C, size_t N1, size_t N2) {
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    TB                    res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
@@ -158,7 +158,7 @@ template <class TB, class TC>
 TB ARRAY_TRACE2_OFFD(TB* B, TC* C, size_t N1, size_t N2) {
     Eigen::Map<EigMX<TB>> MapB(B, N1, N2);
     Eigen::Map<EigMX<TC>> MapC(C, N2, N1);
-    TB res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    TB                    res = (MapB.array() * (MapC.transpose()).array()).sum()  //
              - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -213,27 +213,27 @@ inline void LinearSolve(kids_real* x, kids_real* A, kids_real* b, size_t N) {
 }
 
 inline void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N) {
-    MapMXr MapE(E, N, 1);
-    MapMXr MapT(T, N, N);
-    MapMXr MapA(A, N, N);
+    MapMXr                                MapE(E, N, 1);
+    MapMXr                                MapT(T, N, N);
+    MapMXr                                MapA(A, N, N);
     Eigen::SelfAdjointEigenSolver<EigMXr> eig(MapA);
     MapE = eig.eigenvalues().real();
     MapT = eig.eigenvectors().real();
 }
 
 inline void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXr MapE(E, N, 1);
-    MapMXc MapT(T, N, N);
-    MapMXc MapA(A, N, N);
+    MapMXr                                MapE(E, N, 1);
+    MapMXc                                MapT(T, N, N);
+    MapMXc                                MapA(A, N, N);
     Eigen::SelfAdjointEigenSolver<EigMXc> eig(MapA);
     MapE = eig.eigenvalues().real();
     MapT = eig.eigenvectors();
 }
 
 inline void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXc MapE(E, N, 1);
-    MapMXc MapT(T, N, N);
-    MapMXc MapA(A, N, N);
+    MapMXc                            MapE(E, N, 1);
+    MapMXc                            MapT(T, N, N);
+    MapMXc                            MapA(A, N, N);
     Eigen::ComplexEigenSolver<EigMXc> eig(MapA);
     MapE = eig.eigenvalues();
     MapT = eig.eigenvectors();
@@ -378,10 +378,10 @@ R.cwiseMax(P)             // max(R, P)
 R.array().max(P.array())  // max(R, P)
 R.cwiseMin(P)             // min(R, P)
 R.array().min(P.array())  // min(R, P)
-R.cwiseAbs()              // abs(P)
-R.array().abs()           // abs(P)
-R.cwiseAbs2()             // abs(P.^2)
-R.array().abs2()          // abs(P.^2)
+R.cwiseAbs()              //std::abs(P)
+R.array().abs()           //std::abs(P)
+R.cwiseAbs2()             //std::abs(P.^2)
+R.array().abs2()          //std::abs(P.^2)
 (R.array() < s).select(P,Q);  // (R < s ? P : Q)
 
 // Reductions.

@@ -1,5 +1,5 @@
+#include "kids/Kernel.h"
 #include "kids/Kernel_Conserve.h"
-#include "kids/Kernel_Custom.h"
 #include "kids/Kernel_Dump_DataSet.h"
 #include "kids/Kernel_Elec_NAD.h"
 #include "kids/Kernel_GWP.h"
@@ -8,7 +8,7 @@
 #include "kids/Kernel_Prioritization.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Read_Dimensions.h"
-#include "kids/Kernel_Record.h"
+#include "kids/Kernel_Recorder.h"
 #include "kids/Kernel_Representation.h"
 #include "kids/Kernel_Update.h"
 
@@ -18,10 +18,10 @@ std::shared_ptr<Kernel> NAD_Adapt_Kernel(std::shared_ptr<Kernel> kmodel, std::st
     bool take_ownership_false = false;
 
     // Root Kernel
-    std::shared_ptr<Kernel> ker(new Kernel_Custom(NAD_Kernel_name));
+    std::shared_ptr<Kernel> ker(new Kernel(NAD_Kernel_name));
 
     /// Integrator Kernel
-    std::shared_ptr<Kernel> kinte(new Kernel_Custom("BAOAB_Integrator"));
+    std::shared_ptr<Kernel> kinte(new Kernel("BAOAB_Integrator"));
 
     std::shared_ptr<Kernel_Representation> krepr(new Kernel_Representation());
     std::shared_ptr<Kernel_NADForce>       kforc(new Kernel_NADForce());
@@ -31,7 +31,7 @@ std::shared_ptr<Kernel> NAD_Adapt_Kernel(std::shared_ptr<Kernel> kmodel, std::st
     std::shared_ptr<Kernel_Update_c> ku_c(new Kernel_Update_c(1.0));
 
     /// Result & Sampling & TCF
-    std::shared_ptr<Kernel_Record> krecd(new Kernel_Record());
+    std::shared_ptr<Kernel_Recorder> krecd(new Kernel_Recorder());
 
     kinte->appendChild(ku_p);
     kinte->appendChild(ku_x);
@@ -74,7 +74,8 @@ std::shared_ptr<Kernel> NAD_Adapt_Kernel(std::shared_ptr<Kernel> kmodel, std::st
         .appendChild(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
         .appendChild(std::shared_ptr<Kernel_Read_Dimensions>(new Kernel_Read_Dimensions()))
         .appendChild(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, kinte}, 1)))
-        .appendChild(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, krepr, kele, krecd}, 2)))
+        .appendChild(std::shared_ptr<Kernel_Prioritization>(  //
+            new Kernel_Prioritization({kmodel, krepr, kele, kforc, krecd}, 2)))
         .appendChild(kiter)
         .appendChild(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
     return ker;

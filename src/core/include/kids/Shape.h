@@ -35,6 +35,8 @@
 #define KIDS_SHAPE_H
 
 #include <cassert>
+#include <iostream>
+#include <sstream>
 #include <vector>
 
 namespace PROJECT_NS {
@@ -88,6 +90,14 @@ class Shape {
     inline void static_build() {
         update();
         enable_dynamic = false;
+    }
+
+    inline std::string to_string() {
+        std::stringstream ss;
+        ss << "<";
+        for (auto& i : _dims) ss << i << ",";
+        ss << ">";
+        return ss.str();
     }
 
    private:

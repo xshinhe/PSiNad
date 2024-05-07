@@ -53,8 +53,10 @@ Status& Kernel::executeKernel(Status& stat) {
         executeKernel_impl(stat);
         for (auto& pkernel : _child_kernels) pkernel->executeKernel(stat);
     }
-    if (is_timing) end = std::chrono::steady_clock::now();
-    if (is_timing) exec_time += static_cast<std::chrono::duration<double>>(end - begin).count();
+    if (is_timing) {
+        end = std::chrono::steady_clock::now();
+        exec_time += static_cast<std::chrono::duration<double>>(end - begin).count();
+    }
     count_exec++;
     return stat;
 }

@@ -235,20 +235,22 @@ void einsum(EinsumHelper&          EH,           //
 
     memset(einsum_iposes.data(), 0, total_esidx * sizeof(std::size_t));
     memset(ipos_inputs.data(), 0, total_tensor * sizeof(std::size_t));
-    data_output[0] = T(0);
+    bool reset_zero = true;
+    data_output[0]  = T(0);
     for (std::size_t iloop = 0, ipos_output = 0; iloop < total_loop; ++iloop) {
+        if (reset_zero) data_output[ipos_output] = T(0);
+
         T term = T(1);
         for (int iten = 0; iten < total_tensor; ++iten) { term *= data_inputs[iten][ipos_inputs[iten]]; }
         data_output[ipos_output] += term;
 
         std::size_t i = imax;
         while (++einsum_iposes[i] == einsum_dims[i] && i > imin) { einsum_iposes[i--] = 0; }
+        reset_zero = (i < EH.count2);
 
         for (int iten = 0; iten < total_tensor; ++iten)  //
             ipos_inputs[iten] += dh_inputs[iten].mapldims[i];
-
         ipos_output += dh_output_mapldims[i];
-        if (i < EH.count2) { data_output[ipos_output] = T(0); }
     }
 }
 

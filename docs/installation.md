@@ -5,11 +5,23 @@
 ## Basic Installation
 
 **Prerequisites**:
-- Unix-like operating system
-- C++ compiler
-- Python intepretor (optional for `libpykids.so`)
+- Unix-like operating system. (Win platform is not supported now)
+- C++ compiler (>= c++11)
+- Python intepretor (`libpykids.so`)
 - Intel One API (MPI and MKL)
-- cmake version >= 3.16
+- cmake version >= 3.17
+
+First you should clone this project with all submodules:
+
+```bash
+git clone --recurse-submodules http://path_to_this_repository/KIDS.git 
+cd KIDS
+
+# if you forget the `--recurse-submodules` when you clone the repository, you can do as follows:
+git clone http://path_to_this_repository/KIDS.git
+cd KIDS
+git submodule update --init
+```
 
 Here's a quick guide for installation:
 

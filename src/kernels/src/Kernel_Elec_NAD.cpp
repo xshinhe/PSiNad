@@ -4,6 +4,7 @@
 #include "kids/Kernel_NADForce.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"
+#include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 #include "kids/macro_utils.h"
@@ -39,7 +40,7 @@ double calc_alpha(kids_real* V, int i = 0, int k = 1, int F = 2) {  // acoording
     int ii = i * (F + 1), kk = k * (F + 1), ik = i * F + k;
     if (V[ii] == V[kk]) return 1.0e0;
     double res = 2.0e0 / phys::math::pi * atan(2 * V[ik] / (V[ii] - V[kk]));
-    if (abs(res) < 1.0e-8) res = copysign(1.0e-8, res);
+    if (abs(res) < 1.0e-4) res = copysign(1.0e-4, res);
     return res;
 }
 
@@ -49,7 +50,7 @@ int calc_wrho(kids_complex* wrho,   // distorted rho
               double        gamma,  // gamma must be 0
               double        alpha) {
     // initialize distorted-density
-    kids_real    L    = 1.0e0 - log(abs(alpha));  // @NOTE
+    kids_real    L    = 1.0e0 - log(std::abs(alpha));  // @NOTE
     kids_complex norm = 0.0e0;
     for (int i = 0, ik = 0; i < Dimension::F; ++i) {
         for (int k = 0; k < Dimension::F; ++k, ++ik) {
@@ -105,7 +106,7 @@ int calc_distforce(kids_real*    f1,    // to be calculated
                    kids_complex* rho,   // rho_ele
                    double        alpha) {
     // initialize distorted-density
-    kids_real L            = 1.0e0 - log(abs(alpha));  // @NOTE
+    kids_real L            = 1.0e0 - log(std::abs(alpha));  // @NOTE
     kids_real rate_default = (L == 1.0e0) ? 1.0e0 : 0.0e0;
 
     // averaged adiabatic energy by distorted-density
@@ -282,7 +283,7 @@ Status& Kernel_Elec_NAD::initializeKernel_impl(Status& stat) {
                 }
                 case 1: {                                   // simplex SQC
                     elec_utils::c_sphere(c, Dimension::F);  ///< initial c on standard sphere
-                    for (int i = 0; i < Dimension::F; ++i) c[i] = abs(c[i] * c[i]);
+                    for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(c[i] * c[i]);
                     c[iocc] += 1.0e0;
                     for (int i = 0; i < Dimension::F; ++i) {
                         kids_real randu;
@@ -376,12 +377,12 @@ Status& Kernel_Elec_NAD::initializeKernel_impl(Status& stat) {
                                           iocc);  ///< initial rho_nuc
             } else if (sqc_init <= 3) {           // by youhao shang / Liu scheme
                 double norm = 0.0;
-                for (int i = 0; i < Dimension::F; ++i) norm += abs(rho_ele[i * Dimension::Fadd1]);
+                for (int i = 0; i < Dimension::F; ++i) norm += std::abs(rho_ele[i * Dimension::Fadd1]);
                 Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1 / norm, gamma1, Dimension::F, use_cv,
                                           iocc);  ///< initial rho_nuc
             } else if (sqc_init <= 4) {
                 double norm = 0.0;
-                for (int i = 0; i < Dimension::F; ++i) norm += abs(rho_ele[i * Dimension::Fadd1]);
+                for (int i = 0; i < Dimension::F; ++i) norm += std::abs(rho_ele[i * Dimension::Fadd1]);
                 Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, 1.0, (norm - 1.0) / Dimension::F, Dimension::F, use_cv,
                                           iocc);  ///< initial rho_nuc
             }
@@ -615,7 +616,7 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
                                              Kernel_Representation::inp_repr_type,  //
                                              SpacePolicy::L);
             double norm = 0.0e0;
-            for (int i = 0; i < Dimension::F; ++i) norm += abs(rho_ele[i * Dimension::Fadd1]);
+            for (int i = 0; i < Dimension::F; ++i) norm += std::abs(rho_ele[i * Dimension::Fadd1]);
             // Kernel_Elec::ker_from_rho(rho_nuc, rho_ele, xi1/norm, gamma1, Dimension::F, use_cv,
             //                          iocc);  ///< initial rho_nuc /// adjust only support for sqc_init=0!!!
             for (int i = 0; i < Dimension::FF; ++i) rho_nuc[i] = rho_ele[i] + (rho_nuc_init[i] - rho_ele_init[i]);
@@ -632,12 +633,12 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
         int    max_pop = elec_utils::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
         ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
-        ww_A[0]        = std::min({abs(ww_A[0]), abs(ww_A_init[0])});
+        ww_A[0]        = std::min({std::abs(ww_A[0]), std::abs(ww_A_init[0])});
 
         Kernel_Elec::ker_from_rho(K1QA, rho_ele, 1, 0, Dimension::F, true, ((use_fall) ? *occ_nuc : max_pop));
         Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, ((use_fall) ? *occ_nuc : max_pop));
         for (int i = 0; i < Dimension::F; ++i) {
-            K2QA[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
+            K2QA[i * Dimension::Fadd1] = (std::abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
         if (use_fssh) { Kernel_Elec::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, *occ_nuc); }
         if (use_sqc) {
@@ -686,7 +687,7 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
                       (9.0e0 / 4.0 - 9.0e0 * y * y - 420.0e0 * y * y * y * y + 1680.0e0 * y * y * y * y * y * y) *
                           atan(2.0e0 * y);
         }
-        ww_D[0] = std::min({abs(ww_D[0]), abs(ww_D_init[0])});
+        ww_D[0] = std::min({std::abs(ww_D[0]), std::abs(ww_D_init[0])});
         {                                                                           // general squeezed sqc
             Kernel_Representation::transform(rho_ele_init, T_init, Dimension::F,    //
                                              Kernel_Representation::inp_repr_type,  //
@@ -695,17 +696,17 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
             double vmax0 = 0.0e0, vsec0 = 0.0e0;
             double vmaxt = 0.0e0, vsect = 0.0e0;
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                if (abs(rho_ele_init[ii]) > vmax0) {
+                if (std::abs(rho_ele_init[ii]) > vmax0) {
                     vsec0 = vmax0;
-                    vmax0 = abs(rho_ele_init[ii]);
-                } else if (abs(rho_ele_init[ii]) > vsec0) {
-                    vsec0 = abs(rho_ele_init[ii]);
+                    vmax0 = std::abs(rho_ele_init[ii]);
+                } else if (std::abs(rho_ele_init[ii]) > vsec0) {
+                    vsec0 = std::abs(rho_ele_init[ii]);
                 }
-                if (abs(rho_ele[ii]) > vmax0) {
+                if (std::abs(rho_ele[ii]) > vmax0) {
                     vsect = vmaxt;
-                    vmaxt = abs(rho_ele[ii]);
-                } else if (abs(rho_ele[ii]) > vsect) {
-                    vsect = abs(rho_ele[ii]);
+                    vmaxt = std::abs(rho_ele[ii]);
+                } else if (std::abs(rho_ele[ii]) > vsect) {
+                    vsect = std::abs(rho_ele[ii]);
                 }
             }
 
@@ -725,7 +726,7 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
         Kernel_Elec::ker_from_rho(K1QD, rho_ele, 1, 0, Dimension::F, true, max_pop);
         Kernel_Elec::ker_from_rho(K2QD, rho_ele, 1, 0, Dimension::F);
         for (int i = 0; i < Dimension::F; ++i) {
-            K2QD[i * Dimension::Fadd1] = (abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
+            K2QD[i * Dimension::Fadd1] = (std::abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
         if (use_strange_win) calc_wrho(K2QD, rho_ele, 1, 0, 0.2);
         if (use_sqc) {
@@ -733,7 +734,7 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
             if (count_exec <= 0) {  // only count at the beginning
                 for (int k = 0; k < Dimension::F; ++k) {
                     double radius =
-                        abs(2.0e0 - rho_ele[Kernel_Elec::occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
+                        std::abs(2.0e0 - rho_ele[Kernel_Elec::occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
                     // radius  = sqrt(radius * radius + 0.0025e0); // @bad soft radius
                     sqcw[k] = pow(radius, 3 - Dimension::F);
                 }

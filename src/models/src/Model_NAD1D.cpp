@@ -291,7 +291,7 @@ int mspes_MORSE3C(double* V, double* dV, double* ddV, double* R, int flag, int r
     V[6] = V[2];                                                            // V(2,0)
     V[7] = V[5];                                                            // V(2,1)
 
-    // if (R[0] < 0) P[0] = abs(P[0]);
+    // if (R[0] < 0) P[0] = fabs(P[0]);
 
     if (flag < 1) return 0;
 
@@ -602,7 +602,7 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
 
     double  x0_read = _param->get_double("x0grid", LOC(), -10.0e0);
     int     Nxgird  = _param->get_int("Nxgrid", LOC(), 101);
-    double  dx      = (2 * abs(x0_read)) / (Nxgird - 1);
+    double  dx      = (2 * fabs(x0_read)) / (Nxgird - 1);
     double* xgrid   = DS->def_real("integrator.xgrid", Nxgird);
     for (int i = 0; i < Nxgird; ++i) xgrid[i] = -abs(x0_read) + i * dx;
 

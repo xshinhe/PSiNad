@@ -72,10 +72,20 @@ inline Tto cast(Tfrom value) {
     return static_cast<Tto>(value);
 }
 
+template <class Tto>
+inline Tto cast_from_complex(kids_complex value) {
+    return static_cast<Tto>(real(value));
+}
+
+template <>
+inline kids_complex cast_from_complex(kids_complex value) {
+    return value;
+}
+
 // Specialization for casting complex numbers to another type
 template <class Tto>
 inline Tto cast(kids_complex value) {
-    return static_cast<Tto>(real(value));
+    return cast_from_complex<Tto>(value);
 }
 
 // Casts a value at a specific memory location to another type

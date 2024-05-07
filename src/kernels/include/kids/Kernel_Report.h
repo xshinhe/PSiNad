@@ -21,8 +21,8 @@ class Kernel_Report final : public Kernel {
     };
 
    private:
-    std::shared_ptr<Kernel_Record>             _recd_ker;
-    std::vector<std::shared_ptr<Record_Rule>>* _rules;
+    std::shared_ptr<Kernel_Record> _recd_ker;
+    std::vector<Record_Rule>       _rules;
 };
 
 };  // namespace PROJECT_NS

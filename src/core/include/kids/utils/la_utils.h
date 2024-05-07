@@ -28,7 +28,6 @@
 /*=====  End of la_utils configuration  ======*/
 
 
-
 /*===========================================================
 =            realize interface of linear algebra            =
 ===========================================================*/
@@ -71,11 +70,11 @@ using EigMX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 template <class T>
 using EigAX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 
-typedef EigVX<num_real> EigVXr;
+typedef EigVX<num_real>    EigVXr;
 typedef EigVX<num_complex> EigVXc;
-typedef EigMX<num_real> EigMXr;
+typedef EigMX<num_real>    EigMXr;
 typedef EigMX<num_complex> EigMXc;
-typedef EigMX<num_real> EigAXr;
+typedef EigMX<num_real>    EigAXr;
 typedef EigMX<num_complex> EigAXc;
 typedef Eigen::Map<EigVXr> MapVXr;
 typedef Eigen::Map<EigVXc> MapVXc;
@@ -101,15 +100,15 @@ void PseudoInverse(num_real* A, num_real* invA, const int& N, num_real e = 1E-5)
 #define DEFINE_POINTER(T, name)                               \
    public:                                                    \
     EigMX<T>& ref_##name() { return name##_eigen_container; } \
-    T* name;                                                  \
-    EigMX<T> name##_eigen_container;
+    T*        name;                                           \
+    EigMX<T>  name##_eigen_container;
 
 #define DEFINE_POINTER_PROTECTED(T, name)                     \
    public:                                                    \
     EigMX<T>& ref_##name() { return name##_eigen_container; } \
                                                               \
    protected:                                                 \
-    T* name;                                                  \
+    T*       name;                                            \
     EigMX<T> name##_eigen_container;
 
 /**
@@ -252,10 +251,10 @@ R.cwiseMax(P)             // max(R, P)
 R.array().max(P.array())  // max(R, P)
 R.cwiseMin(P)             // min(R, P)
 R.array().min(P.array())  // min(R, P)
-R.cwiseAbs()              // abs(P)
-R.array().abs()           // abs(P)
-R.cwiseAbs2()             // abs(P.^2)
-R.array().abs2()          // abs(P.^2)
+R.cwiseAbs()              //std::abs(P)
+R.array().abs()           //std::abs(P)
+R.cwiseAbs2()             //std::abs(P.^2)
+R.array().abs2()          //std::abs(P.^2)
 (R.array() < s).select(P,Q);  // (R < s ? P : Q)
 
 // Reductions.
@@ -330,7 +329,6 @@ std::cout << std::setiosflags(std::ios::scientific)
 
 
 /*=====  End of realize interface of linear algebra  ======*/
-
 
 
 #endif  // ARRAY_USE_MKL & ARRAY_USE_EIGEN
