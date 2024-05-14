@@ -1,3 +1,32 @@
+/**@file        default_variables.h
+ * @brief       provide nomination of intrinsic variables
+ * @details     template of nomination of intrinsic variables, not a direct
+ *              realization of variables.
+ *
+ * @author      Xin He
+ * @date        2024-04
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ **********************************************************************************
+ * @warning    Do not include this file to any header. You'd better include it only
+ *  in source files!
+ * @par [logs]:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-05-01  <td> initial version.
+ * </table>
+ *
+ **********************************************************************************
+ */
+
 #ifndef DEFAULT_VARIABLES_H
 #define DEFAULT_VARIABLES_H
 
@@ -48,18 +77,18 @@ namespace init {
 extern VARIABLE<kids_complex> c;
 extern VARIABLE<kids_complex> rho_ele;
 extern VARIABLE<kids_complex> rho_nuc;
-extern VARIABLE<kids_real> T;
+extern VARIABLE<kids_real>    T;
 };  // namespace init
 
 namespace integrator {  // variables
 
 namespace timier {
 extern VARIABLE<kids_real> t;
-extern VARIABLE<int> istep;
-extern VARIABLE<int> nstep;
-extern VARIABLE<int> isamp;
-extern VARIABLE<int> nsamp;
-extern VARIABLE<int> sstep;
+extern VARIABLE<int>       istep;
+extern VARIABLE<int>       nstep;
+extern VARIABLE<int>       isamp;
+extern VARIABLE<int>       nsamp;
+extern VARIABLE<int>       sstep;
 };  // namespace timier
 
 extern VARIABLE<kids_real> x;
@@ -81,9 +110,9 @@ extern VARIABLE<kids_complex> rho_ele;
 extern VARIABLE<kids_complex> rho_nuc;
 extern VARIABLE<kids_complex> cv_mat;
 
-extern VARIABLE<kids_real> g;
+extern VARIABLE<kids_real>    g;
 extern VARIABLE<kids_complex> c;
-extern VARIABLE<kids_real> alpha;
+extern VARIABLE<kids_real>    alpha;
 
 extern VARIABLE<kids_complex> OpA;
 extern VARIABLE<kids_complex> OpB;
@@ -96,15 +125,15 @@ extern VARIABLE<kids_real> EPot;
 extern VARIABLE<kids_real> Etot;
 
 namespace last {
-extern VARIABLE<kids_real> x;
-extern VARIABLE<kids_real> p;
-extern VARIABLE<kids_real> grad;
-extern VARIABLE<kids_real> dV;
-extern VARIABLE<kids_real> g;
+extern VARIABLE<kids_real>    x;
+extern VARIABLE<kids_real>    p;
+extern VARIABLE<kids_real>    grad;
+extern VARIABLE<kids_real>    dV;
+extern VARIABLE<kids_real>    g;
 extern VARIABLE<kids_complex> c;
 };  // namespace last
 
-extern VARIABLE<int> occ_nuc;
+extern VARIABLE<int>          occ_nuc;
 extern VARIABLE<kids_complex> rho_ele;
 extern VARIABLE<kids_complex> rho_dual;
 extern VARIABLE<kids_complex> rho_nuc;
@@ -163,15 +192,15 @@ extern VARIABLE<kids_complex> Udt;
 extern VARIABLE<kids_complex> Ubranch;
 
 namespace tmp {
-extern VARIABLE<kids_real> direction;
-extern VARIABLE<kids_real> ve;
-extern VARIABLE<kids_real> vedE;
-extern VARIABLE<kids_real> TtTold;
-extern VARIABLE<kids_real> fproj;
-extern VARIABLE<kids_real> ftmp;
+extern VARIABLE<kids_real>    direction;
+extern VARIABLE<kids_real>    ve;
+extern VARIABLE<kids_real>    vedE;
+extern VARIABLE<kids_real>    TtTold;
+extern VARIABLE<kids_real>    fproj;
+extern VARIABLE<kids_real>    ftmp;
 extern VARIABLE<kids_complex> wrho;
 extern VARIABLE<kids_complex> invexpidiagdt;
-extern VARIABLE<kids_real> MatR_PP;
+extern VARIABLE<kids_real>    MatR_PP;
 extern VARIABLE<kids_complex> MatC_PP;
 extern VARIABLE<kids_complex> I_PP;
 extern VARIABLE<kids_complex> fun_diag_F;
@@ -195,15 +224,15 @@ extern VARIABLE<kids_complex> invS;
 extern VARIABLE<kids_complex> dtlnSnuc;
 extern VARIABLE<kids_complex> dtSele;
 
-extern VARIABLE<int> clone_count;
-extern VARIABLE<int> P_used;
+extern VARIABLE<int>       clone_count;
+extern VARIABLE<int>       P_used;
 extern VARIABLE<kids_real> norm;
 extern VARIABLE<kids_real> veF;
 
 namespace GWP {
-extern VARIABLE<kids_real> L;
-extern VARIABLE<kids_real> L1;
-extern VARIABLE<kids_real> L2;
+extern VARIABLE<kids_real>    L;
+extern VARIABLE<kids_real>    L1;
+extern VARIABLE<kids_real>    L2;
 extern VARIABLE<kids_complex> R;
 extern VARIABLE<kids_complex> R1;
 extern VARIABLE<kids_complex> R2;
@@ -228,11 +257,11 @@ extern VARIABLE<kids_real> V;
 extern VARIABLE<kids_real> dV;
 extern VARIABLE<kids_real> ddV;
 namespace rep {
-extern VARIABLE<kids_real> E;
-extern VARIABLE<kids_real> dE;
-extern VARIABLE<kids_real> T;
-extern VARIABLE<kids_real> Told;
-extern VARIABLE<kids_real> L;
+extern VARIABLE<kids_real>    E;
+extern VARIABLE<kids_real>    dE;
+extern VARIABLE<kids_real>    T;
+extern VARIABLE<kids_real>    Told;
+extern VARIABLE<kids_real>    L;
 extern VARIABLE<kids_complex> R;
 extern VARIABLE<kids_complex> H;
 };  // namespace rep

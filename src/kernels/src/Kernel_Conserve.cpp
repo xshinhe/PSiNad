@@ -78,7 +78,7 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
             std::cout << "last try conservation with thres = " << thres << "\n";
         }
 
-        if (fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
+        if (std::abs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
             std::cout << "fail in conserve ERROR: "  //
                       << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << " > " << thres << "\n";
             succ_ptr[0]      = false;

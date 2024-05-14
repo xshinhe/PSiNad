@@ -23,8 +23,6 @@ class Handler final {
 
     int run_parallel(std::shared_ptr<Param>& PM);
 
-    int run_parallel_22(std::shared_ptr<Param>& PM);
-
     int run_sampling(std::shared_ptr<Param>& PM);  //{ return 0; }
 
     int run_help(std::shared_ptr<Param>& PM) { return 0; }

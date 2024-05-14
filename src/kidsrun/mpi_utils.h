@@ -13,13 +13,18 @@ class MPI_Guard final {
     static int  nprocs;
     static bool isroot;
 
-    MPI_Guard();
+    std::size_t istart;
+    std::size_t iend;
+    std::size_t TOTAL;
 
-    static int range(const int& idx1, const int& idx2, int& ista, int& iend);
+    MPI_Guard(std::size_t TOTAL);
+    ~MPI_Guard();
 
+    static int reduce(const std::tuple<kids_dtype, void*, void*, std::size_t>& info);
     static int reduce(const std::vector<std::tuple<kids_dtype, void*, void*, std::size_t>>& info_list);
 
-    ~MPI_Guard();
+   private:
+    static int range(const size_t& idx1, const size_t& idx2, size_t& ista, size_t& iend);
 };
 };  // namespace PROJECT_NS
 

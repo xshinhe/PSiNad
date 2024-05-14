@@ -27,7 +27,7 @@
 #define Kernel_Recorder_H
 
 #include "kids/Kernel.h"
-#include "kids/RecordedRule.h"
+#include "kids/RuleEvaluator.h"
 
 namespace PROJECT_NS {
 
@@ -37,21 +37,21 @@ class Kernel_Recorder final : public Kernel {
 
     virtual int getType() const;
 
-    Kernel_Recorder(){};
+    Kernel_Recorder();
 
     virtual ~Kernel_Recorder();
 
    private:
     // friend class Kernel_Report;
-    std::vector<std::shared_ptr<RecordedRule>> Rules;
-    int*                                       istep_ptr;
-    int*                                       sstep_ptr;
-    int*                                       isamp_ptr;
-    int*                                       nsamp_ptr;
-    kids_bint*                                 at_samplingstep_initially_ptr;
-    double                                     t0, dt, time_unit;
-    std::string                                directory;
-    std::vector<std::string>                   opened_files;
+
+    int*                     istep_ptr;
+    int*                     sstep_ptr;
+    int*                     isamp_ptr;
+    int*                     nsamp_ptr;
+    kids_bint*               at_samplingstep_initially_ptr;
+    double                   t0, dt, time_unit;
+    std::string              directory;
+    std::vector<std::string> opened_files;
 
     virtual void token(Param::JSON& j);
 
@@ -62,6 +62,8 @@ class Kernel_Recorder final : public Kernel {
     virtual Status& initializeKernel_impl(Status& stat);
 
     virtual Status& executeKernel_impl(Status& stat);
+
+    virtual Status& finalizeKernel_impl(Status& stat);
 };
 
 };  // namespace PROJECT_NS

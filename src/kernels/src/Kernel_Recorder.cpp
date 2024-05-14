@@ -1,8 +1,8 @@
 #include "kids/Kernel_Recorder.h"
 
 #include "kids/Einsum.h"
-#include "kids/RecordedRule.h"
-#include "kids/RecorderIO.h"
+#include "kids/RuleEvaluator.h"
+#include "kids/RuleSet.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 #include "kids/macro_utils.h"
@@ -13,6 +13,10 @@ namespace PROJECT_NS {
 const std::string Kernel_Recorder::getName() { return "Kernel_Recorder"; }
 
 int Kernel_Recorder::getType() const { return utils::hash(FUNCTION_NAME); }
+
+Kernel_Recorder::Kernel_Recorder() {
+    _ruleset = std::shared_ptr<RuleSet>(new RuleSet());  //
+}
 
 Kernel_Recorder::~Kernel_Recorder(){};
 
@@ -37,6 +41,8 @@ void Kernel_Recorder::token(Param::JSON& j) {
         rule = j.get<std::string>();
         mode = "average";
         save = "res.dat";
+        // mode = "every";
+        // save = "traj_{TRAJID}.dat";
     } else if (j.is_object()) {
         if (j.count("rule") == 1) {
             rule = j["rule"].get<std::string>();
@@ -45,7 +51,7 @@ void Kernel_Recorder::token(Param::JSON& j) {
         }
         if (j.count("mode") == 1) mode = j["mode"].get<std::string>();
         if (j.count("save") == 1) save = j["save"].get<std::string>();
-    } else if (j.is_array()) {
+    } else if (j.is_array()) {  // compile with old format @deprecated!
         std::string v0   = j[0].get<std::string>();
         auto        ipos = v0.find_first_of("#");
         if (ipos != std::string::npos) rule = v0.substr(ipos + 1, v0.size());
@@ -62,21 +68,19 @@ void Kernel_Recorder::token(Param::JSON& j) {
     }
 
     if (std::find(opened_files.begin(), opened_files.end(), save) == opened_files.end()) {
-        std::shared_ptr<RecordedRule> record_time_rule(  //
-            new RecordedRule("t{iter}", _dataset, "average", save, directory, nsamp_ptr[0]));
-        Rules.push_back(record_time_rule);
-        RecorderIO::registerRulesInRecorderIO(record_time_rule);
+        std::shared_ptr<RuleEvaluator> record_time_rule(  //
+            new RuleEvaluator("t{iter}:R", _dataset, "copy", save, nsamp_ptr[0]));
+        _ruleset->registerRules(record_time_rule);
         opened_files.push_back(save);
     }
 
-    std::shared_ptr<RecordedRule> record_rule(  //
-        new RecordedRule(rule, _dataset, mode, save, directory, nsamp_ptr[0]));
-    Rules.push_back(record_rule);
-    RecorderIO::registerRulesInRecorderIO(record_rule);
+    std::shared_ptr<RuleEvaluator> record_rule(  //
+        new RuleEvaluator(rule, _dataset, mode, save, nsamp_ptr[0]));
+    _ruleset->registerRules(record_rule);
 }
 
 Status& Kernel_Recorder::initializeKernel_impl(Status& stat) {
-    bool  not_parsed = Rules.size() == 0;
+    bool  not_parsed = _ruleset->getRules().size() == 0;
     auto& json       = *(_param->pjson());
     if (not_parsed && json.count("result") == 1 && json["result"].is_array()) {
         for (auto& j : (json["result"])) token(j);
@@ -86,8 +90,13 @@ Status& Kernel_Recorder::initializeKernel_impl(Status& stat) {
 
 Status& Kernel_Recorder::executeKernel_impl(Status& stat) {
     if (at_samplingstep_initially_ptr[0]) {
-        for (auto& irecord : Rules) { irecord->calculateAtTimeSlice(isamp_ptr[0]); }
+        for (auto& irule : _ruleset->getRules()) { irule->calculateResult(isamp_ptr[0]); }
     }
+    return stat;
+}
+
+Status& Kernel_Recorder::finalizeKernel_impl(Status& stat) {
+    for (auto& irule : _ruleset->getRules()) irule->collectResult();
     return stat;
 }
 

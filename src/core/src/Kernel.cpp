@@ -47,6 +47,8 @@ Status& Kernel::initializeKernel(Status& stat) {
 
 Status& Kernel::executeKernel(Status& stat) {
     if (!_dataset) throw kids_error("DataSet must be passed before");
+    if (!_ruleset & !has_parent) std::cerr << "run without rules\n";
+
     std::chrono::time_point<std::chrono::steady_clock> begin, end;
     if (is_timing) begin = std::chrono::steady_clock::now();
     {
@@ -79,6 +81,18 @@ Kernel& Kernel::appendChild(std::shared_ptr<Kernel> ker) {
     ker->_parent_kernel = this;
     ker->has_parent     = true;
 
+    if (ker->_ruleset) {
+        _ruleset = ker->_ruleset;
+        Kernel* current;
+        size_t  _dummy;
+        std::tie(current, _dummy) = getLastParentKernelAndChildOrder();
+        while (current != nullptr) {
+            current->_ruleset         = ker->_ruleset;
+            std::tie(current, _dummy) = getLastParentKernelAndChildOrder();
+        }
+    }
+
+    // shouldn't be here!!
     depth = std::max(depth, ker->depth + 1);
     if (ker->getName().size() > max_align_size) { max_align_size = ker->getName().size(); }
 
@@ -94,6 +108,16 @@ Kernel& Kernel::insertAt(std::vector<std::size_t> indexes, std::shared_ptr<Kerne
         _child_kernels.insert(_child_kernels.begin() + idx0, ker);
         ker->_parent_kernel = this;
         ker->has_parent     = true;
+        if (ker->_ruleset) {
+            _ruleset = ker->_ruleset;
+            Kernel* current;
+            size_t  _dummy;
+            std::tie(current, _dummy) = getLastParentKernelAndChildOrder();
+            while (current != nullptr) {
+                current->_ruleset         = ker->_ruleset;
+                std::tie(current, _dummy) = getLastParentKernelAndChildOrder();
+            }
+        }
     } else {
         indexes.erase(indexes.begin());
         _child_kernels[idx0]->insertAt(indexes, ker);
@@ -133,6 +157,17 @@ Kernel& Kernel::updateAt(std::vector<std::size_t> indexes, std::shared_ptr<Kerne
         _child_kernels[idx0]  = ker;
         ker->_parent_kernel   = this;
         ker->has_parent       = true;
+
+        if (ker->_ruleset) {
+            _ruleset = ker->_ruleset;
+            Kernel* current;
+            size_t  _dummy;
+            std::tie(current, _dummy) = getLastParentKernelAndChildOrder();
+            while (current != nullptr) {
+                current->_ruleset         = ker->_ruleset;
+                std::tie(current, _dummy) = getLastParentKernelAndChildOrder();
+            }
+        }
     } else {
         indexes.erase(indexes.begin());
         _child_kernels[idx0]->updateAt(indexes, ker);
@@ -144,6 +179,8 @@ std::tuple<Kernel*, std::size_t> Kernel::getLastParentKernelAndChildOrder() {
     if (has_parent) return std::make_tuple(_parent_kernel, _order_in_parent);
     return std::make_tuple(nullptr, 0);
 }
+
+std::shared_ptr<RuleSet> Kernel::getRuleSet() { return _ruleset; }
 
 const std::string Kernel::serializeKernel(const Kernel& ker) { return ""; }
 
@@ -211,5 +248,4 @@ std::vector<Kernel*>& Kernel::getKernels() {
     static std::vector<Kernel*> static_all_kernels;
     return static_all_kernels;
 }
-
 };  // namespace PROJECT_NS

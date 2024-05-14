@@ -49,6 +49,7 @@
 
 #include "kids/DataSet.h"
 #include "kids/Param.h"
+#include "kids/RuleSet.h"
 #include "kids/Status.h"
 
 namespace PROJECT_NS {
@@ -205,6 +206,13 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
     std::tuple<Kernel*, std::size_t> getLastParentKernelAndChildOrder();
 
     /**
+     * Get RuleSet associated with the Kernel
+     *
+     * @return     The RuleSet (name, dataPointer, datatype, size, stride).
+     */
+    std::shared_ptr<RuleSet> getRuleSet();
+
+    /**
      * Serialize a Kernel object into a string representation.
      *
      * @param ker The Kernel object to serialize.
@@ -288,6 +296,11 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      * @brief Vector containing shared pointers to all descendant kernels of this kernel.
      */
     std::vector<std::shared_ptr<Kernel>> _all_kernels;
+
+    /**
+     * @brief Recorded Rules associated with the Kernel.
+     */
+    std::shared_ptr<RuleSet> _ruleset;
 
     /**
      * @brief Virtual function to set input parameters for the kernel implementation.
