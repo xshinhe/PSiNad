@@ -278,6 +278,11 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
     std::shared_ptr<DataSet> _dataset;
 
     /**
+     * @brief Recorded Rules associated with the Kernel.
+     */
+    std::shared_ptr<RuleSet> _ruleset;
+
+    /**
      * @brief Pointer to the parent kernel.
      */
     Kernel* _parent_kernel;
@@ -296,11 +301,6 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      * @brief Vector containing shared pointers to all descendant kernels of this kernel.
      */
     std::vector<std::shared_ptr<Kernel>> _all_kernels;
-
-    /**
-     * @brief Recorded Rules associated with the Kernel.
-     */
-    std::shared_ptr<RuleSet> _ruleset;
 
     /**
      * @brief Virtual function to set input parameters for the kernel implementation.

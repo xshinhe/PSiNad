@@ -33,8 +33,14 @@ namespace PROJECT_NS {
 
 struct Status {
     Status() : succ{true}, stage{0}, mpi_rank{0}, icalc{0} {};
+
     Status(bool succ, int stage = 0, int mpi_rank = 0, int icalc = 0)
         : succ{succ}, stage{stage}, mpi_rank{mpi_rank}, icalc{icalc} {};
+
+    Status(const Status&) = delete;  ///< Disable copy constructor
+
+    Status& operator=(const Status&) = delete;  ///< Disable copy assignment operator
+
     bool succ     = true;
     int  stage    = 0;
     int  mpi_rank = 0;

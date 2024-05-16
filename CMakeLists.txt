@@ -398,6 +398,7 @@ endif(KIDS_BUILD_SHARED_LIB)
 if(KIDS_BUILD_STATIC_LIB)
     install_targets(/lib RUNTIME_DIRECTORY /lib ${STATIC_TARGET})
 endif(KIDS_BUILD_STATIC_LIB)
+
 file(GLOB CORE_HEADERS      include/*.h                 */include/*.h)
 file(GLOB TOP_HEADERS       include/kids/*.h            */include/kids/*.h)
 install_files(/include                  FILES ${CORE_HEADERS})
@@ -427,12 +428,13 @@ if(KIDS_BUILD_CXX_BACKENDS)
         # MKLMod::MKL
         MPIMod::MPI
     )
+    install_targets(/bin RUNTIME_DIRECTORY /lib kids)
 endif(KIDS_BUILD_CXX_BACKENDS)
 
 # Python wrappers
 set(KIDS_BUILD_PYTHON_WRAPPERS ON CACHE BOOL "Build wrappers for Python")
 if(KIDS_BUILD_PYTHON_WRAPPERS)
-    add_subdirectory(wrappers/pybind11)
+    add_subdirectory(wrappers/python)
 endif(KIDS_BUILD_PYTHON_WRAPPERS)
 
 

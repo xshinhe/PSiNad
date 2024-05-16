@@ -37,50 +37,52 @@ namespace PROJECT_NS {
  */
 namespace Dimension {
 extern std::size_t M;  ///< Number of Monte Carlo calculations.
-extern std::size_t P;  ///< Number of parallel trajectories in each run
+extern std::size_t P;  ///< Number of parallel trajectories (swarms of trajectories) in each Monte Carlo run.
 extern std::size_t N;  ///< Number of nuclear degrees of freedom.
 extern std::size_t F;  ///< Number of electronic degrees of freedom.
-extern std::size_t MP;
-extern std::size_t PP;
-extern std::size_t PN;
-extern std::size_t PNN;
-extern std::size_t PF;
-extern std::size_t PFF;
-extern std::size_t PNFF;
-extern std::size_t NF;
-extern std::size_t NN;
-extern std::size_t FF;
-extern std::size_t NFF;
-extern std::size_t NNFF;
-extern std::size_t Fadd1;
 
-extern Shape shape_1;
-extern Shape shape_2;
-extern Shape shape_X;
-extern Shape shape_M;
-extern Shape shape_P;
-extern Shape shape_N;
-extern Shape shape_F;
-extern Shape shape_Fadd1;
-extern Shape shape_MP;
-extern Shape shape_PP;
-extern Shape shape_PN;
-extern Shape shape_PNN;
-extern Shape shape_PF;
-extern Shape shape_PFF;
-extern Shape shape_PNFF;
-extern Shape shape_NF;
-extern Shape shape_NN;
-extern Shape shape_FF;
-extern Shape shape_NFF;
-extern Shape shape_NNFF;
+extern std::size_t MP;    ///< Product of M and P (M * P).
+extern std::size_t PP;    ///< Product of P and P (P * P).
+extern std::size_t PN;    ///< Product of P and N (P * N).
+extern std::size_t PNN;   ///< Product of P, N, and N (P * N * N).
+extern std::size_t PF;    ///< Product of P and F (P * F).
+extern std::size_t PFF;   ///< Product of P, F, and F (P * F * F).
+extern std::size_t PNFF;  ///< Product of P, N, F, and F (P * N * F * F).
+extern std::size_t NF;    ///< Product of N and F (N * F).
+extern std::size_t NN;    ///< Product of N and N (N * N).
+extern std::size_t FF;    ///< Product of F and F (F * F).
+extern std::size_t NFF;   ///< Product of N, F, and F (N * F * F).
+extern std::size_t NNFF;  ///< Product of N, N, F, and F (N * N * F * F).
+
+extern std::size_t Fadd1;  ///< F plus 1 (F + 1).
+
+extern Shape shape_1;      ///< Shape corresponding to a single element (1).
+extern Shape shape_2;      ///< Shape corresponding to two elements (2).
+extern Shape shape_X;      ///< Shape for an arbitrary number of elements.
+extern Shape shape_M;      ///< Shape for the number of Monte Carlo calculations (M).
+extern Shape shape_P;      ///< Shape for the number of parallel trajectories (P).
+extern Shape shape_N;      ///< Shape for the number of nuclear degrees of freedom (N).
+extern Shape shape_F;      ///< Shape for the number of electronic degrees of freedom (F).
+extern Shape shape_Fadd1;  ///< Shape for F plus 1 (F + 1).
+extern Shape shape_MP;     ///< Shape for the product of M and P (M * P).
+extern Shape shape_PP;     ///< Shape for the product of P and P (P * P).
+extern Shape shape_PN;     ///< Shape for the product of P and N (P * N).
+extern Shape shape_PNN;    ///< Shape for the product of P, N, and N (P * N * N).
+extern Shape shape_PF;     ///< Shape for the product of P and F (P * F).
+extern Shape shape_PFF;    ///< Shape for the product of P, F, and F (P * F * F).
+extern Shape shape_PNFF;   ///< Shape for the product of P, N, F, and F (P * N * F * F).
+extern Shape shape_NF;     ///< Shape for the product of N and F (N * F).
+extern Shape shape_NN;     ///< Shape for the product of N and N (N * N).
+extern Shape shape_FF;     ///< Shape for the product of F and F (F * F).
+extern Shape shape_NFF;    ///< Shape for the product of N, F, and F (N * F * F).
+extern Shape shape_NNFF;   ///< Shape for the product of N, N, F, and F (N * N * F * F).
 
 extern void static_build_shapes();
 };  // namespace Dimension
 
 namespace DATA {
 
-namespace init {
+namespace init {  // @to be removed
 extern VARIABLE<kids_real> Etot;
 extern VARIABLE<kids_real> p;
 extern VARIABLE<kids_real> x;

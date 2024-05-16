@@ -9,4 +9,6 @@
 #define FUNCTION_NAME __PRETTY_FUNCTION__
 #endif
 
+#define NEW(X)
+
 #endif  // KIDS_MACRO_UTILS_H
