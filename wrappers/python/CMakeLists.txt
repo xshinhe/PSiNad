@@ -17,17 +17,6 @@ file(GLOB STAGING_INPUT_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py ${KIDS_PYTHON_STAGING_DIR}/setup.py)
 
 ###########################################################
-execute_process(
-  COMMAND git rev-parse HEAD
-  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  OUTPUT_VARIABLE rev_hash_str
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  ERROR_QUIET
-)
-if(NOT rev_hash_str)
-  set(rev_hash_str "Unknown")
-endif()
-file(WRITE "${KIDS_PYTHON_STAGING_DIR}/pykids/version.py" "git_revision = '${rev_hash_str}'\n")
 
 set(SUBDIRS pykids pybind11 swig ext plugin tests)
 foreach(SUBDIR ${SUBDIRS})
@@ -182,7 +171,10 @@ FOREACH(subdir ${WRAPPER_BASE_SUBDIRS})
                          ${CMAKE_SOURCE_DIR}/${subdir}/include
                          ${CMAKE_SOURCE_DIR}/${subdir}/include/kids)
 ENDFOREACH(subdir)
-SET(WRAPPER_INCLUDE_DIRS ${WRAPPER_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/thirdpart)
+SET(WRAPPER_INCLUDE_DIRS 
+    ${WRAPPER_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/thirdpart
+    ${WRAPPER_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/thirdpart/Eigen
+)
 
 set(PYTHON_SETUP_COMMAND build)
 configure_file(pysetup.cmake.in

@@ -8,7 +8,7 @@ macro(get_repo_info _repo_branch _repo_date _repo_hash _repo_status)
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         WORKING_DIRECTORY
-          ${CMAKE_CURRENT_SOURCE_DIR}
+          ${CMAKE_SOURCE_DIR}
         )
 
       execute_process(
@@ -17,7 +17,7 @@ macro(get_repo_info _repo_branch _repo_date _repo_hash _repo_status)
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         WORKING_DIRECTORY
-          ${CMAKE_CURRENT_SOURCE_DIR}
+          ${CMAKE_SOURCE_DIR}
         )
 
       execute_process(
@@ -26,7 +26,7 @@ macro(get_repo_info _repo_branch _repo_date _repo_hash _repo_status)
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         WORKING_DIRECTORY
-          ${CMAKE_CURRENT_SOURCE_DIR}
+          ${CMAKE_SOURCE_DIR}
         )
 
       execute_process(
@@ -35,7 +35,10 @@ macro(get_repo_info _repo_branch _repo_date _repo_hash _repo_status)
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         WORKING_DIRECTORY
-          ${CMAKE_CURRENT_SOURCE_DIR}
+          ${CMAKE_SOURCE_DIR}
         )
+    endif()
+    if(NOT ${_repo_hash})
+      set(${_repo_hash} "Unknown")
     endif()
 endmacro()

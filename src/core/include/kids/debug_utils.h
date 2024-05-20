@@ -32,11 +32,7 @@
 #include <iomanip>
 #include <iostream>
 
-#define FMT(X)                                                            \
-    " " << std::setiosflags(std::ios::scientific) /*scientific notation*/ \
-        << std::setprecision(X)                   /*precision*/           \
-        << std::right                             /*alignment*/           \
-        << std::setw((X + 7))                     /*width of text*/
+#include "kids/fmt.h"
 
 #define PRINT_ARRAY(_A, _n1, _n2)                                                           \
     ({                                                                                      \

@@ -2,8 +2,8 @@ include setup.py
 include *.py
 include *.txt
 global-include README
-recursive-include pykids    *.txt *.py *.so *.dll *.lib *.dylib *.h
-recursive-include ext       *.txt *.py *.i *.c *.cxx *.h *.sh Doxyfile
+recursive-include pykids    *.txt *.py *.so *.dll *.lib *.dylib *.h *.json
+recursive-include ext       *.txt *.py *.i *.c *.cxx *.h *.sh
 prune swig/doxygen/html
 prune swig/doxygen/xml
 global-exclude CMakeLists.txt

@@ -1,3 +1,17 @@
+find_package(Git QUIET)
+mark_as_advanced(CLEAR GIT_EXECUTABLE)
+if(GIT_FOUND)
+#  execute_process(
+#    COMMAND ${GIT_EXECUTABLE} pull --recurse-submodules
+#    OUTPUT_VARIABLE _dummy
+#    OUTPUT_STRIP_TRAILING_WHITESPACE
+#    ERROR_QUIET
+#    WORKING_DIRECTORY
+#      ${CMAKE_CURRENT_SOURCE_DIR}
+#    )
+else()
+    message(STATUS "GIT is not found! Please manually download the libraries in thirdpart")
+endif(GIT_FOUND)
 
 set (BUILD_TESTING OFF)      # disable unit testing in gflags/glog/catch2
 set (BUILD_SHARED_LIBS ON)   # enable gflags/glog shared library

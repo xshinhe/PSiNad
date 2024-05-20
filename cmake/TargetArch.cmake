@@ -180,16 +180,25 @@ function(target_architecture output_var)
             set(ARCH unknown)
         endif()
     endif()
-
-    if ("${ARCH}" MATCHES "x86_64|i386")
-        set(X86 ON PARENT_SCOPE)
-    endif()
-    if ("${ARCH}" MATCHES "arm")
-        set(ARM ON PARENT_SCOPE)
-    endif()
-    if ("${ARCH}" MATCHES "ppc")
-        set(PPC ON PARENT_SCOPE)
-    endif()
-
     set(${output_var} "${ARCH}" PARENT_SCOPE)
 endfunction()
+
+target_architecture(TARGET_ARCH) # @check, try merge following into cmake.module
+# Set architecture-specific variables and definitions
+if("${TARGET_ARCH}" MATCHES "x86_64|i386")
+    set(X86)
+endif()
+
+if("${TARGET_ARCH}" MATCHES "arm")
+    set(ARM)
+    if("${TARGET_ARCH}" MATCHES "armv8")
+        add_definitions(-D__ARM64__=1)
+    else()
+        add_definitions(-D__ARM__=1)
+    endif()
+endif()
+
+if("${TARGET_ARCH}" MATCHES "ppc")
+    set(PPC)
+    add_definitions(-D__PPC__=1)
+endif()

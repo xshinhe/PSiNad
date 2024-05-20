@@ -1,94 +1,84 @@
 cmake_minimum_required(VERSION 3.17)
 
-#cmake_policy(SET CMP0042 OLD)
+# Set necessary policies (if any). Uncomment and set policies only if required.
+# cmake_policy(SET CMP0042 NEW)
 cmake_policy(SET CMP0003 NEW)
 cmake_policy(SET CMP0005 NEW)
 cmake_policy(SET CMP0011 NEW)
 
-# You should choose a different directory from source for compilation
+# Prevent in-source builds
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-    message(FATAL_ERROR "
-        FATAL: In-source builds are not allowed. 
-        You should create a separate directory for build files.
-    ")
+    message(FATAL_ERROR "In-source builds are not allowed. Please use a separate build directory.")
 endif()
-set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL  "Whether to verbose in compilation")
+
+# Option to enable verbose makefile
+option(ENABLE_VERBOSE_MAKEFILE "Enable verbose output during build" OFF)
+if(ENABLE_VERBOSE_MAKEFILE)
+    set(CMAKE_VERBOSE_MAKEFILE ON)
+endif()
 
 # Don't create a new project name if this is part of the parent directory
 if(NOT PROJECT_NAME)
     project(kids LANGUAGES C CXX Fortran)
-endif(NOT PROJECT_NAME)
-enable_language(Fortran)
+endif()
 
-find_package(PythonInterp)
+# Find Python interpreter
+find_package(PythonInterp REQUIRED)
 mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
 
-find_package(Git QUIET)
-mark_as_advanced(CLEAR GIT_EXECUTABLE)
-if(GIT_FOUND)
-#  execute_process(
-#    COMMAND ${GIT_EXECUTABLE} pull --recurse-submodules
-#    OUTPUT_VARIABLE _dummy
-#    OUTPUT_STRIP_TRAILING_WHITESPACE
-#    ERROR_QUIET
-#    WORKING_DIRECTORY
-#      ${CMAKE_CURRENT_SOURCE_DIR}
-#    )
-else()
-    message(STATUS "GIT is not found! Please manually download the libraries in thirdpart")
-endif(GIT_FOUND)
+# Optimize and measure the compilation time
 
+# Option to enable ccache
+option(CCACHE_ENABLE "Enable ccache for faster compilation" OFF)
+
+# Find and set up ccache if available and enabled
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_ENABLE AND CCACHE_PROGRAM)
+    message(STATUS "ccache is enabled and found at: ${CCACHE_PROGRAM}. Setting up ccache for compilation and linking...")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
+elseif(CCACHE_ENABLE)
+    message(WARNING "ccache is enabled but not found. Skipping ccache setup.")
+else()
+    message(STATUS "ccache is disabled. Skipping ccache setup.")
+endif()
+
+# Find and enable compile-time-perf if available
+find_package(compile-time-perf QUIET)
+if(compile-time-perf_FOUND)
+    message(STATUS "compile-time-perf found. Enabling compile-time performance measurements...")
+    enable_compile_time_perf(kids-ctp)
+else()
+    message(STATUS "compile-time-perf not found. Skipping compile-time performance measurements.")
+endif()
+
+# Set the C++ standard to 11 (@TODO BETTER as 17)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/thirdpart/catch2/contrib)
+# Append additional module paths
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/thirdpart/catch2/contrib")
 
-# Determine what architecture we are compiling for.
+# Include custom modules
+include(printings)
 include(TargetArch)
-target_architecture(TARGET_ARCH)
-if ("${TARGET_ARCH}" MATCHES "x86_64|i386")
-    set(X86 ON)
-endif()
-if ("${TARGET_ARCH}" MATCHES "arm")
-    set(ARM ON)
-    if ("${TARGET_ARCH}" MATCHES "armv8")
-        add_definitions(-D__ARM64__=1)
-    else()
-        add_definitions(-D__ARM__=1)
-    endif()
-endif()
-if ("${TARGET_ARCH}" MATCHES "ppc")
-    set(PPC ON)
-    add_definitions(-D__PPC__=1)
-endif()
 
+# Options to determine what type of libraries to build
+option(KIDS_BUILD_SHARED_LIB "Build shared KIDS libraries" ON)
+option(KIDS_BUILD_STATIC_LIB "Build static KIDS libraries" ON)
 
-# What type of libraries to build
-set(KIDS_BUILD_SHARED_LIB ON CACHE BOOL  "Whether to build shared KIDS libraries")
-set(KIDS_BUILD_STATIC_LIB ON CACHE BOOL  "Whether to build static KIDS libraries")
-
-# processing modular configuration (solver / model)
+# Processing modular configuration (solver / model)
 # include(module)
 # module_config()
 
-# help to optimize and measure the compilation time
-# find_program(CCACHE_PROGRAM ccache)
-# if(CCACHE_PROGRAM)
-#     message(STATUS "set up ccache ...")
-#     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-#     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-# endif()
-
-find_package(compile-time-perf) # https://github.com/jrmadsen/compile-time-perf
-if(compile-time-perf_FOUND)
-    enable_compile_time_perf(kids-ctp)
-endif()
-
-include_directories(${CMAKE_SOURCE_DIR}/generate)
-include_directories(${CMAKE_SOURCE_DIR}/thirdpart)
-include_directories(${CMAKE_SOURCE_DIR}/thirdpart/Eigen)
-include_directories(${CMAKE_SOURCE_DIR}/thirdpart/filesystem/include)
+# Add include directories
+include_directories(
+    ${CMAKE_SOURCE_DIR}/generate
+    ${CMAKE_SOURCE_DIR}/thirdpart
+    ${CMAKE_SOURCE_DIR}/thirdpart/Eigen
+    ${CMAKE_SOURCE_DIR}/thirdpart/filesystem/include
+)
 
 ################################################################################
 # set esssential variables
@@ -118,124 +108,41 @@ include_directories(${CMAKE_SOURCE_DIR}/thirdpart/filesystem/include)
 # ################################################################################
 # # compilation of different parts
 # ################################################################################
-
-
-# # thirdpart library
-add_subdirectory(thirdpart)
-
-# add_subdirectory(core)
-# add_subdirectory(kernels)
-# add_subdirectory(models)
-
-# add_subdirectory(solvers)
-# file(GLOB_RECURSE kids_solver_srcs solvers/*.cpp)
-# add_library(cppkids SHARED ${kids_solver_srcs})
-# target_link_libraries(cppkids
-    # fparser
-    # core
-    # ker
-    # model
-# )
-
 ####################################
 
-# Where to install KIDS
-if(NOT KIDS_INSTALL_PREFIX)
-if(WIN32)
-    set(KIDS_INSTALL_PREFIX "$ENV{ProgramFiles}/KIDS")
-else(WIN32)
-    set(KIDS_INSTALL_PREFIX "/usr/local/kids")
-endif(WIN32)
-endif(NOT KIDS_INSTALL_PREFIX)
-if(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
-  set(CMAKE_INSTALL_PREFIX ${KIDS_INSTALL_PREFIX} CACHE PATH "Where to install KIDS" FORCE)
-endif(${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})
-
-# The source is organized into subdirectories, but we handle them all togethor
-# rather than visit them as SUBDIRS.
-set(KIDS_SOURCE_SUBDIRS
-    src/core
-    src/kernels
-    src/models
-    src/solvers
-)
-file(GLOB third_src_files  ${CMAKE_CURRENT_SOURCE_DIR}/thirdpart/fparser/*.cpp)
-
-# if(X86 OR ARM)
-#     set(KIDS_SOURCE_SUBDIRS ${KIDS_SOURCE_SUBDIRS} libraries/vecmath)
-# endif()
-# if(WIN32)
-#     add_definitions(-DWIN32)
-#     set(KIDS_SOURCE_SUBDIRS ${KIDS_SOURCE_SUBDIRS} libraries/pthreads)
-# else(WIN32)
-#     if (NOT ANDROID)
-#         set(PTHREADS_LIB pthread)
-#         set(PTHREADS_LIB_STATIC pthread)
-#     endif (NOT ANDROID)
-# endif(WIN32)
-
-if(ANDROID) # Include CPU-Features for Android
-    include_directories(${ANDROID_NDK}/sources/cpufeatures)
-endif(ANDROID)
-
-if(APPLE)
-    if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-        set (CMAKE_OSX_DEPLOYMENT_TARGET "10.7" CACHE STRING "The minimum version of OS X to support" FORCE)
-    endif (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-    if (NOT CMAKE_OSX_ARCHITECTURES)
-        set (CMAKE_OSX_ARCHITECTURES "${CMAKE_SYSTEM_PROCESSOR}" CACHE STRING "The processor architectures to build for" FORCE)
-    endif (NOT CMAKE_OSX_ARCHITECTURES)
-    if (NOT CMAKE_OSX_SYSROOT)
-        execute_process(COMMAND "xcrun" "--show-sdk-path" OUTPUT_VARIABLE XCRUN_OSX_SYSROOT RESULT_VARIABLE XCRUN_OSX_SYSROOT_STATUS OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if (XCRUN_OSX_SYSROOT_STATUS EQUAL 0)
-            set (CMAKE_OSX_SYSROOT "${XCRUN_OSX_SYSROOT}" CACHE STRING "SDK Path" FORCE)
-        endif (XCRUN_OSX_SYSROOT_STATUS EQUAL 0)
-        unset(XCRUN_OSX_SYSROOT)
-        unset(XCRUN_OSX_SYSROOT_STATUS)
-    endif (NOT CMAKE_OSX_SYSROOT)
-
-    # Improve the linking behavior of Mac libraries
-    set (CMAKE_INSTALL_NAME_DIR "@rpath")
-    if (X86)
-      set(EXTRA_COMPILE_FLAGS "-msse2")
+# Set default installation prefix if not provided
+if(NOT DEFINED KIDS_INSTALL_PREFIX)
+    if(WIN32)
+        set(KIDS_INSTALL_PREFIX "$ENV{ProgramFiles}/KIDS")
+    else()
+        set(KIDS_INSTALL_PREFIX "/usr/local/kids")
     endif()
-    set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -stdlib=libc++")
-elseif(MSVC)
-    set(EXTRA_COMPILE_FLAGS)
-    # Use warning level 2, not whatever warning level CMake picked.
-    string(REGEX REPLACE "/W[0-4]" "/W2" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-    # Explicitly suppress warnings 4305 and 4244.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4305 /wd4244")
-elseif(X86)
-    set(EXTRA_COMPILE_FLAGS "-msse2")
-else()
-    set(EXTRA_COMPILE_FLAGS)
 endif()
 
+# Set CMAKE_INSTALL_PREFIX if it has not been initialized by the user
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX ${KIDS_INSTALL_PREFIX} CACHE PATH "Where to install KIDS" FORCE)
+endif()
+
+# Set default build type to Release for UNIX systems if not specified
 if(UNIX AND NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Debug or Release build" FORCE)
-endif (UNIX AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build: Debug or Release" FORCE)
+endif()
 
-if (NOT CMAKE_CXX_FLAGS_DEBUG)
-    set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "To use when CMAKE_BUILD_TYPE=Debug" FORCE)
-endif (NOT CMAKE_CXX_FLAGS_DEBUG)
+# Set C++ compiler flags for Debug build type if not already set
+if(NOT CMAKE_CXX_FLAGS_DEBUG)
+    set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Flags for Debug build" FORCE)
+endif()
 
-if (NOT CMAKE_CXX_FLAGS_RELEASE)
-    if (ANDROID)
-        set(CMAKE_CXX_FLAGS_RELEASE "-mfloat-abi=softfp -march=armv7-a -mfpu=neon -funsafe-math-optimizations -O3 -DNDEBUG" CACHE STRING
-        "To use when CMAKE_BUILD_TYPE=Release" FORCE)
-    else (ANDROID)
-        set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING
-        "To use when CMAKE_BUILD_TYPE=Release" FORCE)
-    endif (ANDROID)
-endif (NOT CMAKE_CXX_FLAGS_RELEASE)
-
-
+# Set C++ compiler flags for Release build type if not already set
+if(NOT CMAKE_CXX_FLAGS_RELEASE)
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Flags for Release build" FORCE)
+endif()
 
 # Collect up information about the version of the KIDS library we're building
 # and make it available to the code so it can be built into the binaries.
 
-# Processing repositary fingerprint
+# Processing repository fingerprint
 include(repo)
 get_repo_info(GIT_BRANCH GIT_DATE GIT_HASH GIT_STATUS)
 configure_file(
@@ -243,220 +150,218 @@ configure_file(
   ${CMAKE_SOURCE_DIR}/generate/version.h
   @ONLY
 )
+set(KIDS_GIT_VERSION ${GIT_HASH})
 
+# Define KIDS library version
 set(KIDS_LIBRARY_NAME KIDS)
 set(KIDS_MAJOR_VERSION 0)
 set(KIDS_MINOR_VERSION 1)
 set(KIDS_BUILD_VERSION 1)
+set(KIDS_VERSION "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}.${KIDS_BUILD_VERSION}"
+     CACHE STRING "This is the version of KIDS which will be built." FORCE)
+mark_as_advanced(KIDS_VERSION)
 
+# Define preprocessor definitions for version information
 add_definitions(-DKIDS_LIBRARY_NAME=${KIDS_LIBRARY_NAME}
                 -DKIDS_MAJOR_VERSION=${KIDS_MAJOR_VERSION}
                 -DKIDS_MINOR_VERSION=${KIDS_MINOR_VERSION}
                 -DKIDS_BUILD_VERSION=${KIDS_BUILD_VERSION})
 
-# -DKIDS_TYPE has to be defined in the target subdirectories.
-# -Dsimbody_EXPORTS defined automatically when Windows DLL build is being done.
-
-# Report the version number to the CMake UI
-set(KIDS_VERSION
-    "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}.${KIDS_BUILD_VERSION}"
-     CACHE STRING "This is the version of KIDS which will be built." FORCE)
-mark_as_advanced(KIDS_VERSION)
-
+# Define library targets
 set(SHARED_TARGET ${KIDS_LIBRARY_NAME})
 set(STATIC_TARGET ${KIDS_LIBRARY_NAME}_static)
 
-## If no one says otherwise, change the executable path to drop into the same binary
-## location as the DLLs so that the test cases will use the just-build DLLs.
+# If no custom executable output path is specified, set it to the binary directory
 if(NOT EXECUTABLE_OUTPUT_PATH)
-  set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}
-      CACHE INTERNAL "Single output directory for building all executables.")
-endif(NOT EXECUTABLE_OUTPUT_PATH)
+    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}
+        CACHE INTERNAL "Single output directory for building all executables.")
+endif()
+
+# If no custom library output path is specified, set it to the binary directory
 if(NOT LIBRARY_OUTPUT_PATH)
-  set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}
-      CACHE INTERNAL "Single output directory for building all libraries.")
-endif(NOT LIBRARY_OUTPUT_PATH)
-set(${PROJECT_NAME}_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}) #??
-set(${PROJECT_NAME}_LIBRARY_DIR    ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR}) #??
+    set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}
+        CACHE INTERNAL "Single output directory for building all libraries.")
+endif()
+
+# Define variables for executable and library directories
+set(${PROJECT_NAME}_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
+set(${PROJECT_NAME}_LIBRARY_DIR    ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
 
 
-# These are all the places to search for header files which are
-# to be part of the API.
+# The source is organized into subdirectories, but we handle them all together
+# rather than visit them as SUBDIRS.
+set(KIDS_SOURCE_SUBDIRS
+    src/core
+    src/kernels
+    src/models
+    src/solvers
+)
+file(GLOB third_src_files  ${CMAKE_SOURCE_DIR}/thirdpart/fparser/*.cpp)
+
+# Set up API include directories
 set(API_INCLUDE_DIRS) # start empty
 foreach(subdir ${KIDS_SOURCE_SUBDIRS})
-    # append
-    set(API_INCLUDE_DIRS ${API_INCLUDE_DIRS}
-                         ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include
-                         ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/kids)
-endforeach(subdir)
+    list(APPEND API_INCLUDE_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/kids
+    )
+endforeach()
 
-# We'll need both *relative* path names, starting with their API_INCLUDE_DIRS,
-# and absolute pathnames.
-set(API_REL_INCLUDE_FILES)   # start these out empty
+# Collect absolute and relative include files
+set(API_REL_INCLUDE_FILES)
 set(API_ABS_INCLUDE_FILES)
-
 foreach(dir ${API_INCLUDE_DIRS})
-    file(GLOB fullpaths ${dir}/*.h) # returns full pathnames
-    set(API_ABS_INCLUDE_FILES ${API_ABS_INCLUDE_FILES} ${fullpaths})
-
+    file(GLOB_RECURSE fullpaths ${dir}/*.h) # returns full pathnames
+    list(APPEND API_ABS_INCLUDE_FILES ${fullpaths})
     foreach(pathname ${fullpaths})
         get_filename_component(filename ${pathname} NAME)
-        set(API_REL_INCLUDE_FILES ${API_REL_INCLUDE_FILES} ${dir}/${filename})
-    endforeach(pathname)
-endforeach(dir)
+        list(APPEND API_REL_INCLUDE_FILES ${dir}/${filename})
+    endforeach()
+endforeach()
 
-# collect up source files
-set(SOURCE_FILES) # empty
+# Collect source files
+set(SOURCE_FILES)
 set(SOURCE_INCLUDE_FILES)
-
 foreach(subdir ${KIDS_SOURCE_SUBDIRS})
-    file(GLOB src_files  ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src/*/*.cpp)
-    file(GLOB incl_files ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src/*.h)
-    set(SOURCE_FILES         ${SOURCE_FILES}         ${src_files})   #append
-    set(SOURCE_INCLUDE_FILES ${SOURCE_INCLUDE_FILES} ${incl_files})
-
-    ## Make sure we find these locally before looking in KIDS/include if
-    ## KIDS was previously installed there.
+    file(GLOB_RECURSE src_files  ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src/*.cpp)
+    file(GLOB_RECURSE incl_files ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src/*.h)
+    list(APPEND SOURCE_FILES ${src_files})
+    list(APPEND SOURCE_INCLUDE_FILES ${incl_files})
     include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
-endforeach(subdir)
+endforeach()
 
-set_source_files_properties(${CMAKE_SOURCE_DIR}/src/core/src/linalg.cpp PROPERTIES COMPILE_FLAGS "-ffast-math -DHAVE_SSE2=1")
-set_source_files_properties(${CMAKE_SOURCE_DIR}/src/core/src/linalg_1.cpp PROPERTIES COMPILE_FLAGS "-ffast-math -DHAVE_SSE2=1")
+# Set compile flags for specific source files
+set_source_files_properties(
+    ${CMAKE_SOURCE_DIR}/src/core/src/linalg.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/src/linalg_1.cpp
+    PROPERTIES COMPILE_FLAGS "-DHAVE_SSE2=1"
+)
 
-if(X86)
-    set_source_files_properties(${CMAKE_SOURCE_DIR}/libraries/sfmt/src/SFMT.cpp PROPERTIES COMPILE_FLAGS "-DHAVE_SSE2=1")
-else()
-    set_source_files_properties(${CMAKE_SOURCE_DIR}/libraries/sfmt/src/SFMT.cpp PROPERTIES COMPILE_FLAGS "-UHAVE_SSE2")
-endif()
-if((X86 OR ARM) AND NOT (WIN32 AND KIDS_BUILD_STATIC_LIB))
-    #file(GLOB src_files ${CMAKE_CURRENT_SOURCE_DIR}/libraries/asmjit/asmjit/*/*.cpp)
-    #file(GLOB incl_files ${CMAKE_CURRENT_SOURCE_DIR}/libraries/asmjit/*.h)
-    #set(SOURCE_FILES ${SOURCE_FILES} ${src_files})
-    #set(SOURCE_INCLUDE_FILES ${SOURCE_INCLUDE_FILES} ${incl_files})
-    #include_directories(BEFORE "${CMAKE_CURRENT_SOURCE_DIR}/libraries/asmjit")
-    #set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DLEPTON_USE_JIT")
-endif()
-
-
+# Include directories before compiling source files
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(EXTRA_LINK_FLAGS ${EXTRA_COMPILE_FLAGS})
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    if (NOT ANDROID)
+if (NOT MSVC)
+    if (CMAKE_SYSTEM_NAME MATCHES "Linux" AND NOT ANDROID)
         set(EXTRA_LINK_FLAGS "${EXTRA_LINK_FLAGS} -Wl,--no-as-needed -lrt")
-    endif (NOT ANDROID)
-endif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-if (MSVC)
-    set(EXTRA_LINK_FLAGS)
-endif (MSVC)
+    endif()
+endif()
 
 set(SOURCE_FILES ${SOURCE_FILES} ${third_src_files})
 
 if(KIDS_BUILD_SHARED_LIB)
     add_library(${SHARED_TARGET} SHARED ${SOURCE_FILES} ${SOURCE_INCLUDE_FILES} ${API_ABS_INCLUDE_FILES})
-    set_target_properties(${SHARED_TARGET} PROPERTIES LINK_FLAGS "${EXTRA_LINK_FLAGS}" COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DKIDS_BUILDING_SHARED_LIBRARY -DPTHREAD_BUILDING_SHARED_LIBRARY" SOVERSION "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}")
-endif(KIDS_BUILD_SHARED_LIB)
+    set_target_properties(${SHARED_TARGET} PROPERTIES 
+        LINK_FLAGS "${EXTRA_LINK_FLAGS}" 
+        COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DKIDS_BUILDING_SHARED_LIBRARY -DPTHREAD_BUILDING_SHARED_LIBRARY" 
+        SOVERSION "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}")
+
+    # target_compile_definitions(${SHARED_TARGET} PRIVATE 
+    #     KIDS_BUILDING_SHARED_LIBRARY
+    # )
+    # target_link_libraries(${SHARED_TARGET} ${EXTRA_LINK_FLAGS})
+    # set_target_properties(${SHARED_TARGET} PROPERTIES
+    #     SOVERSION "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}"
+    #     COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS}"
+    #     LINK_FLAGS "${EXTRA_LINK_FLAGS}"
+    # )
+endif()
 
 if(KIDS_BUILD_STATIC_LIB)
     add_library(${STATIC_TARGET} STATIC ${SOURCE_FILES} ${SOURCE_INCLUDE_FILES} ${API_ABS_INCLUDE_FILES})
-    set(EXTRA_COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DKIDS_USE_STATIC_LIBRARIES -DPTW32_STATIC_LIB")
-    set_target_properties(${STATIC_TARGET} PROPERTIES LINK_FLAGS "${EXTRA_LINK_FLAGS}" COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DKIDS_BUILDING_STATIC_LIBRARY -DPTHREAD_BUILDING_STATIC_LIBRARY")
-endif(KIDS_BUILD_STATIC_LIB)
+    set_target_properties(${STATIC_TARGET} PROPERTIES 
+        LINK_FLAGS "${EXTRA_LINK_FLAGS}" 
+        COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DKIDS_BUILDING_STATIC_LIBRARY -DPTHREAD_BUILDING_STATIC_LIBRARY")
 
-# if(KIDS_BUILD_C_AND_FORTRAN_WRAPPERS)
-#     add_dependencies(${SHARED_TARGET} ApiWrappers)
-#     if(KIDS_BUILD_STATIC_LIB)
-#         add_dependencies(${STATIC_TARGET} ApiWrappers)
-#     endif(KIDS_BUILD_STATIC_LIB)
-# endif(KIDS_BUILD_C_AND_FORTRAN_WRAPPERS)
+    # target_compile_definitions(${STATIC_TARGET} PRIVATE 
+    #     KIDS_USE_STATIC_LIBRARIES 
+    # )
+    # target_link_libraries(${STATIC_TARGET} ${EXTRA_LINK_FLAGS})
+    # set_target_properties(${STATIC_TARGET} PROPERTIES
+    #     COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS}"
+    #     LINK_FLAGS "${EXTRA_LINK_FLAGS}"
+    # )
+endif()
 
-# On Linux need to link to libdl
-if(NOT APPLE)
-    FIND_LIBRARY(DL_LIBRARY dl)
+if(NOT APPLE AND NOT MSVC)
+    find_library(DL_LIBRARY dl)
     if(DL_LIBRARY)
-        if(KIDS_BUILD_SHARED_LIB)
-            target_link_libraries(${SHARED_TARGET} ${DL_LIBRARY} ${PTHREADS_LIB})
-        endif(KIDS_BUILD_SHARED_LIB)
-        if(KIDS_BUILD_STATIC_LIB)
-            target_link_libraries(${STATIC_TARGET} ${DL_LIBRARY} ${PTHREADS_LIB})
-        endif(KIDS_BUILD_STATIC_LIB)
+        target_link_libraries(${SHARED_TARGET} PRIVATE ${DL_LIBRARY} ${PTHREADS_LIB})
+        target_link_libraries(${STATIC_TARGET} PRIVATE ${DL_LIBRARY} ${PTHREADS_LIB})
         mark_as_advanced(DL_LIBRARY)
-    else(DL_LIBRARY)
-        if(KIDS_BUILD_SHARED_LIB)
-            if (ANDROID)
-                target_link_libraries(${SHARED_TARGET} ${PTHREADS_LIB} cpufeatures)
-            else (ANDROID)
-                target_link_libraries(${SHARED_TARGET} ${PTHREADS_LIB})
-            endif (ANDROID)
-        endif(KIDS_BUILD_SHARED_LIB)
-    endif(DL_LIBRARY)
+    else()
+        if (ANDROID AND KIDS_BUILD_SHARED_LIB)
+            target_link_libraries(${SHARED_TARGET} PRIVATE ${PTHREADS_LIB} cpufeatures)
+        endif()
+    endif()
 endif()
 
 if(KIDS_BUILD_SHARED_LIB)
-    install_targets(/lib RUNTIME_DIRECTORY /lib ${SHARED_TARGET})
-endif(KIDS_BUILD_SHARED_LIB)
+    install(TARGETS ${SHARED_TARGET} RUNTIME DESTINATION lib)
+endif()
 if(KIDS_BUILD_STATIC_LIB)
-    install_targets(/lib RUNTIME_DIRECTORY /lib ${STATIC_TARGET})
-endif(KIDS_BUILD_STATIC_LIB)
+    install(TARGETS ${STATIC_TARGET} ARCHIVE DESTINATION lib)
+endif()
+file(GLOB_RECURSE CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE TOP_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/kids/*.h)
+install(FILES ${CORE_HEADERS} DESTINATION include)
+install(FILES ${TOP_HEADERS} DESTINATION include/kids)
 
-file(GLOB CORE_HEADERS      include/*.h                 */include/*.h)
-file(GLOB TOP_HEADERS       include/kids/*.h            */include/kids/*.h)
-install_files(/include                  FILES ${CORE_HEADERS})
-install_files(/include/kids             FILES ${TOP_HEADERS})
-
-# If API wrappers are being generated, and add them to the build.
-# set(KIDS_BUILD_C_AND_FORTRAN_WRAPPERS ON CACHE BOOL "Build wrappers for C and Fortran")
-# if(KIDS_BUILD_C_AND_FORTRAN_WRAPPERS)
-#     add_subdirectory(wrappers)
-#     set(SOURCE_FILES ${SOURCE_FILES} wrappers/KIDSCWrapper.cpp  wrappers/KIDSFortranWrapper.cpp)
-#     set_source_files_properties(wrappers/KIDSCWrapper.cpp wrappers/KIDSFortranWrapper.cpp PROPERTIES GENERATED TRUE)
-# endif(KIDS_BUILD_C_AND_FORTRAN_WRAPPERS)
-
-# CXX backends
-set(KIDS_BUILD_CXX_BACKENDS ON CACHE BOOL "Build backend for C++")
+# C++ backends
+option(KIDS_BUILD_CXX_BACKENDS "Build backend for C++" ON)
 if(KIDS_BUILD_CXX_BACKENDS)
-    # add_subdirectory(thirdpart/gflags)
-    # add_subdirectory(thirdpart/glog)
     find_package(MPIMod REQUIRED)
+    # find_package(MKLMod REQUIRED)
+
+    set(BUILD_TESTING OFF CACHE INTERNAL "Disable unit testing in gflags/glog/catch2")
+    set(WITH_GFLAGS OFF CACHE INTERNAL "Option for gflags")
+    set(WITH_GTEST OFF CACHE INTERNAL "Option for gtest")
+
+    # On some old computers (e.g., old CentOS), after GCC 5.1, it adds a new realization for
+    # std::string & std::list in `libstdc++` by adding `__cxx11` namespace.
+    # Some older compilers don't enable this option by default, but it is needed by gflags/glog here.
+    add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
+
+    add_subdirectory(thirdpart/gflags)
+    add_subdirectory(thirdpart/glog)
+    add_subdirectory(thirdpart/fparser)
+
+    set(BUILD_TESTING ON CACHE INTERNAL "Restore unit testing")
+    set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "Disable shared library")
 
     add_executable(kids src/kidsrun/main.cc src/kidsrun/Handler.cpp src/kidsrun/mpi_utils.cpp)
-
-    target_link_libraries(kids
+    target_link_libraries(kids PRIVATE
         ${SHARED_TARGET}
         gflags::gflags
         glog::glog
-        # MKLMod::MKL
         MPIMod::MPI
+        # MPIMod::MKL
     )
-    install_targets(/bin RUNTIME_DIRECTORY /lib kids)
-endif(KIDS_BUILD_CXX_BACKENDS)
+
+    install(TARGETS kids RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+endif()
 
 # Python wrappers
-set(KIDS_BUILD_PYTHON_WRAPPERS ON CACHE BOOL "Build wrappers for Python")
+option(KIDS_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
 if(KIDS_BUILD_PYTHON_WRAPPERS)
+    add_subdirectory(thirdpart/pybind11)
     add_subdirectory(wrappers/python)
-endif(KIDS_BUILD_PYTHON_WRAPPERS)
+endif()
 
-
-if (EXECUTABLE_OUTPUT_PATH)
-  set (TEST_PATH ${EXECUTABLE_OUTPUT_PATH})
-else (EXECUTABLE_OUTPUT_PATH)
-  set (TEST_PATH .)
-endif (EXECUTABLE_OUTPUT_PATH)
-
-# add_subdirectory(docs)
-set(KIDS_BUILD_TESTS OFF CACHE BOOL "Build tests")
+# Tests
+option(KIDS_BUILD_TESTS "Build tests" OFF)
 if(KIDS_BUILD_TESTS)
-    set(CATCH_BUILD_TESTING OFF)
-    set(CATCH_BUILD_EXAMPLES OFF)
-    set(CATCH_BUILD_EXTRA_TESTS OFF)
+    set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
+    set(CATCH_BUILD_EXAMPLES OFF CACHE INTERNAL "")
+    set(CATCH_BUILD_EXTRA_TESTS OFF CACHE INTERNAL "")
     add_subdirectory(thirdpart/catch2)
     enable_testing()
     include_directories(${CMAKE_SOURCE_DIR}/tests)
     add_subdirectory(tests)
-endif(KIDS_BUILD_TESTS)
+endif()
 
-set(KIDS_BUILD_EXAMPLES OFF CACHE BOOL "Build example executables")
+# Examples
+option(KIDS_BUILD_EXAMPLES "Build example executables" OFF)
 if(KIDS_BUILD_EXAMPLES)
-  # add_subdirectory(examples)
-endif(KIDS_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()

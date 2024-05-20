@@ -33,25 +33,7 @@ std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::s
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5e0));
     std::shared_ptr<Kernel_Update_c> ku_c(new Kernel_Update_c(0.5e0 / (double) split));
     std::shared_ptr<Kernel>          kele;
-    if (false) {
-        // } else if (NAD_Kernel_name == "CMM") {
-        //     kele = std::shared_ptr<Kernel_Elec_CMM>(new Kernel_Elec_CMM());
-        // } else if (NAD_Kernel_name == "SQC") {
-        //     kele = std::shared_ptr<Kernel_Elec_SQC>(new Kernel_Elec_SQC());
-        // } else if (NAD_Kernel_name == "MMD") {
-        //     kele = std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD());
-        // } else if (NAD_Kernel_name == "SH") {
-        //     kele = std::shared_ptr<Kernel_Hopping>(new Kernel_Hopping());
-        // } else if (NAD_Kernel_name == "MMSH") {
-        //     kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
-    } else if (NAD_Kernel_name == "NAD") {
-        kele = std::shared_ptr<Kernel_Elec_NAD>(new Kernel_Elec_NAD(0.5e0 / (double) split));
-        // } else if (NAD_Kernel_name == "MCE") {
-        //     kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, kforc));
-    } else {
-        throw std::runtime_error("unknown Elec Kernel");
-    }
-
+    kele = std::shared_ptr<Kernel_Elec_NAD>(new Kernel_Elec_NAD(0.5e0 / (double) split));
     /// Result & Sampling & TCF
     std::shared_ptr<Kernel_Recorder> krecd(new Kernel_Recorder());
 
