@@ -34,11 +34,11 @@ class Kernel_Iter_Adapt final : public Kernel {
 
     const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot"};
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
     virtual Status& initializeKernel_impl(Status& stat);
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& executeKernel_impl(Status& stat);
 };

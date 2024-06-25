@@ -12,10 +12,12 @@
 #include "kids/Kernel_Recorder.h"
 #include "kids/Kernel_Representation.h"
 #include "kids/Kernel_Update.h"
+#include "kids/Model.h"
+#include "kids/Solver.h"
 
 namespace PROJECT_NS {
 
-std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::string NAD_Kernel_name) {
+std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string NAD_Kernel_name) {
     bool take_ownership_false = false;
 
     int split = 4;
@@ -75,7 +77,10 @@ std::shared_ptr<Kernel> NAD_AdaptM_Kernel(std::shared_ptr<Kernel> kmodel, std::s
             new Kernel_Prioritization({kmodel, krepr, kele, kforc, krecd}, 2)))
         .appendChild(kiter)
         .appendChild(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
-    return ker;
+    // return ker;
+
+    std::shared_ptr<Solver> sol(new Solver(ker));
+    return sol;
 }
 
 };  // namespace PROJECT_NS

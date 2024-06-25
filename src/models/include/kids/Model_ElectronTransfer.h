@@ -1,13 +1,13 @@
 #ifndef Model_ElectronTransfer_H
 #define Model_ElectronTransfer_H
 
-#include "kids/Kernel.h"
+#include "kids/Model.h"
 #include "kids/Model_Bath.h"
 #include "kids/Policy.h"
 
 namespace PROJECT_NS {
 
-class Model_ElectronTransfer final : public Kernel {
+class Model_ElectronTransfer final : public Model {
    public:
     virtual const std::string getName();
 
@@ -47,8 +47,8 @@ class Model_ElectronTransfer final : public Kernel {
     kids_real *vpes, *grad, *hess;
     kids_real *V, *dV, *ddV;
 
-    virtual void    setInputParam_impl(std::shared_ptr<Param>& PM);
-    virtual void    setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void    setInputParam_impl(std::shared_ptr<Param> PM);
+    virtual void    setInputDataSet_impl(std::shared_ptr<DataSet> DS);
     virtual Status& initializeKernel_impl(Status& stat);
     virtual Status& executeKernel_impl(Status& stat);
 };

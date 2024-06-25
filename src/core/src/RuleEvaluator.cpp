@@ -171,32 +171,32 @@ RuleEvaluator::RuleEvaluator(const std::string& rule, std::shared_ptr<DataSet>& 
         }
     }
 
-#ifdef LOCAL_DEBUG
-    std::cout                                                 //
-        << LOC() << "RuleEvaluator Data:\n"                   //
-        << ".totalTermNumber = " << totalTermNumber << "\n"   /**< Number of terms. */
-        << ".totalFrameNumber = " << totalFrameNumber << "\n" /**< Number of samples. */
-        << ".rule = " << rule << "\n"                         /**< The expression rule. */
-        << ".mode = " << mode << "\n"                         /**< The mode of evaluation. */
-        << ".path = " << path << "\n"                         /**< Path to save results. */
-        << ".save = " << save << "\n"                         /**< File name to save results. */
-        << ".result = " << result
-        << "\n" /**< Result of the expression. */
-        // << ".variables = " << variables << "\n"            /**< Variables in the expression. */
-        // << ".inputShapes = " << inputShapes << "\n"        /**< Shapes of input data. */
-        // << ".inputData = " << inputData << "\n"            /**< Input data. */
-        // << ".inputDataTypes = " << inputDataTypes << "\n"  /**< Data types of input data. */
-        << ".expressionString" << expressionString
-        << "\n" /**< String representation of the expression. */
-        // << ".einsumHelper = " << einsumHelper << "\n"      /**< Shared pointer to EinsumHelper. */
-        << ".einsumString = " << einsumString << "\n"     /**< String representation of expression type. */
-        << ".expressionType = " << expressionType << "\n" /**< Type of the expression. */
-        << ".expressionId = " << expressionId << "\n";    /**< ID of the expression. */
+    // #ifdef LOCAL_DEBUG
+    //     std::cout                                                 //
+    //         << LOC() << "RuleEvaluator Data:\n"                   //
+    //         << ".totalTermNumber = " << totalTermNumber << "\n"   /**< Number of terms. */
+    //         << ".totalFrameNumber = " << totalFrameNumber << "\n" /**< Number of samples. */
+    //         << ".rule = " << rule << "\n"                         /**< The expression rule. */
+    //         << ".mode = " << mode << "\n"                         /**< The mode of evaluation. */
+    //         << ".path = " << path << "\n"                         /**< Path to save results. */
+    //         << ".save = " << save << "\n"                         /**< File name to save results. */
+    //         << ".result = " << result
+    //         << "\n" /**< Result of the expression. */
+    //         // << ".variables = " << variables << "\n"            /**< Variables in the expression. */
+    //         // << ".inputShapes = " << inputShapes << "\n"        /**< Shapes of input data. */
+    //         // << ".inputData = " << inputData << "\n"            /**< Input data. */
+    //         // << ".inputDataTypes = " << inputDataTypes << "\n"  /**< Data types of input data. */
+    //         << ".expressionString" << expressionString
+    //         << "\n" /**< String representation of the expression. */
+    //         // << ".einsumHelper = " << einsumHelper << "\n"      /**< Shared pointer to EinsumHelper. */
+    //         << ".einsumString = " << einsumString << "\n"     /**< String representation of expression type. */
+    //         << ".expressionType = " << expressionType << "\n" /**< Type of the expression. */
+    //         << ".expressionId = " << expressionId << "\n";    /**< ID of the expression. */
 
-    for (int i = 0; i < inputDataTypes.size(); ++i) std::cout << inputDataTypes[i] << ",";
-    std::cout << result->shape->size() << "\n";
+    //     for (int i = 0; i < inputDataTypes.size(); ++i) std::cout << inputDataTypes[i] << ",";
+    //     std::cout << result->shape->size() << "\n";
 
-#endif  // LOCAL_DEBUG
+    // #endif  // LOCAL_DEBUG
 }
 
 void RuleEvaluator::calculateResult(int sampleIndex) {

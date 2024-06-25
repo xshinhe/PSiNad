@@ -12,13 +12,13 @@ const std::string Kernel_Elec::getName() { return "Kernel_Elec"; }
 
 int Kernel_Elec::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Elec::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_Elec::setInputParam_impl(std::shared_ptr<Param> PM) {
     occ0 = PM->get_int("occ", LOC(), -1);
     if (occ0 < 0) throw std::runtime_error("occ < 0");
     if (occ0 >= Dimension::F) throw std::runtime_error("occ >= F");
 }
 
-void Kernel_Elec::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Elec::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     U        = DS->def(DATA::integrator::U);
     c        = DS->def(DATA::integrator::c);
     rho_ele  = DS->def(DATA::integrator::rho_ele);

@@ -6,7 +6,7 @@
 
 #include <cmath>
 
-#include "kids/Kernel.h"
+#include "kids/Model.h"
 
 namespace PROJECT_NS {
 
@@ -17,7 +17,7 @@ struct MNDOKW {
 
 using MNDOKW_map = std::map<std::string, std::string>;
 
-class Model_Interf_MNDO final : public Kernel {
+class Model_Interf_MNDO final : public Model {
    public:
     virtual const std::string getName();
 
@@ -78,9 +78,9 @@ class Model_Interf_MNDO final : public Kernel {
     kids_bint* last_attempt_ptr;
     int*       fail_type_ptr;
 
-    void setInputParam_impl(std::shared_ptr<Param>& PM);
+    void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     Status& initializeKernel_impl(Status& stat);
 

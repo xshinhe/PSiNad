@@ -318,7 +318,7 @@ int Kernel_GWP::calc_Hbasis_adia(kids_complex* Hbasis,  // [P,P]
     return 0;
 }
 
-void Kernel_GWP::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_GWP::setInputParam_impl(std::shared_ptr<Param> PM) {
     dt            = PM->get_double("dt", LOC(), phys::time_d);     //
     alpha0        = PM->get_double("alpha0", LOC(), 1.0f);         //
     width_scaling = PM->get_double("width_scaling", LOC(), 1.0f);  //
@@ -334,7 +334,7 @@ void Kernel_GWP::setInputParam_impl(std::shared_ptr<Param>& PM) {
     time_displace_step = PM->get_int("time_displace_step", LOC(), 1);  //
 }
 
-void Kernel_GWP::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_GWP::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     alpha    = DS->def_real("integrator.alpha", Dimension::N);
     Xcoeff   = DS->def_complex("integrator.Xcoeff", Dimension::P);
     Acoeff   = DS->def_complex("integrator.Acoeff", Dimension::P);

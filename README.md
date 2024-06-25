@@ -1,18 +1,19 @@
-# KIDS
+# KIDS: Kernel Integrated Dynamics Simulator
 
 [TOC]
 
 ![version](https://img.shields.io/badge/version-0.0.1-g)  ![language](https://img.shields.io/badge/language-c++-orange) ![wrapper](https://img.shields.io/badge/wrapper-python3-red) ![platform](https://img.shields.io/badge/platform-linux-lightgrey) ![cmake](https://img.shields.io/badge/cmake->3.16-yellow) ![status](https://img.shields.io/badge/status-up-blue) ![uptime](https://img.shields.io/badge/uptime-100%25-g) ![coverage](https://img.shields.io/badge/coverage-100%25-pink) ![codecy](https://img.shields.io/badge/codecy-B-g) 
 
+
+![](docs/img/KIDS.png)
+
 ## Introduction
 
-**KIDS (Kernel Integrated Dynamics Simulator)** offers an open-source framework tailored for simulating chemical and physical dynamics, with a primary focus on atomic and molecular scales in condensed matter. It is designed for (classical / qauntum) dynamics simulation of small system, few-body system, reduced systems, and even large many-particle (i.e. molecules & condensed matter) systems. It provides a versatile platform for the development of advanced algorithms, offering ease of use and accessibility at a minimal cost.
+**KIDS (Kernel Integrated Dynamics Simulator)** is an open-source framework specifically designed for simulating chemical and physical dynamics at atomic and molecular scales in condensed matter. It excels in classical and quantum dynamics simulations, accommodating small systems, few-body systems, reduced systems, and large many-particle systems such as molecules and condensed matter. KIDS offers a robust, versatile platform with multiple interfaces for developing advanced algorithms, ensuring ease of use and accessibility with third-party language wrappers, such as Python.
 
-KIDS encompasses a diverse array of models and solvers. These include harmonic models, forcefield models, and ab initio interfaces, ensuring comprehensive coverage across various simulation needs. KIDS also caters to a wide spectrum of computational approaches, from classical dynamics rooted in Newtonian and Hamiltonian mechanics to advanced quantum dynamics featuring quantum phase space approximation, quantum trajectories, path integral techniques, influence functional methods, and semi-classical wavepackets etc. Furthermore, ongoing development efforts aim to expand the library of models and solvers, with contributions welcomed from the open community.
+KIDS features a comprehensive array of models and solvers, including harmonic models, forcefield models, and ab initio interfaces, meeting diverse simulation needs. It supports a wide range of computational approaches, from classical dynamics based on Newtonian and Hamiltonian mechanics to sophisticated quantum dynamics incorporating quantum phase space approximations, quantum trajectories, path integral techniques, influence functional methods, and semi-classical wavepackets.
 
-~~We've developed the KIDS project primarily in C++, known as **cpp-KIDS**, building upon earlier projects like OpenDF and MODA~~. 
-
-However, we're now open to expanding its reach by integrating it as a Python package ([PyKIDS](docs/api/python.md)) and/or a Rust crate ([rust-KIDS](docs/api/rust.md)).
+Continual development efforts focus on expanding the library of models and solvers, with community contributions highly encouraged. To further extend its accessibility, KIDS is now available as a Python package ([PyKIDS](docs/api/python.md)) and a Rust crate ([rust-KIDS](docs/api/rust.md)).
 
 ### License
 
@@ -27,6 +28,8 @@ Contributors:
 The project is maintained under Jian Liu group, CCME, PeKing University.
 
 ## Features
+
+![](docs/img/Arch_KIDS.png)
 
 - Utilizes high-performance and parallelized code written in modern C++ (-std=11 or later), well compiled with C-style APIs. Parallelization with MPI ([Intel OneAPI MPI](https://www.intel.cn/content/www/cn/zh/developer/tools/oneapi/toolkits.html)), OpenMP and SIMD techniques. For some functions, a GPU acceleration is also on-going and optional. Many thirdpart matrix/tensor libraries are well compiled and integrated, such as [Eigen](https://eigen.tuxfamily.org
 ), [Intel OneAPI MKL](https://www.intel.cn/content/www/cn/zh/developer/tools/oneapi/toolkits.html), xtensor, libtorch and python's numpy etc.

@@ -1,6 +1,6 @@
 /**@file        System.h
  * @brief       provide System class
- * @details     System
+ * @details     System is a wrapper over Model Kernel with some private data
  *
  * @author      Xin He
  * @date        2024-04
@@ -26,24 +26,40 @@
  **********************************************************************************
  */
 
+#include "kids/DataSet.h"
+#include "kids/Kernel.h"
+#include "kids/Model.h"
+#include "kids/Param.h"
+
 #ifndef KIDS_System_H
 #define KIDS_System_H
+
+#include "kids/Model.h"
 
 namespace PROJECT_NS {
 
 class System {
-    std::shared_ptr<Platform> getPlatfrom() { return _platform; }
-    std::shared_ptr<Param>    getParam() { return _param; }
-    std::shared_ptr<DataSet>  getDataSet() { return _dataset; }
-    std::shared_ptr<System>   getSystem() { return _system; }
-    std::shared_ptr<Solver>   getSolver() { return _solver; }
+   public:
+    System(std::shared_ptr<Model> model, std::shared_ptr<Param> PM, std::shared_ptr<DataSet> DS);
+
+    inline std::shared_ptr<Model> getModel() { return _model; }
+
+    inline std::shared_ptr<Param> getParam() { return _param; }
+
+    inline std::shared_ptr<DataSet> getDataSet() { return _dataset; }
 
    private:
-    double*                                      boxvectors;
-    double*                                      masses;
-    std::vector<std::shared_ptr<ConstraintInfo>> constraints;
-    std::vector<std::shared_ptr<Force>>          forces;
-    std::vector<std::shared_ptr<VirtualSite>>    virtualSites;
+    std::shared_ptr<Model>              _model;
+    std::shared_ptr<Param>              _param;
+    std::shared_ptr<DataSet>            _dataset;
+    int                                 _dim   = 1;
+    int                                 _natom = 1;
+    int                                 _nmole = 1;
+    std::vector<std::vector<kids_real>> _boxvectors;
+    std::vector<kids_real>              _mass;
+    // std::vector<std::shared_ptr<ConstraintInfo>> constraints;
+    // std::vector<std::shared_ptr<Force>>          forces;
+    // std::vector<std::shared_ptr<VirtualSite>>    virtualSites;
 };
 };  // namespace PROJECT_NS
 

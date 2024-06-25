@@ -10,7 +10,7 @@ const std::string Kernel_Iter::getName() { return "Kernel_Iter"; }
 
 int Kernel_Iter::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Iter::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_Iter::setInputParam_impl(std::shared_ptr<Param> PM) {
     t0    = PM->get_double("t0", LOC(), phys::time_d, 0.0f);
     tend  = PM->get_double("tend", LOC(), phys::time_d, 1.0f);
     dt    = PM->get_double("dt", LOC(), phys::time_d, 0.1f);
@@ -19,7 +19,7 @@ void Kernel_Iter::setInputParam_impl(std::shared_ptr<Param>& PM) {
     nsamp = nstep / sstep + 1;
 }
 
-void Kernel_Iter::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Iter::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     t_ptr                         = DS->def(DATA::iter::t);
     dt_ptr                        = DS->def(DATA::iter::dt);
     istep_ptr                     = DS->def(DATA::iter::istep);

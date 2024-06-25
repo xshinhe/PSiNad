@@ -19,7 +19,7 @@ class Kernel_Update_p : public Kernel {
     double     scale, *dt_ptr;
     kids_bint* frez_ptr;
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& initializeKernel_impl(Status& stat);
 

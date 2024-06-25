@@ -1,5 +1,3 @@
-#include "kids/phys.h"
-
 py::module phys_m      = m.def_submodule("phys");
 py::module phys_math_m = phys_m.def_submodule("math");
 

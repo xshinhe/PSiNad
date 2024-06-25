@@ -11,11 +11,11 @@ const std::string Kernel_Conserve::getName() { return "Kernel_Conserve"; }
 
 int Kernel_Conserve::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Conserve::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_Conserve::setInputParam_impl(std::shared_ptr<Param> PM) {
     conserve_scale = PM->get_bool("conserve_scale", LOC(), false);  // default as false
 }
 
-void Kernel_Conserve::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Conserve::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     vpes             = DS->def(DATA::model::vpes);
     Ekin             = DS->def(DATA::integrator::Ekin);
     Epot             = DS->def(DATA::integrator::Epot);

@@ -6,9 +6,9 @@
 
 **Prerequisites**:
 - Unix-like operating system. (Win platform is not supported now)
-- C++ compiler (>= c++11)
-- Python intepretor (`libpykids.so`)
-- Intel One API (MPI and MKL)
+- C++ compiler (>= c++11, c++17 is better)
+- Python intepretor
+- Intel One API (MPI and MKL (optional))
 - cmake version >= 3.17
 
 First you should clone this project with all submodules:
@@ -30,7 +30,8 @@ mkdir build
 cd build
 CC=gcc CXX=g++ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j8
-# make install
+make install        # install c++ binary
+make PythonInstall  # install python wrapper
 ```
 If you prefer not to compile all components, you can specify modules in the config.json file. Note: refrain from modifying the default config.json; simply copy the file to ${CMAKE_BINARY_DIR}, and the latter will be loaded if it exists.
 

@@ -28,9 +28,9 @@ class Kernel_Iter final : public Kernel {
     int istep, *istep_ptr, nstep, *nstep_ptr;
     int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& initializeKernel_impl(Status& stat);
 

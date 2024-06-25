@@ -38,7 +38,7 @@ class Kernel_Update_T final : public Kernel {
     double *c1, *c2p;                       ///< auxiliary
     double *nhc_x, *nhc_p, *nhc_G, *nhc_Q;  ///< auxiliary
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM) {
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM) {
         ndofs  = PM->get_int("N", LOC());
         dt     = PM->get_double("dt", LOC());
         gammal = PM->get_double("gammal", LOC(), 0.1);
@@ -56,7 +56,7 @@ class Kernel_Update_T final : public Kernel {
         nrespa = PM->get_int("nrespa", LOC(), 10);
     }
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         m = DS->def_real("integrator.m", ndofs);
         p = DS->def_real("integrator.p", ndofs);
 

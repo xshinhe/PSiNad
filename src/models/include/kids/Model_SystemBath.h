@@ -1,7 +1,7 @@
 #ifndef SystemBath_H
 #define SystemBath_H
 
-#include "kids/Kernel.h"
+#include "kids/Model.h"
 #include "kids/Model_Bath.h"
 #include "kids/Policy.h"
 
@@ -30,7 +30,7 @@ DEFINE_POLICY(NSampPolicy,
               Classical,  //
               QCT);
 
-class Model_SystemBath final : public Kernel {
+class Model_SystemBath final : public Model {
    public:
     virtual const std::string getName();
 
@@ -73,8 +73,8 @@ class Model_SystemBath final : public Kernel {
     CouplingPolicy::_type coupling_type;
     NSampPolicy::_type    nsamp_type;
 
-    virtual void    setInputParam_impl(std::shared_ptr<Param>& PM);
-    virtual void    setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void    setInputParam_impl(std::shared_ptr<Param> PM);
+    virtual void    setInputDataSet_impl(std::shared_ptr<DataSet> DS);
     virtual Status& initializeKernel_impl(Status& stat);
     virtual Status& executeKernel_impl(Status& stat);
 };

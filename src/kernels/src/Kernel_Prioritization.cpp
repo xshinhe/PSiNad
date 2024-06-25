@@ -19,12 +19,12 @@ const std::string Kernel_Prioritization::getName() {
 
 int Kernel_Prioritization::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Prioritization::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_Prioritization::setInputParam_impl(std::shared_ptr<Param> PM) {
     if (ptype == 0)
         for (auto& ker : _ref_kernels) ker->setInputParam(PM);
 }
 
-void Kernel_Prioritization::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Prioritization::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     if (ptype == 1)
         for (auto& ker : _ref_kernels) ker->setInputDataSet(DS);
 }

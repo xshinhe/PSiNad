@@ -13,7 +13,7 @@ const std::string Kernel_Update_c::getName() { return "Kernel_Update_c"; }
 
 int Kernel_Update_c::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Update_c::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Update_c::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dt_ptr        = DS->def(DATA::iter::dt);
     E             = DS->def(DATA::model::rep::E);
     T             = DS->def(DATA::model::rep::T);

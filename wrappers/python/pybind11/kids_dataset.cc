@@ -1,8 +1,8 @@
-py::class_<Shape> PyShape(m, "Shape", py::dynamic_attr());
+py::class_<Shape>(m, "Shape", py::dynamic_attr())
+    .def(py::init<std::vector<std::size_t>>())
+    .def(py::init<std::size_t>());
 
-PyShape.def(py::init<std::vector<std::size_t>>()).def(py::init<std::size_t>());
-
-py::class_<DataSet> PyDataSet(m, "DataSet", py::dynamic_attr());
+py::class_<DataSet, std::shared_ptr<DataSet>> PyDataSet(m, "DataSet", py::dynamic_attr());
 
 PyDataSet.def(py::init<>());
 
@@ -67,6 +67,42 @@ PyDataSet.def("numpy", [](DataSet& self, const std::string& key) {
             throw std::runtime_error("can not converted to numpy!");
     }
     return py::array();
+});
+
+PyDataSet.def("numpy_tpl_int", [](DataSet& self, VARIABLE<kids_int>& var) {
+    auto inode = self.node(var.name());
+    if (inode->type() != kids_int_type) throw std::runtime_error("type mismatch");
+    std::size_t n_size = static_cast<Tensor<kids_int>*>(inode)->size();
+    void*       n_data = static_cast<Tensor<kids_int>*>(inode)->data();
+    return py::array({n_size},                                          // shape
+                     {sizeof(int)},                                     // stride
+                     (int*) n_data,                                     // data pointer
+                     py::capsule(n_data, [](void* _void_n_data) { ; })  // zero-copy cost
+    );
+});
+
+PyDataSet.def("numpy_tpl_real", [](DataSet& self, VARIABLE<kids_real>& var) {
+    auto inode = self.node(var.name());
+    if (inode->type() != kids_real_type) throw std::runtime_error("type mismatch");
+    std::size_t n_size = static_cast<Tensor<kids_real>*>(inode)->size();
+    void*       n_data = static_cast<Tensor<kids_real>*>(inode)->data();
+    return py::array({n_size},                                          // shape
+                     {sizeof(kids_real)},                               // stride
+                     (kids_real*) n_data,                               // data pointer
+                     py::capsule(n_data, [](void* _void_n_data) { ; })  // zero-copy cost
+    );
+});
+
+PyDataSet.def("numpy_tpl_complex", [](DataSet& self, VARIABLE<kids_complex>& var) {
+    auto inode = self.node(var.name());
+    if (inode->type() != kids_complex_type) throw std::runtime_error("type mismatch");
+    std::size_t n_size = static_cast<Tensor<kids_complex>*>(inode)->size();
+    void*       n_data = static_cast<Tensor<kids_complex>*>(inode)->data();
+    return py::array({n_size},                                          // shape
+                     {sizeof(kids_complex)},                            // stride
+                     (kids_complex*) n_data,                            // data pointer
+                     py::capsule(n_data, [](void* _void_n_data) { ; })  // zero-copy cost
+    );
 });
 
 PyDataSet.def(

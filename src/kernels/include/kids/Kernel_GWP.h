@@ -148,9 +148,9 @@ class Kernel_GWP final : public Kernel {
     int*       clone_account;
     kids_real* norm_ptr;
 
-    void setInputParam_impl(std::shared_ptr<Param>& PM);
+    void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     Status& initializeKernel_impl(Status& stat);
 

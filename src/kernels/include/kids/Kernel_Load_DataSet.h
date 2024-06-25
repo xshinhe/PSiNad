@@ -17,7 +17,7 @@ class Kernel_Load_DataSet : public Kernel {
    private:
     std::string fn;  ///< filename for loading
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
     virtual Status& executeKernel_impl(Status& stat);
 };

@@ -14,38 +14,63 @@ const std::string Model_SystemBath::getName() { return "Model_SystemBath"; }
 
 int Model_SystemBath::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Model_SystemBath::setInputParam_impl(std::shared_ptr<Param>& PM) {
-    // size information
-    Nb    = _param->get_int("Nb", LOC());
-    nbath = _param->get_int("nbath", LOC());
-    //// CHECK_EQ(Nb * nbath, N);  // Nb*nbath must be N
+void Model_SystemBath::setInputParam_impl(std::shared_ptr<Param> PM) {
+    int N = _param->get_int("model.N", LOC());
+    Nb    = _param->get_int("model.Nb", LOC());
+    nbath = _param->get_int("model.nbath", LOC());
+    assert(N == Nb * nbath);
 
     FORCE_OPT::nbath = nbath;
     FORCE_OPT::Nb    = Nb;
 
-    system_type   = SystemPolicy::_from(_param->get_string("system_flag", LOC(), "SB"));
-    coupling_type = CouplingPolicy::_from(_param->get_string("coupling_flag", LOC(), "SB"));
+    system_type   = SystemPolicy::_from(_param->get_string("model.system_flag", LOC(), "SB"));
+    coupling_type = CouplingPolicy::_from(_param->get_string("model.coupling_flag", LOC(), "SB"));
     nsamp_type    = NSampPolicy::_from(_param->get_string("nsamp_flag", LOC(), "Wigner"));
 }
 
-void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     /// 1) System
     Hsys = DS->def_real("model.Hsys", Dimension::FF);
     memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
     L = 1;
     switch (system_type) {
         case SystemPolicy::SB: {
-            //// CHECK_EQ(F, 2);
+            assert(Dimension::F == 2);
             L             = 2;
-            double bias   = _param->get_double("bias", LOC(), phys::energy_d, 1.0f);
-            double delta  = _param->get_double("delta", LOC(), phys::energy_d, 1.0f);
+            double bias   = _param->get_double("model.bias", LOC(), phys::energy_d, 1.0f);
+            double delta  = _param->get_double("model.delta", LOC(), phys::energy_d, 1.0f);
             double HSB[4] = {bias, delta, delta, -bias};
             for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSB[i];
             break;
         }
+        case SystemPolicy::SF3a: {
+            assert(Dimension::F == 3);
+            double tmp_unit = phys::au_2_ev;
+            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF3a_data[i] / tmp_unit;
+            break;
+        }
+        case SystemPolicy::SF3b: {
+            assert(Dimension::F == 3);
+            double tmp_unit = phys::au_2_ev;
+            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF3b_data[i] / tmp_unit;
+            break;
+        }
+        case SystemPolicy::SF5a: {
+            assert(Dimension::F == 5);
+            double tmp_unit = phys::au_2_ev;
+            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF5a_data[i] / tmp_unit;
+            break;
+        }
+        case SystemPolicy::SF5b: {
+            assert(Dimension::F == 5);
+            double tmp_unit = phys::au_2_ev;
+            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF5b_data[i] / tmp_unit;
+            break;
+        }
         case SystemPolicy::FMO: {
-            //// CHECK_EQ(nbath, 7);
-            //// CHECK_GE(F, 7);  // F = 7, or F = 8 (include ground state in the last; be careful)
+            assert(nbath == 7);
+            assert(Dimension::F == 7 ||
+                   Dimension::F == 8);  // F = 7, or F = 8 (include ground state in the last; be careful)
             double tmp_unit = phys::au_2_wn;
             memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
             for (int i = 0, ik = 0; i < 7; ++i) {
@@ -53,33 +78,10 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
             }
             break;
         }
-        case SystemPolicy::SF3a: {
-            //// CHECK_EQ(F, 3);
-            double tmp_unit = phys::au_2_ev;
-            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF3a_data[i] / tmp_unit;
-            break;
-        }
-        case SystemPolicy::SF3b: {
-            //// CHECK_EQ(F, 3);
-            double tmp_unit = phys::au_2_ev;
-            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF3b_data[i] / tmp_unit;
-            break;
-        }
-        case SystemPolicy::SF5a: {
-            //// CHECK_EQ(F, 5);
-            double tmp_unit = phys::au_2_ev;
-            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF5a_data[i] / tmp_unit;
-            break;
-        }
-        case SystemPolicy::SF5b: {
-            //// CHECK_EQ(F, 5);
-            double tmp_unit = phys::au_2_ev;
-            for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSF5b_data[i] / tmp_unit;
-            break;
-        }
         case SystemPolicy::FCP: {
-            //// CHECK_EQ(nbath, 9);
-            //// CHECK_GE(F, 9);  // F = 9, or F = 10 (include ground state; be careful)
+            assert(nbath == 9);
+            assert(Dimension::F == 9 ||
+                   Dimension::F == 10);  // F = 9, or F = 10 (include ground state in the last; be careful)
             double tmp_unit = phys::au_2_wn;
             for (int i = 0, ik = 0; i < 9; ++i) {
                 for (int k = 0; k < 9; ++k, ++ik) { Hsys[i * Dimension::F + k] = HFCP_data[ik] / tmp_unit; }
@@ -87,32 +89,26 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
             break;
         }
         case SystemPolicy::AGG: {
-            //// CHECK_GE(F, 2);
-            double delta = _param->get_double("delta", LOC(), phys::energy_d, 1.0f);
+            assert(Dimension::F >= 2);
+            double delta = _param->get_double("model.delta", LOC(), phys::energy_d, 1.0f);
             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
                 for (int k = 0; k < Dimension::F; ++k, ++ik) Hsys[ik] = (i - k == 1 || k - i == 1) ? delta : 0.0f;
             }
-            break;
-        }
-        case SystemPolicy::CYC: {
-            //// CHECK_GE(F, 2);
-            double delta = _param->get_double("delta", LOC(), phys::energy_d, 1.0f);
-            for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) Hsys[ik] = (i - k == 1 || k - i == 1) ? delta : 0.0f;
+            bool cyclic = _param->get_bool("model.agg_cyclic", LOC(), false);
+            if (cyclic) {
+                Hsys[0 * Dimension::F + (Dimension::F - 1)] = delta;
+                Hsys[(Dimension::F - 1) * Dimension::F + 0] = delta;
             }
-            Hsys[0 * Dimension::F + (Dimension::F - 1)] = delta;
-            Hsys[(Dimension::F - 1) * Dimension::F + 0] = delta;
             break;
         }
         case SystemPolicy::Read: {
-            std::string   system_readfile = _param->get_string("system_readfile", LOC(), "system.dat");
-            std::ifstream ifs(system_readfile);
+            std::string   system_file = _param->get_string("model.system_file", LOC(), "system.dat");
+            std::ifstream ifs(system_file);
             std::string   H_unit_str;
             std::string   firstline;
             getline(ifs, firstline);
             std::stringstream sstr(firstline);
             sstr >> H_unit_str;  ///< the firstline stores H's unit
-
             double    H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
             kids_real val;
             for (int i = 0; i < Dimension::FF; ++i)
@@ -139,7 +135,7 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
             break;
         }
         case CouplingPolicy::SE: {
-            //// CHECK_LE(nbath, F);
+            assert(Dimension::F == nbath || Dimension::F == nbath + 1);
             for (int i = 0, idx = 0; i < nbath; ++i) {
                 for (int j = 0; j < Dimension::F; ++j) {
                     for (int k = 0; k < Dimension::F; ++k, ++idx) Q[idx] = (i == j && i == k) ? 1.0f : 0.0f;
@@ -148,8 +144,8 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
             break;
         }
         default: {
-            std::string   coupling_readfile = _param->get_string("coupling_readfile", LOC(), "coupling.dat");
-            std::ifstream ifs(coupling_readfile);
+            std::string   coupling_file = _param->get_string("model.coupling_file", LOC(), "coupling.dat");
+            std::ifstream ifs(coupling_file);
             kids_real     tmp;
             for (int i = 0; i < nbath * Dimension::FF; ++i)
                 if (ifs >> tmp) Q[i] = tmp;
@@ -166,7 +162,7 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
                     QL[iL * nbath * Dimension::FF + ibath * Dimension::FF + i] = 1;  // record there is a nonzero value
                     CL[iL * Nb + j] = coeffs[j] * Qval;                              // reduce this value to CL
                     iL++;
-                    if (iL > L) throw std::runtime_error(" Q shoule be sparsed!");
+                    if (iL > L) throw kids_error(" Q shoule be sparsed!");
                 }
                 Xnj[idx] = coeffs[j] * Q[ibath * Dimension::FF + i];  // merge coeffs into Q to obtain Xnj
             }
@@ -183,12 +179,9 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     V    = DS->def(DATA::model::V);
     dV   = DS->def(DATA::model::dV);
     // ddV  = DS->def(DATA::model::ddV);
-
     // init & integrator
     x = DS->def(DATA::integrator::x);
     p = DS->def(DATA::integrator::p);
-
-    // exit(-1);
 }
 
 Status& Model_SystemBath::initializeKernel_impl(Status& stat) {

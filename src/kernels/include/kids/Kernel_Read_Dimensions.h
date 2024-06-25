@@ -46,7 +46,7 @@ class Kernel_Read_Dimensions final : public Kernel {
     virtual int getType() const;
 
    private:
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 };
 
 };  // namespace PROJECT_NS

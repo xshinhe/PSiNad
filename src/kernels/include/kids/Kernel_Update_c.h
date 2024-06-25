@@ -31,7 +31,7 @@ class Kernel_Update_c final : public Kernel {
     kids_bint* succ_ptr;
     kids_bint* frez_ptr;
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& executeKernel_impl(Status& stat);
 };

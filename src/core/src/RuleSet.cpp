@@ -103,26 +103,42 @@ void RuleSet::appendHeader(std::shared_ptr<RuleEvaluator>& expr_rule) {
 
 std::vector<std::shared_ptr<RuleEvaluator>>& RuleSet::getRules() { return rules; }
 
-Result RuleSet::getResult(int level) {
+Result RuleSet::getResult() {
     Result                              res{};
     std::shared_ptr<VariableDescriptor> resvar;
     for (auto& r : rules) {
-        switch (level) {
-            case 0: {
-                resvar = r->result;
-                break;
-            }
-            case 1: {
-                resvar = r->collect;
-                break;
-            }
-            case 2: {
-                resvar = r->reduced;
-                break;
-            }
-        }
-        std::string key = utils::concat(resvar->field, ".", resvar->name);
-        res._data.push_back(std::make_tuple(key,                    //
+        resvar = r->result;
+        res._data.push_back(std::make_tuple(resvar->name,           //
+                                            resvar->dataPointer,    //
+                                            resvar->dataType,       //
+                                            resvar->shape->size(),  //
+                                            totalFrameNumber        //
+                                            ));
+    }
+    return res;
+}
+
+Result RuleSet::getCollect() {
+    Result                              res{};
+    std::shared_ptr<VariableDescriptor> resvar;
+    for (auto& r : rules) {
+        resvar = r->collect;
+        res._data.push_back(std::make_tuple(resvar->name,           //
+                                            resvar->dataPointer,    //
+                                            resvar->dataType,       //
+                                            resvar->shape->size(),  //
+                                            totalFrameNumber        //
+                                            ));
+    }
+    return res;
+}
+
+Result RuleSet::getReduced() {
+    Result                              res{};
+    std::shared_ptr<VariableDescriptor> resvar;
+    for (auto& r : rules) {
+        resvar = r->reduced;
+        res._data.push_back(std::make_tuple(resvar->name,           //
                                             resvar->dataPointer,    //
                                             resvar->dataType,       //
                                             resvar->shape->size(),  //

@@ -29,21 +29,22 @@
 #ifndef KIDS_Solver_H
 #define KIDS_Solver_H
 
+#include "kids/Kernel.h"
+#include "kids/System.h"
+
 namespace PROJECT_NS {
 
 class Solver {
-    std::shared_ptr<Platform> getPlatfrom() { return _platform; }
-    std::shared_ptr<Param>    getParam() { return _param; }
-    std::shared_ptr<DataSet>  getDataSet() { return _dataset; }
-    std::shared_ptr<System>   getSystem() { return _system; }
-    std::shared_ptr<Solver>   getSolver() { return _solver; }
+   public:
+    Solver(std::shared_ptr<Kernel> ker) : _solver_kernel{ker} {};
+
+    std::shared_ptr<System> getSystem() { return _system; }
+
+    std::shared_ptr<Kernel> getSolverKernel() { return _solver_kernel; }
 
    private:
-    std::shared_ptr<Platform> _platform;
-    std::shared_ptr<Param>    _param;
-    std::shared_ptr<DataSet>  _dataset;
-    std::shared_ptr<System>   _system;
-    std::shared_ptr<Solver>   _solver;
+    std::shared_ptr<System> _system;
+    std::shared_ptr<Kernel> _solver_kernel;
 };
 };  // namespace PROJECT_NS
 

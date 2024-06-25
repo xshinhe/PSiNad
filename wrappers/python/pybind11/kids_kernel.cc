@@ -11,14 +11,14 @@ class PyKernel : public Kernel {
         );
     }
 
-    void setInputParam_impl(std::shared_ptr<Param>& PM) override {
+    void setInputParam_impl(std::shared_ptr<Param> PM) override {
         PYBIND11_OVERRIDE_PURE(void,               /* Return type */
                                Kernel,             /* Parent class */
                                setInputParam_impl, /* Name of function in C++ (must match Python name) */
                                PM);
     }
 
-    void setInputDataSet_impl(std::shared_ptr<DataSet>& DS) override {
+    void setInputDataSet_impl(std::shared_ptr<DataSet> DS) override {
         PYBIND11_OVERRIDE_PURE(void,                 /* Return type */
                                Kernel,               /* Parent class */
                                setInputDataSet_impl, /* Name of function in C++ (must match Python name) */
@@ -47,12 +47,23 @@ py::class_<Kernel, PyKernel, std::shared_ptr<Kernel>>(m, "Kernel", py::dynamic_a
     .def("removeAt", &Kernel::removeAt)
     .def("updateAt", &Kernel::updateAt)
     .def("generateInformationString", &Kernel::generateInformationString)
+    .def("setTiming", &Kernel::setTiming)
     .def("setInputParam", &Kernel::setInputParam)
     .def("setInputDataSet", &Kernel::setInputDataSet)
+    .def("setRuleSet", &Kernel::setRuleSet)
     .def("initializeKernel", &Kernel::initializeKernel)
     .def("executeKernel", &Kernel::executeKernel)
     .def("finalizeKernel", &Kernel::finalizeKernel);
 
-m.def("modelfactory", &ModelFactory);
+m.def("defaultModelFactory", &defaultModelFactory);
 
-m.def("solverfactory", &SolverFactory);
+
+// template <class T>
+// defaultSolverFactory_T(const std::string&, T);
+
+m.def("defaultSolverFactory",
+      static_cast<std::shared_ptr<Solver> (*)(const std::string&, std::shared_ptr<Model>)>(&defaultSolverFactory));
+m.def("defaultSolverFactory",
+      static_cast<std::shared_ptr<Solver> (*)(const std::string&, std::shared_ptr<System>)>(&defaultSolverFactory));
+
+// m.def("defaultSolverFactory", py::overload_cast<const std::string&, std::shared_ptr<System>>(&defaultSolverFactory));

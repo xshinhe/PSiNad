@@ -132,31 +132,31 @@ class Param final {
 
     bool get_bool(const std::string &key, const std::string &loc, const bool &default_value);
     bool get_bool(const std::string &key, const std::string &loc = "__loc__");
+    bool get_bool(const std::vector<std::string> &keys, const std::string &loc, const bool &default_value);
+    bool get_bool(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
 
     int get_int(const std::string &key, const std::string &loc, const int &default_value);
     int get_int(const std::string &key, const std::string &loc = "__loc__");
+    int get_int(const std::vector<std::string> &keys, const std::string &loc, const int &default_value);
+    int get_int(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
 
     std::string get_string(const std::string &key, const std::string &loc, const std::string &default_value);
     std::string get_string(const std::string &key, const std::string &loc = "__loc__");
+    std::string get_string(const std::vector<std::string> &keys, const std::string &loc,
+                           const std::string &default_value);
+    std::string get_string(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
 
     double get_double(const std::string &key, const std::string &loc, const phys::dimension7 &qdim,
                       const double &default_value = double());
     double get_double(const std::string &key, const std::string &loc, const double &default_value);
     double get_double(const std::string &key, const std::string &loc = "__loc__");
+    double get_double(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
+                      const double &default_value = double());
+    double get_double(const std::vector<std::string> &keys, const std::string &loc, const double &default_value);
+    double get_double(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
 
    private:
     std::shared_ptr<JSON> pj;
-
-    /**
-     * @brief get parameter
-     * @param key : key of the parameter
-     * @param loc : location tracer (always leaves it `LOC()`)
-     * @param qdim : physics dimension for conversion in double in AU unit
-     * @param default_value: default value is avialable
-     * @return T type
-     */
-    template <typename T, bool Require = false>
-    T get(const std::string &key, const std::string &loc, const phys::dimension7 &qdim, const T &default_value);
 };
 
 };  // namespace PROJECT_NS

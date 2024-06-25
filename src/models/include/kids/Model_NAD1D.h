@@ -1,7 +1,7 @@
 #ifndef MODEL_NAD1D_H
 #define MODEL_NAD1D_H
 
-#include "kids/Kernel.h"
+#include "kids/Model.h"
 #include "kids/Policy.h"
 
 namespace PROJECT_NS {
@@ -30,7 +30,7 @@ DEFINE_POLICY(NAD1DPolicy,
               IVP3,      // iverted potential model 3
               IVP4);     // iverted potential model 4
 
-class Model_NAD1D final : public Kernel {
+class Model_NAD1D final : public Model {
    public:
     virtual const std::string getName();
 
@@ -56,9 +56,9 @@ class Model_NAD1D final : public Kernel {
     kids_real *V, *dV, *ddV;
     kids_real* pm;
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& initializeKernel_impl(Status& stat);
 

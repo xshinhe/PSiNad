@@ -81,7 +81,7 @@ int Kernel_Random::rand_sphere(kids_real* res_arr, int N, kids_real constr) {
     return 0;
 }
 
-void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     seed = DS->def_int("random.seed", rng_t::state_size);  //
 }
 

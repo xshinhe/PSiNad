@@ -147,7 +147,7 @@ include(repo)
 get_repo_info(GIT_BRANCH GIT_DATE GIT_HASH GIT_STATUS)
 configure_file(
   ${CMAKE_SOURCE_DIR}/version/version.h.in
-  ${CMAKE_SOURCE_DIR}/generate/version.h
+  ${CMAKE_SOURCE_DIR}/src/core/include/kids/version.h
   @ONLY
 )
 set(KIDS_GIT_VERSION ${GIT_HASH})

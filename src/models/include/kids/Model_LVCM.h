@@ -1,7 +1,7 @@
 #ifndef Model_LVCM_H
 #define Model_LVCM_H
 
-#include "kids/Kernel.h"
+#include "kids/Model.h"
 #include "kids/Policy.h"
 
 namespace PROJECT_NS {
@@ -22,7 +22,7 @@ DEFINE_POLICY(LVCMPolicy,  //
               PYR2CED,     //
               Read);       //
 
-class Model_LVCM final : public Kernel {
+class Model_LVCM final : public Model {
    public:
     virtual const std::string getName();
 
@@ -56,9 +56,9 @@ class Model_LVCM final : public Kernel {
     // int N_ligh;
     // N = N_mode + N_coup + N_ligh
 
-    void setInputParam_impl(std::shared_ptr<Param>& PM);
+    void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     Status& initializeKernel_impl(Status& stat);
 

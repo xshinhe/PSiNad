@@ -3,7 +3,7 @@
 
 namespace PROJECT_NS {
 
-class Model_CED final : public Kernel {
+class Model_CED final : public Model {
    public:
    private:
 };

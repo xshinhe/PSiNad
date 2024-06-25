@@ -44,7 +44,7 @@ class Kernel_Random : public Kernel {
     int* seed;
     bool restart;
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& initializeKernel_impl(Status& stat);
 };

@@ -18,14 +18,26 @@ Kernel::Kernel(const std::string& customized_name) : kernel_name{customized_name
 
 Kernel::~Kernel(){};
 
-void Kernel::setInputParam(std::shared_ptr<Param>& PM) {
-    _param    = PM;
-    is_timing = _param->get_bool("timing", LOC(), false);
+void Kernel::setTiming(bool is_timing_in) {
+    is_timing = is_timing_in;
+    for (auto& pkernel : _child_kernels) pkernel->setTiming(is_timing_in);
+}
+
+void Kernel::setRuleSet(std::shared_ptr<RuleSet> ruleset) {
+    _ruleset = ruleset;
+    for (auto& pkernel : _child_kernels) pkernel->setRuleSet(ruleset);
+}
+
+void Kernel::setInputParam(std::shared_ptr<Param> PM) {
+    _param     = PM;
+    is_timing  = _param->get_bool("timing", LOC(), is_timing);
+    montecarlo = PM->get_int("M", LOC(), 1);
+    directory  = PM->get_string("directory", LOC(), "default");
     setInputParam_impl(PM);
     for (auto& pkernel : _child_kernels) pkernel->setInputParam(PM);
 }
 
-void Kernel::setInputDataSet(std::shared_ptr<DataSet>& DS) {
+void Kernel::setInputDataSet(std::shared_ptr<DataSet> DS) {
     if (!_param) throw kids_error("Param must be passed before");
     _dataset = DS;
     setInputDataSet_impl(DS);
@@ -215,9 +227,9 @@ const std::string Kernel::generateInformationString(double total_time, int curre
     return ss.str();
 }
 
-void Kernel::setInputParam_impl(std::shared_ptr<Param>& PM){};
+void Kernel::setInputParam_impl(std::shared_ptr<Param> PM){};
 
-void Kernel::setInputDataSet_impl(std::shared_ptr<DataSet>& DS){};
+void Kernel::setInputDataSet_impl(std::shared_ptr<DataSet> DS){};
 
 Status& Kernel::initializeKernel_impl(Status& stat) { return stat; }
 

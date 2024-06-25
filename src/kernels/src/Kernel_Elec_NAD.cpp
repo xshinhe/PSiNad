@@ -162,7 +162,7 @@ const std::string Kernel_Elec_NAD::getName() { return "Kernel_Elec_NAD"; }
 
 int Kernel_Elec_NAD::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Elec_NAD::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_Elec_NAD::setInputParam_impl(std::shared_ptr<Param> PM) {
     cmsh_type = NADPolicy::_from(PM->get_string("cmsh_flag", LOC(), "CVSH"));
 
     alpha0 = PM->get_double("alpha0", LOC(), 0.5);
@@ -228,7 +228,7 @@ void Kernel_Elec_NAD::setInputParam_impl(std::shared_ptr<Param>& PM) {
     dynamic_alpha = PM->get_bool("dynamic_alpha", LOC(), dynamic_alpha);
 }
 
-void Kernel_Elec_NAD::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Elec_NAD::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     alpha                       = DS->def(DATA::integrator::alpha);
     Epot                        = DS->def(DATA::integrator::Epot);
     p                           = DS->def(DATA::integrator::p);

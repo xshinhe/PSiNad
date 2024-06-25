@@ -12,3 +12,17 @@ mathru = "0.15.3"
 ndarray = "0.15.6"
 serde = "1.0.195"
 gflags = "0.3.12"
+arrow = "39.0.0"
+polars = "0.40.0"
+opencl3 = "0.9.5"
+pyo3 = { version = "0.18.0", features = ["extension-module"] }
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[[bin]]
+name = "rustkids"
+path = "src/main.rs"
+
+[package.metadata.maturin]
+name = "kidsrs"

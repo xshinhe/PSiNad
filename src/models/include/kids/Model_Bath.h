@@ -1,7 +1,7 @@
 #ifndef Model_Bath_H
 #define Model_Bath_H
 
-#include "kids/Kernel.h"
+#include "kids/Model.h"
 #include "kids/Policy.h"
 
 
@@ -24,7 +24,7 @@ DEFINE_POLICY(StrengthPolicy,  //
               Eta,             //
               Erg);            //
 
-class Model_Bath final : public Kernel {
+class Model_Bath final : public Model {
    public:
     virtual const std::string getName();
 
@@ -52,8 +52,8 @@ class Model_Bath final : public Kernel {
     kids_real* x_sigma;
     kids_real* p_sigma;
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 };
 
 

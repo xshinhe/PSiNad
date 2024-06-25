@@ -39,11 +39,10 @@ class Kernel_Dump_DataSet : public Kernel {
     virtual int getType() const;
 
    private:
-    std::string directory;  ///< path for dumping
-    std::string fn;         ///< filename (stamp) for dumping
-    std::string hdlr_str;   ///< handler type specifier
+    std::string fn;        ///< filename (stamp) for dumping
+    std::string hdlr_str;  ///< handler type specifier
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
     virtual Status& initializeKernel_impl(Status& stat);
 

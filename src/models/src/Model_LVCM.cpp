@@ -11,12 +11,12 @@ const std::string Model_LVCM::getName() { return "Model_LVCM"; }
 
 int Model_LVCM::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Model_LVCM::setInputParam_impl(std::shared_ptr<Param> &PM) {
-    lvcm_type      = LVCMPolicy::_from(_param->get_string("lvcm_flag", LOC(), "PYR3"));
-    classical_bath = _param->get_bool("classical_bath", LOC(), false);
+void Model_LVCM::setInputParam_impl(std::shared_ptr<Param> PM) {
+    lvcm_type      = LVCMPolicy::_from(_param->get_string("model.lvcm_flag", LOC(), "PYR3"));
+    classical_bath = _param->get_bool("model.classical_bath", LOC(), false);
 }
 
-void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> &DS) {
+void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Hsys = DS->def(DATA::model::Hsys);
     w    = DS->def(DATA::model::w);
     memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
@@ -226,8 +226,8 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> &DS) {
 
             double H_unit = phys::au_2_ev;
 
-            double gcoup = _param->get_double("gcoup", LOC(), phys::energy_d, 0.24f / H_unit);
-            double wcav  = _param->get_double("wcav", LOC(), phys::energy_d, 0.62f / H_unit);
+            double gcoup = _param->get_double("model.gcoup", LOC(), phys::energy_d, 0.24f / H_unit);
+            double wcav  = _param->get_double("model.wcav", LOC(), phys::energy_d, 0.62f / H_unit);
 
             // parameter for PYR2
             double E_data_PYR2[2]      = {3.94f, 4.84f};
@@ -273,8 +273,8 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> &DS) {
             break;
         }
         case LVCMPolicy::Read: {
-            std::string   lvcm_readfile = _param->get_string("lvcm_readfile", LOC(), "lvcm.dat");
-            std::ifstream ifs(lvcm_readfile);
+            std::string   lvcm_file = _param->get_string("model.lvcm_file", LOC(), "lvcm.dat");
+            std::ifstream ifs(lvcm_file);
             std::string   H_unit_str;
             std::string   firstline;
             getline(ifs, firstline);

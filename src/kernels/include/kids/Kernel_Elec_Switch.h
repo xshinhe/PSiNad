@@ -78,9 +78,9 @@ class Kernel_Elec_Switch final : public Kernel {
     bool use_fssh;
     bool use_strange_win;
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& initializeKernel_impl(Status& stat);
 

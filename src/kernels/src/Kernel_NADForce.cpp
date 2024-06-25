@@ -15,12 +15,12 @@ const std::string Kernel_NADForce::getName() { return "Kernel_NADForce"; }
 
 int Kernel_NADForce::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_NADForce::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_NADForce::setInputParam_impl(std::shared_ptr<Param> PM) {
     FORCE_OPT::BATH_FORCE_BILINEAR = _param->get_bool("BATH_FORCE_BILINEAR", LOC(), false);
     offd_projected                 = _param->get_bool("offd_projected", LOC(), true);
 };
 
-void Kernel_NADForce::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_NADForce::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     f        = DS->def(DATA::integrator::f);
     p        = DS->def(DATA::integrator::p);
     m        = DS->def(DATA::integrator::m);

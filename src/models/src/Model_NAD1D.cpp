@@ -514,8 +514,8 @@ const std::string Model_NAD1D::getName() { return "Model_NAD1D"; }
 
 int Model_NAD1D::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param>& PM) {
-    nad1d_type = NAD1DPolicy::_from(_param->get_string("nad1d_flag", LOC(), "SAC"));
+void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param> PM) {
+    nad1d_type = NAD1DPolicy::_from(_param->get_string("model.nad1d_flag", LOC(), "SAC"));
 
     // revise tend and dt
     switch (nad1d_type) {
@@ -527,16 +527,16 @@ void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param>& PM) {
         case NAD1DPolicy::DBG:
         case NAD1DPolicy::DAG:
         case NAD1DPolicy::DRN: {
-            double x0_read   = _param->get_double("x0", LOC(), -10.0e0);
-            double p0_read   = _param->get_double("p0", LOC(), 10.0e0);
-            double mass_read = _param->get_double("m0", LOC(), 2000.0e0);
-            double tend_read = _param->get_double("tend", LOC(), -1);
-            double dt_read   = _param->get_double("dt", LOC(), -1);
+            double x0_read   = _param->get_double("model.x0", LOC(), -10.0e0);
+            double p0_read   = _param->get_double("model.p0", LOC(), 10.0e0);
+            double mass_read = _param->get_double("model.m0", LOC(), 2000.0e0);
+            double tend_read = _param->get_double("model.tend", LOC(), -1);
+            double dt_read   = _param->get_double("model.dt", LOC(), -1);
 
             double tend_rev = std::abs(5 * x0_read * mass_read / p0_read);
             double dt_rev   = std::abs(x0_read * mass_read / p0_read) / 5000;
-            if (tend_read < 0) (*(_param->pjson()))["tend"] = tend_rev;
-            if (dt_read < 0) (*(_param->pjson()))["dt"] = dt_rev;
+            if (tend_read < 0) (*(_param->pjson()))["model"]["tend"] = tend_rev;
+            if (dt_read < 0) (*(_param->pjson()))["model"]["dt"] = dt_rev;
             break;
         }
         case NAD1DPolicy::NA_I: {
@@ -546,23 +546,22 @@ void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param>& PM) {
             double mass_I  = 126.904473e0 / phys::au_2_amu;
             double mred    = (mass_Na * mass_I) / (mass_Na + mass_I);
 
-            double parm_E    = _param->get_double("parm_E", LOC(), 1.0e0);
-            double tend_read = _param->get_double("tend", LOC(), -1);
-            double dt_read   = _param->get_double("dt", LOC(), -1);
+            double parm_E    = _param->get_double("model.parm_E", LOC(), 1.0e0);
+            double tend_read = _param->get_double("model.tend", LOC(), -1);
+            double dt_read   = _param->get_double("model.dt", LOC(), -1);
 
             double x0_max   = 160.0e0 / phys::au_2_ang;
             double vel      = sqrt(2 * parm_E / mred);
             double tend_rev = 2 * x0_max / vel;
             double dt_rev   = tend_rev / 50000;
-
-            if (tend_read < 0) (*(_param->pjson()))["tend"] = tend_rev;
-            if (dt_read < 0) (*(_param->pjson()))["dt"] = dt_rev;
+            if (tend_read < 0) (*(_param->pjson()))["model"]["tend"] = tend_rev;
+            if (dt_read < 0) (*(_param->pjson()))["model"]["dt"] = dt_rev;
             break;
         }
     }
 };
 
-void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Hsys = DS->def_real("model.Hsys", Dimension::FF);
     memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
 
@@ -572,9 +571,8 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
         std::string   firstline;
         getline(ifs, firstline);
         std::stringstream sstr(firstline);
-        sstr >> H_unit_str;  ///< the firstline stores H's unit
-        double H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
-
+        sstr >> H_unit_str;
+        double    H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
         kids_real val;
         for (int i = 0; i < Dimension::FF; ++i)
             if (ifs >> val) Hsys[i] = val / H_unit;
@@ -600,20 +598,20 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     p      = DS->def(DATA::integrator::p);
     p_sign = DS->def(DATA::integrator::p_sign);
 
-    double  x0_read = _param->get_double("x0grid", LOC(), -10.0e0);
-    int     Nxgird  = _param->get_int("Nxgrid", LOC(), 101);
+    double  x0_read = _param->get_double("model.x0grid", LOC(), -10.0e0);
+    int     Nxgird  = _param->get_int("model.Nxgrid", LOC(), 101);
     double  dx      = (2 * fabs(x0_read)) / (Nxgird - 1);
     double* xgrid   = DS->def_real("integrator.xgrid", Nxgird);
     for (int i = 0; i < Nxgird; ++i) xgrid[i] = -abs(x0_read) + i * dx;
 
-    DS->def_real("init.x", Dimension::N);
-    DS->def_real("init.p", Dimension::N);
+    DS->def(DATA::init::x);
+    DS->def(DATA::init::p);
 
-    mass[0]     = _param->get_double("m0", LOC(), 2000.0e0);
-    x0[0]       = _param->get_double("x0", LOC(), 100.0e0);
-    p0[0]       = _param->get_double("p0", LOC(), 100.0e0);
-    double varx = _param->get_double("varx", LOC(), 0.5e0);
-    double varp = _param->get_double("varp", LOC(), 0.5e0);
+    mass[0]     = _param->get_double("model.m0", LOC(), 2000.0e0);
+    x0[0]       = _param->get_double("model.x0", LOC(), 100.0e0);
+    p0[0]       = _param->get_double("model.p0", LOC(), 100.0e0);
+    double varx = _param->get_double("model.varx", LOC(), 0.5e0);
+    double varp = _param->get_double("model.varp", LOC(), 0.5e0);
     x_sigma[0]  = sqrt(varx);
     p_sigma[0]  = sqrt(varp);
 
@@ -673,10 +671,10 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
         case NAD1DPolicy::JC1D: {
             // CHECK_EQ(F, 2);
             mass[0]       = 1.0e0;
-            mspes_parm[0] = _param->get_double("nad1d_e", LOC(), 1.0e0);
-            mspes_parm[1] = _param->get_double("nad1d_d", LOC(), 1.0e0);
-            mspes_parm[2] = _param->get_double("nad1d_c", LOC(), 1.0e0);
-            mspes_parm[3] = _param->get_double("nad1d_w", LOC(), 1.0e0);
+            mspes_parm[0] = _param->get_double("model.nad1d_e", LOC(), 1.0e0);
+            mspes_parm[1] = _param->get_double("model.nad1d_d", LOC(), 1.0e0);
+            mspes_parm[2] = _param->get_double("model.nad1d_c", LOC(), 1.0e0);
+            mspes_parm[3] = _param->get_double("model.nad1d_w", LOC(), 1.0e0);
             break;
         }
         case NAD1DPolicy::NA_I: {
@@ -686,7 +684,7 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
             double mass_I  = 126.904473e0 / phys::au_2_amu;
             mass[0]        = (mass_Na * mass_I) / (mass_Na + mass_I);
 
-            mspes_parm[0] = _param->get_double("parm_E", LOC(), 1.0e0);
+            mspes_parm[0] = _param->get_double("model.parm_E", LOC(), 1.0e0);
             x0[0]         = 160.0e0 / phys::au_2_ang;
             p0[0]         = -sqrt(2 * mass[0] * mspes_parm[0]);
             break;
@@ -712,8 +710,8 @@ Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
             Kernel_Random::rand_gaussian(x, Dimension::N);
             Kernel_Random::rand_gaussian(p, Dimension::N);
             for (int j = 0; j < Dimension::N; ++j) {
-                x[j] = x0[j] + 0 * x[j] * x_sigma[j];
-                p[j] = p0[j] + 0 * p[j] * p_sigma[j];
+                x[j] = x0[j] + x[j] * x_sigma[j];
+                p[j] = p0[j] + p[j] * p_sigma[j];
             }
             break;
         }
@@ -723,9 +721,8 @@ Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
     } else {
         p_sign[0] = phys::math::iz, p_sign[1] = phys::math::iu;
     }
-    _dataset->def_real("init.x", x, Dimension::N);
-    _dataset->def_real("init.p", p, Dimension::N);
-
+    _dataset->def(DATA::init::x);
+    _dataset->def(DATA::init::p);
     executeKernel(stat);
     return stat;
 }

@@ -52,41 +52,41 @@ int Model_Bath::fun_Cw(kids_complex* Cw, double* w, int Nw, double* w_arr, doubl
     return 0;
 }
 
-void Model_Bath::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Model_Bath::setInputParam_impl(std::shared_ptr<Param> PM) {
     // size information
-    Nb             = _param->get_int("Nb", LOC());
-    bath_type      = BathPolicy::_from(_param->get_string("bath_flag", LOC(), "Debye"));
+    Nb             = _param->get_int("model.Nb", LOC());
+    bath_type      = BathPolicy::_from(_param->get_string("model.bath_flag", LOC(), "Debye"));
     omegac         = _param->get_double("omegac", LOC(), phys::energy_d, 1.0f);
-    strength_type  = StrengthPolicy::_from(_param->get_string("strength_flag", LOC(), "Lambda"));
-    classical_bath = _param->get_bool("classical_bath", LOC(), false);
+    strength_type  = StrengthPolicy::_from(_param->get_string("model.strength_flag", LOC(), "Lambda"));
+    classical_bath = _param->get_bool("model.classical_bath", LOC(), false);
 
     switch (strength_type) {
         case StrengthPolicy::Lambda: {
-            double strength = _param->get_double("strength", LOC(), phys::energy_d, 1.0f);
+            double strength = _param->get_double("model.strength", LOC(), phys::energy_d, 1.0f);
             lambda          = strength;
             break;
         }
         case StrengthPolicy::Alpha: {
-            double strength = _param->get_double("strength", LOC(), 1.0f);
+            double strength = _param->get_double("model.strength", LOC(), 1.0f);
             lambda          = 0.5f * omegac * strength;
             break;
         }
         case StrengthPolicy::Eta: {
-            double strength = _param->get_double("strength", LOC(), phys::energy_d, 1.0f);
+            double strength = _param->get_double("model.strength", LOC(), phys::energy_d, 1.0f);
             lambda          = 0.5f * strength;
             break;
         }
         case StrengthPolicy::Erg: {
-            double strength = _param->get_double("strength", LOC(), phys::energy_d, 1.0f);
+            double strength = _param->get_double("model.strength", LOC(), phys::energy_d, 1.0f);
             lambda          = 0.25f * strength;
             break;
         }
     }
-    double temperature = _param->get_double("temperature", LOC(), phys::temperature_d, 1.0f);
+    double temperature = _param->get_double("model.temperature", LOC(), phys::temperature_d, 1.0f);
     beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
 }
 
-void Model_Bath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Model_Bath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     omegas = DS->def(DATA::model::bath::omegas);
     coeffs = DS->def(DATA::model::bath::coeffs);
     switch (bath_type) {
@@ -113,8 +113,8 @@ void Model_Bath::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
         case BathPolicy::ReadFile:  // #b850, #pbi, #rub
         default: {
             try {
-                std::string   bath_readfile = _param->get_string("bath_readfile", LOC(), "bath.spectrum");
-                std::ifstream ifs(bath_readfile);
+                std::string   bath_file = _param->get_string("model.bath_file", LOC(), "bath.spectrum");
+                std::ifstream ifs(bath_file);
 
                 std::string firstline, unit_str1, unit_str2, DIS_FLAG;
 

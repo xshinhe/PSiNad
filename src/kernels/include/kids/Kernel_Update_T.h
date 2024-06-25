@@ -25,9 +25,9 @@ class Kernel_Update_T : public Kernel {
     double gammal;
     double randu;
 
-    virtual void setInputParam_impl(std::shared_ptr<Param> &PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> &DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status &executeKernel_impl(Status &stat);
 };

@@ -24,7 +24,7 @@ const std::string Model_Interf_MNDO::getName() { return "Model_Interf_MNDO"; }
 
 int Model_Interf_MNDO::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Model_Interf_MNDO::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Model_Interf_MNDO::setInputParam_impl(std::shared_ptr<Param> PM) {
     Kernel_Representation::onthefly = true;
 
     // parse mndo input
@@ -41,7 +41,7 @@ void Model_Interf_MNDO::setInputParam_impl(std::shared_ptr<Param>& PM) {
     assert(directory != "");
 }
 
-void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     x = DS->def(DATA::integrator::x);
     p = DS->def(DATA::integrator::p);
 
@@ -81,18 +81,18 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
     for (int i = 0, idx = 0, idxR = 0; i < natom; ++i) {
         atoms[i] = stoi(mndo_data[idx++]);
         for (int j = 0; j < 3; ++j, ++idxR) {
-            mass[idxR] = ELEMENTS_MASS[atoms[i]] / phys::au_2_amu;  // convert amu to au
-            x0[idxR]   = stod(mndo_data[idx++]) / phys::au_2_ang;   // convert angstrom into au
-            idx++;                                                  // skip fixflag
+            mass[idxR] = chem::getElemMass(atoms[i]) / phys::au_2_amu;  // convert amu to au
+            x0[idxR]   = stod(mndo_data[idx++]) / phys::au_2_ang;       // convert angstrom into au
+            idx++;                                                      // skip fixflag
         }
     }
 
     // read temperature
-    double temperature = _param->get_double("temperature", LOC(), phys::temperature_d, 1.0f);
+    double temperature = _param->get_double("model.temperature", LOC(), phys::temperature_d, 1.0f);
     beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
 
     // read task
-    init_nuclinp = _param->get_string("init_nuclinp", LOC(), "#hess");
+    init_nuclinp = _param->get_string("model.init_nuclinp", LOC(), "#hess");
 
     if (init_nuclinp == "#normalmode") {
         calc_normalmode();
@@ -109,7 +109,7 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
 
     // read hessian from hessian calculation (jop=2 kprint=1)
     if (init_nuclinp == "#hess") {
-        std::string hess_log = _param->get_string("hess_log", LOC(), "hess.out");
+        std::string hess_log = _param->get_string("model.hess_log", LOC(), "hess.out");
         if (!isFileExists(hess_log))
             throw std::runtime_error(utils::concat("hess_log file [", hess_log, "] is missed!"));
 
@@ -130,7 +130,7 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
         }
     }
     if (init_nuclinp == "#hess2") {
-        std::string hess_mol = _param->get_string("hess_mol", LOC(), "hess_molden.dat");
+        std::string hess_mol = _param->get_string("model.hess_mol", LOC(), "hess_molden.dat");
         if (!isFileExists(hess_mol))
             throw std::runtime_error(utils::concat("hess_mol file [", hess_mol, "] is missed!"));
 
@@ -195,7 +195,7 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
     _dataset->def_real("init.x", x, Dimension::N);
     _dataset->def_real("init.p", p, Dimension::N);
 
-    std::string hdlr_str = _param->get_string("handler", LOC());
+    std::string hdlr_str = _param->get_string("model.handler", LOC());
 
     refer        = false;
     task_control = (hdlr_str == "sampling") ? "samp" : "nad";
@@ -223,13 +223,13 @@ Status& Model_Interf_MNDO::executeKernel_impl(Status& stat_in) {
         control_copy = "nad-hard";
         removeFile(utils::concat(directory, "/imomap.dat"));
         std::string rm_exe = utils::concat("rm ", directory, "/imomap.dat");
-        system(rm_exe.c_str());
+        stat_in.succ       = (system(rm_exe.c_str()) == 0);
         std::cout << "last try mndo\n";
     }
     new_task(utils::concat(directory, "/", inpfile), control_copy);
 
     std::string cmd_exe = utils::concat("cd ", directory, " && ", exec_file, " < ", inpfile, " > ", outfile);
-    int         stat    = system(cmd_exe.c_str());
+    stat_in.succ        = (system(cmd_exe.c_str()) == 0);
 
     parse_standard(utils::concat(directory, "/", outfile), stat_in);  // parse in MNDO's units
 
@@ -570,10 +570,10 @@ Status& Model_Interf_MNDO::parse_standard(const std::string& log, Status& stat_i
         int*        istep_ptr = _dataset->def_int("iter.istep");
         std::string cmd_exe   = utils::concat("cp ", directory, "/.mndoinp.", stat_in.icalc, "  ", directory,
                                             "/.mndoinp.", stat_in.icalc, ".err.", istep_ptr[0]);
-        system(cmd_exe.c_str());
-        cmd_exe = utils::concat("cp ", directory, "/.mndoout.", stat_in.icalc, "  ", directory, "/.mndoout.",
+        stat_in.succ          = (system(cmd_exe.c_str()) == 0);
+        cmd_exe      = utils::concat("cp ", directory, "/.mndoout.", stat_in.icalc, "  ", directory, "/.mndoout.",
                                 stat_in.icalc, ".err.", istep_ptr[0]);
-        system(cmd_exe.c_str());
+        stat_in.succ = (system(cmd_exe.c_str()) == 0);
     } else {
         succ_ptr[0] = true;
         if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) {
@@ -736,9 +736,9 @@ int Model_Interf_MNDO::calc_normalmode() {
             ofs << natom << std::endl;
             ofs << "time: " << (itime * phys::math::twopi) / (w[iw] * ntime) << std::endl;
             for (int i = 0, idx = 0; i < natom; ++i) {
-                ofs << FMT(8) << ELEMENTS_LABEL[atoms[i]]   //
-                    << FMT(8) << x[idx++] * phys::au_2_ang  //
-                    << FMT(8) << x[idx++] * phys::au_2_ang  //
+                ofs << FMT(8) << chem::getElemLabel(atoms[i])  //
+                    << FMT(8) << x[idx++] * phys::au_2_ang     //
+                    << FMT(8) << x[idx++] * phys::au_2_ang     //
                     << FMT(8) << x[idx++] * phys::au_2_ang << std::endl;
             }
         }
@@ -759,7 +759,7 @@ int Model_Interf_MNDO::calc_samp() {
 
     if (!isFileExists(".mndohess.out")) {
         new_task(".mndohess.in", "hess");
-        system("mndo < .mndohess.in > .mndohess.out");
+        stat.succ = (system("mndo < .mndohess.in > .mndohess.out") == 0);
         // if (stat != 0) return stat;
     }
     parse_hessian(".mndohess.out");
@@ -826,7 +826,7 @@ int Model_Interf_MNDO::calc_samp() {
             ofs << FMT(8) << isamp << FMT(8) << beta << FMT(8) << Epot << FMT(8) << Ekin << std::endl;
             for (int i = 0, idx1 = 0, idx2 = 0; i < natom; ++i) {
                 // output configuration ([angstrom])
-                ofs << FMT(8) << ELEMENTS_LABEL[atoms[i]];
+                ofs << FMT(8) << chem::getElemLabel(atoms[i]);
                 for (int k = 0; k < 3; ++k, ++idx1) ofs << FMT(8) << x[idx1] * phys::au_2_ang;
                 // output velocity ([angstrom/ps])
                 for (int k = 0; k < 3; ++k, ++idx2) ofs << FMT(8) << p[idx2] / mass[idx2] * phys::au_2_angoverps;
@@ -844,7 +844,7 @@ int Model_Interf_MNDO::calc_samp() {
         ofs << FMT(8) << isamp << std::endl;
         for (int i = 0, idx1 = 0, idx2 = 0; i < natom; ++i) {
             // output configuration ([angstrom])
-            ofs << FMT(8) << ELEMENTS_LABEL[atoms[i]];
+            ofs << FMT(8) << chem::getElemLabel(atoms[i]);
             for (int k = 0; k < 3; ++k, ++idx1) ofs << FMT(8) << x[idx1] * phys::au_2_ang;
             // output velocity ([angstrom/ps])
             for (int k = 0; k < 3; ++k, ++idx2) ofs << FMT(8) << p[idx2] / mass[idx2] * phys::au_2_angoverps;

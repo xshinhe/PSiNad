@@ -3,7 +3,9 @@
 #define Handler_H
 
 #include "kids/Kernel.h"
+#include "kids/Model.h"
 #include "kids/Param.h"
+#include "kids/Solver.h"
 
 namespace PROJECT_NS {
 
@@ -33,8 +35,9 @@ class Handler final {
     int run_help_dataset(std::shared_ptr<Param>& PM);  // { return 0; }
 
    private:
-    std::shared_ptr<Kernel> model;
-    std::shared_ptr<Kernel> solver;
+    std::shared_ptr<Model>  model;
+    std::shared_ptr<Solver> solver;
+    std::shared_ptr<Kernel> solver_kernel;
 };
 
 };  // namespace PROJECT_NS

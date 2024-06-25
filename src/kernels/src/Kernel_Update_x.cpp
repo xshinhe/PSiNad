@@ -11,7 +11,7 @@ const std::string Kernel_Update_x::getName() { return "Kernel_Update_x"; }
 
 int Kernel_Update_x::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Update_x::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Update_x::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dt_ptr          = DS->def(DATA::iter::dt);
     x               = DS->def(DATA::integrator::x);
     p               = DS->def(DATA::integrator::p);

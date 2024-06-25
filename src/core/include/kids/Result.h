@@ -37,7 +37,7 @@
 namespace PROJECT_NS {
 class Result final {
    public:
-    using DataType      = std::vector<std::tuple<std::string,  // key
+    using DataType      = std::vector<std::tuple<std::string,  // data name (without field)
                                             void*,        // data pointer
                                             kids_dtype,   // data type
                                             std::size_t,  // size of data
@@ -45,6 +45,8 @@ class Result final {
                                             >>;
     using HeaderType    = std::vector<std::string>;
     using DataframeType = std::vector<std::vector<kids_real>>;
+
+    static Result defineAtNewField(const std::string& field, Result& res_in);
 
     // std::pair<HeaderType, DataframeType>
     // int asDataframe() { return 0; }

@@ -21,7 +21,7 @@ Param::Param(const std::string &input, LoadOption option) {
             try {
                 ifs >> *pj;
             } catch (const JSON_Exception& e) {
-                std::cout << "Invalid file: " << input;
+                throw kids_error("Invalid Json File Format");
             }
             ifs.close();
             break;
@@ -31,7 +31,7 @@ Param::Param(const std::string &input, LoadOption option) {
             try {
                 sstr >> *pj;
             } catch (const JSON_Exception& e) {
-                std::cout << "Invalid string: " << input;
+                throw kids_error("Invalid Json String Format");
             }
             break;
         }
@@ -39,124 +39,170 @@ Param::Param(const std::string &input, LoadOption option) {
     // clang-format on
 }
 
-bool Param::has_key(const std::string &key) { return !(pj->count(key) == 0); }
+static bool has_key_internal(const Param::JSON &json, const std::string &key) {
+    auto        ipos = key.find_first_of(".");
+    std::string key1 = (ipos == std::string::npos) ? key : key.substr(0, ipos);
+    std::string key2 = (ipos == std::string::npos) ? "" : key.substr(ipos + 1, key.size());
+    if (ipos != std::string::npos) return has_key_internal(json[key1], key2);
+    return !(json.count(key) == 0);
+}
+
+bool Param::has_key(const std::string &key) { return has_key_internal(*pj, key); }
 
 std::shared_ptr<configor::json> Param::pjson() { return pj; }
 
 std::string Param::repr() { return pj->dump(4, ' '); }
 
+/**
+ * @brief get parameter
+ * @param json : JSON object
+ * @param key : key of the parameter
+ * @param loc : location tracer (always leaves it `LOC()`)
+ * @param qdim : physics dimension for conversion in double in AU unit
+ * @param default_value: default value is avialable
+ * @return T type
+ */
+template <typename T, bool Required = false>
+static T get_internal(const Param::JSON &json, const std::string &key, const std::string &loc,  //
+                      const phys::dimension7 &qdim, const T &default_value) {
+    auto        ipos       = key.find_first_of(".");
+    std::string key1       = (ipos == std::string::npos) ? key : key.substr(0, ipos);
+    bool        key1_exist = !(json.count(key1) == 0);
 
-template <typename T, bool Require = false>
-T Param::get(const std::string &key, const std::string &loc, const phys::dimension7 &qdim, const T &default_value) {
-    if (!has_key(key)) {
-        if (Require) {
-            throw kids_error(                              //
-                utils::concat(loc,                         //
-                              " Type<", as_str<T>(), ">",  //
-                              " Key/", key, "/",           //
-                              " : Illegal default")        //
-            );
-            return T();
-        } else {
-            try {
-                throw param_warning(                           //
-                    utils::concat(loc,                         //
-                                  " Type<", as_str<T>(), ">",  //
-                                  " Key/", key, "/",           //
-                                  " : Use default ",           //
-                                  default_value)               //
-                );
-            } catch (param_warning &w) { std::cerr << w.what() << "\n"; }
-            return default_value;
-        }
+    if (!key1_exist && Required) {
+        throw kids_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ : Required"));
+        return T();
     }
+    if (!key1_exist && !Required) {
+        try {
+            throw param_warning(
+                utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ : Default=", default_value));
+        } catch (param_warning &w) { std::cerr << w.what() << "\n"; }
+        return default_value;
+    }
+    if (ipos != std::string::npos) {
+        std::string key2 = (ipos == std::string::npos) ? "" : key.substr(ipos + 1, key.size());
+        return get_internal<T, Required>(json[key1], key2, loc, qdim, default_value);
+    }
+
     // the case find the key
-    switch ((*pj)[key].type()) {
+    switch (json[key].type()) {
         case configor::config_value_type::string: {
             if (std::is_same<T, std::string>::value) {
-                return (*pj)[key].get<T>();
+                return json[key].get<T>();
             } else if (std::is_same<T, double>::value) {
-                // parse unit
-                phys::uval uv   = phys::us::parse((*pj)[key].as_string());
-                double     qval = phys::au::as(qdim, uv);
-
-                // conversion by stringstream (stupid)
+                phys::uval        uv   = phys::us::parse(json[key].as_string());
+                double            qval = phys::au::as(qdim, uv);
                 T                 q;
                 std::stringstream ss;
-                ss << std::setiosflags(std::ios::scientific)  //
-                   << std::setprecision(32) << qval;          //
+                ss << std::setiosflags(std::ios::scientific) << std::setprecision(32) << qval;  // !stupid
                 ss >> q;
                 return q;
             }
             break;
         }
         case configor::config_value_type::boolean: {
-            if (std::is_same<T, bool>::value) return (*pj)[key].get<T>();
+            T q;
+            if (std::is_same<T, bool>::value) q = json[key].get<T>();
+            return q;
             break;
         }
         case configor::config_value_type::number_float: {
             T q;
-            if (std::is_same<T, double>::value) {
-                q = (*pj)[key].as_float();
-                return q;
-            }
+            if (std::is_same<T, double>::value) q = json[key].as_float();
+            return q;
             break;
         }
         case configor::config_value_type::number_integer: {
             T q;
-            if (std::is_same<T, double>::value) {
-                q = (*pj)[key].as_float();
-                return q;
-            } else if (std::is_same<T, int>::value) {
-                return (*pj)[key].get<T>();
-            }
+            if (std::is_same<T, double>::value) q = json[key].as_float();
+            if (std::is_same<T, int>::value) q = json[key].get<T>();
+            return q;
             break;
         }
     }
     // cannot be adapted to existing conversions
-    throw kids_error(                                //
-        utils::concat(loc,                           //
-                      " Type<", as_str<T>(), ">",    //
-                      " Key/", key, "/",             //
-                      " Data{",                      //
-                      (*pj)[key].dump(4, ' '), "}",  //
-                      " : Converting fatal")         //
-    );
+    throw kids_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ Data{", json[key].dump(4, ' '), "}",
+                                   " : Converting fatal"));
+    return T();
+}
+
+template <typename T, bool Required = false>
+T get(const Param::JSON &json, const std::vector<std::string> &keys, const std::string &loc,  //
+      const phys::dimension7 &qdim, const T &default_value) {
+    for (auto &key : keys) {
+        if (has_key_internal(json, key)) return get_internal<T, Required>(json, key, loc, qdim, default_value);
+    }
+    throw kids_error("Cannot get parameter!");
     return T();
 }
 
 /// @{
 bool Param::get_bool(const std::string &key, const std::string &loc, const bool &default_value) {
-    return get<bool, false>(key, loc, phys::none_d, default_value);
+    return get_internal<bool, false>(*pj, key, loc, phys::none_d, default_value);
 }
 bool Param::get_bool(const std::string &key, const std::string &loc) {
-    return get<bool, true>(key, loc, phys::none_d, bool());
+    return get_internal<bool, true>(*pj, key, loc, phys::none_d, bool());
 }
 
 int Param::get_int(const std::string &key, const std::string &loc, const int &default_value) {
-    return get<int, false>(key, loc, phys::none_d, default_value);
+    return get_internal<int, false>(*pj, key, loc, phys::none_d, default_value);
 }
 int Param::get_int(const std::string &key, const std::string &loc) {
-    return get<int, true>(key, loc, phys::none_d, int());
+    return get_internal<int, true>(*pj, key, loc, phys::none_d, int());
 }
 
 std::string Param::get_string(const std::string &key, const std::string &loc, const std::string &default_value) {
-    return get<std::string, false>(key, loc, phys::none_d, default_value);
+    return get_internal<std::string, false>(*pj, key, loc, phys::none_d, default_value);
 }
 std::string Param::get_string(const std::string &key, const std::string &loc) {
-    return get<std::string, true>(key, loc, phys::none_d, std::string());
+    return get_internal<std::string, true>(*pj, key, loc, phys::none_d, std::string());
 }
 
 double Param::get_double(const std::string &key, const std::string &loc, const phys::dimension7 &qdim,
                          const double &default_value) {
-    return get<double, false>(key, loc, qdim, default_value);
+    return get_internal<double, false>(*pj, key, loc, qdim, default_value);
 }
 double Param::get_double(const std::string &key, const std::string &loc, const double &default_value) {
-    return get<double, false>(key, loc, phys::none_d, default_value);
+    return get_internal<double, false>(*pj, key, loc, phys::none_d, default_value);
 }
 double Param::get_double(const std::string &key, const std::string &loc) {
-    return get<double, true>(key, loc, phys::none_d, double());
+    return get_internal<double, true>(*pj, key, loc, phys::none_d, double());
 }
+
+bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc, const bool &default_value) {
+    return get<bool, false>(*pj, keys, loc, phys::none_d, default_value);
+}
+bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc) {
+    return get<bool, true>(*pj, keys, loc, phys::none_d, bool());
+}
+
+int Param::get_int(const std::vector<std::string> &keys, const std::string &loc, const int &default_value) {
+    return get<int, false>(*pj, keys, loc, phys::none_d, default_value);
+}
+int Param::get_int(const std::vector<std::string> &keys, const std::string &loc) {
+    return get<int, true>(*pj, keys, loc, phys::none_d, int());
+}
+
+std::string Param::get_string(const std::vector<std::string> &keys, const std::string &loc,
+                              const std::string &default_value) {
+    return get<std::string, false>(*pj, keys, loc, phys::none_d, default_value);
+}
+std::string Param::get_string(const std::vector<std::string> &keys, const std::string &loc) {
+    return get<std::string, true>(*pj, keys, loc, phys::none_d, std::string());
+}
+
+double Param::get_double(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
+                         const double &default_value) {
+    return get<double, false>(*pj, keys, loc, qdim, default_value);
+}
+double Param::get_double(const std::vector<std::string> &keys, const std::string &loc, const double &default_value) {
+    return get<double, false>(*pj, keys, loc, phys::none_d, default_value);
+}
+double Param::get_double(const std::vector<std::string> &keys, const std::string &loc) {
+    return get<double, true>(*pj, keys, loc, phys::none_d, double());
+}
+
 /// @}
 
 };  // namespace PROJECT_NS

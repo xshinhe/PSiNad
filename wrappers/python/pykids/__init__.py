@@ -15,15 +15,13 @@ from . import version
 #     except:
 #         pass
 
-os.path.append(version.KIDS_library_path)
-# import pykids.libpykids_v1 as v1
-import pykids.libpykids_v2 as v2
+# os.path.append(version.KIDS_library_path)
+
+import pykids.libpykids_v1 as lib
+#import pykids.libpykids_v2 as v2
 import pykids._kids as _kids
 import pykids.ext as ext
-
-if sys.platform == 'win32':
-    os.environ['PATH'] = _path
-    del _path
+import pykids.example as example
 
 # __version__ = Platform.KIDSVersion()
 

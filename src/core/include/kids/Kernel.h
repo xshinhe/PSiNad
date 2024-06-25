@@ -91,14 +91,28 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      *
      * @param PM Shared pointer to the Param object.
      */
-    void setInputParam(std::shared_ptr<Param>& PM);
+    void setTiming(bool is_timing_in = true);
+
+    /**
+     * Set input parameters for the kernel and its children.
+     *
+     * @param PM Shared pointer to the Param object.
+     */
+    void setRuleSet(std::shared_ptr<RuleSet> RS);
+
+    /**
+     * Set input parameters for the kernel and its children.
+     *
+     * @param PM Shared pointer to the Param object.
+     */
+    void setInputParam(std::shared_ptr<Param> PM);
 
     /**
      * Set input data set for the kernel and its children.
      *
      * @param DS Shared pointer to the DataSet object.
      */
-    void setInputDataSet(std::shared_ptr<DataSet>& DS);
+    void setInputDataSet(std::shared_ptr<DataSet> DS);
 
     /**
      * Get the parameter associated with the kernel.
@@ -245,6 +259,8 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
                                                 int    total_depth      = 0,      //
                                                 int    total_align_size = 0);
 
+    std::size_t montecarlo;  ///< MonteCarlo times prepared for calculation
+    std::string directory;   ///< working directory
 
    protected:
     /**
@@ -262,7 +278,6 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
     int         depth          = 0;      ///< Depth of the kernel in the tree structure.
     int         max_align_size = 0;      ///< Maximum alignment size used by this kernel.
     std::string kernel_name;             ///< Name of the kernel.
-
     /**
      * @}
      */
@@ -307,14 +322,14 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      *
      * @param PM Shared pointer to the Param object containing input parameters.
      */
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
     /**
      * @brief Virtual function to set input data set for the kernel implementation.
      *
      * @param DS Shared pointer to the DataSet object containing input data.
      */
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     /**
      * @brief Virtual function to initialize the kernel implementation.
@@ -340,7 +355,6 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      */
     virtual Status& finalizeKernel_impl(Status& stat);
 
-   private:
     /**
      * @brief Connect related kernels to this kernel.
      *
@@ -351,6 +365,7 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      */
     void connectRelatedKernels(std::shared_ptr<Kernel>& ker);
 
+   private:
     /**
      * @brief Get the dictionary of kernels (mapping from names to kernel pointers).
      *

@@ -78,7 +78,11 @@ class RuleSet final {
 
     std::vector<std::shared_ptr<RuleEvaluator>>& getRules();
 
-    Result getResult(int level);
+    Result getResult();
+
+    Result getCollect();
+
+    Result getReduced();
 
    private:
     friend class Kernel_Recorder;

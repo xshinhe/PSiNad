@@ -38,27 +38,25 @@ void VariableDescriptor::referIn(std::shared_ptr<DataSet>& DS) {
     if (field == "" || name == "") throw kids_error("bad key!");
     std::string key                        = utils::concat(field, ".", name);
     std::tie(dataType, dataPointer, shape) = DS->obtain(key);
-#define LOCAL_DEBUG
-#ifdef LOCAL_DEBUG
-    std::cout << LOC() << "VariableDescriptor Data:\n"
-              << ".tokenString = " << tokenString << "\n"  //
-              << ".name = " << name << "\n"                //
-              << ".field = " << field << "\n"              //
-              << ".index = " << index << "\n"              //
-              << ".type = " << type << "\n"                //
-              << ".time = " << time << "\n"                //
-              << ".dataType = " << dataType << "\n"        //
-              << ".dataPointer = " << dataPointer << "\n"  //
-              << ".shape = " << ((shape) ? shape->to_string() : "") << "\n";
-#endif  // LOCAL_DEBUG
+    // #define LOCAL_DEBUG
+    // #ifdef LOCAL_DEBUG
+    //     std::cout << LOC() << "VariableDescriptor Data:\n"
+    //               << ".tokenString = " << tokenString << "\n"  //
+    //               << ".name = " << name << "\n"                //
+    //               << ".field = " << field << "\n"              //
+    //               << ".index = " << index << "\n"              //
+    //               << ".type = " << type << "\n"                //
+    //               << ".time = " << time << "\n"                //
+    //               << ".dataType = " << dataType << "\n"        //
+    //               << ".dataPointer = " << dataPointer << "\n"  //
+    //               << ".shape = " << ((shape) ? shape->to_string() : "") << "\n";
+    // #endif  // LOCAL_DEBUG
 }
 
 void VariableDescriptor::defineIn(std::shared_ptr<DataSet>& DS, kids_dtype data_type,
                                   const std::vector<std::size_t>& cxxshape) {
     if (field == "" || name == "") throw kids_error("bad key!");
     std::string key = utils::concat(field, ".", name);
-    std::cout << LOC() << key << "," << data_type << "\n";
-
     switch (data_type) {
         case kids_real_type:
             DS->def_real(key, cxxshape, "CUSTOM DEFINED");
@@ -68,7 +66,6 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet>& DS, kids_dtype data_
             break;
     }
     std::tie(dataType, dataPointer, shape) = DS->obtain(key);
-    std::cout << LOC() << key << "\n";
 }
 
 };  // namespace PROJECT_NS

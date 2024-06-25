@@ -30,7 +30,7 @@ int Kernel_Representation::transform(kids_complex* A, kids_real* T, int fdim,  /
     return 0;
 }
 
-void Kernel_Representation::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_Representation::setInputParam_impl(std::shared_ptr<Param> PM) {
     std::string rep_string = PM->get_string("representation_flag", LOC(), "Diabatic");
     representation_type    = RepresentationPolicy::_from(rep_string);
     inp_repr_type          = RepresentationPolicy::_from(PM->get_string("inp_repr_flag", LOC(), rep_string));
@@ -41,7 +41,7 @@ void Kernel_Representation::setInputParam_impl(std::shared_ptr<Param>& PM) {
     basis_switch           = PM->get_bool("basis_switch", LOC(), false);
 }
 
-void Kernel_Representation::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Representation::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     V  = DS->def(DATA::model::V);
     dV = DS->def(DATA::model::dV);
     // ddV = DS->def(DATA::model::ddV);
@@ -77,19 +77,19 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
     if (Dimension::F <= 1) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real* V    = this->V + iP * Dimension::FF;
-        kids_real* E    = this->E + iP * Dimension::F;
-        kids_real* T    = this->T + iP * Dimension::FF;
-        kids_real* Told = this->Told + iP * Dimension::FF;
-        kids_real* dV   = this->dV + iP * Dimension::NFF;
-        kids_real* dE   = this->dE + iP * Dimension::NFF;
-        kids_real* L    = this->L + iP * Dimension::F;
-        kids_complex* R = this->R + iP * Dimension::FF;
-        kids_complex* H = this->H + iP * Dimension::FF;
+        kids_real*    V    = this->V + iP * Dimension::FF;
+        kids_real*    E    = this->E + iP * Dimension::F;
+        kids_real*    T    = this->T + iP * Dimension::FF;
+        kids_real*    Told = this->Told + iP * Dimension::FF;
+        kids_real*    dV   = this->dV + iP * Dimension::NFF;
+        kids_real*    dE   = this->dE + iP * Dimension::NFF;
+        kids_real*    L    = this->L + iP * Dimension::F;
+        kids_complex* R    = this->R + iP * Dimension::FF;
+        kids_complex* H    = this->H + iP * Dimension::FF;
 
-        kids_real* p          = this->p + iP * Dimension::N;
-        kids_real* m          = this->m + iP * Dimension::N;
-        int* occ_nuc          = this->occ_nuc + iP;
+        kids_real*    p       = this->p + iP * Dimension::N;
+        kids_real*    m       = this->m + iP * Dimension::N;
+        int*          occ_nuc = this->occ_nuc + iP;
         kids_complex* rho_ele = this->rho_ele + iP * Dimension::FF;
 
         switch (representation_type) {
@@ -123,7 +123,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                             double vset = 0.1 * std::sqrt(1.0e0 / Dimension::F);
                             for (int i = 0; i < Dimension::F; ++i) {
                                 double maxnorm = 0;
-                                int csr1 = 0, csr2 = 0, csr12 = 0;
+                                int    csr1 = 0, csr2 = 0, csr12 = 0;
                                 for (int k1 = 0, k1k2 = 0; k1 < Dimension::F; ++k1) {
                                     for (int k2 = 0; k2 < Dimension::F; ++k2, ++k1k2) {
                                         // vmax must be larger than sqrt(1/fdim)
@@ -158,9 +158,9 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                     }
 
                     if (FORCE_OPT::BATH_FORCE_BILINEAR) {
-                        int& B       = FORCE_OPT::nbath;
-                        int& J       = FORCE_OPT::Nb;
-                        int JFF      = J * Dimension::FF;
+                        int&    B    = FORCE_OPT::nbath;
+                        int&    J    = FORCE_OPT::Nb;
+                        int     JFF  = J * Dimension::FF;
                         double* dVb0 = dV;
                         double* dEb0 = dE;
                         for (int b = 0, bb = 0; b < B; ++b, bb += Dimension::Fadd1, dVb0 += JFF, dEb0 += JFF) {
@@ -239,6 +239,6 @@ RepresentationPolicy::_type Kernel_Representation::inp_repr_type;
 RepresentationPolicy::_type Kernel_Representation::ele_repr_type;
 RepresentationPolicy::_type Kernel_Representation::nuc_repr_type;
 RepresentationPolicy::_type Kernel_Representation::tcf_repr_type;
-bool Kernel_Representation::onthefly;
+bool                        Kernel_Representation::onthefly;
 
 };  // namespace PROJECT_NS

@@ -47,9 +47,9 @@ class Kernel_Prioritization final : public Kernel {
     int                                  ptype;
     std::vector<std::shared_ptr<Kernel>> _ref_kernels;
 
-    virtual void setInputParam_impl(std::shared_ptr<Param>& PM);
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    virtual void setInputDataSet_impl(std::shared_ptr<DataSet>& DS);
+    virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& initializeKernel_impl(Status& stat);
 };

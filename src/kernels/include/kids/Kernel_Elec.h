@@ -75,9 +75,9 @@ class Kernel_Elec final : public Kernel {
     static kids_complex *TrK1A, *TrK2B;
 
    private:
-    void setInputParam_impl(std::shared_ptr<Param> &PM);
+    void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    void setInputDataSet_impl(std::shared_ptr<DataSet> &DS);
+    void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     Status &initializeKernel_impl(Status &stat);
 

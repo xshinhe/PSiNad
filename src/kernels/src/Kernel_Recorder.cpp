@@ -20,14 +20,14 @@ Kernel_Recorder::Kernel_Recorder() {
 
 Kernel_Recorder::~Kernel_Recorder(){};
 
-void Kernel_Recorder::setInputParam_impl(std::shared_ptr<Param>& PM) {
+void Kernel_Recorder::setInputParam_impl(std::shared_ptr<Param> PM) {
     dt        = PM->get_double("dt", LOC(), phys::time_d);
     t0        = PM->get_double("t0", LOC(), phys::time_d, 0.0f);
     time_unit = PM->get_double("time_unit", LOC(), phys::time_d, 1.0f);
     directory = PM->get_string("directory", LOC(), "default");
 }
 
-void Kernel_Recorder::setInputDataSet_impl(std::shared_ptr<DataSet>& DS) {
+void Kernel_Recorder::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     istep_ptr                     = DS->def(DATA::iter::istep);
     sstep_ptr                     = DS->def(DATA::iter::sstep);
     isamp_ptr                     = DS->def(DATA::iter::isamp);
