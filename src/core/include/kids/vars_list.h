@@ -38,8 +38,12 @@ namespace PROJECT_NS {
 namespace Dimension {
 extern std::size_t M;  ///< Number of Monte Carlo calculations.
 extern std::size_t P;  ///< Number of parallel trajectories (swarms of trajectories) in each Monte Carlo run.
-extern std::size_t N;  ///< Number of nuclear degrees of freedom.
-extern std::size_t F;  ///< Number of electronic degrees of freedom.
+extern std::size_t P_NOW;
+extern std::size_t N;      ///< Number of nuclear degrees of freedom.
+extern std::size_t F;      ///< Number of electronic degrees of freedom.
+extern std::size_t Nb;     ///< Number of discretized modes
+extern std::size_t nbath;  ///< Number of bathes
+extern std::size_t L;      ///< Number of nonzero elements in interaction Q
 
 extern std::size_t MP;    ///< Product of M and P (M * P).
 extern std::size_t PP;    ///< Product of P and P (P * P).
@@ -77,15 +81,26 @@ extern Shape shape_FF;     ///< Shape for the product of F and F (F * F).
 extern Shape shape_NFF;    ///< Shape for the product of N, F, and F (N * F * F).
 extern Shape shape_NNFF;   ///< Shape for the product of N, N, F, and F (N * N * F * F).
 
+extern Shape shape_Nb;        ///< Shape for the number of discretized modes
+extern Shape shape_nbathFF;   ///< Shape for the product of nbath, F, and F (nbath * F * F)
+extern Shape shape_LNb;       ///< Shape for the product of L and Nb (L * Nb)
+extern Shape shape_LnbathFF;  ///< Shape for the product of L, nbath and F and F (L * nbath * F * F)
+
 extern void static_build_shapes();
 };  // namespace Dimension
 
 namespace DATA {
 
 namespace init {  // @to be removed
-extern VARIABLE<kids_real> Etot;
-extern VARIABLE<kids_real> p;
-extern VARIABLE<kids_real> x;
+extern VARIABLE<kids_real>    Etot;
+extern VARIABLE<kids_real>    p;
+extern VARIABLE<kids_real>    x;
+extern VARIABLE<kids_real>    T;
+extern VARIABLE<kids_complex> c;
+extern VARIABLE<kids_complex> cset;
+extern VARIABLE<kids_complex> rho_ele;
+extern VARIABLE<kids_complex> rho_nuc;
+extern VARIABLE<kids_complex> rho_dual;
 };  // namespace init
 
 
@@ -139,6 +154,7 @@ extern VARIABLE<kids_complex> Udt;
 extern VARIABLE<kids_complex> Xcoeff;
 extern VARIABLE<kids_real>    alpha;
 extern VARIABLE<kids_complex> c;
+extern VARIABLE<kids_complex> cset;
 extern VARIABLE<kids_real>    c1;
 extern VARIABLE<kids_real>    c2p;
 extern VARIABLE<kids_int>     clone_account;
@@ -248,6 +264,8 @@ extern VARIABLE<kids_real>    x;
 
 namespace model {
 extern VARIABLE<kids_real> Hsys;
+extern VARIABLE<kids_real> Kmat;
+extern VARIABLE<kids_real> Qmat;
 extern VARIABLE<kids_real> Tmod;
 extern VARIABLE<kids_real> V;
 extern VARIABLE<kids_int>  atoms;
@@ -281,9 +299,10 @@ extern VARIABLE<kids_real> p0;
 extern VARIABLE<kids_real> p_sigma;
 
 namespace rep {
+extern VARIABLE<kids_real>    eig;
 extern VARIABLE<kids_real>    E;
 extern VARIABLE<kids_complex> H;
-extern VARIABLE<kids_real>    L;
+extern VARIABLE<kids_real>    lam;
 extern VARIABLE<kids_complex> R;
 extern VARIABLE<kids_real>    T;
 extern VARIABLE<kids_real>    Told;

@@ -1,5 +1,6 @@
-/**@file        Kernel_Update_x.h
- * @brief       this file provides Kernel_Update_x class for update x
+/**@file        Kernel_Conditional.h
+ * @brief       this file provides Kernel_Conditional class enabling iteration
+ *              and conservation.
  *
  * @author      Xin He
  * @date        2024-03
@@ -22,28 +23,41 @@
  **********************************************************************************
  */
 
-#ifndef Kernel_Update_x_H
-#define Kernel_Update_x_H
+#ifndef Kernel_Conditional_H
+#define Kernel_Conditional_H
 
 #include "kids/Kernel.h"
 
 namespace PROJECT_NS {
 
-class Kernel_Update_x final : public Kernel {
+/**
+ * Minimal iterator for integration of the equations of motion
+ */
+class Kernel_Conditional final : public Kernel {
    public:
-    Kernel_Update_x(double scale) : Kernel(), scale{scale} {};
-
     virtual const std::string getName();
 
     virtual int getType() const;
 
    private:
-    double *x, *p, *m, *minv;
+    double     t0, *t0_ptr;
+    double     t, *t_ptr;
+    double     dt, *dt_ptr;
+    double     tend, *tend_ptr;
+    double     tsec, *tsec_ptr;
+    int*       succ_ptr;
+    kids_bint* at_samplingstep_initially_ptr;
+    kids_bint* at_samplingstep_finally_ptr;
 
-    double     scale, *dt_ptr;
-    kids_bint* frez_ptr;
+    int sstep, *sstep_ptr;
+    int istep, *istep_ptr, nstep, *nstep_ptr;
+    int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
+
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
+
+    virtual Status& initializeKernel_impl(Status& stat);
 
     virtual Status& executeKernel_impl(Status& stat);
 };
@@ -51,4 +65,4 @@ class Kernel_Update_x final : public Kernel {
 };  // namespace PROJECT_NS
 
 
-#endif  // Kernel_Update_x_H
+#endif  // Kernel_Conditional_H

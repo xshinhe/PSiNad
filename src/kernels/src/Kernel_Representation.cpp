@@ -1,6 +1,6 @@
 #include "kids/Kernel_Representation.h"
 
-#include "kids/Kernel_NADForce.h"
+#include "kids/Kernel_NAForce.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 // #include "kids/linalg_tpl.h"
@@ -12,7 +12,6 @@ namespace PROJECT_NS {
 const std::string Kernel_Representation::getName() { return "Kernel_Representation"; }
 
 int Kernel_Representation::getType() const { return utils::hash(FUNCTION_NAME); }
-
 
 int Kernel_Representation::transform(kids_complex* A, kids_real* T, int fdim,  //
                                      RepresentationPolicy::_type from, RepresentationPolicy::_type to,
@@ -31,29 +30,29 @@ int Kernel_Representation::transform(kids_complex* A, kids_real* T, int fdim,  /
 }
 
 void Kernel_Representation::setInputParam_impl(std::shared_ptr<Param> PM) {
-    std::string rep_string = PM->get_string("representation_flag", LOC(), "Diabatic");
+    std::string rep_string = _param->get_string({"solver.representation_flag"}, LOC(), "Diabatic");
     representation_type    = RepresentationPolicy::_from(rep_string);
-    inp_repr_type          = RepresentationPolicy::_from(PM->get_string("inp_repr_flag", LOC(), rep_string));
-    ele_repr_type          = RepresentationPolicy::_from(PM->get_string("ele_repr_flag", LOC(), rep_string));
-    nuc_repr_type          = RepresentationPolicy::_from(PM->get_string("nuc_repr_flag", LOC(), rep_string));
-    tcf_repr_type          = RepresentationPolicy::_from(PM->get_string("tcf_repr_flag", LOC(), rep_string));
-    phase_correction       = PM->get_bool("phase_correction", LOC(), false);
-    basis_switch           = PM->get_bool("basis_switch", LOC(), false);
+    inp_repr_type    = RepresentationPolicy::_from(_param->get_string({"solver.inp_repr_flag"}, LOC(), rep_string));
+    ele_repr_type    = RepresentationPolicy::_from(_param->get_string({"solver.ele_repr_flag"}, LOC(), rep_string));
+    nuc_repr_type    = RepresentationPolicy::_from(_param->get_string({"solver.nuc_repr_flag"}, LOC(), rep_string));
+    tcf_repr_type    = RepresentationPolicy::_from(_param->get_string({"solver.tcf_repr_flag"}, LOC(), rep_string));
+    phase_correction = _param->get_bool({"solver.phase_correction"}, LOC(), false);
+    basis_switch     = _param->get_bool({"solver.basis_switch"}, LOC(), false);
 }
 
 void Kernel_Representation::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     V  = DS->def(DATA::model::V);
     dV = DS->def(DATA::model::dV);
     // ddV = DS->def(DATA::model::ddV);
-    E_copy = DS->def(DATA::integrator::E);
-    E      = DS->def(DATA::model::rep::E);
-    T      = DS->def(DATA::model::rep::T);
-    Told   = DS->def(DATA::model::rep::Told);
-    dE     = DS->def(DATA::model::rep::dE);
+    eig  = DS->def(DATA::model::rep::eig);
+    E    = DS->def(DATA::model::rep::E);
+    T    = DS->def(DATA::model::rep::T);
+    Told = DS->def(DATA::model::rep::Told);
+    dE   = DS->def(DATA::model::rep::dE);
     // ddE = DS->def(DATA::model::rep::ddE);
-    L = DS->def(DATA::model::rep::L);
-    R = DS->def(DATA::model::rep::R);
-    H = DS->def(DATA::model::rep::H);
+    lam = DS->def(DATA::model::rep::lam);
+    R   = DS->def(DATA::model::rep::R);
+    H   = DS->def(DATA::model::rep::H);
 
     m       = DS->def(DATA::integrator::m);
     p       = DS->def(DATA::integrator::p);
@@ -78,12 +77,13 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real*    V    = this->V + iP * Dimension::FF;
-        kids_real*    E    = this->E + iP * Dimension::F;
+        kids_real*    eig  = this->eig + iP * Dimension::F;
+        kids_real*    E    = this->E + iP * Dimension::FF;
         kids_real*    T    = this->T + iP * Dimension::FF;
         kids_real*    Told = this->Told + iP * Dimension::FF;
         kids_real*    dV   = this->dV + iP * Dimension::NFF;
         kids_real*    dE   = this->dE + iP * Dimension::NFF;
-        kids_real*    L    = this->L + iP * Dimension::F;
+        kids_real*    lam  = this->lam + iP * Dimension::F;
         kids_complex* R    = this->R + iP * Dimension::FF;
         kids_complex* H    = this->H + iP * Dimension::FF;
 
@@ -94,24 +94,20 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
 
         switch (representation_type) {
             case RepresentationPolicy::Diabatic: {
-                EigenSolve(E, T, V, Dimension::F);
+                EigenSolve(eig, T, V, Dimension::F);
+                for (int i = 0, ik = 0; i < Dimension::F; ++i)
+                    for (int k = 0; k < Dimension::F; ++k, ++ik) E[ik] = (i == k) ? eig[i] : 0.0e0;
                 for (int ik = 0; ik < Dimension::FF; ++ik) H[ik] = V[ik];
                 break;
             }
             case RepresentationPolicy::Adiabatic: {
-                if (!onthefly) {  // solve adiabatic from diabatic (otherwise E/dE should be provided from Ab Initio
-
+                if (!onthefly) {
                     for (int i = 0; i < Dimension::FF; ++i) Told[i] = T[i];  // backup old T matrix
-                    EigenSolve(E, T, V, Dimension::F);                       // solve new eigen problem
+                    EigenSolve(eig, T, V, Dimension::F);                     // solve new eigen problem
 
-                    if (do_refer) {  ///< refer the sign and order of the previous step
+                    if (do_refer) {
                         // calculate permutation matrix = rountint(T^ * Told)
                         ARRAY_MATMUL_TRANS1(TtTold, T, Told, Dimension::F, Dimension::F, Dimension::F);
-
-                        // ARRAY_SHOW(E, 1, Dimension::F);
-                        // ARRAY_SHOW(T, Dimension::F, Dimension::F);
-                        // ARRAY_SHOW(TtTold, Dimension::F, Dimension::F);
-                        // ARRAY_SHOW(TtTold, Dimension::F, Dimension::F); // @debug
 
                         if (!basis_switch) {
                             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
@@ -146,15 +142,14 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                             }
                             for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = round(TtTold[i] / vset);
                         }
-
-                        // ARRAY_SHOW(TtTold, Dimension::F, Dimension::F);
-
                         // adjust order of eigenvectors & eigenvalues
                         ARRAY_MATMUL(T, T, TtTold, Dimension::F, Dimension::F, Dimension::F);
                         if (basis_switch) {
                             for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = std::abs(TtTold[i]);
-                            ARRAY_MATMUL(E, E, TtTold, 1, Dimension::F, Dimension::F);
+                            ARRAY_MATMUL(eig, eig, TtTold, 1, Dimension::F, Dimension::F);
                         }
+                        for (int i = 0, ik = 0; i < Dimension::F; ++i)
+                            for (int k = 0; k < Dimension::F; ++k, ++ik) E[ik] = (i == k) ? eig[i] : 0.0e0;
                     }
 
                     if (FORCE_OPT::BATH_FORCE_BILINEAR) {
@@ -172,16 +167,6 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                             }
                         }
                     } else {
-                        // Eigen::Map<EigMX<double>> Map_T(T, Dimension::F, Dimension::F);
-                        // Eigen::Map<EigMX<double>> Map_dV(dV, Dimension::NF, Dimension::F);
-                        // Eigen::Map<EigMX<double>> Map_dE1(dE, Dimension::NF, Dimension::F);
-                        // Eigen::Map<EigMX<double>> Map_dE2(dE, Dimension::F, Dimension::NF);
-
-                        // Map_dE2 = Map_dV.transpose();
-                        // Map_dE2 = (Map_T.adjoint() * Map_dE2).eval();
-                        // Map_dE1 = (Map_dE1 * Map_T).eval();
-                        // Map_dE1 = Map_dE2.transpose().eval();
-
                         ARRAY_MATMUL(dE, dV, T, Dimension::NF, Dimension::F, Dimension::F);
                         ARRAY_TRANSPOSE(dE, Dimension::N, Dimension::FF);
                         ARRAY_MATMUL_TRANS1(dE, T, dE, Dimension::F, Dimension::F, Dimension::NF);
@@ -194,15 +179,12 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                 ARRAY_MATMUL(vedE, ve, dE, 1, Dimension::N, Dimension::FF);
 
                 double Emean = 0.0e0;
-                for (int i = 0; i < Dimension::F; ++i) {
-                    Emean += E[i];
-                    E_copy[i] = E[i];
-                }
+                for (int i = 0; i < Dimension::F; ++i) Emean += eig[i];
                 Emean /= Dimension::F;
 
                 for (int i = 0, ij = 0; i < Dimension::F; ++i) {
                     for (int j = 0; j < Dimension::F; ++j, ++ij) {  //
-                        H[ij] = ((i == j) ? E[i] - Emean : -phys::math::im * vedE[ij] / (E[j] - E[i]));
+                        H[ij] = ((i == j) ? eig[i] - Emean : -phys::math::im * vedE[ij] / (eig[j] - eig[i]));
                     }
                 }
 
@@ -210,18 +192,18 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                     kids_real Ekin = 0;
                     for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5f * p[j] * p[j] / m[j];
                     double Epes = 0.0f;
-                    if (Kernel_NADForce::NADForce_type == NADForcePolicy::BO) {
-                        Epes = E[*occ_nuc];
+                    if (Kernel_NAForce::NAForce_type == NAForcePolicy::BO) {
+                        Epes = eig[*occ_nuc];
                     } else {
                         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                            Epes += std::real(rho_ele[ii]) * E[i];
+                            Epes += std::real(rho_ele[ii]) * eig[i];
                         }
                     }
                     for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                        H[ii] = -2 * Ekin * sqrt(std::max<double>(1.0 + (Epes - E[i]) / Ekin, 0.0f));
+                        H[ii] = -2 * Ekin * sqrt(std::max<double>(1.0 + (Epes - eig[i]) / Ekin, 0.0f));
                     }
                 }
-                EigenSolve(L, R, H, Dimension::F);  // R*L*R^ = H
+                EigenSolve(lam, R, H, Dimension::F);  // R*L*R^ = H
                 break;
             }
             case RepresentationPolicy::Force:

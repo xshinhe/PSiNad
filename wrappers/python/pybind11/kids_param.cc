@@ -20,7 +20,7 @@ PyParam.def(
 PyParam.def(
     "get_real",
     [](Param& self, const std::vector<std::string>& keys, phys::dimension7 qdim) {
-        return self.get_double(keys, "__loc__", qdim);
+        return self.get_real(keys, "__loc__", qdim);
     },
     py::arg("keys"),                 //
     py::arg("qdim") = phys::none_d,  //

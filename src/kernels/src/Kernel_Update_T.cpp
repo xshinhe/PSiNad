@@ -11,7 +11,9 @@ const std::string Kernel_Update_T::getName() { return "Kernel_Update_T"; }
 
 int Kernel_Update_T::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Update_T::setInputParam_impl(std::shared_ptr<Param> PM) { gammal = PM->get_double("gammal", LOC(), 0.1); }
+void Kernel_Update_T::setInputParam_impl(std::shared_ptr<Param> PM) {
+    gammal = _param->get_real({"solver.gammal"}, LOC(), 0.1);
+}
 
 void Kernel_Update_T::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dt_ptr = DS->def(DATA::iter::dt);

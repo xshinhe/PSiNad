@@ -30,9 +30,9 @@ void Kernel::setRuleSet(std::shared_ptr<RuleSet> ruleset) {
 
 void Kernel::setInputParam(std::shared_ptr<Param> PM) {
     _param     = PM;
-    is_timing  = _param->get_bool("timing", LOC(), is_timing);
-    montecarlo = PM->get_int("M", LOC(), 1);
-    directory  = PM->get_string("directory", LOC(), "default");
+    is_timing  = _param->get_bool({"solver.timing", "timing"}, LOC(), is_timing);
+    montecarlo = _param->get_int({"solver.M"}, LOC(), 1);
+    directory  = _param->get_string({"solver.directory", "directory"}, LOC(), "default");
     setInputParam_impl(PM);
     for (auto& pkernel : _child_kernels) pkernel->setInputParam(PM);
 }

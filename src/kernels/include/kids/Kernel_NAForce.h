@@ -1,5 +1,5 @@
-/**@file        Kernel_NADForce.h
- * @brief       this file provides Kernel_NADForce class enabling force weighting
+/**@file        Kernel_NAForce.h
+ * @brief       this file provides Kernel_NAForce class enabling force weighting
  *              from electronic properties.
  *
  * @author      Xin He
@@ -19,26 +19,27 @@
  * <table>
  * <tr><th> Date        <th> Description
  * <tr><td> 2024-04-02  <td> Initial version.
+ * <tr><td> 2024-06-15  <td> Updated version.
  * </table>
  **********************************************************************************
  */
 
 
-#ifndef Kernel_NADForce_H
-#define Kernel_NADForce_H
+#ifndef Kernel_NAForce_H
+#define Kernel_NAForce_H
 
 #include "kids/Kernel.h"
 #include "kids/Policy.h"
 
 namespace PROJECT_NS {
 
-DEFINE_POLICY(NADForcePolicy,  //
-              EHR,             //
-              BO,              //
-              CV,              //
-              BOSD,            //
-              CVSD,            //
-              ELSE);           //
+DEFINE_POLICY(NAForcePolicy,  //
+              EHR,            //
+              BO,             //
+              CV,             //
+              BOSD,           //
+              CVSD,           //
+              ELSE);          //
 
 namespace FORCE_OPT {
 extern bool BATH_FORCE_BILINEAR;
@@ -49,9 +50,9 @@ extern int  Nb;
 /**
  * this class implements process of calculation of nuclear force for nonadiabatic dynamics
  */
-class Kernel_NADForce : public Kernel {
+class Kernel_NAForce : public Kernel {
    public:
-    static NADForcePolicy::_type NADForce_type;
+    static NAForcePolicy::_type NAForce_type;
 
     virtual const std::string getName();
 
@@ -60,9 +61,17 @@ class Kernel_NADForce : public Kernel {
    private:
     bool offd_projected;
 
-    kids_real *f, *grad, *dV, *dE, *Force, *T;
-    kids_real *p, *m;
-    kids_real *fadd, *fproj;
+    kids_real *   f, *grad, *dV, *dE, *ForceMat, *EMat, *T, *V;
+    kids_real *   p, *m;
+    kids_real *   fadd, *ftmp, *fproj;
+    kids_real*    alpha;
+    kids_complex* wrho;
+
+    kids_real *Epot, *vpes;
+    kids_real* dt_ptr;
+
+    kids_int*     occ_nuc;
+    kids_complex *rho_ele, *rho_nuc;
 
     kids_bint* succ_ptr;
 
@@ -77,4 +86,4 @@ class Kernel_NADForce : public Kernel {
 
 };  // namespace PROJECT_NS
 
-#endif  // Kernel_NADForce_H
+#endif  // Kernel_NAForce_H

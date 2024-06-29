@@ -1,5 +1,4 @@
 #include "kids/Kernel_Elec_NAD.h"
-
 #include "kids/Kernel_Elec_Utils.h"
 #include "kids/Kernel_NADForce.h"
 #include "kids/Kernel_Random.h"
@@ -163,10 +162,10 @@ const std::string Kernel_Elec_NAD::getName() { return "Kernel_Elec_NAD"; }
 int Kernel_Elec_NAD::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Elec_NAD::setInputParam_impl(std::shared_ptr<Param> PM) {
-    cmsh_type = NADPolicy::_from(PM->get_string("cmsh_flag", LOC(), "CVSH"));
+    cmsh_type = NADPolicy::_from(_param->get_string({"solver.cmsh_flag"}, LOC(), "CVSH"));
 
-    alpha0 = PM->get_double("alpha0", LOC(), 0.5);
-    gamma1 = PM->get_double("gamma", LOC(), elec_utils::gamma_wigner(Dimension::F));
+    alpha0 = _param->get_real({"solver.alpha0"}, LOC(), 0.5);
+    gamma1 = _param->get_real({"solver.gamma"}, LOC(), elec_utils::gamma_wigner(Dimension::F));
 
     if (gamma1 < -1.5) gamma1 = elec_utils::gamma_opt(Dimension::F);
     if (gamma1 < -0.5) gamma1 = elec_utils::gamma_wigner(Dimension::F);
@@ -174,21 +173,21 @@ void Kernel_Elec_NAD::setInputParam_impl(std::shared_ptr<Param> PM) {
     gamma2          = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
     xi1             = (1 + Dimension::F * gamma1);
     xi2             = (1 + Dimension::F * gamma2);
-    use_wmm         = PM->get_bool("use_wmm", LOC(), false);
-    use_sqc         = PM->get_bool("use_sqc", LOC(), false);
-    sqc_init        = PM->get_int("sqc_init", LOC(), 0);
-    use_fssh        = PM->get_bool("use_fssh", LOC(), false);
-    use_strange_win = PM->get_bool("use_strange_win", LOC(), false);
-    use_focus       = PM->get_bool("use_focus", LOC(), false);
-    use_fall        = PM->get_bool("use_fall", LOC(), false);
-    use_gdtwa       = PM->get_bool("use_gdtwa", LOC(), false);
-    only_adjust     = PM->get_bool("only_adjust", LOC(), false);
-    use_sum         = PM->get_bool("use_sum", LOC(), false);
-    check_cxs       = PM->get_bool("check_cxs", LOC(), false);
-    dt              = PM->get_double("dt", LOC(), phys::time_d);
+    use_wmm         = _param->get_bool({"solver.use_wmm"}, LOC(), false);
+    use_sqc         = _param->get_bool({"solver.use_sqc"}, LOC(), false);
+    sqc_init        = _param->get_int({"solver.sqc_init"}, LOC(), 0);
+    use_fssh        = _param->get_bool({"solver.use_fssh"}, LOC(), false);
+    use_strange_win = _param->get_bool({"solver.use_strange_win"}, LOC(), false);
+    use_focus       = _param->get_bool({"solver.use_focus"}, LOC(), false);
+    use_fall        = _param->get_bool({"solver.use_fall"}, LOC(), false);
+    use_gdtwa       = _param->get_bool({"solver.use_gdtwa"}, LOC(), false);
+    only_adjust     = _param->get_bool({"solver.only_adjust"}, LOC(), false);
+    use_sum         = _param->get_bool({"solver.use_sum"}, LOC(), false);
+    check_cxs       = _param->get_bool({"solver.check_cxs"}, LOC(), false);
+    dt              = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);
 
-    cread_from_ds        = PM->get_bool("cread_from_ds", LOC(), false);
-    disable_inner_switch = PM->get_bool("disable_inner_switch", LOC(), false);
+    cread_from_ds        = _param->get_bool({"solver.cread_from_ds"}, LOC(), false);
+    disable_inner_switch = _param->get_bool({"solver.disable_inner_switch"}, LOC(), false);
 
     hopping_type1 = 0;
     hopping_type2 = 0;
@@ -221,11 +220,11 @@ void Kernel_Elec_NAD::setInputParam_impl(std::shared_ptr<Param> PM) {
             dynamic_alpha                  = true;
             break;
     }
-    hopping_type1 = PM->get_int("hopping_type1", LOC(), hopping_type1);
-    hopping_type2 = PM->get_int("hopping_type2", LOC(), hopping_type2);
-    use_cv        = PM->get_bool("use_cv", LOC(), use_cv);
-    reflect       = PM->get_bool("reflect", LOC(), reflect);
-    dynamic_alpha = PM->get_bool("dynamic_alpha", LOC(), dynamic_alpha);
+    hopping_type1 = _param->get_int({"solver.hopping_type1"}, LOC(), hopping_type1);
+    hopping_type2 = _param->get_int({"solver.hopping_type2"}, LOC(), hopping_type2);
+    use_cv        = _param->get_bool({"solver.use_cv"}, LOC(), use_cv);
+    reflect       = _param->get_bool({"solver.reflect"}, LOC(), reflect);
+    dynamic_alpha = _param->get_bool({"solver.dynamic_alpha"}, LOC(), dynamic_alpha);
 }
 
 void Kernel_Elec_NAD::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -318,7 +317,7 @@ Status& Kernel_Elec_NAD::initializeKernel_impl(Status& stat) {
             // for (int i = 0; i < Dimension::F; ++i) c[i] = 1.0e0 * i;
         }
         if (cread_from_ds) {
-            std::string init_nuclinp = _param->get_string("init_nuclinp", LOC());
+            std::string init_nuclinp = _param->get_string({"solver.init_nuclinp"}, LOC());
             std::string open_file    = init_nuclinp;
             if (!isFileExists(init_nuclinp)) open_file = utils::concat(init_nuclinp, stat.icalc, ".ds");
 
@@ -485,7 +484,7 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
         // * additional evolution can be appended here
 
         // 1) transform from inp_repr => ele_repr
-        for (int i = 0; i < Dimension::F; ++i) c[i] = c_init[i];  // @debug
+        for (int i = 0; i < Dimension::F; ++i) c[i] = c_init[i];  // unused?
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
         for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_nuc_init[ik];
         Kernel_Representation::transform(c, T_init, Dimension::F,               //
@@ -502,7 +501,7 @@ Status& Kernel_Elec_NAD::executeKernel_impl(Status& stat) {
                                          SpacePolicy::L);
 
         // 2) propagte along ele_repr
-        ARRAY_MATMUL(c, U, c, 1, Dimension::F, Dimension::F);
+        ARRAY_MATMUL(c, U, c, Dimension::F, Dimension::F, 1);
         ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
         ARRAY_MATMUL3_TRANS2(rho_nuc, U, rho_nuc, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
 

@@ -34,7 +34,7 @@ class Model_LVCM final : public Model {
     LVCMPolicy::_type lvcm_type;
     int               N_coup;
     int               N_mode;
-    bool              classical_bath;
+    bool              bath_is_classical;
 
 
     kids_real* Hsys;

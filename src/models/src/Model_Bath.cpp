@@ -54,36 +54,42 @@ int Model_Bath::fun_Cw(kids_complex* Cw, double* w, int Nw, double* w_arr, doubl
 
 void Model_Bath::setInputParam_impl(std::shared_ptr<Param> PM) {
     // size information
-    Nb             = _param->get_int("model.Nb", LOC());
-    bath_type      = BathPolicy::_from(_param->get_string("model.bath_flag", LOC(), "Debye"));
-    omegac         = _param->get_double("omegac", LOC(), phys::energy_d, 1.0f);
-    strength_type  = StrengthPolicy::_from(_param->get_string("model.strength_flag", LOC(), "Lambda"));
-    classical_bath = _param->get_bool("model.classical_bath", LOC(), false);
+    Nb = _param->get_int({"model.Nb", "model.bath.Nb"}, LOC());
+    assert(Nb == Dimension::Nb);
+
+    bath_type         = BathPolicy::_from(_param->get_string({"model.bath_flag", "model.bath.flag"}, LOC(), "Debye"));
+    omegac            = _param->get_real({"model.bath_omegac", "model.bath.omegac"}, LOC(), phys::energy_d, 1.0f);
+    strength_type     = StrengthPolicy::_from(_param->get_string({"model.strength_flag"}, LOC(), "Lambda"));
+    bath_is_classical = _param->get_bool({"model.bath_classic", "model.bath.classic"}, LOC(), false);
 
     switch (strength_type) {
         case StrengthPolicy::Lambda: {
-            double strength = _param->get_double("model.strength", LOC(), phys::energy_d, 1.0f);
-            lambda          = strength;
+            double strength =
+                _param->get_real({"model.bath_strength", "model.bath.strength"}, LOC(), phys::energy_d, 1.0f);
+            lambda = strength;
             break;
         }
         case StrengthPolicy::Alpha: {
-            double strength = _param->get_double("model.strength", LOC(), 1.0f);
-            lambda          = 0.5f * omegac * strength;
+            double strength = _param->get_real({"model.bath_strength", "model.bath.strength"}, LOC(), 1.0f);
+            lambda          = 0.5e0 * omegac * strength;
             break;
         }
         case StrengthPolicy::Eta: {
-            double strength = _param->get_double("model.strength", LOC(), phys::energy_d, 1.0f);
-            lambda          = 0.5f * strength;
+            double strength =
+                _param->get_real({"model.bath_strength", "model.bath.strength"}, LOC(), phys::energy_d, 1.0f);
+            lambda = 0.5e0 * strength;
             break;
         }
         case StrengthPolicy::Erg: {
-            double strength = _param->get_double("model.strength", LOC(), phys::energy_d, 1.0f);
-            lambda          = 0.25f * strength;
+            double strength =
+                _param->get_real({"model.bath_strength", "model.bath.strength"}, LOC(), phys::energy_d, 1.0f);
+            lambda = 0.25f * strength;
             break;
         }
     }
-    double temperature = _param->get_double("model.temperature", LOC(), phys::temperature_d, 1.0f);
-    beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
+    double temperature =
+        _param->get_real({"model.bath_temperature", "model.bath.temperature"}, LOC(), phys::temperature_d, 1.0f);
+    beta = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
 }
 
 void Model_Bath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -91,16 +97,16 @@ void Model_Bath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     coeffs = DS->def(DATA::model::bath::coeffs);
     switch (bath_type) {
         case BathPolicy::Debye: {
-            for (int j = 0; j < Nb; ++j) {
-                omegas[j] = omegac * std::tan(phys::math::halfpi * ((j + 1.0f) / (Nb + 1.0f)));
-                coeffs[j] = sqrt(2 * lambda / (Nb + 1.0f)) * omegas[j];
+            for (int j = 0; j < Dimension::Nb; ++j) {
+                omegas[j] = omegac * std::tan(phys::math::halfpi * ((j + 1.0f) / (Dimension::Nb + 1.0f)));
+                coeffs[j] = sqrt(2 * lambda / (Dimension::Nb + 1.0f)) * omegas[j];
             }
             break;
         }
         case BathPolicy::Ohmic: {
-            for (int j = 0; j < Nb; ++j) {
-                omegas[j] = -omegac * std::log(1.0f - (j + 1.0f) / (Nb + 1.0f));
-                coeffs[j] = sqrt(2 * lambda / (Nb + 1.0f)) * omegas[j];
+            for (int j = 0; j < Dimension::Nb; ++j) {
+                omegas[j] = -omegac * std::log(1.0f - (j + 1.0f) / (Dimension::Nb + 1.0f));
+                coeffs[j] = sqrt(2 * lambda / (Dimension::Nb + 1.0f)) * omegas[j];
             }
             break;
         }
@@ -113,55 +119,51 @@ void Model_Bath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         case BathPolicy::ReadFile:  // #b850, #pbi, #rub
         default: {
             try {
-                std::string   bath_file = _param->get_string("model.bath_file", LOC(), "bath.spectrum");
+                std::string   bath_file = _param->get_string({"model.bath_file", "model.bath.file"}, LOC(), "bath.dat");
                 std::ifstream ifs(bath_file);
 
                 std::string firstline, unit_str1, unit_str2, DIS_FLAG;
-
-                // parse units of frequency & coefficients
                 getline(ifs, firstline);
                 std::stringstream sstr(firstline);
                 sstr >> unit_str1 >> unit_str2;
 
                 phys::uval uw = phys::us::parse(unit_str1);
-                // if (uw.dim != phys::energy_d) LOG(FATAL) << "need dimension of energy";
+                assert(uw.dim == phys::energy_d);
                 double w_unit = phys::us::conv(phys::au::unit, uw);
 
                 phys::uval uc = phys::us::parse(unit_str2);
-                // if (uc.dim != phys::energy_d) LOG(FATAL) << "need dimension of energy";
+                assert(uc.dim == phys::energy_d);
                 double c_unit = phys::us::conv(phys::au::unit, uc);
 
                 // read data lines
                 double val;
-                for (int j = 0; j < Nb; ++j) {
+                for (int j = 0; j < Dimension::Nb; ++j) {
                     ifs >> DIS_FLAG;
-                    if (DIS_FLAG == "WC") {
+                    if (DIS_FLAG == "WC") {                                    // input coefficients
                         if (ifs >> val) omegas[j] = val / w_unit;              ///< omegac ~ [energy_d]
                         if (ifs >> val) coeffs[j] = val / pow(c_unit, 1.5e0);  ///< coeffs ~ [energy_d]**1.5
-                    } else if (DIS_FLAG == "WS") {
-                        if (ifs >> val) omegas[j] = val / w_unit;
-                        if (ifs >> val) coeffs[j] = 2.0f * sqrt(0.5f * omegas[j] * omegas[j] * omegas[j] * val);
-                    } else if (DIS_FLAG == "WG") {
+                    } else if (DIS_FLAG == "WS") {                             // input Huang-Rhys factor
+                        if (ifs >> val) omegas[j] = val / w_unit;              ///< omegac ~ [energy_d]
+                        if (ifs >> val) coeffs[j] = 2.0f * sqrt(0.5e0 * omegas[j] * omegas[j] * omegas[j] * val);
+                    } else if (DIS_FLAG == "WG") {                 // input g coupling factor
                         if (ifs >> val) omegas[j] = val / w_unit;  ///< omegac ~ [energy_d]
-                        if (ifs >> val) coeffs[j] = 2.0f * sqrt(0.5f * omegas[j] * omegas[j] * omegas[j]) * val;
+                        if (ifs >> val) coeffs[j] = 2.0f * sqrt(0.5e0 * omegas[j] * omegas[j] * omegas[j]) * val;
                     }
                 }
-            } catch (std::runtime_error& e) {
-                // LOG(FATAL) << "read spec.dat error";
-            }
+            } catch (std::runtime_error& e) { throw kids_error("parse bath file error"); }
         }
     }
 
     x_sigma = DS->def(DATA::model::bath::x_sigma);
     p_sigma = DS->def(DATA::model::bath::p_sigma);
-    for (int j = 0; j < Nb; ++j) {
+    for (int j = 0; j < Dimension::Nb; ++j) {
         /* note:
             for finite temperature: Qoverbeta = 0.5*freq / dtanh(0.5*beta*freq)
             for zero temperature:   Qoverbeta = 0.5*freq
          */
-        double Qoverbeta = (classical_bath)
+        double Qoverbeta = (bath_is_classical)
                                ? ((beta > 0) ? 1.0f / beta : 0.0f)
-                               : (0.5f * omegas[j] / (beta > 0 ? std::tanh(0.5f * beta * omegas[j]) : 1.0f));
+                               : (0.5e0 * omegas[j] / (beta > 0 ? std::tanh(0.5e0 * beta * omegas[j]) : 1.0f));
         x_sigma[j]       = std::sqrt(Qoverbeta / (omegas[j] * omegas[j]));
         p_sigma[j]       = std::sqrt(Qoverbeta);
     }

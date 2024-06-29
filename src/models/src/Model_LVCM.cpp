@@ -12,8 +12,8 @@ const std::string Model_LVCM::getName() { return "Model_LVCM"; }
 int Model_LVCM::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Model_LVCM::setInputParam_impl(std::shared_ptr<Param> PM) {
-    lvcm_type      = LVCMPolicy::_from(_param->get_string("model.lvcm_flag", LOC(), "PYR3"));
-    classical_bath = _param->get_bool("model.classical_bath", LOC(), false);
+    lvcm_type         = LVCMPolicy::_from(_param->get_string({"model.lvcm_flag"}, LOC(), "PYR3"));
+    bath_is_classical = _param->get_bool({"model.bath_classical", "model.bath.classical"}, LOC(), false);
 }
 
 void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -226,8 +226,8 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
             double H_unit = phys::au_2_ev;
 
-            double gcoup = _param->get_double("model.gcoup", LOC(), phys::energy_d, 0.24f / H_unit);
-            double wcav  = _param->get_double("model.wcav", LOC(), phys::energy_d, 0.62f / H_unit);
+            double gcoup = _param->get_real({"model.gcoup"}, LOC(), phys::energy_d, 0.24f / H_unit);
+            double wcav  = _param->get_real({"model.wcav"}, LOC(), phys::energy_d, 0.62f / H_unit);
 
             // parameter for PYR2
             double E_data_PYR2[2]      = {3.94f, 4.84f};
@@ -273,7 +273,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             break;
         }
         case LVCMPolicy::Read: {
-            std::string   lvcm_file = _param->get_string("model.lvcm_file", LOC(), "lvcm.dat");
+            std::string   lvcm_file = _param->get_string({"model.lvcm_file"}, LOC(), "lvcm.dat");
             std::ifstream ifs(lvcm_file);
             std::string   H_unit_str;
             std::string   firstline;
@@ -367,7 +367,7 @@ Status &Model_LVCM::initializeKernel_impl(Status &stat) {
         Kernel_Random::rand_gaussian(x, Dimension::N);
         Kernel_Random::rand_gaussian(p, Dimension::N);
         for (int j = 0; j < Dimension::N; ++j) {
-            if (classical_bath) {
+            if (bath_is_classical) {
                 x[j] = x0[j];
                 p[j] = p0[j];
             } else {
@@ -433,6 +433,7 @@ Status &Model_LVCM::executeKernel_impl(Status &stat) {
                     dV[jik] = lcoeff[j0ik];
                 }
             }
+            // ddV = 0;
         }
     }
     return stat;

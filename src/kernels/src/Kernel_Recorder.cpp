@@ -21,10 +21,9 @@ Kernel_Recorder::Kernel_Recorder() {
 Kernel_Recorder::~Kernel_Recorder(){};
 
 void Kernel_Recorder::setInputParam_impl(std::shared_ptr<Param> PM) {
-    dt        = PM->get_double("dt", LOC(), phys::time_d);
-    t0        = PM->get_double("t0", LOC(), phys::time_d, 0.0f);
-    time_unit = PM->get_double("time_unit", LOC(), phys::time_d, 1.0f);
-    directory = PM->get_string("directory", LOC(), "default");
+    dt        = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);
+    t0        = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
+    time_unit = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
 }
 
 void Kernel_Recorder::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {

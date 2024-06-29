@@ -10,8 +10,8 @@ const std::string Kernel_Dump_DataSet::getName() { return "Kernel_Dump_DataSet";
 int Kernel_Dump_DataSet::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Dump_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
-    fn       = PM->get_string("dump", LOC(), "final");
-    hdlr_str = PM->get_string("handler", LOC(), "");
+    fn       = _param->get_string({"solver.dump", "dump"}, LOC(), "final");
+    hdlr_str = _param->get_string({"solver.handler", "handler"}, LOC(), "");
 }
 
 Status& Kernel_Dump_DataSet::initializeKernel_impl(Status& stat) {

@@ -30,7 +30,7 @@ class Model_Bath final : public Model {
 
     virtual int getType() const;
 
-    bool classical_bath = false;
+    bool bath_is_classical = false;
 
     int                   Nb;
     BathPolicy::_type     bath_type;

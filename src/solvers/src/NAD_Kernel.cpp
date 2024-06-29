@@ -1,9 +1,10 @@
 #include "kids/Kernel.h"
 #include "kids/Kernel_Conserve.h"
 #include "kids/Kernel_Dump_DataSet.h"
-#include "kids/Kernel_Elec_NAD.h"
+#include "kids/Kernel_Elec_Functions.h"
+#include "kids/Kernel_Elec_Switch.h"
 #include "kids/Kernel_Load_DataSet.h"
-#include "kids/Kernel_NADForce.h"
+#include "kids/Kernel_NAForce.h"
 #include "kids/Kernel_Prioritization.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Read_Dimensions.h"
@@ -26,11 +27,13 @@ std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string NA
     std::shared_ptr<Kernel> kinte(new Kernel("BAOAB_Integrator"));
 
     std::shared_ptr<Kernel_Representation> krepr(new Kernel_Representation());
-    std::shared_ptr<Kernel_NADForce>       kforc(new Kernel_NADForce());
+    std::shared_ptr<Kernel_Elec_Switch>    kswitch(new Kernel_Elec_Switch());
+    std::shared_ptr<Kernel_NAForce>        knaf(new Kernel_NAForce());
+    std::shared_ptr<Kernel_Elec_Functions> kfuncs(new Kernel_Elec_Functions());
 
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5));
-    std::shared_ptr<Kernel_Update_c> ku_c(new Kernel_Update_c(1.0));
+    std::shared_ptr<Kernel_Update_U> ku_U(new Kernel_Update_U(1.0));
 
     /// Result & Sampling & TCF
     std::shared_ptr<Kernel_Recorder> krecd(new Kernel_Recorder());
@@ -40,36 +43,21 @@ std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string NA
     kinte->appendChild(ku_x);
     kinte->appendChild(kmodel);
     kinte->appendChild(krepr);
-    kinte->appendChild(ku_c);
+    kinte->appendChild(ku_U);
+    kinte->appendChild(kswitch);
 
+    /// kswarm = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, knaf));
+    /// kinte->appendChild(kswarm);
 
-    std::shared_ptr<Kernel> kele;
-    if (false) {
-        // } else if (NAD_Kernel_name == "CMM") {
-        //     kele = std::shared_ptr<Kernel_Elec_CMM>(new Kernel_Elec_CMM());
-        // } else if (NAD_Kernel_name == "SQC") {
-        //     kele = std::shared_ptr<Kernel_Elec_SQC>(new Kernel_Elec_SQC());
-        // } else if (NAD_Kernel_name == "MMD") {
-        //     kele = std::shared_ptr<Kernel_Elec_MMD>(new Kernel_Elec_MMD());
-        // } else if (NAD_Kernel_name == "SH") {
-        //     kele = std::shared_ptr<Kernel_Hopping>(new Kernel_Hopping());
-        // } else if (NAD_Kernel_name == "MMSH") {
-        //     kele = std::shared_ptr<Kernel_Elec_MMSH>(new Kernel_Elec_MMSH());
-    } else if (NAD_Kernel_name == "NAD") {
-        kele = std::shared_ptr<Kernel_Elec_NAD>(new Kernel_Elec_NAD());
-        // } else if (NAD_Kernel_name == "MCE") {
-        //     kele = std::shared_ptr<Kernel_GWP>(new Kernel_GWP(kmodel, krepr, kforc));
-    } else {
-        throw std::runtime_error("unknown Elec Kernel");
-    }
-    kinte->appendChild(kele);
-
-    kinte->appendChild(kforc);
+    kinte->appendChild(knaf);
     kinte->appendChild(ku_p);
     kinte->appendChild(std::shared_ptr<Kernel_Conserve>(new Kernel_Conserve()));
 
-    std::shared_ptr<Kernel_Iter> kiter(new Kernel_Iter());
-    kiter->appendChild(krecd);  // stacked in iteration
+    std::shared_ptr<Kernel_Iterative>   kiter(new Kernel_Iterative());
+    std::shared_ptr<Kernel_Conditional> kcond(new Kernel_Conditional());
+    kcond->appendChild(kfuncs);
+    kcond->appendChild(krecd);
+    kiter->appendChild(kcond);  // stacked in iteration
     kiter->appendChild(kinte);  // stacked in iteration
 
     // /// CMM kernel
@@ -78,7 +66,7 @@ std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string NA
         .appendChild(std::shared_ptr<Kernel_Read_Dimensions>(new Kernel_Read_Dimensions()))
         .appendChild(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, kinte}, 1)))
         .appendChild(std::shared_ptr<Kernel_Prioritization>(  //
-            new Kernel_Prioritization({kmodel, krepr, kele, kforc, krecd}, 2)))
+            new Kernel_Prioritization({kmodel, krepr, kfuncs, knaf, krecd}, 2)))
         .appendChild(kiter)
         .appendChild(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
 

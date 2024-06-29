@@ -2,16 +2,20 @@
 
 namespace PROJECT_NS {
 
-extern std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string NAD_Kernel_name);
+extern std::shared_ptr<Solver> Sampling_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
 
-extern std::shared_ptr<Solver> NAD_Adapt_Kernel(std::shared_ptr<Model> kmodel, std::string NAD_Kernel_name);
+extern std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
 
-extern std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string NAD_Kernel_name);
+extern std::shared_ptr<Solver> NAD_Adapt_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
+
+extern std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
 
 std::shared_ptr<Solver> defaultSolverFactory(const std::string& name, std::shared_ptr<Model> kmodel) {
     if (false) {
     } else if (name == "Hello") {
         // return Hello_SBuilder(kmodel);
+    } else if (name == "Sampling") {
+        return Sampling_Kernel(kmodel, name);
     } else if (name == "NAD") {
         return NAD_Kernel(kmodel, name);
     } else if (name == "NAF-adapt") {

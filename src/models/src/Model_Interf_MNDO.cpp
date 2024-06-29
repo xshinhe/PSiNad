@@ -28,11 +28,9 @@ void Model_Interf_MNDO::setInputParam_impl(std::shared_ptr<Param> PM) {
     Kernel_Representation::onthefly = true;
 
     // parse mndo input
-    exec_file      = PM->get_string("exec_file", LOC(), "mndo");
-    directory      = PM->get_string("directory", LOC());
-    classical_bath = PM->get_bool("classical_bath", LOC(), false);
-
-    std::string mndoinp = PM->get_string("mndoinp", LOC(), "null");
+    exec_file           = _param->get_string({"model.exec_file"}, LOC(), "mndo");
+    classical_bath      = _param->get_bool({"model.classical_bath"}, LOC(), false);
+    std::string mndoinp = _param->get_string({"model.mndoinp"}, LOC(), "null");
     natom               = parse_mndo(mndoinp);
 
     assert(Dimension::N == 3 * natom);
@@ -88,11 +86,11 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     }
 
     // read temperature
-    double temperature = _param->get_double("model.temperature", LOC(), phys::temperature_d, 1.0f);
+    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0f);
     beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
 
     // read task
-    init_nuclinp = _param->get_string("model.init_nuclinp", LOC(), "#hess");
+    init_nuclinp = _param->get_string({"model.init_nuclinp"}, LOC(), "#hess");
 
     if (init_nuclinp == "#normalmode") {
         calc_normalmode();
@@ -109,7 +107,7 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
     // read hessian from hessian calculation (jop=2 kprint=1)
     if (init_nuclinp == "#hess") {
-        std::string hess_log = _param->get_string("model.hess_log", LOC(), "hess.out");
+        std::string hess_log = _param->get_string({"model.hess_log"}, LOC(), "hess.out");
         if (!isFileExists(hess_log))
             throw std::runtime_error(utils::concat("hess_log file [", hess_log, "] is missed!"));
 
@@ -130,7 +128,7 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         }
     }
     if (init_nuclinp == "#hess2") {
-        std::string hess_mol = _param->get_string("model.hess_mol", LOC(), "hess_molden.dat");
+        std::string hess_mol = _param->get_string({"model.hess_mol"}, LOC(), "hess_molden.dat");
         if (!isFileExists(hess_mol))
             throw std::runtime_error(utils::concat("hess_mol file [", hess_mol, "] is missed!"));
 
@@ -195,7 +193,7 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
     _dataset->def_real("init.x", x, Dimension::N);
     _dataset->def_real("init.p", p, Dimension::N);
 
-    std::string hdlr_str = _param->get_string("model.handler", LOC());
+    std::string hdlr_str = _param->get_string({"model.handler", "handler"}, LOC());
 
     refer        = false;
     task_control = (hdlr_str == "sampling") ? "samp" : "nad";

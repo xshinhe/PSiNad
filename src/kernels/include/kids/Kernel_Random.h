@@ -1,3 +1,28 @@
+/**@file        Kernel_Conserve.h
+ * @brief       this file provides Kernel_Conserve class enabling energy tracing
+ *              and conservation.
+ *
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ **********************************************************************************
+ * @par revision:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-06     <td> Updated.
+ * </table>
+ **********************************************************************************
+ */
+
 #ifndef Kernel_Random_H
 #define Kernel_Random_H
 
@@ -25,6 +50,8 @@ class Kernel_Random : public Kernel {
     virtual const std::string getName();
 
     virtual int getType() const;
+
+    static void setSeed(int* seed, size_t size = rng_t::state_size);
 
     static int rand_catalog(int* res_arr, int N = 1, bool reset = false, int begin = 0, int end = 1);
 

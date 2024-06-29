@@ -1,5 +1,6 @@
-/**@file        Kernel_Update_x.h
- * @brief       this file provides Kernel_Update_x class for update x
+/**@file        Kernel_Iterative_Adapt.h
+ * @brief       this file provides Kernel_Iterative_Adapt class enabling iteration
+ *              and conservation.
  *
  * @author      Xin He
  * @date        2024-03
@@ -22,26 +23,45 @@
  **********************************************************************************
  */
 
-#ifndef Kernel_Update_x_H
-#define Kernel_Update_x_H
+#ifndef Kernel_Iterative_Adapt_H
+#define Kernel_Iterative_Adapt_H
 
 #include "kids/Kernel.h"
 
 namespace PROJECT_NS {
 
-class Kernel_Update_x final : public Kernel {
+class Kernel_Iterative_Adapt final : public Kernel {
    public:
-    Kernel_Update_x(double scale) : Kernel(), scale{scale} {};
-
     virtual const std::string getName();
 
     virtual int getType() const;
 
    private:
-    double *x, *p, *m, *minv;
+    double     t0, *t0_ptr;
+    double     t, *t_ptr;
+    double     dt, *dt_ptr;
+    double     tend, *tend_ptr;
+    kids_bint* at_samplingstep_initially_ptr;
+    kids_bint* at_samplingstep_finally_ptr;
 
-    double     scale, *dt_ptr;
+    kids_bint* succ_ptr;
     kids_bint* frez_ptr;
+    kids_bint* last_attempt_ptr;
+    int*       fail_type_ptr;  // record the failure information (longtime keeped)
+
+    int msize, *tsize_ptr, *dtsize_ptr;
+    int sstep, *sstep_ptr;
+    int istep, *istep_ptr, nstep, *nstep_ptr;
+    int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
+    int nbackup;
+
+    double time_unit;
+
+    const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot"};
+
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
+
+    virtual Status& initializeKernel_impl(Status& stat);
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
@@ -51,4 +71,4 @@ class Kernel_Update_x final : public Kernel {
 };  // namespace PROJECT_NS
 
 
-#endif  // Kernel_Update_x_H
+#endif  // Kernel_Iterative_Adapt_H

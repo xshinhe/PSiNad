@@ -22,7 +22,7 @@ Handler::Handler(const std::string& solver_kernel_name, const std::string& model
 
 
 int Handler::run(std::shared_ptr<Param>& PM) {
-    std::string hdlr_str = PM->get_string("handler", LOC(), "");
+    std::string hdlr_str = PM->get_string({"solver.handler", "handler"}, LOC(), "");
     if (false) {
     } else if (hdlr_str == "parallel") {
         run_parallel(PM);
@@ -106,6 +106,8 @@ int Handler::run_parallel(std::shared_ptr<Param>& PM) {
         MPI_Barrier(MPI_COMM_WORLD);
 
         if (MPI_Guard::isroot) std::cout << PM->repr() << std::endl;
+        std::cout << solver_kernel->montecarlo << " !!!\n";
+        std::cout << guard.istart << ";" << guard.iend << " !\n";
 
         for (int icalc = guard.istart; icalc < guard.iend; ++icalc) {
             auto mid1 = std::chrono::steady_clock::now();
@@ -124,9 +126,11 @@ int Handler::run_parallel(std::shared_ptr<Param>& PM) {
             }
         }
         MPI_Barrier(MPI_COMM_WORLD);
+        std::cout << guard.istart << ";" << guard.iend << " !\n";
 
         auto collect = solver_kernel->getRuleSet()->getCollect().data();
         auto reduced = solver_kernel->getRuleSet()->getReduced().data();
+        // @bad because it should in public domain, but collect return null for blank mpi
         for (int i = 0; i < collect.size(); ++i) {
             std::cout << std::get<0>(collect[i]) << "\n";
             std::cout << std::get<0>(reduced[i]) << "\n";
@@ -135,7 +139,8 @@ int Handler::run_parallel(std::shared_ptr<Param>& PM) {
             MPI_Guard::reduce(std::make_tuple(type1, from_data, to_data, size1));
         }
         // report time cost
-        if (MPI_Guard::isroot) RuleSet::flush_all(solver_kernel->directory, 2);
+        if (MPI_Guard::isroot) { RuleSet::flush_all(solver_kernel->directory, 2); }
+        std::cout << "bxbxbxb\n";
     }
     auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();
@@ -157,10 +162,7 @@ int Handler::run_sampling(std::shared_ptr<Param>& PM) {
         solver_kernel->setInputDataSet(DS);
         solver_kernel->initializeKernel(stat);
 
-        int M = PM->get_int("M", LOC(), 1);
-        int istart, iend;
-
-        MPI_Guard guard(M);
+        MPI_Guard guard(solver_kernel->montecarlo);
         MPI_Barrier(MPI_COMM_WORLD);
 
         if (MPI_Guard::rank == 0) std::cout << PM->repr() << std::endl;

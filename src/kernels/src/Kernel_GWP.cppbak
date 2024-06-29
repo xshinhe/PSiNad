@@ -319,19 +319,19 @@ int Kernel_GWP::calc_Hbasis_adia(kids_complex* Hbasis,  // [P,P]
 }
 
 void Kernel_GWP::setInputParam_impl(std::shared_ptr<Param> PM) {
-    dt            = PM->get_double("dt", LOC(), phys::time_d);     //
-    alpha0        = PM->get_double("alpha0", LOC(), 1.0f);         //
-    width_scaling = PM->get_double("width_scaling", LOC(), 1.0f);  //
-    break_thres   = PM->get_double("break_thres", LOC(), 1.0f);    //
-    P_used0       = PM->get_int("P_initial", LOC(), 1);            //
-    max_clone     = PM->get_int("max_clone", LOC(), 0);            //
-    gamma         = PM->get_double("gamma", LOC(), 0.0f);          //
+    dt            = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);  //
+    alpha0        = _param->get_real({"solver.alpha0"}, LOC(), 1.0f);                  //
+    width_scaling = _param->get_real({"solver.width_scaling"}, LOC(), 1.0f);           //
+    break_thres   = _param->get_real({"solver.break_thres"}, LOC(), 1.0f);             //
+    P_used0       = _param->get_int({"solver.P_initial"}, LOC(), 1);                   //
+    max_clone     = _param->get_int({"solver.max_clone"}, LOC(), 0);                   //
+    gamma         = _param->get_real({"solver.gamma"}, LOC(), 0.0f);                   //
     xi            = 1 + Dimension::F * gamma;
 
-    impl_type          = PM->get_int("impl_type", LOC(), 0);           //
-    samp_type          = PM->get_int("samp_type", LOC(), 0);           //
-    aset_type          = PM->get_int("aset_type", LOC(), 0);           //
-    time_displace_step = PM->get_int("time_displace_step", LOC(), 1);  //
+    impl_type          = _param->get_int({"solver.impl_type"}, LOC(), 0);           //
+    samp_type          = _param->get_int({"solver.samp_type"}, LOC(), 0);           //
+    aset_type          = _param->get_int({"solver.aset_type"}, LOC(), 0);           //
+    time_displace_step = _param->get_int({"solver.time_displace_step"}, LOC(), 1);  //
 }
 
 void Kernel_GWP::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {

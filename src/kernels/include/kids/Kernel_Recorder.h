@@ -50,7 +50,6 @@ class Kernel_Recorder final : public Kernel {
     int*                     nsamp_ptr;
     kids_bint*               at_samplingstep_initially_ptr;
     double                   t0, dt, time_unit;
-    std::string              directory;
     std::vector<std::string> opened_files;
 
     virtual void token(Param::JSON& j);

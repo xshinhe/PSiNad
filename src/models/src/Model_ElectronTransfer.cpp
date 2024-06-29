@@ -1,6 +1,6 @@
 #include "kids/Model_ElectronTransfer.h"
 
-#include "kids/Kernel_NADForce.h"
+#include "kids/Kernel_NAForce.h"
 #include "kids/Kernel_Random.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
@@ -15,9 +15,9 @@ int Model_ElectronTransfer::getType() const { return utils::hash(FUNCTION_NAME);
 
 void Model_ElectronTransfer::setInputParam_impl(std::shared_ptr<Param> PM) {
     // size information
-    Nb        = _param->get_int("model.Nb", LOC());
-    nbath     = _param->get_int("model.nbath", LOC());
-    scan_flag = _param->get_int("model.scan_flag", LOC(), 0);
+    Nb        = _param->get_int({"model.Nb"}, LOC());
+    nbath     = _param->get_int({"model.nbath"}, LOC());
+    scan_flag = _param->get_int({"model.scan_flag"}, LOC(), 0);
 
     // CHECK_EQ(nbath, 1);
     // CHECK_EQ(Nb + 1, Dimension::N);
@@ -38,13 +38,13 @@ void Model_ElectronTransfer::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Hsys = DS->def_real("model.Hsys", Dimension::FF);
     memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
 
-    omega0             = _param->get_double("model.omega0", LOC(), 3.5e-4);
-    lambda0            = _param->get_double("model.lambda0", LOC(), 2.39e-2);
-    coeff0             = _param->get_double("model.coeff0", LOC(), std::sqrt(0.5 * lambda0) * omega0);
-    double temperature = _param->get_double("model.temperature", LOC(), phys::temperature_d, 1.0f);
+    omega0             = _param->get_real({"model.omega0"}, LOC(), 3.5e-4);
+    lambda0            = _param->get_real({"model.lambda0"}, LOC(), 2.39e-2);
+    coeff0             = _param->get_real({"model.coeff0"}, LOC(), std::sqrt(0.5 * lambda0) * omega0);
+    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0f);
     beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
-    double fullbias    = _param->get_double("model.fullbias", LOC(), phys::energy_d, 0.0f);
-    double delta       = _param->get_double("model.delta", LOC(), phys::energy_d, 5.0e-5);
+    double fullbias    = _param->get_real({"model.fullbias"}, LOC(), phys::energy_d, 0.0f);
+    double delta       = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 5.0e-5);
     // double eta         = 1.49e-5; // eta has different relation with alpha!!!
 
     switch (scan_flag) {

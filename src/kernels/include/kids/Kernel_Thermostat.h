@@ -39,21 +39,21 @@ class Kernel_Update_T final : public Kernel {
     double *nhc_x, *nhc_p, *nhc_G, *nhc_Q;  ///< auxiliary
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM) {
-        ndofs  = PM->get_int("N", LOC());
-        dt     = PM->get_double("dt", LOC());
-        gammal = PM->get_double("gammal", LOC(), 0.1);
+        ndofs  = _param->get_int({"model.N"}, LOC());
+        dt     = _param->get_real({"model.dt", "solver.dt"}, LOC());
+        gammal = _param->get_real({"solver.gammal"}, LOC(), 0.1);
         dt *= scale;
 
-        thermo_option.flag = PM->get_string("thermo_flag", LOC(), "#lang");
+        thermo_option.flag = _param->get_string({"solver.thermo_flag"}, LOC(), "#lang");
         thermo_option.type = thermo_policy::_dict.at(thermo_option.flag);
 
         // read temperature
-        double temp = PM->get_double("temp", LOC(), phys::temperature_d, 1.0f);
+        double temp = _param->get_real({"solver.temp"}, LOC(), phys::temperature_d, 1.0f);
         beta        = 1.0f / (phys::au::k * temp);  // never ignore k_Boltzman
 
-        nthstp = PM->get_int("nthstp", LOC(), 0);
-        nchain = PM->get_int("nchain", LOC(), 1);
-        nrespa = PM->get_int("nrespa", LOC(), 10);
+        nthstp = _param->get_int({"solver.nthstp"}, LOC(), 0);
+        nchain = _param->get_int({"solver.nchain"}, LOC(), 1);
+        nrespa = _param->get_int({"solver.nrespa"}, LOC(), 10);
     }
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS) {

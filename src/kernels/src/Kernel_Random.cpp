@@ -13,6 +13,12 @@ std::poisson_distribution<int>            Kernel_Random::rand_pd{1.0};       ///
 
 const std::string Kernel_Random::getName() { return "Kernel_Random"; }
 
+void Kernel_Random::setSeed(int* seed, size_t size) {
+    // int seed[size];
+    std::seed_seq sseq(seed, seed + size);
+    rand_rng = rng_t(sseq);
+}
+
 int Kernel_Random::getType() const { return utils::hash(FUNCTION_NAME); }
 
 int Kernel_Random::rand_catalog(int* res_arr, int N, bool reset, int begin, int end) {
@@ -87,13 +93,11 @@ void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
 Status& Kernel_Random::initializeKernel_impl(Status& stat) {
     if (count_calc == 0) {
-        std::random_device source;
-
         if (!restart) {
+            std::random_device source;
             for (int i = 0; i < rng_t::state_size; ++i) seed[i] = source();
         }
-        std::seed_seq sseq(seed, seed + rng_t::state_size);
-        rand_rng = rng_t(sseq);
+        Kernel_Random::setSeed(seed, rng_t::state_size);
     }
     return stat;
 }

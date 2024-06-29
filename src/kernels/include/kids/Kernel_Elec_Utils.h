@@ -13,8 +13,9 @@
 #define Kernel_Elec_Utils_H
 
 #include "kids/Kernel.h"
-#include "kids/Kernel_Elec.h"
+#include "kids/Kernel_NAForce.h"
 #include "kids/Kernel_Random.h"
+#include "kids/Sampling_Elec.h"
 #include "kids/linalg.h"
 #include "kids/vars_list.h"
 
@@ -38,6 +39,35 @@ class elec_utils {
         return ((fdim - sum) / (sum - 1.0e0)) / fdim;
     }
     /// @}
+
+    /**
+     * @brief convert c (electonic amplititude) to kernel (affine map of the density)
+     */
+    static int ker_from_c(kids_complex* ker, kids_complex* c, kids_real xi, kids_real gamma, int fdim) {
+        ARRAY_OUTER_TRANS2(ker, c, c, fdim, fdim);
+        for (int i = 0, idx = 0; i < fdim; ++i) {
+            for (int j = 0; j < fdim; ++j, ++idx) {
+                ker[idx] *= xi;
+                if (i == j) ker[idx] -= phys::math::iu * gamma;
+            }
+        }
+        return 0;
+    }
+
+
+    /**
+     * @brief convert c (electonic amplititude) to kernel (affine map of the density)
+     */
+    static int ker_from_rho(kids_complex* ker, kids_complex* rho, kids_real xi, kids_real gamma, int fdim,
+                            bool quantize = false, int occ = -1) {
+        for (int i = 0, ij = 0; i < fdim; ++i) {
+            for (int j = 0; j < fdim; ++j, ++ij) {
+                ker[ij] = xi * rho[ij];
+                if (i == j) ker[ij] = (quantize) ? (i == occ ? 1.0e0 : 0.0e0) : (ker[ij] - gamma);
+            }
+        }
+        return 0;
+    }
 
     static int max_choose(kids_complex* rho) {
         int       imax = 0;
@@ -96,6 +126,75 @@ class elec_utils {
         return to;
     }
 
+    static double calc_ElectricalEnergy(kids_real* E, kids_complex* wrho, int occ) {
+        double Ecalc = 0.0e0;
+        switch (Kernel_NAForce::NAForce_type) {
+            case NAForcePolicy::BO:
+            case NAForcePolicy::CV: {
+                Ecalc = E[occ * Dimension::Fadd1];
+                break;
+            }
+            default: {  // EHR, MIX, SD (Eto == Efrom will skip hopping procedure)
+                Ecalc = std::real(ARRAY_TRACE2(wrho, E, Dimension::F, Dimension::F));
+                break;
+            }
+        }
+        return Ecalc;
+    }
+
+    static int calc_distorted_rho(kids_complex* wrho,   // distorted density
+                                  kids_complex* rho,    // rho_ele
+                                  double        xi,     // xi must be 1
+                                  double        gamma,  // gamma must be 0
+                                  double        alpha) {
+        // initialize distorted-density
+        kids_real    L    = 1.0e0 - log(std::abs(alpha));  // @NOTE
+        kids_complex norm = 0.0e0;
+        for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+            for (int k = 0; k < Dimension::F; ++k, ++ik) {
+                if (i == k) {
+                    wrho[ik] = copysign(1.0, std::real(rho[ik])) * std::pow(std::abs(rho[ik]), L);
+                    norm += wrho[ik];
+                } else {
+                    wrho[ik] = xi * rho[ik];
+                }
+            }
+        }
+        // normalization of distorted-density
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) wrho[ii] /= norm;
+        return 0;
+    }
+
+    static int calc_distorted_force(kids_real*    f1,    // to be calculated
+                                    kids_real*    E,     // (input)
+                                    kids_real*    dE,    // (input)
+                                    kids_complex* wrho,  // distorted rho
+                                    kids_complex* rho,   // rho_ele
+                                    double        alpha) {
+        // initialize distorted-density
+        kids_real L            = 1.0e0 - log(std::abs(alpha));  // @NOTE
+        kids_real rate_default = (L == 1.0e0) ? 1.0e0 : 0.0e0;
+
+        // averaged adiabatic energy by distorted-density
+        double Ew = std::real(ARRAY_TRACE2(wrho, E, Dimension::F, Dimension::F));
+        // distortion force (when L= 1 [EHR], the distortion force is zero)
+        for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
+            kids_real* dEj = dE + jFF;
+            f1[j]          = 0.0e0;
+            for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+                double rate  = ((std::real(rho[ii]) == 0.0e0) ? rate_default : std::real(wrho[ii] / rho[ii]));
+                double coeff = (E[ii] - (E[ii] - Ew) * L * rate);
+                for (int k = 0, kk = 0; k < Dimension::F; ++k, kk += Dimension::Fadd1) {
+                    if (i == k) continue;
+                    f1[j] +=
+                        coeff * std::real(dEj[i * Dimension::F + k] / (E[kk] - E[ii]) * wrho[k * Dimension::F + i] -
+                                          dEj[k * Dimension::F + i] / (E[ii] - E[kk]) * wrho[i * Dimension::F + k]);
+                }
+            }
+        }
+        return 0;
+    }
+
     static void hopping_direction(kids_real* direction, kids_real* dE, int from, int to) {
         if (to == from) return;
         for (int i = 0; i < Dimension::N; ++i) { direction[i] = dE[i * Dimension::FF + from * Dimension::F + to]; }
@@ -111,21 +210,37 @@ class elec_utils {
                 if (k != from)
                     direction[i] +=
                         std::real(rho[from * Dimension::F + k] * dE[i * Dimension::FF + k * Dimension::F + from]) /
-                        (E[from] - E[k]);
+                        (E[from * Dimension::Fadd1] - E[k * Dimension::Fadd1]);
             for (int k = 0; k < Dimension::F; ++k)
                 if (k != to)
                     direction[i] -=
                         std::real(rho[to * Dimension::F + k] * dE[i * Dimension::FF + k * Dimension::F + to]) /
-                        (E[to] - E[k]);
+                        (E[to * Dimension::Fadd1] - E[k * Dimension::Fadd1]);
         }
     }
 
-    static int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm, kids_real* E,  //
-                               int from, int to, bool reflect) {
+    // static double calc_ElectricalEnergy(kids_real* E, kids_complex* wrho, int occ) {
+    //     double Ecalc = 0.0e0;
+    //     switch (Kernel_NADForce::NADForce_type) {
+    //         case NADForcePolicy::BO:
+    //         case NADForcePolicy::CV: {
+    //             Ecalc = E[occ * Dimension::Fadd1];
+    //             break;
+    //         }
+    //         default: {  // EHR, MIX, SD (Eto == Efrom will skip hopping procedure)
+    //             Ecalc = ARRAY_TRACE2(wrho, E, Dimension::F, Dimension::F);
+    //             break;
+    //         }
+    //     }
+    //     return Ecalc;
+    // }
+
+    static int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm,  //
+                               kids_real Efrom, kids_real Eto, int from, int to, bool reflect) {
         if (to == from) return from;
 
         // solve x: Ef + P**2 / (2*M) = Et + (P + direction*x)**2 / (2*M)
-        kids_real coeffa = 0.0f, coeffb = 0.0f, coeffc = E[to] - E[from];
+        kids_real coeffa = 0.0f, coeffb = 0.0f, coeffc = Eto - Efrom;
         for (int i = 0; i < Dimension::N; ++i) {
             coeffa += 0.5f * direction[i] * direction[i] / nm[i];
             coeffb += np[i] / nm[i] * direction[i];
@@ -146,6 +261,11 @@ class elec_utils {
             return from;
         }
         return from;
+    }
+
+    static int hopping_impulse(kids_real* direction, kids_real* np, kids_real* nm, kids_real* eig,  //
+                               int from, int to, bool reflect) {
+        return hopping_impulse(direction, np, nm, eig[from], eig[to], from, to, reflect);
     }
 
     /**

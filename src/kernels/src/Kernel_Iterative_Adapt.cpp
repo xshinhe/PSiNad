@@ -1,4 +1,4 @@
-#include "kids/Kernel_Iter_Adapt.h"
+#include "kids/Kernel_Iterative_Adapt.h"
 
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
@@ -11,25 +11,23 @@
 
 namespace PROJECT_NS {
 
-const std::string Kernel_Iter_Adapt::getName() { return "Kernel_Iter_Adapt"; }
+const std::string Kernel_Iterative_Adapt::getName() { return "Kernel_Iterative_Adapt"; }
 
-int Kernel_Iter_Adapt::getType() const { return utils::hash(FUNCTION_NAME); }
+int Kernel_Iterative_Adapt::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Iter_Adapt::setInputParam_impl(std::shared_ptr<Param> PM) {
-    t0   = PM->get_double("t0", LOC(), phys::time_d, 0.0f);
-    tend = PM->get_double("tend", LOC(), phys::time_d, 1.0f);
-    dt   = PM->get_double("dt", LOC(), phys::time_d, 0.1f);
-
-    time_unit = PM->get_double("time_unit", LOC(), phys::time_d, 1.0f);
-
-    sstep   = PM->get_int("sstep", LOC(), 1);
-    msize   = PM->get_int("msize", LOC(), 128);
-    nbackup = PM->get_int("nbackup", LOC(), 1);
-    nstep   = sstep * (int((tend - t0) / (sstep * dt)) + 1);  // @bug?
-    nsamp   = nstep / sstep + 1;
+void Kernel_Iterative_Adapt::setInputParam_impl(std::shared_ptr<Param> PM) {
+    t0        = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
+    tend      = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0f);
+    dt        = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1f);
+    time_unit = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
+    sstep     = _param->get_int({"solver.sstep"}, LOC(), 1);
+    msize     = _param->get_int({"solver.msize"}, LOC(), 128);
+    nbackup   = _param->get_int({"solver.nbackup"}, LOC(), 1);
+    nstep     = sstep * (int((tend - t0) / (sstep * dt)) + 1);  // @bug?
+    nsamp     = nstep / sstep + 1;
 }
 
-void Kernel_Iter_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
+void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     t_ptr      = DS->def(DATA::iter::t);
     dt_ptr     = DS->def(DATA::iter::dt);
     istep_ptr  = DS->def(DATA::iter::istep);
@@ -52,7 +50,7 @@ void Kernel_Iter_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     DS->def_int("iter.msize", &msize);
 }
 
-Status& Kernel_Iter_Adapt::initializeKernel_impl(Status& stat) {
+Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
     t_ptr[0]      = t0;
     dt_ptr[0]     = dt;
     isamp_ptr[0]  = 0;
@@ -67,7 +65,7 @@ Status& Kernel_Iter_Adapt::initializeKernel_impl(Status& stat) {
     return stat;
 }
 
-Status& Kernel_Iter_Adapt::executeKernel_impl(Status& stat) {
+Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
     int last_tried_dtsize = msize;
 
     std::cout << "S|: "                       //
@@ -116,7 +114,6 @@ Status& Kernel_Iter_Adapt::executeKernel_impl(Status& stat) {
         switch (statc) {
             case 'X': {
                 // save breakdown information
-                std::string   directory = _param->get_string("directory", LOC());
                 std::ofstream ofs{utils::concat(directory, "/fail", stat.icalc, "-", istep_ptr[0], ".ds")};
                 _dataset->dump(ofs);
                 ofs.close();

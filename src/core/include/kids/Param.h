@@ -45,6 +45,7 @@
 #include <string>
 
 #include "configor/json.hpp"
+#include "kids/Types.h"
 #include "kids/phys.h"
 
 /**
@@ -111,15 +112,6 @@ class Param final {
     Param(const std::string &input, LoadOption option);
 
     /**
-     *Param &operator[](const std::string &key) {
-     *        if (!has_key(key)) { throw param_illegal_key_error(key); }
-     *        Param ref = Param();
-     *        ref.pj    = &((*pj)[key]);
-     *        return ref;
-     *    }
-     */
-
-    /**
      * @param[in]  key   The key
      *
      * @return     True if key, False otherwise.
@@ -130,30 +122,17 @@ class Param final {
 
     std::string repr();
 
-    bool get_bool(const std::string &key, const std::string &loc, const bool &default_value);
-    bool get_bool(const std::string &key, const std::string &loc = "__loc__");
-    bool get_bool(const std::vector<std::string> &keys, const std::string &loc, const bool &default_value);
-    bool get_bool(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
-
-    int get_int(const std::string &key, const std::string &loc, const int &default_value);
-    int get_int(const std::string &key, const std::string &loc = "__loc__");
-    int get_int(const std::vector<std::string> &keys, const std::string &loc, const int &default_value);
-    int get_int(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
-
-    std::string get_string(const std::string &key, const std::string &loc, const std::string &default_value);
-    std::string get_string(const std::string &key, const std::string &loc = "__loc__");
+    kids_bool   get_bool(const std::vector<std::string> &keys, const std::string &loc, const kids_bool &default_value);
+    kids_bool   get_bool(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
+    kids_int    get_int(const std::vector<std::string> &keys, const std::string &loc, const kids_int &default_value);
+    kids_int    get_int(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
     std::string get_string(const std::vector<std::string> &keys, const std::string &loc,
                            const std::string &default_value);
     std::string get_string(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
-
-    double get_double(const std::string &key, const std::string &loc, const phys::dimension7 &qdim,
-                      const double &default_value = double());
-    double get_double(const std::string &key, const std::string &loc, const double &default_value);
-    double get_double(const std::string &key, const std::string &loc = "__loc__");
-    double get_double(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
-                      const double &default_value = double());
-    double get_double(const std::vector<std::string> &keys, const std::string &loc, const double &default_value);
-    double get_double(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
+    kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
+                         const kids_real &default_value = kids_real());
+    kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc, const kids_real &default_value);
+    kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
 
    private:
     std::shared_ptr<JSON> pj;

@@ -16,6 +16,7 @@ DEFINE_POLICY(NAD1DPolicy,
               DBG,       // (double)
               DAG,       // (double)
               DRN,       // (double) ECR
+              DPES,      //
               NA_I,      // Na + I collision model
               MORSE3A,   // 3-state MORSE3A model
               MORSE3B,   // 3-state MORSE3B model
@@ -25,6 +26,7 @@ DEFINE_POLICY(NAD1DPolicy,
               MORSE15E,  // 15-state MORSE modelc
               CL1D,      // 1-mode Caldeira-Leggett model
               JC1D,      // 1-mode Jaynes-Cummings model
+              RABI,      // 1-mode Rabi model
               IVP1,      // iverted potential model 1
               IVP2,      // iverted potential model 2
               IVP3,      // iverted potential model 3

@@ -43,7 +43,6 @@ class Model_Interf_MNDO final : public Model {
     std::vector<MNDOKW> keyword;  // keyword wrapper
 
     std::string task_control;
-    std::string directory;
 
     bool classical_bath;
 

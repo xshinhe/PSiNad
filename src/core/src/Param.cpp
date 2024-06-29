@@ -133,55 +133,61 @@ T get(const Param::JSON &json, const std::vector<std::string> &keys, const std::
     for (auto &key : keys) {
         if (has_key_internal(json, key)) return get_internal<T, Required>(json, key, loc, qdim, default_value);
     }
-    throw kids_error("Cannot get parameter!");
+    if (!Required) return default_value;
+    throw kids_error(utils::concat(loc, ": Cannot get parameter for! key = ", keys[0]));
     return T();
 }
 
+/// @deprecated
 /// @{
-bool Param::get_bool(const std::string &key, const std::string &loc, const bool &default_value) {
-    return get_internal<bool, false>(*pj, key, loc, phys::none_d, default_value);
+// bool Param::get_bool(const std::string &key, const std::string &loc, const bool &default_value) {
+//     return get_internal<bool, false>(*pj, key, loc, phys::none_d, default_value);
+// }
+// bool Param::get_bool(const std::string &key, const std::string &loc) {
+//     return get_internal<bool, true>(*pj, key, loc, phys::none_d, bool());
+// }
+
+// int Param::get_int(const std::string &key, const std::string &loc, const int &default_value) {
+//     return get_internal<int, false>(*pj, key, loc, phys::none_d, default_value);
+// }
+// int Param::get_int(const std::string &key, const std::string &loc) {
+//     return get_internal<int, true>(*pj, key, loc, phys::none_d, int());
+// }
+
+// std::string Param::get_string(const std::string &key, const std::string &loc, const std::string &default_value) {
+//     return get_internal<std::string, false>(*pj, key, loc, phys::none_d, default_value);
+// }
+// std::string Param::get_string(const std::string &key, const std::string &loc) {
+//     return get_internal<std::string, true>(*pj, key, loc, phys::none_d, std::string());
+// }
+
+// double Param::get_real(const std::string &key, const std::string &loc, const phys::dimension7 &qdim,
+//                          const double &default_value) {
+//     return get_internal<double, false>(*pj, key, loc, qdim, default_value);
+// }
+// double Param::get_real(const std::string &key, const std::string &loc, const double &default_value) {
+//     return get_internal<double, false>(*pj, key, loc, phys::none_d, default_value);
+// }
+// double Param::get_real(const std::string &key, const std::string &loc) {
+//     return get_internal<double, true>(*pj, key, loc, phys::none_d, double());
+// }
+/// @}
+
+/// new implementation
+/// @{
+kids_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc,
+                          const kids_bool &default_value) {
+    return get<kids_bool, false>(*pj, keys, loc, phys::none_d, default_value);
 }
-bool Param::get_bool(const std::string &key, const std::string &loc) {
-    return get_internal<bool, true>(*pj, key, loc, phys::none_d, bool());
+kids_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc) {
+    return get<kids_bool, true>(*pj, keys, loc, phys::none_d, kids_bool());
 }
 
-int Param::get_int(const std::string &key, const std::string &loc, const int &default_value) {
-    return get_internal<int, false>(*pj, key, loc, phys::none_d, default_value);
+kids_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc, const kids_int &default_value) {
+    return get<kids_int, false>(*pj, keys, loc, phys::none_d, default_value);
 }
-int Param::get_int(const std::string &key, const std::string &loc) {
-    return get_internal<int, true>(*pj, key, loc, phys::none_d, int());
-}
-
-std::string Param::get_string(const std::string &key, const std::string &loc, const std::string &default_value) {
-    return get_internal<std::string, false>(*pj, key, loc, phys::none_d, default_value);
-}
-std::string Param::get_string(const std::string &key, const std::string &loc) {
-    return get_internal<std::string, true>(*pj, key, loc, phys::none_d, std::string());
-}
-
-double Param::get_double(const std::string &key, const std::string &loc, const phys::dimension7 &qdim,
-                         const double &default_value) {
-    return get_internal<double, false>(*pj, key, loc, qdim, default_value);
-}
-double Param::get_double(const std::string &key, const std::string &loc, const double &default_value) {
-    return get_internal<double, false>(*pj, key, loc, phys::none_d, default_value);
-}
-double Param::get_double(const std::string &key, const std::string &loc) {
-    return get_internal<double, true>(*pj, key, loc, phys::none_d, double());
-}
-
-bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc, const bool &default_value) {
-    return get<bool, false>(*pj, keys, loc, phys::none_d, default_value);
-}
-bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc) {
-    return get<bool, true>(*pj, keys, loc, phys::none_d, bool());
-}
-
-int Param::get_int(const std::vector<std::string> &keys, const std::string &loc, const int &default_value) {
-    return get<int, false>(*pj, keys, loc, phys::none_d, default_value);
-}
-int Param::get_int(const std::vector<std::string> &keys, const std::string &loc) {
-    return get<int, true>(*pj, keys, loc, phys::none_d, int());
+kids_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc) {
+    return get<kids_int, true>(*pj, keys, loc, phys::none_d, kids_int());
 }
 
 std::string Param::get_string(const std::vector<std::string> &keys, const std::string &loc,
@@ -192,17 +198,17 @@ std::string Param::get_string(const std::vector<std::string> &keys, const std::s
     return get<std::string, true>(*pj, keys, loc, phys::none_d, std::string());
 }
 
-double Param::get_double(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
-                         const double &default_value) {
-    return get<double, false>(*pj, keys, loc, qdim, default_value);
+kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
+                          const kids_real &default_value) {
+    return get<kids_real, false>(*pj, keys, loc, qdim, default_value);
 }
-double Param::get_double(const std::vector<std::string> &keys, const std::string &loc, const double &default_value) {
-    return get<double, false>(*pj, keys, loc, phys::none_d, default_value);
+kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc,
+                          const kids_real &default_value) {
+    return get<kids_real, false>(*pj, keys, loc, phys::none_d, default_value);
 }
-double Param::get_double(const std::vector<std::string> &keys, const std::string &loc) {
-    return get<double, true>(*pj, keys, loc, phys::none_d, double());
+kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc) {
+    return get<kids_real, true>(*pj, keys, loc, phys::none_d, kids_real());
 }
-
 /// @}
 
 };  // namespace PROJECT_NS

@@ -15,21 +15,20 @@ DEFINE_string(p, "param.json", "paramemter inputs");
 
 DEFINE_string(handler,     //
               "parallel",  //
-              "Specifies the handler type"
-              "\n[parallel | single | single_mpi | sampling | help | help_param | help_dataset ]");
+              "Specifies the handler type\n"
+              "[parallel | single | single_mpi | sampling | help | help_param | help_dataset ]");
 DEFINE_string(d, "default", "Specifies the output directory");
 DEFINE_string(load, "", "Specifies the dataset file to load");
 DEFINE_string(dump, "", "Specifies the dataset file to dump");
 DEFINE_double(backup_time, -1.0, "Specifies the timestep for backup (/1h)");
-DEFINE_bool(timing, false, "Enables profiling for time costs");
+DEFINE_bool(timing, false, "Enables simple profiling for time costs");
+DEFINE_bool(profiling, false, "Enables high-performance profiling for time costs");
 
 using namespace PROJECT_NS;
 namespace fs = ghc::filesystem;
 
 int main(int argc, char* argv[]) {
     /* profiling settings */
-    // ProfilerStart("demo.prof");
-
     // plSetFilename("record.pltraw");
     // plInitAndStart("opendf", PL_MODE_STORE_IN_FILE);
     // plDeclareThread("Main");
@@ -41,7 +40,7 @@ int main(int argc, char* argv[]) {
 
     /* read parameter file (json format) */
     std::shared_ptr<Param> PM = std::shared_ptr<Param>(new Param(FLAGS_p, Param::fromFile));
-    auto&& j                  = *(PM->pjson());
+    auto&&                 j  = *(PM->pjson());
 
     j["directory"]   = FLAGS_d;
     j["timing"]      = FLAGS_timing;
@@ -86,9 +85,9 @@ int main(int argc, char* argv[]) {
     FLAGS_stop_logging_if_full_disk = true;  // If disk is full
 
     /* task block */
-    std::string model_name   = PM->get_string("model", LOC());
-    std::string solver_name  = PM->get_string("solver", LOC());
-    std::string handler_name = PM->get_string("handler", LOC(), "single");
+    std::string model_name   = PM->get_string({"model.name"}, LOC());
+    std::string solver_name  = PM->get_string({"solver.name"}, LOC());
+    std::string handler_name = PM->get_string({"solver.handler", "handler"}, LOC(), "single");
 
     Handler myhandler = Handler(solver_name, model_name);
     myhandler.run(PM);

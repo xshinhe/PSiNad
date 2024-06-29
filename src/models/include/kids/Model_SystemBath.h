@@ -42,16 +42,18 @@ class Model_SystemBath final : public Model {
 
    private:
     // parameters
-    int nbath;  // no. of bath
-    int Nb;     // discrete no.
-    int L;      // no. of nonzero variables in each Q
+    int nbath;  // no. of baths
+    int Nb;     // no. of discrete modes for a bath
+    int L;      // no. of nonzero variables in each interaction matrix Q
 
     // system & coupling
-    kids_real* Hsys; /* Hamiltonian for system part */
-    kids_real* Q;    /* system part in interaction with different bath  [size: NvalinQ * nbath * FF] */
-    kids_real* CL;   ///< save coupling coefficients with Qj (Qj has L no. of nonzero elements)
-    kids_real* QL;   ///< save coulping matrix, each and L no. of nonzero elements
-    kids_real* Xnj;  ///< used in Stochastic Schrodinger Equation Methods
+    kids_real* Hsys;  ///< [F * F] (electonic) system Hamiltonian matrix
+    kids_real* Kmat;  ///< [N * N] (nuclear) oscillation strength matrix
+    kids_real* Qmat;  ///< [N * F * F] coupling matrix
+    kids_real* Q;     ///< [nbath * FF] interaction matrix for different bath
+    kids_real* CL;    ///< [L * Nb] discretized coefficients times nonzero terms of Qj
+    kids_real* QL;    ///< [L * Nb * F * F] save coulping matrix, each and L no. of nonzero elements
+    kids_real* Xnj;   ///< [N * F * F] used in Stochastic Schrodinger Equation Methods (alias Qmat)
 
     // bath
     kids_real* omegas;  ///< save discrete frequencies (only for simple model, L=1)

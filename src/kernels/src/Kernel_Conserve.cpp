@@ -1,6 +1,5 @@
 #include "kids/Kernel_Conserve.h"
 
-#include "kids/Kernel_Elec.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
@@ -12,7 +11,7 @@ const std::string Kernel_Conserve::getName() { return "Kernel_Conserve"; }
 int Kernel_Conserve::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Conserve::setInputParam_impl(std::shared_ptr<Param> PM) {
-    conserve_scale = PM->get_bool("conserve_scale", LOC(), false);  // default as false
+    conserve_scale = _param->get_bool({"solver.conserve_scale"}, LOC(), false);  // default as false
 }
 
 void Kernel_Conserve::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {

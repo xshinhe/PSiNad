@@ -44,12 +44,10 @@ class Kernel_Representation final : public Kernel {
     bool basis_switch;
 
     double *             V, *dV, *ddV;
-    double *             E, *T, *Told, *dE, *ddE;
-    double*              L;
+    double *             eig, *E, *T, *Told, *dE, *ddE;
+    double*              lam;
     std::complex<double>*R, *dL, *ddL;
     std::complex<double>*H, *dH, *ddH;
-
-    double* E_copy;
 
     double *      x, *p, *m;
     int*          occ_nuc;
