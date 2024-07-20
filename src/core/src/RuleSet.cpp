@@ -49,22 +49,20 @@ void RuleSet::flush(const std::string& path, int level) {
     ofs << header << "\n";
     for (int iframe = 0; iframe < totalFrameNumber; ++iframe) {
         for (auto& r : rules) {
-            std::shared_ptr<VariableDescriptor> resvar;
             switch (level) {
                 case 0: {
-                    resvar = r->result;
+                    r->writeTo(ofs, r->result->dataPointerRes0, iframe);
                     break;
                 }
                 case 1: {
-                    resvar = r->collect;
+                    r->writeTo(ofs, r->result->dataPointerRes1, iframe);
                     break;
                 }
                 case 2: {
-                    resvar = r->reduced;
+                    r->writeTo(ofs, r->result->dataPointerRes2, iframe);
                     break;
                 }
             }
-            r->writeTo(ofs, resvar->dataPointer, iframe);
         }
         ofs << "\n";
     }
@@ -72,7 +70,9 @@ void RuleSet::flush(const std::string& path, int level) {
 }
 
 void RuleSet::appendHeader(std::shared_ptr<RuleEvaluator>& expr_rule) {
-    auto&             res = expr_rule->result;
+    auto& res = expr_rule->result;
+    if (!res->isTabular) return;
+
     std::stringstream ss;
     switch (res->dataType) {
         case kids_real_type: {
@@ -104,45 +104,42 @@ void RuleSet::appendHeader(std::shared_ptr<RuleEvaluator>& expr_rule) {
 std::vector<std::shared_ptr<RuleEvaluator>>& RuleSet::getRules() { return rules; }
 
 Result RuleSet::getResult() {
-    Result                              res{};
-    std::shared_ptr<VariableDescriptor> resvar;
+    Result res{};
     for (auto& r : rules) {
-        resvar = r->result;
-        res._data.push_back(std::make_tuple(resvar->name,           //
-                                            resvar->dataPointer,    //
-                                            resvar->dataType,       //
-                                            resvar->shape->size(),  //
-                                            totalFrameNumber        //
+        if (!r->result->isTabular) continue;
+        res._data.push_back(std::make_tuple(r->result->name,                  //
+                                            r->result->dataPointerRes0,       //
+                                            r->result->dataType,              //
+                                            r->result->stackedshape->size(),  //
+                                            totalFrameNumber                  //
                                             ));
     }
     return res;
 }
 
 Result RuleSet::getCollect() {
-    Result                              res{};
-    std::shared_ptr<VariableDescriptor> resvar;
+    Result res{};
     for (auto& r : rules) {
-        resvar = r->collect;
-        res._data.push_back(std::make_tuple(resvar->name,           //
-                                            resvar->dataPointer,    //
-                                            resvar->dataType,       //
-                                            resvar->shape->size(),  //
-                                            totalFrameNumber        //
+        if (!r->result->isTabular) continue;
+        res._data.push_back(std::make_tuple(r->result->name,                  //
+                                            r->result->dataPointerRes1,       //
+                                            r->result->dataType,              //
+                                            r->result->stackedshape->size(),  //
+                                            totalFrameNumber                  //
                                             ));
     }
     return res;
 }
 
 Result RuleSet::getReduced() {
-    Result                              res{};
-    std::shared_ptr<VariableDescriptor> resvar;
+    Result res{};
     for (auto& r : rules) {
-        resvar = r->reduced;
-        res._data.push_back(std::make_tuple(resvar->name,           //
-                                            resvar->dataPointer,    //
-                                            resvar->dataType,       //
-                                            resvar->shape->size(),  //
-                                            totalFrameNumber        //
+        if (!r->result->isTabular) continue;
+        res._data.push_back(std::make_tuple(r->result->name,                  //
+                                            r->result->dataPointerRes2,       //
+                                            r->result->dataType,              //
+                                            r->result->stackedshape->size(),  //
+                                            totalFrameNumber                  //
                                             ));
     }
     return res;

@@ -98,6 +98,9 @@ void Model_ElectronTransfer::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Model_ElectronTransfer::initializeKernel_impl(Status& stat) {
+    executeKernel(stat);
+    return stat;  // @todo
+
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* x = this->x + iP * Dimension::N;
         kids_real* p = this->p + iP * Dimension::N;

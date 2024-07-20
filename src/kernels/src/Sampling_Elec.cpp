@@ -231,6 +231,9 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
     _dataset->def_complex("init.rho_ele", rho_ele, Dimension::PFF);
     _dataset->def_complex("init.rho_nuc", rho_nuc, Dimension::PFF);
     _dataset->def_real("init.T", T, Dimension::PFF);
+
+    PRINT_ARRAY(rho_ele, Dimension::F, Dimension::F);
+
     return stat;
 }
 

@@ -32,28 +32,25 @@ namespace PROJECT_NS {
 
 class Kernel_Iterative_Adapt final : public Kernel {
    public:
+    Kernel_Iterative_Adapt() { enable_call_child = false; }
+
     virtual const std::string getName();
 
     virtual int getType() const;
 
    private:
-    double     t0, *t0_ptr;
-    double     t, *t_ptr;
-    double     dt, *dt_ptr;
-    double     tend, *tend_ptr;
-    kids_bint* at_samplingstep_initially_ptr;
-    kids_bint* at_samplingstep_finally_ptr;
+    double     t0, tend, dt0;
+    double *   t, *dt;
+    kids_bint* at_condition;
 
     kids_bint* succ_ptr;
     kids_bint* frez_ptr;
     kids_bint* last_attempt_ptr;
     int*       fail_type_ptr;  // record the failure information (longtime keeped)
 
-    int msize, *tsize_ptr, *dtsize_ptr;
-    int sstep, *sstep_ptr;
-    int istep, *istep_ptr, nstep, *nstep_ptr;
-    int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
-    int nbackup;
+    int  msize, *tsize, *dtsize;
+    int *istep, *isamp, nstep, sstep, nsamp;
+    int  nbackup;
 
     double time_unit;
 

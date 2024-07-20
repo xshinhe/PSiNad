@@ -12,12 +12,12 @@ const std::string Kernel_Update_p::getName() { return "Kernel_Update_p"; }
 int Kernel_Update_p::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr   = DS->def(DATA::iter::dt);
-    f        = DS->def(DATA::integrator::f);
-    p        = DS->def(DATA::integrator::p);
-    minv     = DS->def(DATA::integrator::minv);
-    Ekin     = DS->def(DATA::integrator::Ekin);
-    frez_ptr = DS->def(DATA::iter::frez);
+    f    = DS->def(DATA::integrator::f);
+    p    = DS->def(DATA::integrator::p);
+    ve   = DS->def(DATA::integrator::ve);
+    minv = DS->def(DATA::integrator::minv);
+    Ekin = DS->def(DATA::integrator::Ekin);
+    dt   = DS->def(DATA::flowcontrol::dt);
 }
 
 Status& Kernel_Update_p::initializeKernel_impl(Status& stat) {
@@ -33,7 +33,7 @@ Status& Kernel_Update_p::initializeKernel_impl(Status& stat) {
 }
 
 Status& Kernel_Update_p::executeKernel_impl(Status& stat) {
-    if (frez_ptr[0]) return stat;
+    if (stat.frozen) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* f    = this->f + iP * Dimension::N;
@@ -44,9 +44,10 @@ Status& Kernel_Update_p::executeKernel_impl(Status& stat) {
         //////////////////////////////////////////////
         Ekin[0] = 0.0e0;
         for (int i = 0; i < Dimension::N; ++i) {
-            p[i] -= f[i] * scale * dt_ptr[0];
+            p[i] -= f[i] * scale * dt[0];
             Ekin[0] += 0.5e0 * p[i] * p[i] * minv[i];
         }
+        // PRINT_ARRAY(p, 1, Dimension::N);
     }
     return stat;
 }

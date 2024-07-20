@@ -130,7 +130,7 @@ class elec_utils {
         double Ecalc = 0.0e0;
         switch (Kernel_NAForce::NAForce_type) {
             case NAForcePolicy::BO:
-            case NAForcePolicy::CV: {
+            case NAForcePolicy::NAF: {
                 Ecalc = E[occ * Dimension::Fadd1];
                 break;
             }

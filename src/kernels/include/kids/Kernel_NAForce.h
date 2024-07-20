@@ -36,9 +36,9 @@ namespace PROJECT_NS {
 DEFINE_POLICY(NAForcePolicy,  //
               EHR,            //
               BO,             //
-              CV,             //
+              NAF,            //
               BOSD,           //
-              CVSD,           //
+              NAFSD,          //
               ELSE);          //
 
 namespace FORCE_OPT {

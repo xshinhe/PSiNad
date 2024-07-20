@@ -49,7 +49,6 @@ class Context {
     inline std::vector<std::vector<std::shared_ptr<Solver>>> getSolvers() { return _solvers; }
     inline std::shared_ptr<Platform>                         getPlatfrom() { return _platform; }
 
-    Status&     execute(Status& stat);
     Status&     run(Status& stat);
     Status&     run_all(Status& stat);
     std::string summary(Status& stat);

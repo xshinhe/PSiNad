@@ -4,6 +4,7 @@
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 // #include "kids/linalg_tpl.h"
+#include "kids/debug_utils.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
@@ -68,7 +69,7 @@ Status& Kernel_Representation::initializeKernel_impl(Status& stat) {
     do_refer = false;
     executeKernel(stat);
     do_refer = true;
-    _dataset->def_real("init.T", T, Dimension::PFF);
+    _dataset->def_real("init.T", T, Dimension::PFF);  // @TODO
     return stat;
 }
 
@@ -148,9 +149,9 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                             for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = std::abs(TtTold[i]);
                             ARRAY_MATMUL(eig, eig, TtTold, 1, Dimension::F, Dimension::F);
                         }
-                        for (int i = 0, ik = 0; i < Dimension::F; ++i)
-                            for (int k = 0; k < Dimension::F; ++k, ++ik) E[ik] = (i == k) ? eig[i] : 0.0e0;
                     }
+                    for (int i = 0, ik = 0; i < Dimension::F; ++i)
+                        for (int k = 0; k < Dimension::F; ++k, ++ik) E[ik] = (i == k) ? eig[i] : 0.0e0;
 
                     if (FORCE_OPT::BATH_FORCE_BILINEAR) {
                         int&    B    = FORCE_OPT::nbath;

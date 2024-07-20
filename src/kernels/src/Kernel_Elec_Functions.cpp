@@ -80,15 +80,47 @@ void Kernel_Elec_Functions::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     K1DD = DS->def(DATA::integrator::K1DD);
     K2DD = DS->def(DATA::integrator::K2DD);
 
-    sqcw  = DS->def(DATA::integrator::sqcw);
-    sqcIA = DS->def(DATA::integrator::sqcIA);
-    sqcID = DS->def(DATA::integrator::sqcID);
+    ////
+
+    KSHA = DS->def(DATA::integrator::KSHA);
+    KTWA = DS->def(DATA::integrator::KTWA);
+    KTWD = DS->def(DATA::integrator::KTWD);
+
+    ////
+
+    sqcw   = DS->def(DATA::integrator::sqcw);
+    trKTWA = DS->def(DATA::integrator::trKTWA);
+    trKTWD = DS->def(DATA::integrator::trKTWD);
 
     OpA = DS->def(DATA::integrator::OpA);
     OpB = DS->def(DATA::integrator::OpB);
+
+    (DS->def(DATA::parameter::gamma0))[0] = _param->get_real({"solver.gamma0"}, LOC(), 0.0e0);
+    (DS->def(DATA::parameter::gamma1))[0] = gamma1;
+    (DS->def(DATA::parameter::gamma2))[0] = gamma2;
+    (DS->def(DATA::parameter::gamma3))[0] = _param->get_real({"solver.gamma3"}, LOC(), 1.0e0);
+    (DS->def(DATA::parameter::gammaw))[0] = elec_utils::gamma_wigner(Dimension::F);
+    (DS->def(DATA::parameter::gammar))[0] = elec_utils::gamma_opt(Dimension::F);
+    (DS->def(DATA::parameter::xi0))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gamma0))[0]);
+    (DS->def(DATA::parameter::xi1))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gamma1))[0]);
+    (DS->def(DATA::parameter::xi2))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gamma2))[0]);
+    (DS->def(DATA::parameter::xi3))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gamma3))[0]);
+    (DS->def(DATA::parameter::xiw))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gammaw))[0]);
+    (DS->def(DATA::parameter::xir))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gammar))[0]);
+
+    kids_real* Is = DS->def(DATA::parameter::Is);
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        kids_real* Is0 = Is + iP * Dimension::FF;
+        for (int i = 0, ik = 0; i < Dimension::F; ++i)
+            for (int k = 0; k < Dimension::F; ++k, ++ik) Is0[ik] = (i == k) ? 1.0e0 : 0.0e0;
+    }
 }
 
 Status& Kernel_Elec_Functions::initializeKernel_impl(Status& stat) {
+    ww_A_init = _dataset->def_complex("init.ww_A", ww_A, Dimension::P);  // @bug!!!
+    ww_D_init = _dataset->def_complex("init.ww_D", ww_D, Dimension::P);
+    T_init    = _dataset->def_real("init.T", T, Dimension::PFF);
+
     executeKernel_impl(stat);
     double unit = 1.0e0;
     _dataset->def_real("integrator.1", &unit);
@@ -104,6 +136,11 @@ Status& Kernel_Elec_Functions::initializeKernel_impl(Status& stat) {
     _dataset->def_complex("init.K2QD", K2QD, Dimension::PFF);
     _dataset->def_complex("init.K1DD", K1DD, Dimension::PFF);
     _dataset->def_complex("init.K2DD", K2DD, Dimension::PFF);
+
+    _dataset->def_complex("init.KSHA", KSHA, Dimension::PFF);
+    _dataset->def_complex("init.KTWA", KTWA, Dimension::PFF);
+    _dataset->def_complex("init.KTWD", KTWD, Dimension::PFF);
+
     _dataset->def_complex("init.w", w, Dimension::P);
     _dataset->def_complex("init.wz_A", wz_A, Dimension::P);
     _dataset->def_complex("init.wz_D", wz_D, Dimension::P);
@@ -131,10 +168,13 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
         kids_complex* K2QD    = this->K2QD + iP * Dimension::FF;
         kids_complex* K1DD    = this->K1DD + iP * Dimension::FF;
         kids_complex* K2DD    = this->K2DD + iP * Dimension::FF;
+        kids_complex* KSHA    = this->KSHA + iP * Dimension::FF;
+        kids_complex* KTWA    = this->KTWA + iP * Dimension::FF;
+        kids_complex* KTWD    = this->KTWD + iP * Dimension::FF;
 
-        kids_real* sqcw  = this->sqcw + iP * Dimension::F;  // losed identity of sqc
-        kids_real* sqcIA = this->sqcIA + iP;                // losed identity of sqc
-        kids_real* sqcID = this->sqcID + iP;                // losed identity of sqc
+        kids_real* sqcw   = this->sqcw + iP * Dimension::F;  // losed identity of sqc
+        kids_real* trKTWA = this->trKTWA + iP;               // losed identity of sqc
+        kids_real* trKTWD = this->trKTWD + iP;               // losed identity of sqc
 
         kids_real* T       = this->T + iP * Dimension::FF;
         int*       occ_nuc = this->occ_nuc + iP;
@@ -144,33 +184,40 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          SpacePolicy::L);
 
-
         // 1) Adiabatic representation
-        wz_A[0]        = std::abs(rho_ele[0] - rho_ele[3]);
+        /// parameters, windows(K), weights(w)
+
+        wz_A[0] = 1.0e0;
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+            if (i == occ0) continue;
+            wz_A[0] *= std::abs(rho_ele[occ0 * Dimension::Fadd1] - rho_ele[ii]);
+        }
+
         int    max_pop = elec_utils::max_choose(rho_ele);
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
-        ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
-        ww_A[0]        = std::min({std::abs(ww_A[0]), std::abs(ww_A_init[0])});
 
+        // K1Q simplex quantization
         int act = ((use_fall) ? occ_nuc[0] : max_pop);
         elec_utils::ker_from_rho(K1QA, rho_ele, 1, 0, Dimension::F, true, act);
+        ARRAY_MAT_DIAG(K1DA, K1QA, Dimension::F);
 
-        // default K2QA saved for w2-window
-        elec_utils::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, act);
+        ww_A[0] = 4.0 - 1.0 / (max_val * max_val);
+        ww_A[0] = std::min({std::abs(ww_A[0]), std::abs(ww_A_init[0])});
+
+        // K2Q cutoff quantization (w2-window)
+        elec_utils::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F);
         for (int i = 0; i < Dimension::F; ++i) {
             K2QA[i * Dimension::Fadd1]  //
                 = (std::abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
-        if (use_fssh)  // K2QA saved for FSSH density
-            elec_utils::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F, true, occ_nuc[0]);
-        if (use_sqc) {  // K2QA saved for TWF
-            elec_utils::ker_binning(K2QA, rho_ele, SQCPolicy::TRI);
-            sqcIA[0] = 0;
-            for (int i = 0; i < Dimension::F; ++i) sqcIA[0] += std::real(K2QA[i * Dimension::Fadd1]);
-        }
-
-        ARRAY_MAT_DIAG(K1DA, K1QA, Dimension::F);
         ARRAY_MAT_DIAG(K2DA, K2QA, Dimension::F);
+
+        // kernel for FSSH
+        elec_utils::ker_from_rho(KSHA, rho_ele, 1, 0, Dimension::F, true, occ_nuc[0]);
+
+        // kernel for TW
+        elec_utils::ker_binning(KTWA, rho_ele, SQCPolicy::TRI);
+        trKTWA[0] = std::real(ARRAY_TRACE1(KTWA, Dimension::F, Dimension::F));
 
         Kernel_Representation::transform(K1QA, T, Dimension::F,                 //
                                          RepresentationPolicy::Adiabatic,       //
@@ -199,9 +246,26 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
         elec_utils::ker_from_rho(K1, rho_ele, xi1, gamma1, Dimension::F);
         elec_utils::ker_from_rho(K2, rho_ele, xi2, gamma2, Dimension::F);
 
-        wz_D[0] = std::abs(rho_ele[0] - rho_ele[3]);
+        wz_D[0] = 1.0e0;
+        for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+            if (i == occ0) continue;
+            wz_D[0] *= std::abs(rho_ele[occ0 * Dimension::Fadd1] - rho_ele[ii]);
+        }
+
         max_pop = elec_utils::max_choose(rho_ele);
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
+
+        elec_utils::ker_from_rho(K1QD, rho_ele, 1, 0, Dimension::F, true, max_pop);
+        ARRAY_MAT_DIAG(K1DD, K1QD, Dimension::F);
+
+        elec_utils::ker_from_rho(K2QD, rho_ele, 1, 0, Dimension::F);
+        for (int i = 0; i < Dimension::F; ++i) {
+            K2QD[i * Dimension::Fadd1] = (std::abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
+        }
+        // if (use_strange_win)  // something else
+        //     elec_utils::calc_distorted_rho(K2QD, rho_ele, 1, 0, 0.2);
+        ARRAY_MAT_DIAG(K2DD, K2QD, Dimension::F);
+
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
         if (check_cxs) {
             double y = max_val - 0.5e0;
@@ -248,33 +312,20 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
                                              SpacePolicy::L);
         }
 
-        elec_utils::ker_from_rho(K1QD, rho_ele, 1, 0, Dimension::F, true, max_pop);
-        elec_utils::ker_from_rho(K2QD, rho_ele, 1, 0, Dimension::F);
-        for (int i = 0; i < Dimension::F; ++i) {
-            K2QD[i * Dimension::Fadd1] = (std::abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
-        }
-        if (use_strange_win)  // something else
-            elec_utils::calc_distorted_rho(K2QD, rho_ele, 1, 0, 0.2);
-        if (use_sqc) {
-            elec_utils::ker_binning(K2QD, rho_ele, SQCPolicy::TRI);
-            if (count_exec <= 0) {  // only count at the beginning
-                for (int k = 0; k < Dimension::F; ++k) {
-                    double radius = std::abs(2.0e0 - rho_ele[occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
-                    sqcw[k]       = pow(radius, 3 - Dimension::F);
-                }
-            }
-            sqcID[0] = 0;
-            for (int i = 0; i < Dimension::F; ++i) sqcID[0] += std::real(K2QD[i * Dimension::Fadd1]);
-            if (sqc_init == 2) {  // overload for K2QD by shangyouhao
-                int    imax = elec_utils::max_choose(rho_ele);
-                double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
-                for (int ik = 0; ik < Dimension::FF; ++ik) K2QD[ik] = 0.0e0;
-                if (vmax * vmax * 8.0e0 / 7.0e0 * (Dimension::F + 0.5e0) > 1) K2QD[imax * Dimension::Fadd1] = 1.0e0;
+        elec_utils::ker_binning(KTWD, rho_ele, SQCPolicy::TRI);
+        if (count_exec <= 0) {  // only count at the beginning
+            for (int k = 0; k < Dimension::F; ++k) {
+                double radius = std::abs(2.0e0 - rho_ele[occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
+                sqcw[k]       = pow(radius, 3 - Dimension::F);
             }
         }
-
-        ARRAY_MAT_DIAG(K1DD, K1QD, Dimension::F);
-        ARRAY_MAT_DIAG(K2DD, K2QD, Dimension::F);
+        if (sqc_init == 2) {  // overload for KTWD by shangyouhao
+            int    imax = elec_utils::max_choose(rho_ele);
+            double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
+            for (int ik = 0; ik < Dimension::FF; ++ik) KTWD[ik] = 0.0e0;
+            if (vmax * vmax * 8.0e0 / 7.0e0 * (Dimension::F + 0.5e0) > 1) KTWD[imax * Dimension::Fadd1] = 1.0e0;
+        }
+        trKTWD[0] = std::real(ARRAY_TRACE1(KTWD, Dimension::F, Dimension::F));
 
         // 5) transform back from tcf_repr => inp_repr
         Kernel_Representation::transform(rho_ele, T, Dimension::F,              //

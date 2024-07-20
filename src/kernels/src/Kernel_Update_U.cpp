@@ -24,15 +24,12 @@ void Kernel_Update_U::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr        = DS->def(DATA::iter::dt);
     eig           = DS->def(DATA::model::rep::eig);
     T             = DS->def(DATA::model::rep::T);
     lam           = DS->def(DATA::model::rep::lam);
     R             = DS->def(DATA::model::rep::R);
     U             = DS->def(DATA::integrator::U);
     Udt           = DS->def(DATA::integrator::Udt);
-    succ_ptr      = DS->def(DATA::iter::succ);
-    frez_ptr      = DS->def(DATA::iter::frez);
     invexpidiagdt = DS->def(DATA::integrator::tmp::invexpidiagdt);
     c             = DS->def(DATA::integrator::c);
     cset          = DS->def(DATA::integrator::cset);
@@ -44,19 +41,27 @@ void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     rho_ele_init  = DS->def(DATA::init::rho_ele);
     rho_nuc_init  = DS->def(DATA::init::rho_nuc);
     rho_dual_init = DS->def(DATA::init::rho_dual);
-    T_init        = DS->def(DATA::init::T);  ///?
+    T_init        = DS->def(DATA::init::T);
+    dt            = DS->def(DATA::flowcontrol::dt);
 }
 
 Status& Kernel_Update_U::initializeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_complex* U = this->U + iP * Dimension::FF;
+        kids_complex* U            = this->U + iP * Dimension::FF;
+        kids_complex* rho_ele      = this->rho_ele + iP * Dimension::FF;
+        kids_complex* rho_ele_init = this->rho_ele_init + iP * Dimension::FF;
+        kids_complex* rho_nuc      = this->rho_nuc + iP * Dimension::FF;
+        kids_complex* rho_nuc_init = this->rho_nuc_init + iP * Dimension::FF;
+
+        for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
+        for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_nuc_init[ik];
         ARRAY_EYE(U, Dimension::F);
     }
     return stat;
 }
 
 Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
-    if (frez_ptr[0]) return stat;
+    if (stat.frozen) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm
@@ -79,30 +84,29 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
         kids_real*    T_init        = this->T_init + iP * Dimension::FF;
 
         /**
-         * Update U
+         * Update propagator U
          */
         switch (Kernel_Representation::ele_repr_type) {
             case RepresentationPolicy::Diabatic: {
-                for (int i = 0; i < Dimension::F; ++i)
-                    invexpidiagdt[i] = exp(-phys::math::im * eig[i] * scale * dt_ptr[0]);
+                for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * eig[i] * scale * dt[0]);
                 ARRAY_MATMUL3_TRANS2(Udt, T, invexpidiagdt, T, Dimension::F, Dimension::F, 0, Dimension::F);
                 ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
                 break;
             }
+            // DiabaticComplex: ...
             case RepresentationPolicy::Adiabatic: {
-                for (int i = 0; i < Dimension::F; ++i)
-                    invexpidiagdt[i] = exp(-phys::math::im * lam[i] * scale * dt_ptr[0]);
+                for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * lam[i] * scale * dt[0]);
                 ARRAY_MATMUL3_TRANS2(Udt, R, invexpidiagdt, R, Dimension::F, Dimension::F, 0, Dimension::F);
                 ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
                 break;
             }
             default:  // representation_policy::force, representation_policy::density
-                      // LOG(FATAL);
+                throw kids_error("Unsupport Representation");
                 break;
         }
 
         /**
-         * Update c, cset, rho_ele, rho_nuc etc. (synchronized with U)
+         * Update c, cset, rho_ele, rho_nuc etc. (always keep synchronized with propagator U)
          */
         if (enable_update_c) {
             for (int i = 0; i < Dimension::F; ++i) c[i] = c_init[i];
@@ -116,7 +120,7 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
                                              Kernel_Representation::inp_repr_type,  //
                                              SpacePolicy::H);
         } else {
-            enable_update_rho_ele = true;  // if not use c; rho_ele must be used!!
+            enable_update_rho_ele = true;  // if not enable update of c; update of rho_ele must be enable
         }
         if (enable_update_rho_ele) {
             for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
@@ -132,7 +136,7 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
         } else {
             elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
         }
-        if (true || enable_update_rho_nuc) {
+        if (true || enable_update_rho_nuc) {  // @TODO
             for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_nuc_init[ik];
             Kernel_Representation::transform(rho_nuc, T_init, Dimension::F,         //
                                              Kernel_Representation::inp_repr_type,  //

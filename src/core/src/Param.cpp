@@ -43,7 +43,10 @@ static bool has_key_internal(const Param::JSON &json, const std::string &key) {
     auto        ipos = key.find_first_of(".");
     std::string key1 = (ipos == std::string::npos) ? key : key.substr(0, ipos);
     std::string key2 = (ipos == std::string::npos) ? "" : key.substr(ipos + 1, key.size());
-    if (ipos != std::string::npos) return has_key_internal(json[key1], key2);
+    if (ipos != std::string::npos) {
+        if (json.count(key1) == 0) return false;
+        return has_key_internal(json[key1], key2);
+    }
     return !(json.count(key) == 0);
 }
 

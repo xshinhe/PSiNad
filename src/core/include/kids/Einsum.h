@@ -157,6 +157,7 @@ struct DimenHelper {
    public:
     std::size_t esshape_rank;  ///< the rank of the tensor
     std::size_t total_esidx;   ///< size if the EinsumIdx System
+    std::size_t total_size;
 
     std::vector<std::size_t> dims;      ///< leading dimensions of the tensor
     std::vector<std::size_t> ldims;     ///< leading dimensions of the tensor

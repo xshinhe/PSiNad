@@ -1,6 +1,7 @@
 #include "kids/Einsum.h"
 
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 
 namespace PROJECT_NS {
@@ -21,6 +22,9 @@ DimenHelper::DimenHelper(const std::string& esshape, std::vector<EinsumIdx>& idx
         lastsize = dims[k];
         lastldim = ldims[k];
     }
+
+    total_size = 1;
+    for (auto& i : dims) total_size *= i;
 
     // calculate the leading dimensions of the tensor represented in einsum indexes
     for (int i = 0; i < total_esidx; ++i) {
@@ -52,6 +56,8 @@ EinsumHelper::EinsumHelper(const std::string&                    einsum_expressi
         switch (c) {
             case ',': {
                 if (esshape.size() != shape_inputs[ishape].size()) {
+                    std::cerr << "esshape.size() = " << esshape.size() << "\n";
+                    std::cerr << "shape_inputs[ishape].size() = " << shape_inputs[ishape].size() << "\n";
                     throw std::runtime_error("mismatch einsum rule with shape!");
                 }
                 esshape_inputs.push_back(esshape);
@@ -104,6 +110,7 @@ EinsumHelper::EinsumHelper(const std::string&                    einsum_expressi
                         }
                         it->cnt = 1;
                     } else {
+                        std::cerr << esshape_output << "\n";
                         throw std::runtime_error("bad einsum einsum_expression!");
                     }
                     esshape_output += c;

@@ -39,9 +39,7 @@ class Kernel_Update_x final : public Kernel {
 
    private:
     double *x, *p, *m, *minv;
-
-    double     scale, *dt_ptr;
-    kids_bint* frez_ptr;
+    double  scale, *dt;
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 

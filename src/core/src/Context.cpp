@@ -1,5 +1,7 @@
 #include "kids/Context.h"
 
+#include <chrono>
+
 namespace PROJECT_NS {
 
 Context::Context(std::shared_ptr<Platform> plat, std::shared_ptr<System> sys,
@@ -8,40 +10,83 @@ Context::Context(std::shared_ptr<Platform> plat, std::shared_ptr<System> sys,
     //
 }
 
-Status& Context::execute(Status& stat) {
-    // auto   begin = std::chrono::steady_clock::now();
-    // {
-    //     for (auto& solver : _solvers) solver->setInputParam(_param);
-    //     for (auto& solver : _solvers) solver->setInputDataSet(_dataset);
-    //     solver->initializeKernel(stat);  // @necessary?
+Status& Context::run_all(Status& stat) {
+    while (stat.istage < _solvers.size()) run(stat);
+    return stat;
+}
 
-    //     // get Monte Carlo Dimension from Param
-    //     int         M         = PM->get_int("M", LOC(), 1);
-    //     std::string directory = PM->get_string("directory", LOC(), "default");
-    //     MPI_Guard   guard(M);
+Status& Context::run(Status& stat) {
+    auto& solvers = _solvers[stat.istage];
+    auto& PM      = _param;
+    auto& DS      = _dataset;
+    auto  begin   = std::chrono::steady_clock::now();
+    // {
+    //     // initialization of Param & DataSet for solvers
+    //     for (auto& solver : solvers) {
+    //         auto solver_kernel = solver->getSolverKernel();
+    //         solver_kernel->setInputParam(PM);
+    //         solver_kernel->setInputDataSet(DS);
+    //     }
+
+    //     // get Monte Carlo Dimension by platform
+    //     // auto&& guard = _platform.generateGaurd();
+    //     // guard.barrier();
+    //     // if (guard.isroot) std::cout << PM->repr() << std::endl;
+
+    //     MPI_Guard guard(solver_kernel->montecarlo);
     //     MPI_Barrier(MPI_COMM_WORLD);
+    //     if (MPI_Guard::isroot) std::cout << PM->repr() << std::endl;
+
+    //     // execute for solver_kernels
     //     for (int icalc = guard.istart; icalc < guard.iend; ++icalc) {
     //         stat.icalc = icalc;
-    //         solver->initializeKernel(stat);
-    //         solver->executeKernel(stat);
-    //         solver->finalizeKernel(stat);
-    //     }
-    //     MPI_Barrier(MPI_COMM_WORLD);
 
-    //     auto collect = solver->getRuleSet()->getResult(1).data();
-    //     auto reduced = solver->getRuleSet()->getResult(2).data();
-    //     for (int i = 0; i < collect.size(); ++i) {
-    //         std::cout << std::get<0>(collect[i]) << "\n";
-    //         std::cout << std::get<0>(reduced[i]) << "\n";
-    //         auto [key1, from_data, type1, size1, nframe1] = collect[i];
-    //         auto [key2, to_data, type2, size2, nframe2]   = reduced[i];
-    //         MPI_Guard::reduce(std::make_tuple(type1, from_data, to_data, size1));
+    //         int isolver = 0;
+    //         for (auto& solver : solvers) {
+    //             stat.isolver = isolver;
+
+    //             auto& solver_kernel = solver->getSolverKernel();
+    //             solver_kernel->initializeKernel(stat);
+    //             solver_kernel->executeKernel(stat);
+    //             solver_kernel->finalizeKernel(stat);
+    //             ++isolver;
+    //         }
     //     }
+
+    //     MPI_Barrier(MPI_COMM_WORLD);
+    //     std::cout << guard.istart << ";" << guard.iend << " !\n";
+
+    //     // initialization of Param & DataSet for solvers
+    //     for (auto& solver : solvers) {
+    //         auto solver_kernel = solver->getSolverKernel();
+    //         auto collect       = solver_kernel->getRuleSet()->getCollect().data();
+    //         auto reduced       = solver_kernel->getRuleSet()->getReduced().data();
+    //         // @bad because it should in public domain, but collect return null for blank mpi
+    //         for (int i = 0; i < collect.size(); ++i) {
+    //             std::cout << std::get<0>(collect[i]) << "\n";
+    //             std::cout << std::get<0>(reduced[i]) << "\n";
+    //             auto [key1, from_data, type1, size1, nframe1] = collect[i];
+    //             auto [key2, to_data, type2, size2, nframe2]   = reduced[i];
+    //             MPI_Guard::reduce(std::make_tuple(type1, from_data, to_data, size1));
+    //         }
+    //     }
+
     //     // report time cost
-    //     if (MPI_Guard::isroot) RuleSet::flush_all(directory, 2);
+    //     if (MPI_Guard::isroot) { RuleSet::flush_all(solver_kernel->directory, 2); }
     // }
     // auto   end        = std::chrono::steady_clock::now();
     // double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();
+
+    // // report time cost
+    // if (MPI_Guard::isroot) {
+    //     for (auto& solver : solvers) {
+    //         auto solver_kernel = solver->getSolverKernel();
+    //         std::cout << solver_kernel->generateInformationString(total_time);
+    //         std::cout << "Using total time " << total_time << " s\n";
+    //     }
+    // }
+
+    stat.istage++;
     return stat;
 }
 

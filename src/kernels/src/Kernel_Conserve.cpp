@@ -1,5 +1,6 @@
 #include "kids/Kernel_Conserve.h"
 
+#include "kids/Kernel_Representation.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
@@ -24,16 +25,16 @@ void Kernel_Conserve::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     E                = DS->def(DATA::model::rep::E);
     m                = DS->def(DATA::integrator::m);
     p                = DS->def(DATA::integrator::p);
-    succ_ptr         = DS->def(DATA::iter::succ);
-    last_attempt_ptr = DS->def(DATA::iter::last_attempt);
-    frez_ptr         = DS->def(DATA::iter::frez);
-    fail_type_ptr    = DS->def(DATA::iter::fail_type);
+    succ_ptr         = DS->def(DATA::flowcontrol::succ);
+    last_attempt_ptr = DS->def(DATA::flowcontrol::last_attempt);
+    frez_ptr         = DS->def(DATA::flowcontrol::frez);
+    fail_type_ptr    = DS->def(DATA::flowcontrol::fail_type);
 }
 
 Status& Kernel_Conserve::initializeKernel_impl(Status& stat) {
     bool conserve_scale_bak = conserve_scale;
     conserve_scale          = false;
-    executeKernel(stat);  // calc Epot
+    // executeKernel(stat);  // calc Epot
     conserve_scale = conserve_scale_bak;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
@@ -44,12 +45,10 @@ Status& Kernel_Conserve::initializeKernel_impl(Status& stat) {
 };
 
 Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
-    if (!succ_ptr[0] && fail_type_ptr[0] == 1) {
-        return stat;  //
-    }
-    if (frez_ptr[0]) {
-        return stat;  //
-    }
+    // if (!succ_ptr[0] && fail_type_ptr[0] == 1) {
+    //     return stat;  //
+    // }
+    if (stat.frozen) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_real* E         = this->E + iP * Dimension::F;
@@ -64,28 +63,32 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
         Ekin[0] = 0.0e0;
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
 
-        double thres = 0.02;
-        if (last_attempt_ptr[0] && fail_type_ptr[0] != 2) { cnt_loose = 3; }
-        if (cnt_loose > 0) {
-            thres = cnt_loose * cnt_loose;  // help for last_attempt of mndo failure
-            std::cout << "disable conserve around last try mndo\n";
-            cnt_loose--;
-        }
+        if (Kernel_Representation::onthefly) {
+            double thres = 0.02;
+            if (last_attempt_ptr[0] && fail_type_ptr[0] != 2) { cnt_loose = 3; }
+            if (cnt_loose > 0) {
+                thres = cnt_loose * cnt_loose;  // help for last_attempt of mndo failure
+                std::cout << "disable conserve around last try mndo\n";
+                cnt_loose--;
+            }
 
-        if (last_attempt_ptr[0] && fail_type_ptr[0] == 2) {
-            thres = 0.5;  // loose threshold
-            std::cout << "last try conservation with thres = " << thres << "\n";
-        }
+            if (last_attempt_ptr[0] && fail_type_ptr[0] == 2) {
+                thres = 0.5;  // loose threshold
+                std::cout << "last try conservation with thres = " << thres << "\n";
+            }
 
-        if (std::abs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
-            std::cout << "fail in conserve ERROR: "  //
-                      << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << " > " << thres << "\n";
-            succ_ptr[0]      = false;
-            fail_type_ptr[0] = 2;
+            if (std::abs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
+                std::cout << "fail in conserve ERROR: "  //
+                          << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << " > " << thres << "\n";
+                succ_ptr[0]      = false;
+                fail_type_ptr[0] = 2;
+            } else {
+                Etot_prev[0]     = Ekin[0] + Epot[0];
+                succ_ptr[0]      = true;
+                fail_type_ptr[0] = 0;
+            }
         } else {
-            Etot_prev[0]     = Ekin[0] + Epot[0];
-            succ_ptr[0]      = true;
-            fail_type_ptr[0] = 0;
+            succ_ptr[0] = true;
         }
 
         if (conserve_scale) {
@@ -93,6 +96,7 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
             for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
             // Ekin[0] = Etot_init[0] - Epot[0];
         }
+        Etot[0] = Epot[0] + Ekin[0];
     }
     return stat;
 }

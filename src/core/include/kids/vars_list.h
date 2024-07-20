@@ -60,6 +60,10 @@ extern std::size_t NNFF;  ///< Product of N, N, F, and F (N * N * F * F).
 
 extern std::size_t Fadd1;  ///< F plus 1 (F + 1).
 
+extern std::size_t sstep;
+extern std::size_t nstep;
+extern std::size_t nsamp;
+
 extern Shape shape_1;      ///< Shape corresponding to a single element (1).
 extern Shape shape_2;      ///< Shape corresponding to two elements (2).
 extern Shape shape_X;      ///< Shape for an arbitrary number of elements.
@@ -103,6 +107,22 @@ extern VARIABLE<kids_complex> rho_nuc;
 extern VARIABLE<kids_complex> rho_dual;
 };  // namespace init
 
+namespace parameter {
+extern VARIABLE<kids_real> xi0;
+extern VARIABLE<kids_real> xi1;
+extern VARIABLE<kids_real> xi2;
+extern VARIABLE<kids_real> xi3;
+extern VARIABLE<kids_real> xiw;
+extern VARIABLE<kids_real> xir;
+extern VARIABLE<kids_real> gamma0;
+extern VARIABLE<kids_real> gamma1;
+extern VARIABLE<kids_real> gamma2;
+extern VARIABLE<kids_real> gamma3;
+extern VARIABLE<kids_real> gammaw;
+extern VARIABLE<kids_real> gammar;
+extern VARIABLE<kids_real> I;
+extern VARIABLE<kids_real> Is;
+};  // namespace parameter
 
 namespace integrator {
 extern VARIABLE<kids_complex> Acoeff;
@@ -140,6 +160,9 @@ extern VARIABLE<kids_complex> K2DA;
 extern VARIABLE<kids_complex> K2DD;
 extern VARIABLE<kids_complex> K2QA;
 extern VARIABLE<kids_complex> K2QD;
+extern VARIABLE<kids_complex> KSHA;
+extern VARIABLE<kids_complex> KTWA;
+extern VARIABLE<kids_complex> KTWD;
 extern VARIABLE<kids_complex> OpA;
 extern VARIABLE<kids_complex> OpB;
 extern VARIABLE<kids_real>    P_used;
@@ -177,6 +200,7 @@ extern VARIABLE<kids_real> x;
 
 extern VARIABLE<kids_real>    norm;
 extern VARIABLE<kids_int>     occ_nuc;
+extern VARIABLE<kids_real>    ve;
 extern VARIABLE<kids_real>    p;
 extern VARIABLE<kids_complex> p_sign;
 
@@ -192,8 +216,8 @@ extern VARIABLE<kids_complex> rho_nuc;
 extern VARIABLE<kids_complex> rhored;
 extern VARIABLE<kids_complex> rhored2;
 extern VARIABLE<kids_complex> rhored3;
-extern VARIABLE<kids_real>    sqcIA;
-extern VARIABLE<kids_real>    sqcID;
+extern VARIABLE<kids_real>    trKTWA;
+extern VARIABLE<kids_real>    trKTWD;
 extern VARIABLE<kids_real>    sqcw;
 extern VARIABLE<kids_real>    sqcw0;
 extern VARIABLE<kids_real>    sqcwh;
@@ -231,10 +255,16 @@ extern VARIABLE<kids_real>    xgrid;
 };  // namespace integrator
 
 
-namespace iter {
-extern VARIABLE<kids_bint> at_samplingstep_finally;
-extern VARIABLE<kids_bint> at_samplingstep_initially;
+namespace flowcontrol {
+extern VARIABLE<kids_int>  scheme_id;
+extern VARIABLE<kids_int>  solver_id;
+extern VARIABLE<kids_int>  calc_id;
+extern VARIABLE<kids_int>  step_id;
+extern VARIABLE<kids_bint> at_condition;
+// extern VARIABLE<kids_bint> at_samplingstep_finally;
+// extern VARIABLE<kids_bint> at_samplingstep_initially;
 extern VARIABLE<kids_real> dt;
+extern VARIABLE<kids_real> pertimeunit;
 extern VARIABLE<kids_int>  dtsize;
 extern VARIABLE<kids_int>  fail_type;
 extern VARIABLE<kids_bint> frez;
@@ -248,7 +278,7 @@ extern VARIABLE<kids_int>  sstep;
 extern VARIABLE<kids_bint> succ;
 extern VARIABLE<kids_real> t;
 extern VARIABLE<kids_int>  tsize;
-};  // namespace iter
+};  // namespace flowcontrol
 
 
 namespace last {

@@ -43,6 +43,11 @@ void Sampling_Nucl::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 Status& Sampling_Nucl::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
+    PRINT_ARRAY(x0, 1, Dimension::N);
+    PRINT_ARRAY(p0, 1, Dimension::N);
+    PRINT_ARRAY(x_sigma, 1, Dimension::N);
+    PRINT_ARRAY(p_sigma, 1, Dimension::N);
+
     for (int iP = 0; iP < Dimension::P; ++iP) {  /// use P instead of P_NOW
         kids_real* x = this->x + iP * Dimension::N;
         kids_real* p = this->p + iP * Dimension::N;

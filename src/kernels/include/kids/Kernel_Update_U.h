@@ -65,9 +65,7 @@ class Kernel_Update_U final : public Kernel {
     kids_complex *rho_dual, *rho_dual_init;
 
     kids_real  scale;
-    kids_real* dt_ptr;
-    kids_bint* succ_ptr;
-    kids_bint* frez_ptr;
+    kids_real* dt;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

@@ -35,9 +35,11 @@ class Handler final {
     int run_help_dataset(std::shared_ptr<Param>& PM);  // { return 0; }
 
    private:
-    std::shared_ptr<Model>  model;
-    std::shared_ptr<Solver> solver;
-    std::shared_ptr<Kernel> solver_kernel;
+    std::shared_ptr<Model>               model;
+    std::vector<std::shared_ptr<Solver>> solvers;
+    // std::shared_ptr<Solver>              solver2;
+    std::shared_ptr<Kernel> solver1_kernel;  // @deprecated todo
+    std::shared_ptr<Kernel> solver2_kernel;  // @deprecated todo
 };
 
 };  // namespace PROJECT_NS

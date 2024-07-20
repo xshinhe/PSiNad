@@ -38,10 +38,9 @@ class Kernel_Update_p : public Kernel {
     virtual int getType() const;
 
    private:
-    double *   p, *f, *minv;
-    double*    Ekin;
-    double     scale, *dt_ptr;
-    kids_bint* frez_ptr;
+    double *p, *f, *minv, *ve;
+    double* Ekin;
+    double  scale, *dt;
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 

@@ -240,6 +240,13 @@ class DataSet final : public Node {
     std::tuple<kids_dtype, void*, Shape*> obtain(const std::string& key);
 
     /**
+     * Inquiry a specified key.
+     * @param key The key for the variable.
+     * @return Bool whether the key exists
+     */
+    bool haskey(const std::string& key);
+
+    /**
      * Get the node corresponding to a variable with a specified key.
      * @param key The key for the variable.
      * @return Pointer to the corresponding Node.

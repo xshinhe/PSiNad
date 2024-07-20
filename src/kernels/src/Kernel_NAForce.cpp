@@ -23,12 +23,14 @@ const std::string Kernel_NAForce::getName() { return "Kernel_NAForce"; }
 int Kernel_NAForce::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_NAForce::setInputParam_impl(std::shared_ptr<Param> PM) {
+    NAForce_type                   = NAForcePolicy::_dict.at(  //
+        _param->get_string({"solver.naforce"}, LOC(), "EHR"));
     FORCE_OPT::BATH_FORCE_BILINEAR = _param->get_bool({"solver.BATH_FORCE_BILINEAR"}, LOC(), false);
     offd_projected                 = _param->get_bool({"solver.offd_projected"}, LOC(), true);
 };
 
 void Kernel_NAForce::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr   = DS->def(DATA::iter::dt);
+    dt_ptr   = DS->def(DATA::flowcontrol::dt);
     f        = DS->def(DATA::integrator::f);
     p        = DS->def(DATA::integrator::p);
     m        = DS->def(DATA::integrator::m);
@@ -37,7 +39,7 @@ void Kernel_NAForce::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dV       = DS->def(DATA::model::dV);
     dE       = DS->def(DATA::model::rep::dE);
     T        = DS->def(DATA::model::rep::T);
-    succ_ptr = DS->def(DATA::iter::succ);
+    succ_ptr = DS->def(DATA::flowcontrol::succ);
 
     Epot = DS->def(DATA::integrator::Epot);
     vpes = DS->def(DATA::model::vpes);
@@ -71,11 +73,12 @@ Status& Kernel_NAForce::initializeKernel_impl(Status& stat) {
         kids_real* alpha = this->alpha + iP;
         alpha[0]         = calc_alpha(V);
     }
-    return executeKernel(stat);
+    executeKernel(stat);
+    return stat;
 }
 
 Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
-    if (!succ_ptr[0]) return stat;
+    if (stat.frozen) return stat;
 
     for (int iP = 0; iP < Dimension::P_NOW; ++iP) {
         int*          occ_nuc  = this->occ_nuc + iP;
@@ -96,7 +99,7 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
 
         /////////////////////////////////////////////////////////////////
         // smooth dynamics force
-        if (NAForce_type == NAForcePolicy::BOSD || NAForce_type == NAForcePolicy::CVSD) {
+        if (NAForce_type == NAForcePolicy::BOSD || NAForce_type == NAForcePolicy::NAFSD) {
             Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
                                              Kernel_Representation::inp_repr_type,  //
                                              Kernel_Representation::nuc_repr_type,  //
@@ -167,7 +170,7 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                                                  SpacePolicy::L);
                 break;
             }
-            case NAForcePolicy::CV: {
+            case NAForcePolicy::NAF: {
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
                                                  Kernel_Representation::inp_repr_type,  //
                                                  Kernel_Representation::nuc_repr_type,  //
@@ -207,7 +210,7 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                 break;
             }
             case NAForcePolicy::BOSD:
-            case NAForcePolicy::CVSD: {                                                 // smooth dynamics
+            case NAForcePolicy::NAFSD: {                                                // smooth dynamics
                 Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
                                                  Kernel_Representation::inp_repr_type,  //
                                                  Kernel_Representation::nuc_repr_type,  //
@@ -257,7 +260,7 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                         fproj[j]    = std::real(ARRAY_TRACE2_OFFD(rho_nuc, dVj, Dimension::F, Dimension::F));
                     }
                 }
-                if (NAForce_type == NAForcePolicy::CVSD) {  // twice off-diagonal force? @bug? check it please
+                if (NAForce_type == NAForcePolicy::NAFSD) {  // twice off-diagonal force? @bug? check it please
                     if (offd_projected) {
                         double fdotR = 0.0e0, PdotR = 0.0e0;
                         for (int j = 0; j < Dimension::N; ++j)

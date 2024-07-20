@@ -35,23 +35,19 @@ namespace PROJECT_NS {
  */
 class Kernel_Iterative final : public Kernel {
    public:
+    Kernel_Iterative() { enable_call_child = false; }
+
     virtual const std::string getName();
 
     virtual int getType() const;
 
    private:
-    double     t0, *t0_ptr;
-    double     t, *t_ptr;
-    double     dt, *dt_ptr;
-    double     tend, *tend_ptr;
-    double     tsec, *tsec_ptr;
-    int*       succ_ptr;
-    kids_bint* at_samplingstep_initially_ptr;
-    kids_bint* at_samplingstep_finally_ptr;
+    double     t0, tend, dt0;
+    double *   t, *dt;
+    kids_bint* at_condition;
 
-    int sstep, *sstep_ptr;
-    int istep, *istep_ptr, nstep, *nstep_ptr;
-    int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
+    int  sstep, nstep, nsamp;
+    int *istep, *isamp;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

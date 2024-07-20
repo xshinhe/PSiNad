@@ -182,6 +182,24 @@ std::tuple<kids_dtype, void*, Shape*> DataSet::obtain(const std::string& key) {
     }
 }
 
+bool DataSet::haskey(const std::string& key) {
+    DataSetKeyParser          kh    = DataSetKeyParser(key);
+    std::shared_ptr<DataType> d_ptr = _data;
+
+    DataSet* currentNode = this;
+    for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+        auto& node = (*d_ptr)[kh.terms[i]];
+        if (!node) return false;
+        currentNode = static_cast<DataSet*>(node.get());
+        d_ptr       = currentNode->_data;
+    }
+
+    auto& leaf_node = (*d_ptr)[kh.terms.back()];
+    if (!leaf_node) return false;
+    return true;
+}
+
+
 Node* DataSet::node(const std::string& key) {
     DataSetKeyParser          kh    = DataSetKeyParser(key);
     std::shared_ptr<DataType> d_ptr = _data;

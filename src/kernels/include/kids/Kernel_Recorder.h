@@ -27,9 +27,18 @@
 #define Kernel_Recorder_H
 
 #include "kids/Kernel.h"
+#include "kids/Policy.h"
 #include "kids/RuleEvaluator.h"
 
 namespace PROJECT_NS {
+
+DEFINE_POLICY(RecordPolicy,  //
+              Trace,         //
+              Average,       //
+              NAF,           //
+              BOSD,          //
+              NAFSD,         //
+              ELSE);         //
 
 class Kernel_Recorder final : public Kernel {
    public:
@@ -43,12 +52,12 @@ class Kernel_Recorder final : public Kernel {
 
    private:
     // friend class Kernel_Report;
+    int occ0;
 
     int*                     istep_ptr;
     int*                     sstep_ptr;
     int*                     isamp_ptr;
     int*                     nsamp_ptr;
-    kids_bint*               at_samplingstep_initially_ptr;
     double                   t0, dt, time_unit;
     std::vector<std::string> opened_files;
 

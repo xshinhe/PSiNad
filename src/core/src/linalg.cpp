@@ -62,9 +62,9 @@ static void ARRAY_MATMUL_UNIVERSAL(kids_real* A, kids_real* B, kids_real* C, siz
     MapMXr MapA(A, N1, N3);
     MapMXr MapB(B, NB1, NB2);
     MapMXr MapC(C, NC1, NC2);
-    auto M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
-    auto M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
-    MapA    = M1 * M2;
+    auto   M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
+    auto   M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
+    MapA      = M1 * M2;
 }
 
 static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_complex* B, kids_complex* C,  //
@@ -76,9 +76,9 @@ static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_complex* B, kids_comple
     MapMXc MapA(A, N1, N3);
     MapMXc MapB(B, NB1, NB2);
     MapMXc MapC(C, NC1, NC2);
-    auto M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
-    auto M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
-    MapA    = M1 * M2;
+    auto   M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
+    auto   M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
+    MapA      = M1 * M2;
 }
 
 static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_real* B, kids_complex* C,  //
@@ -90,9 +90,9 @@ static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_real* B, kids_complex* 
     MapMXc MapA(A, N1, N3);
     MapMXr MapB(B, NB1, NB2);
     MapMXc MapC(C, NC1, NC2);
-    auto M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
-    auto M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
-    MapA    = M1 * M2;
+    auto   M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
+    auto   M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
+    MapA      = M1 * M2;
 }
 
 static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_complex* B, kids_real* C,  //
@@ -104,9 +104,9 @@ static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_complex* B, kids_real* 
     MapMXc MapA(A, N1, N3);
     MapMXc MapB(B, NB1, NB2);
     MapMXr MapC(C, NC1, NC2);
-    auto M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
-    auto M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
-    MapA    = M1 * M2;
+    auto   M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
+    auto   M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
+    MapA      = M1 * M2;
 }
 
 void ARRAY_MATMUL(kids_real* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
@@ -309,66 +309,76 @@ void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, kids_c
     }
 }
 
+kids_real ARRAY_TRACE1(kids_real* B, size_t N1, size_t N2) {
+    MapMXr MapB(B, N1, N2);
+    return MapB.diagonal().array().sum();
+}
+
+kids_complex ARRAY_TRACE1(kids_complex* B, size_t N1, size_t N2) {
+    MapMXc MapB(B, N1, N2);
+    return MapB.diagonal().array().sum();
+}
+
 kids_real ARRAY_TRACE2(kids_real* B, kids_real* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2(kids_complex* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2(kids_complex* B, kids_real* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2(kids_real* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum();
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum();
     return res;
 }
 
 kids_real ARRAY_TRACE2_DIAG(kids_real* B, kids_real* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2_DIAG(kids_complex* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2_DIAG(kids_complex* B, kids_real* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_complex ARRAY_TRACE2_DIAG(kids_real* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
+    auto   res = (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
 
 kids_real ARRAY_TRACE2_OFFD(kids_real* B, kids_real* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -376,7 +386,7 @@ kids_real ARRAY_TRACE2_OFFD(kids_real* B, kids_real* C, size_t N1, size_t N2) {
 kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -384,7 +394,7 @@ kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_complex* C, size_t N1, size
 kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_real* C, size_t N1, size_t N2) {
     MapMXc MapB(B, N1, N2);
     MapMXr MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }
@@ -392,7 +402,7 @@ kids_complex ARRAY_TRACE2_OFFD(kids_complex* B, kids_real* C, size_t N1, size_t 
 kids_complex ARRAY_TRACE2_OFFD(kids_real* B, kids_complex* C, size_t N1, size_t N2) {
     MapMXr MapB(B, N1, N2);
     MapMXc MapC(C, N2, N1);
-    auto res = (MapB.array() * (MapC.transpose()).array()).sum()  //
+    auto   res = (MapB.array() * (MapC.transpose()).array()).sum()  //
                - (MapB.diagonal().array() * MapC.diagonal().array()).sum();
     return res;
 }

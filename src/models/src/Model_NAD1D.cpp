@@ -1015,6 +1015,9 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 };
 
 Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
+    executeKernel(stat);
+    return stat;  // @todo
+
     switch (nad1d_type) {
         case NAD1DPolicy::NA_I: {
             double bmax = 9.0e0 / phys::au_2_ang;

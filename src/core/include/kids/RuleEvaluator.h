@@ -76,8 +76,6 @@ struct RuleEvaluator {
     std::string                           mode;             /**< The mode of evaluation. */
     std::string                           save;             /**< File name to save results. */
     std::shared_ptr<VariableDescriptor>   result;           /**< Result of the expression. */
-    std::shared_ptr<VariableDescriptor>   collect;          /**< collect of Result */
-    std::shared_ptr<VariableDescriptor>   reduced;          /**< collect of Result */
     std::vector<VariableDescriptor>       variables;        /**< Variables in the expression. */
     std::vector<std::vector<std::size_t>> inputShapes;      /**< Shapes of input data. */
     std::vector<void*>                    inputData;        /**< Input data. */
@@ -87,7 +85,11 @@ struct RuleEvaluator {
     std::string                           einsumString;     /**< String representation of expression type. */
     kids_dtype                            expressionType;   /**< Type of the expression. */
     size_t                                expressionId;     /**< ID of the expression. */
-    int                                   expressionCheck;  /**< ID of the expression. */
+
+    bool                                has_parameter;
+    std::shared_ptr<VariableDescriptor> c1;      /**< Result of the expression. */
+    std::shared_ptr<VariableDescriptor> c2;      /**< Result of the expression. */
+    std::shared_ptr<VariableDescriptor> balance; /**< Result of the expression. */
 };
 
 };  // namespace PROJECT_NS

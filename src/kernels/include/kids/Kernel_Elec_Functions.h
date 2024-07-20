@@ -72,7 +72,11 @@ class Kernel_Elec_Functions final : public Kernel {
     kids_complex *K1DD;
     kids_complex *K2DD;
 
-    kids_real *sqcw, *sqcIA, *sqcID;
+    kids_complex *KSHA;
+    kids_complex *KTWA;
+    kids_complex *KTWD;
+
+    kids_real *sqcw, *trKTWA, *trKTWD;
 
     kids_complex *OpA, *OpB;
     kids_complex *TrK1A, *TrK2B;

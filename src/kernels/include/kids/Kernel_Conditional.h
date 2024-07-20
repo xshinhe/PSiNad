@@ -35,23 +35,14 @@ namespace PROJECT_NS {
  */
 class Kernel_Conditional final : public Kernel {
    public:
+    Kernel_Conditional() { enable_call_child = false; }
+
     virtual const std::string getName();
 
     virtual int getType() const;
 
    private:
-    double     t0, *t0_ptr;
-    double     t, *t_ptr;
-    double     dt, *dt_ptr;
-    double     tend, *tend_ptr;
-    double     tsec, *tsec_ptr;
-    int*       succ_ptr;
-    kids_bint* at_samplingstep_initially_ptr;
-    kids_bint* at_samplingstep_finally_ptr;
-
-    int sstep, *sstep_ptr;
-    int istep, *istep_ptr, nstep, *nstep_ptr;
-    int isamp, *isamp_ptr, nsamp, *nsamp_ptr;
+    kids_bint* at_condition;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

@@ -369,6 +369,24 @@ void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, kids_c
                           size_t N1, size_t N2, size_t N0, size_t N3);
 
 /**
+ * Compute the trace of the matrix B
+ *
+ * @param B Pointer to the first real matrix.
+ * @return The trace of the matrix B.
+ */
+kids_real ARRAY_TRACE1(kids_real* B, size_t N1, size_t N2);
+
+
+/**
+ * Compute the trace of the matrix B
+ *
+ * @param B Pointer to the first complex matrix.
+ * @return The trace of the matrix B.
+ */
+kids_complex ARRAY_TRACE1(kids_complex* B, size_t N1, size_t N2);
+
+
+/**
  * Compute the trace of the matrix product B * C for real matrices.
  *
  * @param B Pointer to the first real matrix.

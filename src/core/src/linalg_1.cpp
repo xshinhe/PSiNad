@@ -42,27 +42,27 @@ void LinearSolve(kids_real* x, kids_real* A, kids_real* b, size_t N) {
 }
 
 void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N) {
-    MapMXr MapE(E, N, 1);
-    MapMXr MapT(T, N, N);
-    MapMXr MapA(A, N, N);
+    MapMXr                                MapE(E, N, 1);
+    MapMXr                                MapT(T, N, N);
+    MapMXr                                MapA(A, N, N);
     Eigen::SelfAdjointEigenSolver<EigMXr> eig(MapA);
     MapE = eig.eigenvalues().real();
     MapT = eig.eigenvectors().real();
 }
 
 void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXr MapE(E, N, 1);
-    MapMXc MapT(T, N, N);
-    MapMXc MapA(A, N, N);
+    MapMXr                                MapE(E, N, 1);
+    MapMXc                                MapT(T, N, N);
+    MapMXc                                MapA(A, N, N);
     Eigen::SelfAdjointEigenSolver<EigMXc> eig(MapA);
     MapE = eig.eigenvalues().real();
     MapT = eig.eigenvectors();
 }
 
 void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N) {
-    MapMXc MapE(E, N, 1);
-    MapMXc MapT(T, N, N);
-    MapMXc MapA(A, N, N);
+    MapMXc                            MapE(E, N, 1);
+    MapMXc                            MapT(T, N, N);
+    MapMXc                            MapA(A, N, N);
     Eigen::ComplexEigenSolver<EigMXc> eig(MapA);
     MapE = eig.eigenvalues();
     MapT = eig.eigenvectors();
@@ -138,7 +138,7 @@ void ARRAY_CORRECT_U(kids_complex* U, size_t N) {
 
     kids_complex* V_ptr     = new kids_complex[N * N];
     kids_complex* A_ptr     = new kids_complex[N * N];
-    kids_real* lamb_ptr     = new kids_real[N];
+    kids_real*    lamb_ptr  = new kids_real[N];
     kids_complex* lamb2_ptr = new kids_complex[N];
 
     for (int i = 0, ik = 0; i < N; ++i) {

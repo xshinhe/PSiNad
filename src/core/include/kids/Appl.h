@@ -1,6 +1,6 @@
-/**@file        Appl.h
- * @brief       Declaration of the Appl class
- * @details     This file helps in manage context of Kernels
+/**@file        Application.h
+ * @brief       Declaration of the Application
+ * @details     This file defines Applications built over dynamics
  *
  * @author      Xin He
  * @date        2024-03

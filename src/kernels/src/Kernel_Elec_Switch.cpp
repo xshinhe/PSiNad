@@ -4,6 +4,7 @@
 #include "kids/Kernel_NAForce.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"
+#include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 #include "kids/macro_utils.h"
@@ -25,7 +26,7 @@ void Kernel_Elec_Switch::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Elec_Switch::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr    = DS->def(DATA::iter::dt);
+    dt_ptr    = DS->def(DATA::flowcontrol::dt);
     Epot      = DS->def(DATA::integrator::Epot);
     p         = DS->def(DATA::integrator::p);
     m         = DS->def(DATA::integrator::m);
@@ -49,7 +50,13 @@ void Kernel_Elec_Switch::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     }
 }
 
-Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) { return stat; }
+Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) {
+    double dt_bak = dt_ptr[0];
+    dt_ptr[0]     = 0.0e0;  // @make no dynamics here
+    executeKernel(stat);
+    dt_ptr[0] = dt_bak;
+    return stat;
+}
 
 Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
