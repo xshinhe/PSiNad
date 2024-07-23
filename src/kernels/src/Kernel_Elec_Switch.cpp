@@ -53,7 +53,7 @@ void Kernel_Elec_Switch::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) {
     double dt_bak = dt_ptr[0];
     dt_ptr[0]     = 0.0e0;  // @make no dynamics here
-    executeKernel(stat);
+    executeKernel_impl(stat);
     dt_ptr[0] = dt_bak;
     return stat;
 }
@@ -89,6 +89,7 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
         kids_int  from, to;
         kids_real Efrom, Eto;
         Efrom = elec_utils::calc_ElectricalEnergy(EMat, rho_nuc, occ_nuc[0]);  // occ_nuc defined in nuc_repr_type
+
         switch (hopping_choose_type) {
             case 0: {  // from the max elecment of rho_ele
                 to = elec_utils::max_choose(rho_ele);
@@ -118,6 +119,8 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
         }
         Eto = elec_utils::calc_ElectricalEnergy(EMat, rho_nuc, to);
 
+        // std::cout << LOC() << occ_nuc[0] << " -> " << to << ": Efrom=" << Efrom << ",  Eto=" << Eto << "\n";
+
         /// step 2: determine a direction
         switch (hopping_direction_type) {
             case 0: {  // along density weighted nacv
@@ -141,8 +144,10 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
         }
 
         // step 3: try hop and adjust momentum
-        occ_nuc[0] = elec_utils::hopping_impulse(direction, p, m, Efrom, Eto, occ_nuc[0], to, reflect);
-        Epot[0]    = vpes[0] + ((occ_nuc[0] == to) ? Eto : Efrom);
+        if (occ_nuc[0] != to) {
+            occ_nuc[0] = elec_utils::hopping_impulse(direction, p, m, Efrom, Eto, occ_nuc[0], to, reflect);
+        }
+        Epot[0] = vpes[0] + ((occ_nuc[0] == to) ? Eto : Efrom);
 
         Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
                                          Kernel_Representation::nuc_repr_type,  //

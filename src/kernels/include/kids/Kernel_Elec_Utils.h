@@ -16,6 +16,7 @@
 #include "kids/Kernel_NAForce.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Sampling_Elec.h"
+#include "kids/debug_utils.h"
 #include "kids/linalg.h"
 #include "kids/vars_list.h"
 
@@ -240,7 +241,7 @@ class elec_utils {
         if (to == from) return from;
 
         // solve x: Ef + P**2 / (2*M) = Et + (P + direction*x)**2 / (2*M)
-        kids_real coeffa = 0.0f, coeffb = 0.0f, coeffc = Eto - Efrom;
+        kids_real coeffa = 0.0e0, coeffb = 0.0e0, coeffc = Eto - Efrom;
         for (int i = 0; i < Dimension::N; ++i) {
             coeffa += 0.5f * direction[i] * direction[i] / nm[i];
             coeffb += np[i] / nm[i] * direction[i];
@@ -249,7 +250,7 @@ class elec_utils {
 
         kids_real coeffd = coeffb * coeffb - 4 * coeffc;
         if (coeffd > 0) {
-            kids_real x1 = 0.5f * (-coeffb + sqrt(coeffd)), x2 = 0.5f * (-coeffb - sqrt(coeffd));
+            kids_real x1 = 0.5e0 * (-coeffb + sqrt(coeffd)), x2 = 0.5e0 * (-coeffb - sqrt(coeffd));
             kids_real xx = (std::abs(x1) < std::abs(x2)) ? x1 : x2;
             for (int i = 0; i < Dimension::N; ++i) np[i] += xx * direction[i];
             return to;

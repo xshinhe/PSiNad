@@ -15,13 +15,13 @@ void Kernel_Dump_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 Status& Kernel_Dump_DataSet::initializeKernel_impl(Status& stat) {
-    if (hdlr_str == "sampling") {
-        try {
-            std::ofstream ofs{utils::concat(directory, "/samp", stat.icalc, ".ds")};
-            _dataset->dump(ofs);
-            ofs.close();
-        } catch (std::runtime_error& e) { throw kids_error(fn); }
-    }
+    // if (hdlr_str == "sampling") {
+    //     try {
+    //         std::ofstream ofs{utils::concat(directory, "/samp", stat.icalc, ".ds")};
+    //         _dataset->dump(ofs);
+    //         ofs.close();
+    //     } catch (std::runtime_error& e) { throw kids_error(fn); }
+    // }
     return stat;
 }
 

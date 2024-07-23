@@ -7,6 +7,7 @@
 #include "kids/Param.h"
 #include "kids/RuleSet.h"
 #include "kids/SolverFactory.h"
+#include "kids/debug_utils.h"
 
 //
 #include "mpi_utils.h"
@@ -142,15 +143,15 @@ int Handler::run_parallel(std::shared_ptr<Param>& PM) {
         auto reduced = solver2_kernel->getRuleSet()->getReduced().data();
         // @bad because it should in public domain, but collect return null for blank mpi
         for (int i = 0; i < collect.size(); ++i) {
-            std::cout << std::get<0>(collect[i]) << "\n";
-            std::cout << std::get<0>(reduced[i]) << "\n";
+            // std::cout << std::get<0>(collect[i]) << "\n";
+            // std::cout << std::get<0>(reduced[i]) << "\n";
             auto [key1, from_data, type1, size1, nframe1] = collect[i];
             auto [key2, to_data, type2, size2, nframe2]   = reduced[i];
             MPI_Guard::reduce(std::make_tuple(type1, from_data, to_data, size1));
         }
         // report time cost
         if (MPI_Guard::isroot) { RuleSet::flush_all(solver2_kernel->directory, 2); }
-        std::cout << DS->repr() << "\n";
+        // std::cout << DS->repr() << "\n";
     }
     auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();

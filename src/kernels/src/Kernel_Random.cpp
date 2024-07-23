@@ -89,17 +89,13 @@ int Kernel_Random::rand_sphere(kids_real* res_arr, int N, kids_real constr) {
 
 void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     seed = DS->def_int("random.seed", rng_t::state_size);  //
+    if (!restart) {
+        std::random_device source;
+        for (int i = 0; i < rng_t::state_size; ++i) seed[i] = source();
+    }
+    Kernel_Random::setSeed(seed, rng_t::state_size);
 }
 
-Status& Kernel_Random::initializeKernel_impl(Status& stat) {
-    if (count_calc == 0) {
-        if (!restart) {
-            std::random_device source;
-            for (int i = 0; i < rng_t::state_size; ++i) seed[i] = source();
-        }
-        Kernel_Random::setSeed(seed, rng_t::state_size);
-    }
-    return stat;
-}
+Status& Kernel_Random::initializeKernel_impl(Status& stat) { return stat; }
 
 };  // namespace PROJECT_NS

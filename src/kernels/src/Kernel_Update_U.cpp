@@ -47,14 +47,7 @@ void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
 Status& Kernel_Update_U::initializeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_complex* U            = this->U + iP * Dimension::FF;
-        kids_complex* rho_ele      = this->rho_ele + iP * Dimension::FF;
-        kids_complex* rho_ele_init = this->rho_ele_init + iP * Dimension::FF;
-        kids_complex* rho_nuc      = this->rho_nuc + iP * Dimension::FF;
-        kids_complex* rho_nuc_init = this->rho_nuc_init + iP * Dimension::FF;
-
-        for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
-        for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_nuc_init[ik];
+        kids_complex* U = this->U + iP * Dimension::FF;
         ARRAY_EYE(U, Dimension::F);
     }
     return stat;

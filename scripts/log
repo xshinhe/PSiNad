@@ -1,0 +1,338 @@
+Sorting...
+Full Text Search...
+adun-core/jammy 0.81-14build2 amd64
+  Molecular Simulator
+
+adun.app/jammy 0.81-14build2 amd64
+  Molecular Simulator for GNUstep (GUI)
+
+autodock-vina/jammy 1.2.3-2 amd64
+  docking of small molecules to proteins
+
+avogadro/jammy 1.95.1-2 amd64
+  Molecular Graphics and Modelling System
+
+bagel/jammy,now 1.2.2-3ubuntu1 amd64 [installed]
+  Computational Chemistry Package
+
+bodr/jammy 10-2 all
+  Blue Obelisk Data Repository
+
+cclib/jammy 1.6.2-2 all
+  Parsers and algorithms for computational chemistry
+
+cclib-data/jammy 1.6.2-2 all
+  Parsers and algorithms for computational chemistry (data files)
+
+chemps2/jammy 1.8.11-1build1 amd64
+  Executable to call libchemps2-3 from the command line
+
+chemps2-doc/jammy 1.8.11-1build1 all
+  Documentation of the libchemps2-3 package
+
+cwltool/jammy 3.1.20220224085855-1 all
+  Common Workflow Language reference implementation
+
+debichem-analytical-biochemistry/jammy 0.0.11 all
+  DebiChem Analytical BioChemistry
+
+debichem-input-generation-output-processing/jammy 0.0.11 all
+  DebiChem input preparation and output processing
+
+deepnano/jammy 0.0+git20170813.e8a621e-3.1build1 amd64
+  alternative basecaller for MinION reads of genomic sequences
+
+dia-shapes/jammy 0.6.0-3.1 all
+  Diagram editor (additional shapes)
+
+easychem/jammy 0.6-9 amd64
+  Draw high-quality molecules and 2D chemical formulas
+
+ergo/jammy 3.8-1build1 amd64
+  Quantum chemistry program for large-scale calculations
+
+ergo-data/jammy 3.8-1build1 all
+  Quantum chemistry program for large-scale calculations - data package
+
+gabedit/jammy 2.5.1+ds-1 amd64
+  graphical user interface to Ab Initio packages
+
+garlic-doc/jammy 1.6-1.1 all
+  [Chemistry] a molecular visualization program - documents
+
+gcrystal/jammy 0.14.17-6.1 amd64
+  lightweight crystal structures visualizer
+
+gcu-bin/jammy 0.14.17-6.1 amd64
+  GNOME chemistry utils (helper applications)
+
+indigo-utils/jammy 1.2.3-3.1 amd64
+  Organic Chemistry Toolkit Utilities
+
+jmol/jammy 14.32.3+dfsg1-1 all
+  Molecular Viewer
+
+kalzium/jammy 4:21.12.3-0ubuntu1 amd64
+  periodic table and chemistry tools
+
+libcdk-java/jammy 1:2.7.1-1 all
+  Chemistry Development Kit (CDK) Java libraries
+
+libcdkr-java/jammy 3.6.0+dfsg-2 all
+  chemistry library combining R with CDK
+
+libchemistry-elements-perl/jammy 1.075-1 all
+  Perl extension for working with Chemical Elements
+
+libchemistry-file-mdlmol-perl/jammy 0.24-1 all
+  MDL molfile/SDF (V2000) reader/writer
+
+libchemistry-formula-perl/jammy 3.0.1-1.3 all
+  enumerate elements in a chemical formula
+
+libchemistry-isotope-perl/jammy 0.11-2 all
+  table of the isotopes exact mass data
+
+libchemistry-mol-perl/jammy 0.38-2 all
+  Molecule object toolkit
+
+libchemistry-openbabel-perl/jammy 3.1.1+dfsg-6ubuntu5 amd64
+  Chemical toolbox library (perl bindings)
+
+libchemistry-opensmiles-perl/jammy 0.7.0-1 all
+  OpenSMILES format reader and writer
+
+libchemistry-ring-perl/jammy 0.20-2 all
+  Represent a ring as a substructure of a molecule
+
+libchemps2-3/jammy 1.8.11-1build1 amd64
+  Spin-adapted DMRG for ab initio quantum chemistry
+
+libchemps2-dev/jammy 1.8.11-1build1 amd64
+  C++ headers, static library, and symlink for libchemps2-3
+
+libgcu0v5/jammy 0.14.17-6.1 amd64
+  GNOME chemistry utils (library)
+
+libindigo-dev/jammy 1.2.3-3.1 amd64
+  Organic Chemistry Toolkit (development files)
+
+libindigo-java/jammy 1.2.3-3.1 all
+  Organic Chemistry Toolkit (Java package)
+
+libindigo0d/jammy 1.2.3-3.1 amd64
+  Organic Chemistry Toolkit
+
+libint2-2/jammy 2.7.1-2 amd64
+  Computation Chemistry Integral Evaluation Library
+
+libint2-dev/jammy 2.7.1-2 amd64
+  Computation Chemistry Integral Evaluation Library (development files)
+
+libjgraph-java/jammy 5.12.4.2+dfsg-5.1 all
+  JFC/Swing graph component for Java
+
+libjgraph-java-doc/jammy 5.12.4.2+dfsg-5.1 all
+  JFC/Swing graph component for Java (documentation)
+
+libjmol-java/jammy 14.32.3+dfsg1-1 all
+  Java library for molecular structures
+
+libjmol-java-doc/jammy 14.32.3+dfsg1-1 all
+  API documentation for libjmol-java
+
+libjni-inchi-java/jammy 0.8+dfsg-6 all
+  Java Native Interface wrapper for InChI
+
+libjni-inchi-jni/jammy 0.8+dfsg-6 amd64
+  Java Native Interface wrapper for InChI (shared library)
+
+libmadness-dev/jammy 0.10.1+git20200818.eee5fd9f-3 amd64
+  Numerical Environment for Scientific Simulation (development files)
+
+libmopac7-1gf/jammy 1.15-6ubuntu4 amd64
+  Semi-empirical Quantum Chemistry Library (library)
+
+libmopac7-dev/jammy 1.15-6ubuntu4 amd64
+  Semi-empirical Quantum Chemistry Library (development files)
+
+libopenbabel-dev/jammy 3.1.1+dfsg-6ubuntu5 amd64
+  Chemical toolbox library (development files)
+
+libopenbabel-doc/jammy 3.1.1+dfsg-6ubuntu5 all
+  Chemical toolbox library (documentation)
+
+libopenbabel7/jammy 3.1.1+dfsg-6ubuntu5 amd64
+  Chemical toolbox library
+
+libopenchemlib-java/jammy 2022.2.1+dfsg-1 all
+  framework providing cheminformatics core functionality
+
+libopenchemlib-java-doc/jammy 2022.2.1+dfsg-1 all
+  framework providing cheminformatics core functionality - documentation
+
+liboscar4-java/jammy 5.1.2+dfsg-1 all
+  automated annotation of chemistry in scientific articles
+
+libpsi3-dev/jammy 3.4.0-6ubuntu1 amd64
+  Quantum Chemical Program Suite (Development Libraries)
+
+libpwiz-dev/jammy 3.0.18342-4build1 amd64
+  library to perform proteomics data analyses (devel files)
+
+libpwiz-doc/jammy 3.0.18342-4build1 all
+  set of programs to perform proteomics data analyses (doc)
+
+libpwiz-tools/jammy 3.0.18342-4build1 amd64
+  ProteoWizard command line tools
+
+libpwiz3/jammy 3.0.18342-4build1 amd64
+  library to perform proteomics data analyses (runtime)
+
+librdkit-dev/jammy 202109.2-1build1 amd64
+  Collection of cheminformatics and machine-learning software (development files)
+
+librdkit1/jammy 202109.2-1build1 amd64
+  Collection of cheminformatics and machine-learning software (shared libraries)
+
+libsc-data/jammy 2.3.1-21 all
+  Scientific Computing Toolkit (basis set and atom data)
+
+libsc-dev/jammy 2.3.1-21 amd64
+  Scientific Computing Toolkit (development files)
+
+libsc7v5/jammy 2.3.1-21 amd64
+  Scientific Computing Toolkit (library)
+
+massxpert/jammy 6.0.3-1 amd64
+  polymer chemistry modelling and mass spectrometry data simulation (runtime)
+
+massxpert-data/jammy 6.0.3-1 all
+  polymer chemistry modelling and mass spectrometry data simulation (data)
+
+massxpert-doc/jammy 6.0.3-1 all
+  polymer chemistry modelling and mass spectrometry data simulation (doc)
+
+mopac7-bin/jammy 1.15-6ubuntu4 amd64
+  Semi-empirical Quantum Chemistry Library (binaries)
+
+mpqc/jammy 2.3.1-21 amd64
+  Massively Parallel Quantum Chemistry Program
+
+mpqc-support/jammy 2.3.1-21 amd64
+  Massively Parallel Quantum Chemistry Program (support tools)
+
+msxpertsuite/jammy 5.8.9-1 amd64
+  mass spectrometry software suite - metapackage
+
+nwchem/jammy 7.0.2-3 all
+  High-performance computational chemistry software (default MPI)
+
+nwchem-data/jammy 7.0.2-3 all
+  High-performance computational chemistry software (data files)
+
+nwchem-mpich/jammy 7.0.2-3 amd64
+  High-performance computational chemistry software (MPICH build)
+
+nwchem-openmpi/jammy 7.0.2-3 amd64
+  High-performance computational chemistry software (OpenMPI build)
+
+openbabel/jammy 3.1.1+dfsg-6ubuntu5 amd64
+  Chemical toolbox utilities (cli)
+
+openbabel-gui/jammy 3.1.1+dfsg-6ubuntu5 amd64
+  Chemical toolbox utilities (graphical user interface)
+
+openmolcas/jammy,now 21.10-1ubuntu1 amd64 [installed]
+  Quantum chemistry software package
+
+openmolcas-data/jammy,now 21.10-1ubuntu1 all [installed]
+  Quantum chemistry software package (data files)
+
+packmol/jammy 20.010-1build1 amd64
+  Initial configurations for Molecular Dynamics Simulations
+
+postgresql-14-rdkit/jammy 202109.2-1build1 amd64
+  Cheminformatics and machine-learning software (PostgreSQL Cartridge)
+
+psi3/jammy 3.4.0-6ubuntu1 amd64
+  Quantum Chemical Program Suite
+
+psi4/jammy 1:1.3.2+dfsg-2.1 amd64
+  Quantum Chemical Program Suite
+
+psi4-data/jammy 1:1.3.2+dfsg-2.1 all
+  Quantum Chemical Program Suite (data files)
+
+python3-cclib/jammy 1.6.2-2 all
+  Parsers and algorithms for computational chemistry (Python3 module)
+
+python3-chemps2/jammy 1.8.11-1build1 amd64
+  Python 3 interface for libchemps2-3
+
+python3-indigo/jammy 1.2.3-3.1 all
+  Organic Chemistry Toolkit (Python module)
+
+python3-openbabel/jammy 3.1.1+dfsg-6ubuntu5 amd64
+  Chemical toolbox library (Python bindings)
+
+python3-qcelemental/jammy 0.24.0+dfsg-2 all
+  Periodic table, physical constants, and molecule parsing for quantum chemistry
+
+python3-qcengine/jammy 0.21.0-2 all
+  Quantum chemistry program executor and IO standardizer
+
+python3-rdkit/jammy 202109.2-1build1 amd64
+  Collection of cheminformatics and machine-learning software
+
+python3-wimsapi/jammy 0.5.11-1 all
+  API to communicate with a WIMS server
+
+r-cran-isospecr/jammy 2.1.3-1 amd64
+  GNU R IsoSpec Algorithm
+
+r-cran-rcdklibs/jammy 2.3+dfsg-8 all
+  Chemistry Development Kit (CDK) libraries packaged for GNU R
+
+r-other-curvefdp/jammy 2.0-6build1 all
+  estimation of confidence levels for peptide identifications
+
+science-chemistry/jammy 1.14.2ubuntu1 all
+  Debian Science Chemistry packages
+
+science-config/jammy 1.14.2ubuntu1 all
+  Debian Science Project config package
+
+scotch/jammy 6.1.3-1 amd64
+  programs and libraries for graph, mesh and hypergraph partitioning
+
+sdpa/jammy 7.3.15+dfsg-1build1 amd64
+  High-performance package for SemiDefinite Programs
+
+texlive-bibtex-extra/jammy,now 2021.20220204-1 all [installed]
+  TeX Live: BibTeX additional styles
+
+texlive-latex-extra/jammy,now 2021.20220204-1 all [installed]
+  TeX Live: LaTeX additional packages
+
+texlive-pstricks/jammy,now 2021.20220204-1 all [installed]
+  TeX Live: PSTricks
+
+texlive-publishers/jammy,now 2021.20220204-1 all [installed]
+  TeX Live: Publisher styles, theses, etc.
+
+texlive-science/jammy,now 2021.20220204-1 all [installed]
+  TeX Live: Mathematics, natural sciences, computer science packages
+
+units-filter/jammy 4.2-3 amd64
+  Parser for expressions concerning physical values
+
+v-sim-plugins/jammy 3.7.2-8build7 amd64
+  Plugins for V_Sim (a 3D visualization package)
+
+viewmol/jammy 2.4.1-26ubuntu1 amd64
+  graphical front end for computational chemistry programs
+
+wims-help/jammy 4.01-5 all
+  help files for wims
+

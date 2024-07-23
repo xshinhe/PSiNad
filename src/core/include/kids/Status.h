@@ -44,6 +44,7 @@ struct Status {
     bool frozen       = false;
     bool succ         = true;
     bool last_attempt = false;
+    bool first_step   = true;
     int  fail_type    = 0;
     int  istage       = 0;
     int  isolver      = 0;

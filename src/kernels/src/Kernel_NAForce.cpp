@@ -197,12 +197,13 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     }
                 }
                 if (offd_projected) {  // then the offdiagonal force is projected
-                    double fdotR = 0.0e0, PdotR = 0.0e0;
-                    for (int j = 0; j < Dimension::N; ++j) fdotR += fproj[j] * p[j] / m[j], PdotR += p[j] * p[j] / m[j];
-                    for (int j = 0; j < Dimension::N; ++j) fproj[j] -= fdotR / PdotR * p[j];
+                    double fdotv = 0.0e0, Pdotv = 0.0e0;
+                    for (int j = 0; j < Dimension::N; ++j) fdotv += fproj[j] * p[j] / m[j], Pdotv += p[j] * p[j] / m[j];
+                    for (int j = 0; j < Dimension::N; ++j) fproj[j] -= fdotv / Pdotv * p[j];
                 }
                 for (int j = 0; j < Dimension::N; ++j) f[j] += fproj[j];
-
+                // PRINT_ARRAY(f, 1, Dimension::N);
+                // PRINT_ARRAY(fproj, 1, Dimension::N);
                 Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
                                                  Kernel_Representation::nuc_repr_type,  //
                                                  Kernel_Representation::inp_repr_type,  //

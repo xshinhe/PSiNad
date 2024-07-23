@@ -3,6 +3,7 @@
 #include "kids/Kernel_Elec_Utils.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"
+#include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 #include "kids/macro_utils.h"
@@ -186,7 +187,6 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
 
         // 1) Adiabatic representation
         /// parameters, windows(K), weights(w)
-
         wz_A[0] = 1.0e0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
             if (i == occ0) continue;

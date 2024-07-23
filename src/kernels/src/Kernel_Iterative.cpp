@@ -45,6 +45,7 @@ Status& Kernel_Iterative::initializeKernel_impl(Status& stat) {
 }
 
 Status& Kernel_Iterative::executeKernel_impl(Status& stat) {
+    stat.first_step = true;
     while (istep[0] <= nstep) {
         if (istep[0] == nstep) dt[0] = 0;  // set dt=0 to remove dynamics! only record in last step
         at_condition[0] = (istep[0] % sstep == 0);
@@ -52,6 +53,7 @@ Status& Kernel_Iterative::executeKernel_impl(Status& stat) {
         for (auto& pkernel : _child_kernels) { pkernel->executeKernel(stat); }
         t[0] += dt[0];
         istep[0]++;
+        stat.first_step = false;
     }
     return stat;
 }

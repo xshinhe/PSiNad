@@ -23,3 +23,6 @@
 	path = thirdpart/Eigen
 	url = https://gitlab.com/libeigen/eigen
 	branch = 3.4
+[submodule "thirdpart/toml11"]
+	path = thirdpart/toml11
+	url = https://github.com/ToruNiina/toml11

@@ -1,0 +1,20 @@
+3
+Comment:
+ S     0.000000     0.000000     0.100841
+ H    -0.000000     0.974799     1.182934
+ H    -0.000000    -0.974799     1.182934
+
+[QM]
+exec = "MNDO"
+ncpu = 4 # unused
+use_mpi = false # unused
+scratchdir=$TMPDIR/WORK
+savedir=./SAVE/
+
+[QM.MNDO]
+path = "full/path/to/MNDO"
+
+
+[MM]
+
+# kate: syntax python

@@ -116,7 +116,6 @@ RuleEvaluator::RuleEvaluator(const std::string& rule, std::shared_ptr<DataSet>& 
 
     if (has_parameter) {
         ipos = vars_str.find(",");
-        std::cout << LOC() << vars_str << "\n";
         if (ipos == std::string::npos) throw kids_error("wrong format");
         std::string item_str = vars_str.substr(0, ipos);
         item_str.erase(0, item_str.find_first_not_of(" "));
@@ -125,7 +124,6 @@ RuleEvaluator::RuleEvaluator(const std::string& rule, std::shared_ptr<DataSet>& 
         c1       = std::shared_ptr<VariableDescriptor>(new VariableDescriptor(item_str, save, false));
 
         ipos = vars_str.find(",");
-        std::cout << LOC() << vars_str << "\n";
         if (ipos == std::string::npos) throw kids_error("wrong format");
         item_str = vars_str.substr(0, ipos);
         item_str.erase(0, item_str.find_first_not_of(" "));
@@ -134,7 +132,6 @@ RuleEvaluator::RuleEvaluator(const std::string& rule, std::shared_ptr<DataSet>& 
         c2       = std::shared_ptr<VariableDescriptor>(new VariableDescriptor(item_str, save, false));
 
         ipos = vars_str.find(",");
-        std::cout << LOC() << vars_str << "\n";
         if (ipos != std::string::npos) throw kids_error("wrong format");
         ipos     = vars_str.find(")");
         item_str = vars_str.substr(0, ipos);

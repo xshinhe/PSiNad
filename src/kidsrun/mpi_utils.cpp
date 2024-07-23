@@ -3,6 +3,13 @@
 #include <tuple>
 
 namespace PROJECT_NS {
+Simple_Guard::Simple_Guard(std::size_t TOTAL) : TOTAL{TOTAL} {
+    istart = 0;
+    iend   = TOTAL;
+}
+
+Simple_Guard::~Simple_Guard(){};
+
 MPI_Guard::MPI_Guard(std::size_t TOTAL) : TOTAL{TOTAL} {
     MPI_Init(NULL, NULL);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);

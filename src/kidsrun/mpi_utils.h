@@ -7,6 +7,17 @@
 #include "mpi.h"
 
 namespace PROJECT_NS {
+
+class Simple_Guard final {
+   public:
+    std::size_t istart;
+    std::size_t iend;
+    std::size_t TOTAL;
+
+    Simple_Guard(std::size_t TOTAL);
+    ~Simple_Guard();
+};
+
 class MPI_Guard final {
    public:
     static int  rank;

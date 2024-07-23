@@ -65,13 +65,7 @@ void Kernel_Representation::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     vedE   = DS->def(DATA::integrator::tmp::vedE);
 }
 
-Status& Kernel_Representation::initializeKernel_impl(Status& stat) {
-    do_refer = false;
-    executeKernel(stat);
-    do_refer = true;
-    _dataset->def_real("init.T", T, Dimension::PFF);  // @TODO
-    return stat;
-}
+Status& Kernel_Representation::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Kernel_Representation::executeKernel_impl(Status& stat) {
     if (Dimension::F <= 1) return stat;
@@ -106,7 +100,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                     for (int i = 0; i < Dimension::FF; ++i) Told[i] = T[i];  // backup old T matrix
                     EigenSolve(eig, T, V, Dimension::F);                     // solve new eigen problem
 
-                    if (do_refer) {
+                    if (do_refer && !stat.first_step) {
                         // calculate permutation matrix = rountint(T^ * Told)
                         ARRAY_MATMUL_TRANS1(TtTold, T, Told, Dimension::F, Dimension::F, Dimension::F);
 

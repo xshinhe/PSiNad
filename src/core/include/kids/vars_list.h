@@ -120,7 +120,6 @@ extern VARIABLE<kids_real> gamma2;
 extern VARIABLE<kids_real> gamma3;
 extern VARIABLE<kids_real> gammaw;
 extern VARIABLE<kids_real> gammar;
-extern VARIABLE<kids_real> I;
 extern VARIABLE<kids_real> Is;
 };  // namespace parameter
 

@@ -119,7 +119,6 @@ VARIABLE<kids_real> NAME_WRAPPER(parameter::gamma2, &shape_1, "parameter");
 VARIABLE<kids_real> NAME_WRAPPER(parameter::gamma3, &shape_1, "parameter");
 VARIABLE<kids_real> NAME_WRAPPER(parameter::gammaw, &shape_1, "parameter");
 VARIABLE<kids_real> NAME_WRAPPER(parameter::gammar, &shape_1, "parameter");
-VARIABLE<kids_real> NAME_WRAPPER(parameter::I, &shape_FF, "parameter");
 VARIABLE<kids_real> NAME_WRAPPER(parameter::Is, &shape_PFF, "parameter");
 
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::Acoeff, &shape_P, "configuration coefficients");

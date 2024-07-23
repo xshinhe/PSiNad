@@ -1,6 +1,7 @@
 #include "kids/Model_NAD1D.h"
 
 #include "kids/Kernel_Random.h"
+#include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
@@ -1015,7 +1016,7 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 };
 
 Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
-    executeKernel(stat);
+    // executeKernel(stat);
     return stat;  // @todo
 
     switch (nad1d_type) {

@@ -60,7 +60,7 @@ Status& Kernel::initializeKernel(Status& stat) {
 
 Status& Kernel::executeKernel(Status& stat) {
     if (!_dataset) throw kids_error("DataSet must be passed before");
-    if (!_ruleset & !has_parent) std::cerr << "run without rules\n";
+    // if (!_ruleset & !has_parent) std::cerr << "run without rules\n";
 
     // std::cout << "exec: " << LOC() << getName() << "\n";
     std::chrono::time_point<std::chrono::steady_clock> begin, end;

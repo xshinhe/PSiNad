@@ -93,6 +93,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
         stackedshape = nullptr;
     }
 #define LOCAL_DEBUG
+#undef LOCAL_DEBUG
 #ifdef LOCAL_DEBUG
     std::cout << LOC() << "VariableDescriptor Data After:\n"
               << ".tokenString = " << tokenString << "\n"       //
