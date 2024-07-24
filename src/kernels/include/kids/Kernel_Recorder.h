@@ -61,7 +61,7 @@ class Kernel_Recorder final : public Kernel {
     double                   t0, dt, time_unit;
     std::vector<std::string> opened_files;
 
-    virtual void token(Param::JSON& j);
+    void parse();
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

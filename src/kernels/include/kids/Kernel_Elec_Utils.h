@@ -12,6 +12,8 @@
 #ifndef Kernel_Elec_Utils_H
 #define Kernel_Elec_Utils_H
 
+#include <algorithm>
+
 #include "kids/Kernel.h"
 #include "kids/Kernel_NAForce.h"
 #include "kids/Kernel_Random.h"

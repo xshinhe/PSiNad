@@ -8,7 +8,7 @@
 #include "kids/Param.h"
 #include "kids/Solver.h"
 #include "kids/SolverFactory.h"
-#include "simple_guard.h"
+#include "mpi_guard.h"
 #include "version.h"
 
 using namespace PROJECT_NS;
@@ -61,7 +61,8 @@ int main(int argc, char* argv[]) {
     {
         solver_kernel->setInputParam(PM);
         solver_kernel->setInputDataSet(DS);
-        Simple_Guard guard(BGIDX, solver_kernel->montecarlo);
+        MPI_Guard guard(BGIDX, solver_kernel->montecarlo);
+        MPI_Barrier(MPI_COMM_WORLD);
         for (int icalc = guard.istart; icalc < guard.iend; ++icalc) {
             stat.icalc = icalc;
             solver_kernel->initializeKernel(stat);

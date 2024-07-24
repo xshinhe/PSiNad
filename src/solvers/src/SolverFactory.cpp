@@ -18,9 +18,9 @@ std::shared_ptr<Solver> defaultSolverFactory(const std::string& name, std::share
         return Sampling_Kernel(kmodel, name);
     } else if (name == "NAD") {
         return NAD_Kernel(kmodel, name);
-    } else if (name == "NAF-adapt") {
+    } else if (name == "NAD-adapt") {
         return NAD_Adapt_Kernel(kmodel, "NAD");
-    } else if (name == "NAF-adaptM") {
+    } else if (name == "NAD-adaptM") {
         return NAD_AdaptM_Kernel(kmodel, "NAD");
     } else {
         throw std::runtime_error("unknown solver name");

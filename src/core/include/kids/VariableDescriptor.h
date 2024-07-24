@@ -79,8 +79,8 @@ struct VariableDescriptor {
     std::string type;  /**< The type of the variable. */
     std::string time;  /**< The time of the variable. */
 
-    std::string keyRaw;    // pointer to normal data
-    std::string keyTrace;  // transfer normal data in instant data during tracing
+    std::string keyRaw;  // pointer to normal data
+    std::string keyRec;  // transfer normal data in instant data during tracing
     std::string keyRes0;
     std::string keyRes1;
     std::string keyRes2;

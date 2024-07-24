@@ -15,11 +15,11 @@ VariableDescriptor::VariableDescriptor(const std::string& token_string, const st
     } else {
         throw kids_error(utils::concat("cannot match variable pattern!", tokenString));
     }
-    // process field and parse keyRaw/keyTrace
+    // process field and parse keyRaw/keyRec
     if (field == "" || field == "I") field = "integrator";
     if (field == "M") field = "model";
     if (field == "P") field = "parameter";
-    if (field == "T") field = "trace";
+    if (field == "R") field = "record";
     if (index == "") {};  // do nothing
     dataType = kids_void_type;
     if (type == "R") dataType = kids_real_type;
@@ -31,23 +31,23 @@ VariableDescriptor::VariableDescriptor(const std::string& token_string, const st
         name      = name.substr(1, name.size());
     }
 
-    keyRaw   = utils::concat(field, ".", name);
-    keyTrace = keyRaw, keyRes0 = keyRaw, keyRes1 = keyRaw, keyRes2 = keyRaw;
+    keyRaw = utils::concat(field, ".", name);
+    keyRec = keyRaw, keyRes0 = keyRaw, keyRes1 = keyRaw, keyRes2 = keyRaw;
     if (isOutput) {
-        keyTrace = utils::concat("trace.", name);
-        keyRes0  = utils::concat("_.0.", field, ".", name);
-        keyRes1  = utils::concat("_.1.", field, ".", name);
-        keyRes2  = utils::concat("_.2.", field, ".", name);
+        keyRec  = utils::concat("record.", name);
+        keyRes0 = utils::concat("_.0.", field, ".", name);
+        keyRes1 = utils::concat("_.1.", field, ".", name);
+        keyRes2 = utils::concat("_.2.", field, ".", name);
     } else {
-        keyTrace = (time == "") ? keyRaw : utils::concat("@.", time, ".", field, ".", name);
+        keyRec = (time == "") ? keyRaw : utils::concat("@.", time, ".", field, ".", name);
     }
 }
 
 void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_type,
                                   const std::vector<std::size_t>& cxxshape, std::size_t totalFrameNumber) {
     if (isOutput) {
-        // keyTrace cannot be defined twice
-        // if (DS->haskey(keyTrace)) throw kids_error(utils::concat("conflict of : ", keyTrace));
+        // keyRec cannot be defined twice
+        // if (DS->haskey(keyRec)) throw kids_error(utils::concat("conflict of : ", keyRec));
         dataPointerRaw = nullptr;
 
         std::vector<std::size_t> cxxstackedshape;
@@ -56,7 +56,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
 
         switch (data_type) {
             case kids_real_type:
-                DS->def_real(keyTrace, cxxshape, "CUSTOM DEFINED");
+                DS->def_real(keyRec, cxxshape, "CUSTOM DEFINED");
                 if (isTabular) {
                     DS->def_real(keyRes0, cxxstackedshape, "CUSTOM DEFINED");
                     DS->def_real(keyRes1, cxxstackedshape, "CUSTOM DEFINED");
@@ -64,7 +64,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                 }
                 break;
             case kids_complex_type:
-                DS->def_complex(keyTrace, cxxshape, "CUSTOM DEFINED");
+                DS->def_complex(keyRec, cxxshape, "CUSTOM DEFINED");
                 if (isTabular) {
                     DS->def_complex(keyRes0, cxxstackedshape, "CUSTOM DEFINED");
                     DS->def_complex(keyRes1, cxxstackedshape, "CUSTOM DEFINED");
@@ -72,7 +72,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                 }
                 break;
         }
-        std::tie(dataType, dataPointerTrace, shape) = DS->obtain(keyTrace);
+        std::tie(dataType, dataPointerTrace, shape) = DS->obtain(keyRec);
         if (isTabular) {
             std::tie(dataType, dataPointerRes0, stackedshape) = DS->obtain(keyRes0);
             std::tie(dataType, dataPointerRes1, stackedshape) = DS->obtain(keyRes1);
@@ -84,10 +84,10 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
         std::tie(dataType, dataPointerRaw, shape) = DS->obtain(keyRaw);
         switch (dataType) {
             case kids_real_type:
-                dataPointerTrace = (void*) DS->def_real(keyTrace, *shape, "CUSTOM DEFINED");
+                dataPointerTrace = (void*) DS->def_real(keyRec, *shape, "CUSTOM DEFINED");
                 break;
             case kids_complex_type:
-                dataPointerTrace = (void*) DS->def_complex(keyTrace, *shape, "CUSTOM DEFINED");
+                dataPointerTrace = (void*) DS->def_complex(keyRec, *shape, "CUSTOM DEFINED");
                 break;
         }
         stackedshape = nullptr;

@@ -1,5 +1,7 @@
 #include "kids/Kernel_Elec_Functions.h"
 
+#include <algorithm>
+
 #include "kids/Kernel_Elec_Utils.h"
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"

@@ -1,5 +1,7 @@
 #include "kids/Kernel_NAForce.h"
 
+#include <algorithm>
+
 #include "kids/Kernel_Elec_Utils.h"
 #include "kids/Kernel_Representation.h"
 #include "kids/debug_utils.h"

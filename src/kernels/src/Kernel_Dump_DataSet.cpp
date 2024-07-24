@@ -1,5 +1,6 @@
 #include "kids/Kernel_Dump_DataSet.h"
 
+#include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
 
@@ -14,16 +15,7 @@ void Kernel_Dump_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
     hdlr_str = _param->get_string({"solver.handler", "handler"}, LOC(), "");
 }
 
-Status& Kernel_Dump_DataSet::initializeKernel_impl(Status& stat) {
-    // if (hdlr_str == "sampling") {
-    //     try {
-    //         std::ofstream ofs{utils::concat(directory, "/samp", stat.icalc, ".ds")};
-    //         _dataset->dump(ofs);
-    //         ofs.close();
-    //     } catch (std::runtime_error& e) { throw kids_error(fn); }
-    // }
-    return stat;
-}
+Status& Kernel_Dump_DataSet::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Kernel_Dump_DataSet::executeKernel_impl(Status& stat) {
     if (fn == "" || fn == "null") return stat;

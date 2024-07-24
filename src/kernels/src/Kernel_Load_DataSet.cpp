@@ -17,9 +17,15 @@ void Kernel_Load_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
 Status& Kernel_Load_DataSet::executeKernel_impl(Status& stat) {
     if (load_fn == "" || load_fn == "NULL" || load_fn == "null") return stat;
     try {
-        std::ifstream ifs{load_fn};
-        _dataset->load(ifs);
-        ifs.close();
+        if (load_fn.find(".ds") != std::string::npos) {
+            std::ifstream ifs{load_fn};
+            _dataset->load(ifs);
+            ifs.close();
+        } else {
+            std::ifstream ifs{utils::concat(directory, "/", load_fn, stat.icalc, ".ds")};
+            _dataset->load(ifs);
+            ifs.close();
+        }
     } catch (std::runtime_error& e) { throw kids_error(load_fn); }
     return stat;
 }

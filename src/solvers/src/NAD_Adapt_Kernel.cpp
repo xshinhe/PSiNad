@@ -58,8 +58,10 @@ std::shared_ptr<Solver> NAD_Adapt_Kernel(std::shared_ptr<Model> kmodel, std::str
         .appendChild(std::shared_ptr<Kernel_Random>(new Kernel_Random()))
         .appendChild(std::shared_ptr<Kernel_Read_Dimensions>(new Kernel_Read_Dimensions()))
         .appendChild(std::shared_ptr<Kernel_Prioritization>(new Kernel_Prioritization({kmodel, kinte}, 1)))
+        // .appendChild(std::shared_ptr<Kernel_Prioritization>(  //
+        //     new Kernel_Prioritization({kmodel, krepr, kfuncs, ku_U, kswitch, knaf, krecd}, 2)))
         .appendChild(std::shared_ptr<Kernel_Prioritization>(  //
-            new Kernel_Prioritization({kmodel, krepr, kfuncs, kswitch, knaf, krecd}, 2)))
+            new Kernel_Prioritization({ku_U, kswitch, krecd}, 2)))
         .appendChild(kiter)
         .appendChild(std::shared_ptr<Kernel_Dump_DataSet>(new Kernel_Dump_DataSet()));
     // return ker;

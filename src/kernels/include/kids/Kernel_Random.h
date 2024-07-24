@@ -51,7 +51,7 @@ class Kernel_Random : public Kernel {
 
     virtual int getType() const;
 
-    static void setSeed(int* seed, size_t size = rng_t::state_size);
+    static void setSeed(int* seed);
 
     static int rand_catalog(int* res_arr, int N = 1, bool reset = false, int begin = 0, int end = 1);
 

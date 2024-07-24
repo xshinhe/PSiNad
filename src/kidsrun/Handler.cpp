@@ -93,7 +93,7 @@ int Handler::run_parallel(std::shared_ptr<Param>& PM) {
     // RSL.push(std::shared_ptr<RuleSet>(new RuleSet()));
 
     // bool  not_parsed = _ruleset->getRules().size() == 0;
-    // auto& json       = *(_param->pjson());
+    // auto& json       = *(_param->dataObject());
     // if (not_parsed && json.count("result") == 1 && json["result"].is_array()) {
     //     for (auto& j : (json["result"])) token(j);
     // }

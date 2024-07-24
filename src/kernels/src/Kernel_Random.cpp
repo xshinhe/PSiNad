@@ -13,9 +13,11 @@ std::poisson_distribution<int>            Kernel_Random::rand_pd{1.0};       ///
 
 const std::string Kernel_Random::getName() { return "Kernel_Random"; }
 
-void Kernel_Random::setSeed(int* seed, size_t size) {
-    // int seed[size];
-    std::seed_seq sseq(seed, seed + size);
+void Kernel_Random::setSeed(int* seed) {
+    auto             rand_rng_linear = std::minstd_rand(seed[0]);
+    std::vector<int> seed_new(rng_t::state_size, 0);
+    for (int i = 0; i < rng_t::state_size; ++i) seed_new[i] = rand_rng_linear();
+    std::seed_seq sseq(seed_new.data(), seed_new.data() + rng_t::state_size);
     rand_rng = rng_t(sseq);
 }
 
@@ -88,12 +90,16 @@ int Kernel_Random::rand_sphere(kids_real* res_arr, int N, kids_real constr) {
 }
 
 void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    seed = DS->def_int("random.seed", rng_t::state_size);  //
+    seed = DS->def_int("random.seed", 1);  //
     if (!restart) {
-        std::random_device source;
-        for (int i = 0; i < rng_t::state_size; ++i) seed[i] = source();
+        if (_param->has_key("seed")) {
+            seed[0] = _param->get_int({"seed"}, LOC());
+        } else {
+            std::random_device source;
+            seed[0] = source();
+        }
     }
-    Kernel_Random::setSeed(seed, rng_t::state_size);
+    Kernel_Random::setSeed(seed);
 }
 
 Status& Kernel_Random::initializeKernel_impl(Status& stat) { return stat; }

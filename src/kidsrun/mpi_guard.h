@@ -8,16 +8,6 @@
 
 namespace PROJECT_NS {
 
-class Simple_Guard final {
-   public:
-    std::size_t istart;
-    std::size_t iend;
-    std::size_t TOTAL;
-
-    Simple_Guard(std::size_t TOTAL);
-    ~Simple_Guard();
-};
-
 class MPI_Guard final {
    public:
     static int  rank;
@@ -26,9 +16,10 @@ class MPI_Guard final {
 
     std::size_t istart;
     std::size_t iend;
+    std::size_t BEGIN;
     std::size_t TOTAL;
 
-    MPI_Guard(std::size_t TOTAL);
+    MPI_Guard(std::size_t BEGIN, std::size_t TOTAL);
     ~MPI_Guard();
 
     static int reduce(const std::tuple<kids_dtype, void*, void*, std::size_t>& info);

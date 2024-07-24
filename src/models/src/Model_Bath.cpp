@@ -1,5 +1,7 @@
 #include "kids/Model_Bath.h"
 
+#include <algorithm>
+
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"

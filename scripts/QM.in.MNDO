@@ -1,20 +1,23 @@
 3
-Comment:
+Comment: MNDO Template
  S     0.000000     0.000000     0.100841
  H    -0.000000     0.974799     1.182934
  H    -0.000000    -0.974799     1.182934
 
 [QM]
 exec = "MNDO"
-ncpu = 4 # unused
-use_mpi = false # unused
-scratchdir=$TMPDIR/WORK
-savedir=./SAVE/
+ncpu = 4 # if necessary
+use_mpi = false # if nenessary
+scratchdir="..."
+savedir="..."
 
 [QM.MNDO]
 path = "full/path/to/MNDO"
 
+[QM.MM]
+# QMMM parameters
 
 [MM]
+# MM parameters 
 
-# kate: syntax python
+

@@ -329,16 +329,63 @@ if(KIDS_BUILD_CXX_BACKENDS)
     set(BUILD_TESTING ON CACHE INTERNAL "Restore unit testing")
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "Disable shared library")
 
-    add_executable(kids src/kidsrun/main.cc src/kidsrun/Handler.cpp src/kidsrun/mpi_utils.cpp)
+    if(MPIMod_FOUND)
+        add_executable(kids_mpi 
+            src/kidsrun/kids_mpi.cpp src/kidsrun/mpi_guard.cpp src/kidsrun/defined_gflags.cpp)
+        target_link_libraries(kids_mpi PRIVATE
+            ${SHARED_TARGET}
+            gflags::gflags
+            glog::glog
+            MPIMod::MPI
+        )
+        install(TARGETS kids_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        
+        add_executable(kdyn_mpi 
+            src/kidsrun/kdyn_mpi.cpp src/kidsrun/mpi_guard.cpp src/kidsrun/defined_gflags.cpp)
+        target_link_libraries(kdyn_mpi PRIVATE
+            ${SHARED_TARGET}
+            gflags::gflags
+            glog::glog
+            MPIMod::MPI
+        )
+        install(TARGETS kdyn_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        
+        add_executable(ksamp_mpi 
+            src/kidsrun/ksamp_mpi.cpp src/kidsrun/mpi_guard.cpp src/kidsrun/defined_gflags.cpp)
+        target_link_libraries(ksamp_mpi PRIVATE
+            ${SHARED_TARGET}
+            gflags::gflags
+            glog::glog
+            MPIMod::MPI
+        )
+        install(TARGETS ksamp_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    endif()
+    add_executable(kids 
+        src/kidsrun/kids.cpp src/kidsrun/simple_guard.cpp src/kidsrun/defined_gflags.cpp)
     target_link_libraries(kids PRIVATE
         ${SHARED_TARGET}
         gflags::gflags
         glog::glog
-        MPIMod::MPI
-        # MPIMod::MKL
     )
-
     install(TARGETS kids RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    
+    add_executable(kdyn 
+        src/kidsrun/kdyn.cpp src/kidsrun/simple_guard.cpp src/kidsrun/defined_gflags.cpp)
+    target_link_libraries(kdyn PRIVATE
+        ${SHARED_TARGET}
+        gflags::gflags
+        glog::glog
+    )
+    install(TARGETS kdyn RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+
+    add_executable(ksamp 
+        src/kidsrun/ksamp.cpp src/kidsrun/simple_guard.cpp src/kidsrun/defined_gflags.cpp)
+    target_link_libraries(ksamp PRIVATE
+        ${SHARED_TARGET}
+        gflags::gflags
+        glog::glog
+    )
+    install(TARGETS ksamp RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 endif()
 
 # Python wrappers

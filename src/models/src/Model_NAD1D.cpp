@@ -850,8 +850,8 @@ void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param> PM) {
 
             double tend_rev = std::abs(5 * x0_read * mass_read / p0_read);
             double dt_rev   = std::abs(x0_read * mass_read / p0_read) / 5000;
-            if (tend_read < 0) (*(_param->pjson()))["model"]["tend"] = tend_rev;
-            if (dt_read < 0) (*(_param->pjson()))["model"]["dt"] = dt_rev;
+            if (tend_read < 0) _param->set_real("model.tend", tend_rev);
+            if (dt_read < 0) _param->set_real("model.dt", dt_rev);
             break;
         }
         case NAD1DPolicy::NA_I: {
@@ -869,8 +869,8 @@ void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param> PM) {
             double vel      = sqrt(2 * parm_E / mred);
             double tend_rev = 2 * x0_max / vel;
             double dt_rev   = tend_rev / 50000;
-            if (tend_read < 0) (*(_param->pjson()))["model"]["tend"] = tend_rev;
-            if (dt_read < 0) (*(_param->pjson()))["model"]["dt"] = dt_rev;
+            if (tend_read < 0) _param->set_real("model.tend", tend_rev);
+            if (dt_read < 0) _param->set_real("model.dt", dt_rev);
             break;
         }
     }

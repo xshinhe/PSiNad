@@ -8,7 +8,7 @@
 #include "kids/Param.h"
 #include "kids/Solver.h"
 #include "kids/SolverFactory.h"
-#include "simple_guard.h"
+#include "mpi_guard.h"
 #include "version.h"
 
 using namespace PROJECT_NS;
@@ -43,31 +43,53 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<Param> PM = std::shared_ptr<Param>(new Param(FLAGS_p, Param::fromFile));
     check_and_sync_from_gflags(PM);
-    PM->set_string("dump", "samp");
-    PM->set_string("solver.dump", "samp");
+    PM->set_string("load", "samp");
+
+    std::string model_name    = PM->get_string({"model.name"}, LOC());
+    std::string solver_name   = PM->get_string({"solver.name"}, LOC());
+    std::string solver_scheme = PM->get_string({"solver.scheme"}, LOC(), "");
+    std::size_t BGIDX         = PM->get_int({"BGIDX"}, LOC(), 0);
+
+    // apply_scheme(PM, solver_scheme);
     std::ofstream ofs(utils::concat(FLAGS_d, "/", "input"));
     ofs << PM->repr();
     ofs.close();
 
-    std::string model_name = PM->get_string({"model.name"}, LOC());
-    std::size_t BGIDX      = PM->get_int({"BGIDX"}, LOC(), 0);
-
     std::shared_ptr<Model>   model         = defaultModelFactory(model_name);
-    std::shared_ptr<Solver>  solver        = defaultSolverFactory("Sampling", model);
+    std::shared_ptr<Solver>  solver        = defaultSolverFactory(solver_name, model);
     std::shared_ptr<Kernel>  solver_kernel = solver->getSolverKernel();
     std::shared_ptr<DataSet> DS            = std::shared_ptr<DataSet>(new DataSet());
-
-    auto begin = std::chrono::steady_clock::now();
+    auto                     begin         = std::chrono::steady_clock::now();
     {
         solver_kernel->setInputParam(PM);
         solver_kernel->setInputDataSet(DS);
-        Simple_Guard guard(BGIDX, solver_kernel->montecarlo);
+        MPI_Guard guard(BGIDX, solver_kernel->montecarlo);
+        MPI_Barrier(MPI_COMM_WORLD);
         for (int icalc = guard.istart; icalc < guard.iend; ++icalc) {
+            auto mid1 = std::chrono::steady_clock::now();
+
             stat.icalc = icalc;
             solver_kernel->initializeKernel(stat);
             solver_kernel->executeKernel(stat);
             solver_kernel->finalizeKernel(stat);
+
+            auto mid2 = std::chrono::steady_clock::now();
+            if (icalc == guard.istart && MPI_Guard::isroot) {
+                std::cout << "expect time: "
+                          << static_cast<std::chrono::duration<double>>(mid2 - mid1).count() *
+                                 (guard.iend - guard.istart)  //
+                          << std::endl;
+            }
         }
+        MPI_Barrier(MPI_COMM_WORLD);
+        auto collect = solver_kernel->getRuleSet()->getCollect().data();
+        auto reduced = solver_kernel->getRuleSet()->getReduced().data();
+        for (int i = 0; i < collect.size(); ++i) {
+            auto [key1, from_data, type1, size1, nframe1] = collect[i];
+            auto [key2, to_data, type2, size2, nframe2]   = reduced[i];
+            MPI_Guard::reduce(std::make_tuple(type1, from_data, to_data, size1));
+        }
+        if (MPI_Guard::isroot) { RuleSet::flush_all(solver_kernel->directory, 2); }
     }
     auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();

@@ -43,8 +43,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <vector>
 
-#include "configor/json.hpp"
 #include "kids/Types.h"
 #include "kids/phys.h"
 
@@ -65,7 +65,6 @@ inline const char *basename(const char *filepath) {
 #define LOC() (std::string(basename(__FILE__)) + ":" + std::to_string(__LINE__))
 
 namespace PROJECT_NS {
-
 /**
  * this class provides an interface wrapper for the parameter data.
  *
@@ -82,8 +81,10 @@ namespace PROJECT_NS {
  */
 class Param final {
    public:
-    using JSON           = configor::json;
-    using JSON_Exception = configor::configor_exception;
+    class DataObject {
+       public:
+        virtual ~DataObject(){};
+    };
 
     /** @see Param(const std::string &input, LoadOption option)
      */
@@ -91,6 +92,7 @@ class Param final {
         fromString,  ///< construct Param from string
         fromFile     ///< construct Param from file
     };
+    enum ImplType { JSON, TOML };
 
     /**
      * @param[in]  input              a Json-like string or a file path
@@ -118,9 +120,25 @@ class Param final {
      */
     bool has_key(const std::string &key);
 
-    std::shared_ptr<JSON> pjson();
+    bool is_object(const std::string &key);
 
-    std::string repr();
+    bool is_array(const std::string &key);
+
+    bool is_bool(const std::string &key);
+
+    bool is_int(const std::string &key);
+
+    bool is_real(const std::string &key);
+
+    bool is_string(const std::string &key);
+
+    void set_bool(const std::string &key, bool val);
+
+    void set_int(const std::string &key, int val);
+
+    void set_real(const std::string &key, kids_real val);
+
+    void set_string(const std::string &key, std::string val);
 
     kids_bool   get_bool(const std::vector<std::string> &keys, const std::string &loc, const kids_bool &default_value);
     kids_bool   get_bool(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
@@ -134,8 +152,11 @@ class Param final {
     kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc, const kids_real &default_value);
     kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
 
+    std::string repr();
+
    private:
-    std::shared_ptr<JSON> pj;
+    ImplType                    impl_t;
+    std::shared_ptr<DataObject> obj;
 };
 
 };  // namespace PROJECT_NS

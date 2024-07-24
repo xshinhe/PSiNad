@@ -1,5 +1,7 @@
 #include "kids/Kernel_Conserve.h"
 
+#include <algorithm>
+
 #include "kids/Kernel_Representation.h"
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"

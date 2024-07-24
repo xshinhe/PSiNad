@@ -1,5 +1,7 @@
 #include "kids/Model_Interf_MNDO.h"
 
+#include <algorithm>
+
 #include "kids/Kernel_Random.h"
 #include "kids/Kernel_Representation.h"
 #include "kids/chem.h"

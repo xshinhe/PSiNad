@@ -216,14 +216,21 @@ const std::string Kernel::generateInformationString(double total_time, int curre
            << std::right << std::setw(11) << "[Percent]" << std::endl;
     }
 
-    ss << std::setw(2 * current_layer + 1) << "#"                                          //
-       << std::setfill('0') << std::setw(2) << kernel_id                                   //
-       << std::setfill('.') << std::setw(2 * (total_depth - current_layer) + 2) << ": "    //
-       << std::setfill(' ') << std::left << std::setw(total_align_size + 10) << getName()  //
-       << std::fixed << std::setprecision(3) << exec_time << "s"                           //
-       << std::right << std::setw(10) << std::fixed << std::setprecision(2)                //
-       << 100 * exec_time / total_time << "%"                                              //
-       << std::endl;
+    ss << std::setw(2 * current_layer + 1) << "#"                                           //
+       << std::setfill('0') << std::setw(2) << kernel_id                                    //
+       << std::setfill('.') << std::setw(2 * (total_depth - current_layer) + 2) << ": "     //
+       << std::setfill(' ') << std::left << std::setw(total_align_size + 10) << getName();  //
+    if (is_timing) {
+        ss << std::fixed << std::setprecision(3) << exec_time << "s";            //
+        ss << std::right << std::setw(10) << std::fixed << std::setprecision(2)  //
+           << 100 * exec_time / total_time << "%"                                //
+           << std::endl;
+    } else {
+        ss << std::fixed << std::setprecision(3) << "--:--";                     //
+        ss << std::right << std::setw(10) << std::fixed << std::setprecision(2)  //
+           << "--:--"                                                            //
+           << std::endl;
+    }
     for (auto pkernel : _child_kernels) {
         ss << pkernel->generateInformationString(total_time, current_layer + 1, total_depth, total_align_size);
     }

@@ -40,14 +40,13 @@ int main(int argc, char* argv[]) {
 
     /* read parameter file (json format) */
     std::shared_ptr<Param> PM = std::shared_ptr<Param>(new Param(FLAGS_p, Param::fromFile));
-    auto&&                 j  = *(PM->pjson());
 
-    j["directory"]   = FLAGS_d;
-    j["timing"]      = FLAGS_timing;
-    j["handler"]     = FLAGS_handler;
-    j["backup_time"] = FLAGS_backup_time;
-    if (FLAGS_load != "") j["load"] = FLAGS_load;
-    if (FLAGS_dump != "") j["dump"] = FLAGS_dump;
+    PM->set_string("directory", FLAGS_d);
+    PM->set_bool("timing", FLAGS_timing);
+    PM->set_string("handler", FLAGS_handler);
+    PM->set_real("backup_time", FLAGS_backup_time);
+    if (FLAGS_load != "") PM->set_string("load", FLAGS_load);
+    if (FLAGS_dump != "") PM->set_string("dump", FLAGS_dump);
 
     /* creat directory for simulation */
     if (fs::exists(FLAGS_d) && FLAGS_w == false) {
@@ -59,15 +58,6 @@ int main(int argc, char* argv[]) {
     } catch (std::runtime_error& e) {
         throw std::runtime_error("create_directory failed");
         std::cout << "some error!!!\n";
-    }
-
-    if (j.count("model_file") > 0 && j.count("model_id") > 0) {
-        Param TEMP(j["model_file"].as_string(), Param::fromFile);
-        j["model_param"] = (*(TEMP.pjson()))[j["model_id"].as_string()];
-    }
-    if (j.count("solver_file") > 0 && j.count("solver_id") > 0) {
-        Param TEMP(j["solver_file"].as_string(), Param::fromFile);
-        j["solver_param"] = (*(TEMP.pjson()))[j["solver_id"].as_string()];
     }
 
     /* setup glog */
