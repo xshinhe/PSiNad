@@ -7,19 +7,19 @@
 namespace PROJECT_NS {
 
 DEFINE_POLICY(LVCMPolicy,  //
-              PYR3,        //
-              PYR3_SPEC,   //
-              PYR4,        //
-              PYR4_SPEC,   //
-              PYR24,       //
-              CRC2,        //
-              CRC5,        //
-              BEN5,        //
-              BUTA5,       //
-              PENTA5,      //
-              CED2,        //
-              CED3,        //
-              PYR2CED,     //
+              PYR3,        // 3-mode pyrazine model
+              PYR3_SPEC,   // 3-mode pyrazine model spectrum
+              PYR4,        // 4-mode pyrazine model
+              PYR4_SPEC,   // 4-mode pyrazine model spectrum
+              PYR24,       // 24-mode pyrazine model
+              CRC2,        // 2-mode Cr(CO)5 model
+              CRC5,        // 5-mode Cr(CO)5 model
+              BEN5,        // 5-mode Benzene model
+              BUTA5,       // 5-mode butatiene model ??
+              PENTA5,      // 5-mode pentaxxxxene model
+              CED2,        // 2-state atom-in-cavity model
+              CED3,        // 3-state atom-in-cavity model
+              PYR2CED,     // pyrazine-in-cavity model
               Read);       //
 
 class Model_LVCM final : public Model {
@@ -34,8 +34,6 @@ class Model_LVCM final : public Model {
     LVCMPolicy::_type lvcm_type;
     int               N_coup;
     int               N_mode;
-    bool              bath_is_classical;
-
 
     kids_real* Hsys;
     kids_real *kcoeff, *lcoeff;
@@ -52,6 +50,8 @@ class Model_LVCM final : public Model {
     kids_real* mass;
     kids_real *vpes, *grad, *hess;
     kids_real *V, *dV, *ddV;
+
+    kids_real *Kmat, *Qmat, *Tmod;
 
     // int N_ligh;
     // N = N_mode + N_coup + N_ligh

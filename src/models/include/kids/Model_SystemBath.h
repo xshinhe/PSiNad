@@ -1,34 +1,29 @@
-#ifndef SystemBath_H
-#define SystemBath_H
+#ifndef Model_SystemBath_H
+#define Model_SystemBath_H
 
 #include "kids/Model.h"
-#include "kids/Model_Bath.h"
+#include "kids/Model_HarmonicBath.h"
 #include "kids/Policy.h"
 
 namespace PROJECT_NS {
 
 DEFINE_POLICY(SystemPolicy,  //
-              SB,            //
-              FMO,           //
-              SF3a,          //
+              SB,            // Spin-Boson Model:
+              FMO,           // FMO model:
+              SF3a,          // Singlet-Fussion Models:
               SF3b,          //
               SF3c,          //
               SF5a,          //
               SF5b,          //
-              FCP,           //
-              AGG,           //
-              CYC,           //
+              FCP,           // FCP
+              AGG,           // for: B850 model
+              CYC,           // for: B850 model
               Read);         //
 
 DEFINE_POLICY(CouplingPolicy,  //
               SB,              //
               SE,              //
               Read);           //
-
-DEFINE_POLICY(NSampPolicy,
-              Wigner,     //
-              Classical,  //
-              QCT);
 
 class Model_SystemBath final : public Model {
    public:
@@ -37,7 +32,7 @@ class Model_SystemBath final : public Model {
     virtual int getType() const;
 
     Model_SystemBath() {
-        appendChild(std::shared_ptr<Model_Bath>(new Model_Bath()));  //
+        appendChild(std::shared_ptr<Model_HarmonicBath>(new Model_HarmonicBath()));  //
     }
 
    private:
@@ -71,9 +66,9 @@ class Model_SystemBath final : public Model {
 
     // options
     SystemPolicy::_type   system_type;
-    BathPolicy::_type     bath_type;
     CouplingPolicy::_type coupling_type;
-    NSampPolicy::_type    nsamp_type;
+
+    bool is_et_transform;
 
     virtual void    setInputParam_impl(std::shared_ptr<Param> PM);
     virtual void    setInputDataSet_impl(std::shared_ptr<DataSet> DS);
@@ -83,4 +78,4 @@ class Model_SystemBath final : public Model {
 
 };  // namespace PROJECT_NS
 
-#endif  // SystemBath_H
+#endif  // Model_SystemBath_H

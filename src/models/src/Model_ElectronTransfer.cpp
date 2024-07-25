@@ -70,8 +70,8 @@ void Model_ElectronTransfer::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     for (auto pkernel : _child_kernels) pkernel->setInputDataSet(DS);
     omegas  = DS->def(DATA::model::bath::omegas);
     coeffs  = DS->def(DATA::model::bath::coeffs);
-    x_sigma = DS->def(DATA::model::bath::x_sigma);
-    p_sigma = DS->def(DATA::model::bath::p_sigma);
+    x_sigma = DS->def(DATA::model::x_sigma);
+    p_sigma = DS->def(DATA::model::p_sigma);
 
     double w2 = omega0 * omega0;
     for (int j = 0; j < Nb; ++j) { w2 += (coeffs[j] * coeffs[j]) / (omegas[j] * omegas[j]); }

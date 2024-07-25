@@ -2,7 +2,7 @@
 #define Model_ElectronTransfer_H
 
 #include "kids/Model.h"
-#include "kids/Model_Bath.h"
+#include "kids/Model_HarmonicBath.h"
 #include "kids/Policy.h"
 
 namespace PROJECT_NS {
@@ -14,7 +14,7 @@ class Model_ElectronTransfer final : public Model {
     virtual int getType() const;
 
     Model_ElectronTransfer() {
-        appendChild(std::shared_ptr<Model_Bath>(new Model_Bath()));  //
+        appendChild(std::shared_ptr<Model_HarmonicBath>(new Model_HarmonicBath()));  //
     }
 
    private:

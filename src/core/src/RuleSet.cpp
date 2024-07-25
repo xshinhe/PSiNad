@@ -80,7 +80,7 @@ void RuleSet::appendHeader(std::shared_ptr<RuleEvaluator>& expr_rule) {
                 if (expr_rule->totalTermNumber == 1) {
                     ss << FMT(8) << res->name;
                 } else {
-                    ss << FMT(8) << utils::concat(res->name, i);
+                    ss << FMT(8) << utils::concat(res->name, "(", i, ")");
                 }
             }
             break;
@@ -88,11 +88,11 @@ void RuleSet::appendHeader(std::shared_ptr<RuleEvaluator>& expr_rule) {
         case kids_complex_type: {
             for (int i = 0; i < expr_rule->totalTermNumber; ++i) {
                 if (expr_rule->totalTermNumber == 1) {
-                    ss << FMT(8) << utils::concat("R", res->name)  //
-                       << FMT(8) << utils::concat("I", res->name);
+                    ss << FMT(8) << utils::concat("R:", res->name)  //
+                       << FMT(8) << utils::concat("I:", res->name);
                 } else {
-                    ss << FMT(8) << utils::concat("R", res->name, i)  //
-                       << FMT(8) << utils::concat("I", res->name, i);
+                    ss << FMT(8) << utils::concat("R:", res->name, "(", i, ")")  //
+                       << FMT(8) << utils::concat("I:", res->name, "(", i, ")");
                 }
             }
             break;

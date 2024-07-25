@@ -302,8 +302,6 @@ extern VARIABLE<kids_int>  atoms;
 namespace bath {
 extern VARIABLE<kids_real> coeffs;
 extern VARIABLE<kids_real> omegas;
-extern VARIABLE<kids_real> p_sigma;
-extern VARIABLE<kids_real> x_sigma;
 };  // namespace bath
 
 
@@ -311,7 +309,6 @@ namespace coupling {
 extern VARIABLE<kids_real> CL;
 extern VARIABLE<kids_real> Q;
 extern VARIABLE<kids_real> QL;
-extern VARIABLE<kids_real> Xnj;
 };  // namespace coupling
 
 extern VARIABLE<kids_real> dV;
@@ -326,6 +323,16 @@ extern VARIABLE<kids_real> lcoeff;
 extern VARIABLE<kids_real> mass;
 extern VARIABLE<kids_real> p0;
 extern VARIABLE<kids_real> p_sigma;
+
+namespace MB {
+extern VARIABLE<kids_real>    Jpmat;
+extern VARIABLE<kids_real>    Jzmat;
+extern VARIABLE<kids_complex> SXred;
+extern VARIABLE<kids_complex> SYred;
+extern VARIABLE<kids_complex> SZred;
+extern VARIABLE<kids_complex> H1;
+extern VARIABLE<kids_complex> H2;
+};  // namespace MB
 
 namespace rep {
 extern VARIABLE<kids_real>    eig;
