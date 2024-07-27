@@ -1,0 +1,21 @@
+[]
+ID  JobType    AtomType    Charge      X      Y      Z
+0   QM         C           0           1      0      0
+1   MM         C           0           1      0      0
+2   MM         C           0           1      0      0
+3   MM         C           0           1      0      0
+4   LINK       H           0           *      *      *
+5   POINT      RCD         *           *      *      *
+
+[MM.connect]
+MM  ATOM  Q  X  Y  Z
+
+MM  ATOM  Q  X  Y  Z
+QM
+L   H
+PC  RCD
+
+
+[connect]
+
+QM  1  MM  2  

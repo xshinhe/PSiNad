@@ -8,6 +8,7 @@
 #include "kids/Einsum.h"
 #include "kids/Expression.h"
 #include "kids/debug_utils.h"
+#include "kids/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -24,9 +25,10 @@ void einsum_fun(EinsumHelper&                  EH,           //
                 const std::vector<kids_dtype>& data_idtype,  //
                 Tout*                          data_output   //
 ) {
-    auto& einsum_dims   = EH.einsum_dims;
-    auto& einsum_iposes = EH.einsum_iposes;
-    auto& ipos_inputs   = EH.ipos_inputs;
+    auto& einsum_dims      = EH.einsum_dims;
+    auto& einsum_iposes    = EH.einsum_iposes;
+    auto& ipos_inputs      = EH.ipos_inputs;
+    auto& ipos_inputs_init = EH.ipos_inputs_init;
     // ipos_output
     auto& dh_inputs          = EH.dh_inputs;
     auto& dh_output_mapldims = EH.dh_output.mapldims;
@@ -40,7 +42,7 @@ void einsum_fun(EinsumHelper&                  EH,           //
     std::vector<T> holder(total_tensor);  // temporary vector
 
     memset(einsum_iposes.data(), 0, total_esidx * sizeof(std::size_t));
-    memset(ipos_inputs.data(), 0, total_tensor * sizeof(std::size_t));
+    memcpy(ipos_inputs.data(), ipos_inputs_init.data(), total_tensor * sizeof(std::size_t));
     bool reset_zero = true;
     for (std::size_t iloop = 0, ipos_output = 0; iloop < total_loop; ++iloop) {
         if (reset_zero) data_output[ipos_output] = Tout(0);
@@ -75,6 +77,7 @@ RuleEvaluator::RuleEvaluator(const std::string& rule, std::shared_ptr<DataSet>& 
                              std::size_t totalFrameNumber)
 
     : rule{rule}, mode{mode}, save{save}, totalFrameNumber{totalFrameNumber}, numCollects{0} {
+    _dataset = DS;  // for debug
     // here "=" is the separator
     auto        ipos     = rule.find("=");
     std::string vars_str = (ipos == std::string::npos) ? rule : rule.substr(0, ipos);
@@ -194,30 +197,30 @@ RuleEvaluator::RuleEvaluator(const std::string& rule, std::shared_ptr<DataSet>& 
     }
 
     // #ifdef LOCAL_DEBUG
-    //     std::cout                                                 //
-    //         << LOC() << "RuleEvaluator Data:\n"                   //
-    //         << ".totalTermNumber = " << totalTermNumber << "\n"   /**< Number of terms. */
-    //         << ".totalFrameNumber = " << totalFrameNumber << "\n" /**< Number of samples. */
-    //         << ".rule = " << rule << "\n"                         /**< The expression rule. */
-    //         << ".mode = " << mode << "\n"                         /**< The mode of evaluation. */
-    //         << ".path = " << path << "\n"                         /**< Path to save results. */
-    //         << ".save = " << save << "\n"                         /**< File name to save results. */
-    //         << ".result = " << result
-    //         << "\n" /**< Result of the expression. */
-    //         // << ".variables = " << variables << "\n"            /**< Variables in the expression. */
-    //         // << ".inputShapes = " << inputShapes << "\n"        /**< Shapes of input data. */
-    //         // << ".inputData = " << inputData << "\n"            /**< Input data. */
-    //         // << ".inputDataTypes = " << inputDataTypes << "\n"  /**< Data types of input data. */
-    //         << ".expressionString" << expressionString
-    //         << "\n" /**< String representation of the expression. */
-    //         // << ".einsumHelper = " << einsumHelper << "\n"      /**< Shared pointer to EinsumHelper. */
-    //         << ".einsumString = " << einsumString << "\n"     /**< String representation of expression type. */
-    //         << ".expressionType = " << expressionType << "\n" /**< Type of the expression. */
-    //         << ".expressionId = " << expressionId << "\n";    /**< ID of the expression. */
+    // std::cout                                                 //
+    //     << LOC() << "RuleEvaluator Data:\n"                   //
+    //     << ".totalTermNumber = " << totalTermNumber << "\n"   /**< Number of terms. */
+    //     << ".totalFrameNumber = " << totalFrameNumber << "\n" /**< Number of samples. */
+    //     << ".rule = " << rule << "\n"                         /**< The expression rule. */
+    //     << ".mode = " << mode
+    //     << "\n" /**< The mode of evaluation. */
+    //     // << ".path = " << path << "\n"                         /**< Path to save results. */
+    //     << ".save = " << save << "\n" /**< File name to save results. */
+    //     << ".result = " << result
+    //     << "\n" /**< Result of the expression. */
+    //     // << ".variables = " << variables << "\n"            /**< Variables in the expression. */
+    //     // << ".inputShapes = " << inputShapes << "\n"        /**< Shapes of input data. */
+    //     // << ".inputData = " << inputData << "\n"            /**< Input data. */
+    //     // << ".inputDataTypes = " << inputDataTypes << "\n"  /**< Data types of input data. */
+    //     << ".expressionString" << expressionString
+    //     << "\n" /**< String representation of the expression. */
+    //     // << ".einsumHelper = " << einsumHelper << "\n"      /**< Shared pointer to EinsumHelper. */
+    //     << ".einsumString = " << einsumString << "\n"     /**< String representation of expression type. */
+    //     << ".expressionType = " << expressionType << "\n" /**< Type of the expression. */
+    //     << ".expressionId = " << expressionId << "\n";    /**< ID of the expression. */
 
-    //     for (int i = 0; i < inputDataTypes.size(); ++i) std::cout << inputDataTypes[i] << ",";
-    //     std::cout << result->shape->size() << "\n";
-
+    // for (int i = 0; i < inputDataTypes.size(); ++i) std::cout << inputDataTypes[i] << ",";
+    // std::cout << result->shape->size() << "\n";
     // #endif  // LOCAL_DEBUG
 }
 

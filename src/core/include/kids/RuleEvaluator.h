@@ -86,6 +86,8 @@ struct RuleEvaluator {
     kids_dtype                            expressionType;   /**< Type of the expression. */
     size_t                                expressionId;     /**< ID of the expression. */
 
+    std::shared_ptr<DataSet> _dataset;  // for debug
+
     bool                                has_parameter;
     std::shared_ptr<VariableDescriptor> c1;      /**< Result of the expression. */
     std::shared_ptr<VariableDescriptor> c2;      /**< Result of the expression. */

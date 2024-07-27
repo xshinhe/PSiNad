@@ -183,6 +183,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                     }
                 }
             }
+            PRINT_ARRAY(Qmat, Dimension::N, Dimension::FF);
             break;
         }
         case LVCMPolicy::CED2:
@@ -290,13 +291,17 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             std::string flag;
             double      val;
             ifs >> flag >> dsize;
+            assert(dsize == Dimension::F);
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1)
                 if (ifs >> val) Hsys[ii] = val / H_unit;
 
             // read w
+            ifs >> flag >> dsize;
+            assert(dsize == Dimension::N);
             for (int i = 0, ii = 0; i < Dimension::N; ++i)
                 if (ifs >> val) w[i] = val / H_unit;
 
+            N_mode = 0;
             // read kcoeff & lcoeff
             for (int j = 0; j < Dimension::N; ++j) {
                 ifs >> flag;
@@ -307,6 +312,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                             Qmat[j * Dimension::FF + ii] *= std::sqrt(w[j]);
                         }
                     }
+                    N_mode++;
                 } else if (flag == "L") {
                     for (int ik = 0; ik < Dimension::FF; ++ik) {
                         if (ifs >> val) {

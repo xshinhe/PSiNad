@@ -1,8 +1,11 @@
 #include "kids/Einsum.h"
 
 #include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <sstream>
+
+#include "kids/Exception.h"
 
 namespace PROJECT_NS {
 
@@ -27,12 +30,14 @@ DimenHelper::DimenHelper(const std::string& esshape, std::vector<EinsumIdx>& idx
     for (auto& i : dims) total_size *= i;
 
     // calculate the leading dimensions of the tensor represented in einsum indexes
+    fixed_init_idx = 0;
     for (int i = 0; i < total_esidx; ++i) {
         char c      = idx_vec[i].label;
         es_ldims[i] = 0;
         for (int k = esshape_rank - 1; k >= 0; --k) {
             if (c == esshape[k]) es_ldims[i] += ldims[k];
         }
+        if (idx_vec[i].cnt == 0) fixed_init_idx += es_ldims[i] * idx_vec[i].val;
     }
 
     // calculate sum of several leading dimensions as the shift step
@@ -76,8 +81,20 @@ EinsumHelper::EinsumHelper(const std::string&                    einsum_expressi
                 int  ipos  = found ? int(it - fixed_label_names.begin()) : fixed_label_names.size();
                 c          = (char) ((int) '0' + ipos);
 
+                if (!std::all_of(label_name.begin(), label_name.end(), ::isdigit))
+                    throw kids_error("fixed einsumIdx must be digits!");
+                int val = std::stoi(label_name);
+                if (val < 0 || val >= shape_inputs[ishape][esshape.size()])
+                    throw kids_error("fixed einsum idx out of boundary");
+
+                // std::cout << "label_name = " << label_name << ", " << val << "\n";
+                // std::cout << "eidx as:" << c                                        //
+                //           << "\ntype=" << 0                                         //
+                //           << "\nmax size=" << shape_inputs[ishape][esshape.size()]  //
+                //           << "\nval=" << val << "\n";
+
                 if (!found) {
-                    einsum_idxs.push_back(EinsumIdx(c, 0, shape_inputs[ishape][esshape.size()], 0));
+                    einsum_idxs.push_back(EinsumIdx(c, 0, shape_inputs[ishape][esshape.size()], val));
                     fixed_label_names.push_back(label_name);
                 } else {
                     auto it2 = std::find_if(einsum_idxs.begin(), einsum_idxs.end(),
@@ -178,11 +195,13 @@ EinsumHelper::EinsumHelper(const std::string&                    einsum_expressi
     // for (auto& idx : einsum_idxs) {
     //     std::cout << idx.label << ", " << idx.cnt << "," << idx.dim << ", " << idx.val << "\n";
     // }
+    // std::cout << "esshape:\n";
     // for (auto& esshape : esshape_inputs) std::cout << esshape << "\n";
     // std::cout << "->" << esshape_output << "\n";
     // std::cout << "count1 : " << count1 << "\n";
     // std::cout << "count2 : " << count2 << "\n";
     // std::cout << "count3 : " << count3 << "\n";
+    // std::cout << "loop : " << total_loop << "\n";
 
     for (auto& esshape : esshape_inputs) { dh_inputs.push_back(DimenHelper(esshape, einsum_idxs)); }
     dh_output = DimenHelper(esshape_output, einsum_idxs);
@@ -194,6 +213,13 @@ EinsumHelper::EinsumHelper(const std::string&                    einsum_expressi
 
     einsum_iposes.resize(total_esidx);
     ipos_inputs.resize(total_tensor);
+    ipos_inputs_init.resize(total_tensor);
+
+    for (int i = 0; i < total_tensor; ++i) {
+        // std::cout << dh_inputs[i].fixed_init_idx << ";";
+        ipos_inputs_init[i] = dh_inputs[i].fixed_init_idx;
+    }
+    // std::cout << "\n";
 }
 
 };  // namespace PROJECT_NS

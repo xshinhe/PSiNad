@@ -158,6 +158,7 @@ struct DimenHelper {
     std::size_t esshape_rank;  ///< the rank of the tensor
     std::size_t total_esidx;   ///< size if the EinsumIdx System
     std::size_t total_size;
+    std::size_t fixed_init_idx;
 
     std::vector<std::size_t> dims;      ///< leading dimensions of the tensor
     std::vector<std::size_t> ldims;     ///< leading dimensions of the tensor
@@ -191,8 +192,9 @@ class EinsumHelper {
     std::vector<DimenHelper> dh_inputs;  ///< DimenHelper for input tensors
     DimenHelper              dh_output;  ///< DimenHelper for ouput tensor
 
-    std::vector<std::size_t> einsum_iposes;  ///< idx placeholder for EinsumIdx System
-    std::vector<std::size_t> ipos_inputs;    ///< idx placeholder for input tensors
+    std::vector<std::size_t> einsum_iposes;     ///< idx placeholder for EinsumIdx System
+    std::vector<std::size_t> ipos_inputs_init;  ///< idx placeholder for inital input tensors
+    std::vector<std::size_t> ipos_inputs;       ///< idx placeholder for input tensors
 
     int count1     = 0;
     int count2     = 0;
@@ -221,9 +223,10 @@ void einsum(EinsumHelper&          EH,           //
             const std::vector<T*>& data_inputs,  //
             T*                     data_output   //
 ) {
-    auto& einsum_dims   = EH.einsum_dims;
-    auto& einsum_iposes = EH.einsum_iposes;
-    auto& ipos_inputs   = EH.ipos_inputs;
+    auto& einsum_dims      = EH.einsum_dims;
+    auto& einsum_iposes    = EH.einsum_iposes;
+    auto& ipos_inputs      = EH.ipos_inputs;
+    auto& ipos_inputs_init = EH.ipos_inputs_init;
     // ipos_output
     auto& dh_inputs          = EH.dh_inputs;
     auto& dh_output_mapldims = EH.dh_output.mapldims;
@@ -235,7 +238,7 @@ void einsum(EinsumHelper&          EH,           //
     std::size_t imin         = EH.count1;
 
     memset(einsum_iposes.data(), 0, total_esidx * sizeof(std::size_t));
-    memset(ipos_inputs.data(), 0, total_tensor * sizeof(std::size_t));
+    memcpy(ipos_inputs.data(), ipos_inputs_init.data(), total_tensor * sizeof(std::size_t));
     bool reset_zero = true;
     data_output[0]  = T(0);
     for (std::size_t iloop = 0, ipos_output = 0; iloop < total_loop; ++iloop) {

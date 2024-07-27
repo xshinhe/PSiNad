@@ -3,6 +3,8 @@
 #include <iostream>
 #include <regex>
 
+#include "kids/debug_utils.h"
+
 namespace PROJECT_NS {
 
 VariableDescriptor::VariableDescriptor(const std::string& token_string, const std::string& save, bool is_output)
@@ -92,22 +94,22 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
         }
         stackedshape = nullptr;
     }
-#define LOCAL_DEBUG
-#undef LOCAL_DEBUG
-#ifdef LOCAL_DEBUG
-    std::cout << LOC() << "VariableDescriptor Data After:\n"
-              << ".tokenString = " << tokenString << "\n"       //
-              << ".name = " << name << "\n"                     //
-              << ".field = " << field << "\n"                   //
-              << ".index = " << index << "\n"                   //
-              << ".type = " << type << "\n"                     //
-              << ".time = " << time << "\n"                     //
-              << ".dataType = " << dataType << "\n"             //
-              << ".dataPointer = " << dataPointerRaw << "\n"    //
-              << ".dataPointer = " << dataPointerTrace << "\n"  //
-              << ".dataPointer = " << dataPointerRes0 << "\n"   //
-              << ".shape = " << ((shape) ? shape->to_string() : "") << "\n";
-#endif  // LOCAL_DEBUG
+    // #define LOCAL_DEBUG
+    // #undef LOCAL_DEBUG
+    // #ifdef LOCAL_DEBUG
+    //     std::cout << LOC() << "VariableDescriptor Data After:\n"
+    //               << ".tokenString = " << tokenString << "\n"       //
+    //               << ".name = " << name << "\n"                     //
+    //               << ".field = " << field << "\n"                   //
+    //               << ".index = " << index << "\n"                   //
+    //               << ".type = " << type << "\n"                     //
+    //               << ".time = " << time << "\n"                     //
+    //               << ".dataType = " << dataType << "\n"             //
+    //               << ".dataPointer = " << dataPointerRaw << "\n"    //
+    //               << ".dataPointer = " << dataPointerTrace << "\n"  //
+    //               << ".dataPointer = " << dataPointerRes0 << "\n"   //
+    //               << ".shape = " << ((shape) ? shape->to_string() : "") << "\n";
+    // #endif  // LOCAL_DEBUG
 }
 
 void VariableDescriptor::checkTrace(int sampleIndex) {

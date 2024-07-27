@@ -108,6 +108,10 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
             }
             case NuclearSamplingPolicy::Gaussian: {
                 // x0 & p0 & x_sigma & p_sigma are provided
+                // PRINT_ARRAY(x0, 1, Dimension::N);
+                // PRINT_ARRAY(p0, 1, Dimension::N);
+                // PRINT_ARRAY(x_sigma, 1, Dimension::N);
+                // PRINT_ARRAY(p_sigma, 1, Dimension::N);
                 Kernel_Random::rand_gaussian(x, Dimension::N);
                 Kernel_Random::rand_gaussian(p, Dimension::N);
                 for (int j = 0; j < Dimension::N; ++j) {
