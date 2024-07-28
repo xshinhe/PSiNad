@@ -49,6 +49,10 @@ struct param_warning : public kids_error {
     param_warning(std::string const text) : kids_error(utils::concat("parameter warning of : ", text)) {}
 };
 
+#define kids_assert(condition, info) \
+    if (!(condition)) throw kids_error(utils::concat(info, "\nassert on: [", #condition, "] fails!"));
+
+
 };  // namespace PROJECT_NS
 
 #endif  // OPENDF_EXCEPTION_H

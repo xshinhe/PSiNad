@@ -25,7 +25,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
     switch (lvcm_type) {
         case LVCMPolicy::PYR3: {
-            assert(N == 3);
+            kids_assert(Dimension::N == 3, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 2;
@@ -56,7 +56,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             break;
         }
         case LVCMPolicy::PYR24: {
-            assert(N == 24);
+            kids_assert(Dimension::N == 24, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 23;
@@ -95,7 +95,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             break;
         }
         case LVCMPolicy::BUTA5: {
-            assert(N == 5);
+            kids_assert(Dimension::N == 5, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 4;
@@ -129,7 +129,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         }
         case LVCMPolicy::CRC2:
         case LVCMPolicy::CRC5: {
-            assert(N <= 5);
+            kids_assert(Dimension::N <= 5, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 0;
@@ -183,7 +183,6 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                     }
                 }
             }
-            PRINT_ARRAY(Qmat, Dimension::N, Dimension::FF);
             break;
         }
         case LVCMPolicy::CED2:
@@ -208,10 +207,14 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             double *mu_data;
             switch (lvcm_type) {
                 case LVCMPolicy::CED2:
+                    kids_assert(Dimension::F == 2, "Dimension Error");
+
                     E_data  = E_data_CED2;
                     mu_data = mu_data_CED2;
                     break;
                 case LVCMPolicy::CED3:
+                    kids_assert(Dimension::F == 3, "Dimension Error");
+
                     E_data  = E_data_CED3;
                     mu_data = mu_data_CED3;
                     break;
@@ -291,13 +294,13 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             std::string flag;
             double      val;
             ifs >> flag >> dsize;
-            assert(dsize == Dimension::F);
+            kids_assert(dsize == Dimension::F, "Dimension Error");
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1)
                 if (ifs >> val) Hsys[ii] = val / H_unit;
 
             // read w
             ifs >> flag >> dsize;
-            assert(dsize == Dimension::N);
+            kids_assert(dsize == Dimension::N, "Dimension Error");
             for (int i = 0, ii = 0; i < Dimension::N; ++i)
                 if (ifs >> val) w[i] = val / H_unit;
 
@@ -319,6 +322,10 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                             Qmat[j * Dimension::FF + ik] = val / H_unit;
                             Qmat[j * Dimension::FF + ik] *= std::sqrt(w[j]);
                         }
+                    }
+                } else {  // not modified with sqrt(w)
+                    for (int ik = 0; ik < Dimension::FF; ++ik) {
+                        if (ifs >> val) { Qmat[j * Dimension::FF + ik] = val / H_unit; }
                     }
                 }
             }
@@ -374,6 +381,11 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     // init & integrator
     x = DS->def(DATA::integrator::x);
     p = DS->def(DATA::integrator::p);
+
+    double dt0 = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1f);
+    for (int j = 0; j < Dimension::N; ++j) { std::cout << "check: " << w[j] * dt0 << "\n"; }
+    std::cout << "\n";
+    exit(0);
 }
 
 Status &Model_LVCM::initializeKernel_impl(Status &stat) { return stat; }

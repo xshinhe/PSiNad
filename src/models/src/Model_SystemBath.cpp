@@ -30,7 +30,7 @@ void Model_SystemBath::setInputParam_impl(std::shared_ptr<Param> PM) {
         FORCE_OPT::nbath = 1;
         Dimension::nbath = 1;
     } else {
-        assert(N == Nb * nbath);
+        kids_assert(N == Nb * nbath, "Dimension Error");
         FORCE_OPT::Nb    = Nb;
         Dimension::Nb    = Nb;
         FORCE_OPT::nbath = nbath;
@@ -46,8 +46,8 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     L    = 1;
     switch (system_type) {
         case SystemPolicy::SB: {
-            assert(nbath == 1);
-            assert(Dimension::F == 2);
+            kids_assert(nbath == 1, "Dimension Error");
+            kids_assert(Dimension::F == 2, "Dimension Error");
             L             = 2;  // sigma_z
             double bias   = _param->get_real({"model.bias"}, LOC(), phys::energy_d, 1.0f);
             double delta  = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0f);
@@ -56,7 +56,7 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             break;
         }
         case SystemPolicy::AGG: {
-            assert(Dimension::F >= 2);
+            kids_assert(Dimension::F >= 2, "Dimension Error");
             L            = 1;  // |n><n|
             double delta = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0f);
             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
@@ -77,8 +77,9 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         case SystemPolicy::FCP: {
             L                             = 1;  // |n><n|
             auto [Fcheck, Hdata, UnitStr] = Hsys_Dict.at(_param->get_string({"model.system_flag"}, LOC()));
-            assert(Dimension::nbath == Fcheck);
-            assert(Dimension::F == Fcheck || Dimension::F == Fcheck + 1);  // last is the ground state
+            kids_assert(Dimension::nbath == Fcheck, "Dimension Error");
+            kids_assert(Dimension::F == Fcheck || Dimension::F == Fcheck + 1,
+                        "Dimension Error");  // last is the ground state
             double data_unit = 1.0e0 / phys::au::as(phys::energy_d, UnitStr);
             for (int i = 0, ik = 0; i < Fcheck; ++i) {
                 for (int k = 0; k < Fcheck; ++k, ++ik) { Hsys[i * Dimension::F + k] = Hdata[ik] / data_unit; }
@@ -136,12 +137,13 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         // initialize Q, then Qmat (assuming coeffs is prepared)
         switch (coupling_type) {
             case CouplingPolicy::SB: {
-                assert(Dimension::F == 2);
+                kids_assert(Dimension::F == 2, "Dimension Error");
                 Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
                 break;
             }
             case CouplingPolicy::SE: {
-                assert(Dimension::F == Dimension::nbath || Dimension::F == Dimension::nbath + 1);
+                kids_assert(Dimension::F == Dimension::nbath || Dimension::F == Dimension::nbath + 1,
+                            "Dimension Error");
                 for (int i = 0, idx = 0; i < Dimension::nbath; ++i) {
                     for (int j = 0; j < Dimension::F; ++j) {
                         for (int k = 0; k < Dimension::F; ++k, ++idx) Q[idx] = (i == j && i == k) ? 1.0f : 0.0f;

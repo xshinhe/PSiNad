@@ -60,8 +60,8 @@ void Model_HarmonicBath::setInputParam_impl(std::shared_ptr<Param> PM) {
     int N = _param->get_int({"model.N"}, LOC());
     Nb    = _param->get_int({"model.Nb", "model.bath.Nb"}, LOC());
     nbath = _param->get_int({"model.nbath", "model.bath.nbath"}, LOC());
-    assert(Nb == Dimension::Nb);
-    assert(N == Dimension::N);
+    kids_assert(Nb == Dimension::Nb, "Dimension Error");
+    kids_assert(N == Dimension::N, "Dimension Error");
 
     is_classical    = _param->get_bool({"model.bath_classical", "model.bath.classical"}, LOC(), false);
     is_correlated   = _param->get_bool({"model.bath_correlated", "model.bath.correlated"}, LOC(), false);
@@ -137,8 +137,8 @@ void Model_HarmonicBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             }
         }
     } else {  // built from spectrum function
-        assert(nbath >= 1);
-        assert(!is_correlated);
+        kids_assert(nbath >= 1, "spectrum function need nbath");
+        kids_assert(!is_correlated, "spectrum function need diagonal un-correlated");
         switch (bath_type) {
             case HarmonicBathPolicy::Debye: {
                 for (int j = 0; j < Dimension::Nb; ++j) {
