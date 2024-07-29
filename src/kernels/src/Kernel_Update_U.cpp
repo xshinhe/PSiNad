@@ -1,6 +1,7 @@
 #include "kids/Kernel_Update_U.h"
 
 #include "kids/Kernel_Elec_Utils.h"
+#include "kids/Kernel_Monodromy.h"
 #include "kids/Kernel_Representation.h"
 #include "kids/debug_utils.h"
 #include "kids/hash_fnv1a.h"
@@ -26,10 +27,15 @@ void Kernel_Update_U::setInputParam_impl(std::shared_ptr<Param> PM) {
 void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     eig           = DS->def(DATA::model::rep::eig);
     T             = DS->def(DATA::model::rep::T);
+    dE            = DS->def(DATA::model::rep::dE);
     lam           = DS->def(DATA::model::rep::lam);
     R             = DS->def(DATA::model::rep::R);
     U             = DS->def(DATA::integrator::U);
     Udt           = DS->def(DATA::integrator::Udt);
+    mono          = DS->def(DATA::integrator::monodromy::mono);
+    monodt        = DS->def(DATA::integrator::monodromy::monodt);
+    MFFtmp1       = DS->def(DATA::integrator::monodromy::MFFtmp1);
+    MFFtmp2       = DS->def(DATA::integrator::monodromy::MFFtmp2);
     invexpidiagdt = DS->def(DATA::integrator::tmp::invexpidiagdt);
     c             = DS->def(DATA::integrator::c);
     cset          = DS->def(DATA::integrator::cset);
@@ -146,6 +152,57 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
             }
         }
     }
+    // trace on monodromy
+    if (Kernel_Monodromy::enable) update_monodromy();
     return stat;
 }
+
+void Kernel_Update_U::update_monodromy() {
+    int N0   = 0;
+    int N1   = Dimension::N;
+    int N2   = Dimension::N + Dimension::F;
+    int N3   = 2 * Dimension::N + Dimension::F;
+    int N4   = 2 * Dimension::N + 2 * Dimension::F;
+    int N4N4 = N4 * N4;
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        kids_real*    eig    = this->eig + iP * Dimension::F;
+        kids_real*    T      = this->T + iP * Dimension::FF;
+        kids_real*    dE     = this->dE + iP * Dimension::NFF;
+        kids_real*    mono   = this->mono + iP * N4N4;
+        kids_real*    monodt = this->monodt + iP * N4N4;
+        kids_complex* Udt    = this->Udt + iP * Dimension::FF;
+        kids_complex* c      = this->c + iP * Dimension::F;
+
+        // N0-N1: x, N1-N2:x_ele; N2-N3:p; N3-N4:p_ele
+        ARRAY_EYE(monodt, N4);
+        for (int i = 0, ik = 0; i < Dimension::F; ++i) {
+            for (int k = 0; k < Dimension::F; ++k, ++ik) {
+                monodt[(N1 + i) * N4 + (N1 + k)] = std::real(Udt[ik]);
+                monodt[(N1 + i) * N4 + (N3 + k)] = -std::imag(Udt[ik]);
+                monodt[(N3 + i) * N4 + (N1 + k)] = std::imag(Udt[ik]);
+                monodt[(N3 + i) * N4 + (N3 + k)] = std::real(Udt[ik]);
+            }
+        }
+        kids_complex im = phys::math::im;
+        for (int j = 0, jik = 0; j < Dimension::N; ++j) {
+            kids_complex* dxjUdt = MFFtmp1;  // as workspace
+            kids_complex* c_tmp  = MFFtmp2;  // as workspace
+            for (int i = 0, ii = 0, ik = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+                for (int k = 0, kk = 0; k < Dimension::F; ++k, kk += Dimension::Fadd1, ++ik, ++jik) {
+                    dxjUdt[ik] = (i == k) ? -std::exp(-im * eig[i] * dt[0]) * im * dE[jik] * dt[0]
+                                          : dE[jik] / (eig[k] - eig[i]) *
+                                                (std::exp(-im * eig[k] * dt[0]) - std::exp(-im * eig[i] * dt[0]));
+                }
+            }
+            ARRAY_MATMUL3_TRANS2(dxjUdt, T, dxjUdt, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
+            ARRAY_MATMUL(c_tmp, dxjUdt, c, Dimension::F, Dimension::F, 1);
+            for (int i = 0; i < Dimension::F; ++i) {
+                monodt[(N1 + i) * N4 + (N0 + j)] = std::real(c_tmp[i]);
+                monodt[(N3 + i) * N4 + (N0 + j)] = std::imag(c_tmp[i]);
+            }
+        }
+        ARRAY_MATMUL(mono, monodt, mono, N4, N4, N4);
+    }
+}
+
 };  // namespace PROJECT_NS

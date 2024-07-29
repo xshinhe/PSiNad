@@ -130,6 +130,8 @@ void ARRAY_MATMUL(kids_complex* A, kids_real* B, kids_complex* C, size_t N1, siz
  */
 void ARRAY_MATMUL(kids_complex* A, kids_complex* B, kids_real* C, size_t N1, size_t N2, size_t N3);
 
+void ARRAY_MATMUL(kids_complex* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3);
+
 /**
  * Perform matrix multiplication where A = B^T * C for real matrices.
  *
@@ -308,6 +310,9 @@ void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_real* B, kids_complex* C, kids_r
 void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_complex* B, kids_real* C, kids_complex* D,  //
                           size_t N1, size_t N2, size_t N0, size_t N3);
 
+void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_real* B, kids_real* C, kids_real* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
+
 /**
  * Perform matrix multiplication where A = B * C * D^T for real matrices.
  *
@@ -366,6 +371,9 @@ void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_real* B, kids_complex* C, kids_r
  * @param N3 Number of columns in D^T and A.
  */
 void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, kids_complex* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3);
+
+void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_real* B, kids_real* C, kids_real* D,  //
                           size_t N1, size_t N2, size_t N0, size_t N3);
 
 /**

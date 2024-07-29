@@ -32,8 +32,9 @@ void Kernel_NAForce::setInputParam_impl(std::shared_ptr<Param> PM) {
 };
 
 void Kernel_NAForce::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr   = DS->def(DATA::flowcontrol::dt);
-    f        = DS->def(DATA::integrator::f);
+    dt_ptr = DS->def(DATA::flowcontrol::dt);
+    f      = DS->def(DATA::integrator::f);
+    // fmat     = DS->def(DATA::integrator::fmat);
     p        = DS->def(DATA::integrator::p);
     m        = DS->def(DATA::integrator::m);
     grad     = DS->def(DATA::model::grad);

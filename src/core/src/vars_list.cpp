@@ -10,6 +10,7 @@ std::size_t P;
 std::size_t P_NOW;
 std::size_t N;
 std::size_t F;
+std::size_t N4;
 std::size_t Nb;
 std::size_t nbath;
 std::size_t L;
@@ -51,11 +52,13 @@ Shape shape_PNN(sh_ref{&P, &N, &N});
 Shape shape_PF(sh_ref{&P, &F});
 Shape shape_PFF(sh_ref{&P, &F, &F});
 Shape shape_PNFF(sh_ref{&P, &N, &F, &F});
+Shape shape_PN4N4(sh_ref{&P, &N4, &N4});
 Shape shape_NF(sh_ref{&N, &F});
 Shape shape_NN(sh_ref{&N, &N});
 Shape shape_FF(sh_ref{&F, &F});
 Shape shape_NFF(sh_ref{&N, &F, &F});
 Shape shape_NNFF(sh_ref{&N, &N, &F, &F});
+Shape shape_PNNFF(sh_ref{&P, &N, &N, &F, &F});
 
 void static_build_shapes() {
     assert(M > 0 && P > 0 && N > 0 && F > 0);  //
@@ -64,6 +67,7 @@ void static_build_shapes() {
     FF    = F * F;
     NFF   = N * FF;
     NF    = N * F;
+    N4    = N + 2 * F;
     NN    = N * N;
     PP    = P * P;
     PN    = P * N;
@@ -90,6 +94,8 @@ void static_build_shapes() {
     shape_FF.static_build();
     shape_NFF.static_build();
     shape_NNFF.static_build();
+    shape_PNNFF.static_build();
+    shape_PN4N4.static_build();
 }
 };  // namespace Dimension
 
@@ -97,9 +103,9 @@ namespace DATA {
 
 #define NAME_WRAPPER(name, shape, doc_string) name(#name, shape, doc_string)
 using namespace Dimension;
-VARIABLE<kids_real>    NAME_WRAPPER(init::Etot, &shape_1, "total energy");
-VARIABLE<kids_real>    NAME_WRAPPER(init::p, &shape_N, "nuclear momentum");
-VARIABLE<kids_real>    NAME_WRAPPER(init::x, &shape_N, "nuclear coordinate");
+VARIABLE<kids_real>    NAME_WRAPPER(init::Etot, &shape_P, "total energy");
+VARIABLE<kids_real>    NAME_WRAPPER(init::p, &shape_PN, "nuclear momentum");
+VARIABLE<kids_real>    NAME_WRAPPER(init::x, &shape_PN, "nuclear coordinate");
 VARIABLE<kids_real>    NAME_WRAPPER(init::T, &shape_PFF, "ADT matrix");
 VARIABLE<kids_complex> NAME_WRAPPER(init::c, &shape_PF, "nuclear coordinate");
 VARIABLE<kids_complex> NAME_WRAPPER(init::cset, &shape_PFF, "nuclear coordinate");
@@ -164,7 +170,7 @@ VARIABLE<kids_complex> NAME_WRAPPER(integrator::Snuc, &shape_PP, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::U, &shape_PFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::UXdt, &shape_PP, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::UYdt, &shape_PP, "");
-VARIABLE<kids_complex> NAME_WRAPPER(integrator::Ubranch, &shape_FF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::Ubranch, &shape_PFF, "");  //? check size
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::Udt, &shape_PFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::Xcoeff, &shape_P, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::alpha, &shape_P, "");
@@ -187,11 +193,11 @@ VARIABLE<kids_real>    NAME_WRAPPER(integrator::nhc::G, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::nhc::Q, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::nhc::p, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::nhc::x, &shape_X, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::norm, &shape_1, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::norm, &shape_P, "");
 VARIABLE<kids_int>     NAME_WRAPPER(integrator::occ_nuc, &shape_P, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::ve, &shape_PN, "velocity of trajectories");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::p, &shape_PN, "momentum of trajectories");
-VARIABLE<kids_complex> NAME_WRAPPER(integrator::p_sign, &shape_2, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::p_sign, &shape_2, "");  // check size? 2P?
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::param::c1, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::param::c2p, &shape_X, "");
 VARIABLE<kids_bint>    NAME_WRAPPER(integrator::pf_cross, &shape_PF, "");
@@ -201,18 +207,28 @@ VARIABLE<kids_complex> NAME_WRAPPER(integrator::rho_nuc, &shape_PFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::rhored, &shape_FF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::rhored2, &shape_FF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::rhored3, &shape_FF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::trKTWA, &shape_1, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::trKTWD, &shape_1, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcw, &shape_F, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::trKTWA, &shape_P, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::trKTWD, &shape_P, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcw, &shape_PF, "");
 // VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcw, &shape_FF, "");
 // VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcw, &shape_F, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcw0, &shape_FF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcwh, &shape_FF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcw0, &shape_PFF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::sqcwh, &shape_PFF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::monodromy::mono, &shape_PN4N4, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::monodromy::monodt, &shape_PN4N4, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::monodromy::MFFtmp1, &shape_FF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::monodromy::MFFtmp2, &shape_FF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::monodromy::MFFtmp3, &shape_FF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::monodromy::MFFtmp4, &shape_FF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::monodromy::MFFtmp5, &shape_FF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::monodromy::MFFtmp6, &shape_FF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::forceeval::mask, &shape_PFF, "");
+VARIABLE<kids_complex> NAME_WRAPPER(integrator::forceeval::dmask, &shape_PNFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::tmp::I_PP, &shape_PP, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::tmp::MatC_PP, &shape_PP, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::MatR_PP, &shape_PP, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::TtTold, &shape_FF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::direction, &shape_N, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::direction, &shape_PN, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::fproj, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::ftmp, &shape_N, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::tmp::fun_diag_F, &shape_F, "");
@@ -221,7 +237,7 @@ VARIABLE<kids_complex> NAME_WRAPPER(integrator::tmp::invexpidiagdt, &shape_F, ""
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::ve, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::vedE, &shape_FF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::tmp::wrho, &shape_FF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::veF, &shape_FF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::veF, &shape_PFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::w, &shape_P, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::w_AA, &shape_P, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::w_AD, &shape_P, "");
@@ -276,7 +292,7 @@ VARIABLE<kids_real>    NAME_WRAPPER(model::coupling::CL, &shape_LNb, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::coupling::Q, &shape_nbathFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::coupling::QL, &shape_LnbathFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::dV, &shape_PNFF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(model::ddV, &shape_NNFF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::ddV, &shape_PNNFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::f_p, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::f_r, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::f_rp, &shape_X, "");
@@ -302,14 +318,14 @@ VARIABLE<kids_complex> NAME_WRAPPER(model::rep::R, &shape_PFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::rep::T, &shape_PFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::rep::Told, &shape_PFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::rep::dE, &shape_PNFF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(model::rep::ddE, &shape_NNFF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(model::rep::nac, &shape_NFF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(model::rep::nac_prev, &shape_NFF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::rep::ddE, &shape_PNNFF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::rep::nac, &shape_PNFF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::rep::nac_prev, &shape_PNFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::vpes, &shape_P, "scalar potential of energy");
 VARIABLE<kids_real>    NAME_WRAPPER(model::w, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::x0, &shape_N, "initial cencter of coordinate");
 VARIABLE<kids_real>    NAME_WRAPPER(model::x_sigma, &shape_N, "initial width of coordinate");
-VARIABLE<kids_int>     NAME_WRAPPER(random::seed, &shape_X, "");
+VARIABLE<kids_int>     NAME_WRAPPER(random::seed, &shape_1, "");
 };  // namespace DATA
 
 };  // namespace PROJECT_NS

@@ -109,6 +109,20 @@ static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_complex* B, kids_real* 
     MapA      = M1 * M2;
 }
 
+static void ARRAY_MATMUL_UNIVERSAL(kids_complex* A, kids_real* B, kids_real* C,  //
+                                   size_t N1, size_t N2, size_t N3, bool ad1 = false, bool ad2 = false) {
+    size_t NB1 = (N2 == 0) ? ((!ad1) ? N1 : N3) : ((!ad1) ? N1 : N2);
+    size_t NB2 = (N2 == 0) ? ((!ad1) ? N3 : N1) : ((!ad1) ? N2 : N1);
+    size_t NC1 = (N2 == 0) ? N3 : ((!ad2) ? N2 : N3);
+    size_t NC2 = (N2 == 0) ? 1 : ((!ad2) ? N3 : N2);
+    MapMXc MapA(A, N1, N3);
+    MapMXr MapB(B, NB1, NB2);
+    MapMXr MapC(C, NC1, NC2);
+    auto   M1 = (!ad1) ? MapB.eval() : MapB.adjoint();
+    auto   M2 = (N2 == 0) ? MapC.asDiagonal() : ((!ad2) ? MapC.eval() : MapC.adjoint());
+    MapA      = M1 * M2;
+}
+
 void ARRAY_MATMUL(kids_real* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
     ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, false, false);
 }
@@ -122,6 +136,10 @@ void ARRAY_MATMUL(kids_complex* A, kids_real* B, kids_complex* C, size_t N1, siz
 }
 
 void ARRAY_MATMUL(kids_complex* A, kids_complex* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
+    ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, false, false);
+}
+
+void ARRAY_MATMUL(kids_complex* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
     ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, false, false);
 }
 
@@ -141,6 +159,10 @@ void ARRAY_MATMUL_TRANS1(kids_complex* A, kids_complex* B, kids_real* C, size_t 
     ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, true, false);
 }
 
+void ARRAY_MATMUL_TRANS1(kids_complex* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
+    ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, true, false);
+}
+
 void ARRAY_MATMUL_TRANS2(kids_real* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
     ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, false, true);
 }
@@ -154,6 +176,10 @@ void ARRAY_MATMUL_TRANS2(kids_complex* A, kids_real* B, kids_complex* C, size_t 
 }
 
 void ARRAY_MATMUL_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
+    ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, false, true);
+}
+
+void ARRAY_MATMUL_TRANS2(kids_complex* A, kids_real* B, kids_real* C, size_t N1, size_t N2, size_t N3) {
     ARRAY_MATMUL_UNIVERSAL(A, B, C, N1, N2, N3, false, true);
 }
 
@@ -237,6 +263,25 @@ void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_complex* B, kids_real* C, kids_c
     }
 }
 
+void ARRAY_MATMUL3_TRANS1(kids_complex* A, kids_real* B, kids_real* C, kids_real* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3) {
+    // MapMXc MapA(A, N1, N3);
+    // MapMXc MapB(B, N2, N1);
+    // MapMXc MapD(D, N2, N3);
+    if (N0 == 0) {  // assuming N1 == N2 == N3
+        ARRAY_MATMUL_TRANS1(A, B, C, N1, N0, N2);
+        ARRAY_MATMUL(A, A, D, N1, N2, N3);
+        // MapMXr MapC(C, N2, 1);
+        // MapA = (MapB.adjoint() * (MapC.asDiagonal() * MapD)).eval();
+    } else {  // assuming N1 == N2 == N0 == N3
+        ARRAY_MATMUL_TRANS1(A, B, C, N1, N2, N2);
+        ARRAY_MATMUL(A, A, D, N1, N2, N3);
+        // MapMXr MapC(C, N2, N2);
+        // MapA = (MapB.adjoint() * (MapC * MapD)).eval();
+    }
+}
+
+
 void ARRAY_MATMUL3_TRANS2(kids_real* A, kids_real* B, kids_real* C, kids_real* D,  //
                           size_t N1, size_t N2, size_t N0, size_t N3) {
     // MapMXr MapA(A, N1, N3);
@@ -292,6 +337,24 @@ void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_real* B, kids_complex* C, kids_r
 }
 
 void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_complex* B, kids_real* C, kids_complex* D,  //
+                          size_t N1, size_t N2, size_t N0, size_t N3) {
+    // MapMXc MapA(A, N1, N3);
+    // MapMXc MapB(B, N1, N2);
+    // MapMXc MapD(D, N3, N2);
+    if (N0 == 0) {  // assuming N1 == N2 == N3
+        ARRAY_MATMUL(A, B, C, N1, N0, N2);
+        ARRAY_MATMUL_TRANS2(A, A, D, N1, N2, N3);
+        // MapMXr MapC(C, N2, 1);
+        // MapA = (MapB * (MapC.asDiagonal() * MapD.adjoint())).eval();
+    } else {  // assuming N1 == N2 == N0 == N3
+        ARRAY_MATMUL(A, B, C, N1, N2, N2);
+        ARRAY_MATMUL_TRANS2(A, A, D, N1, N2, N3);
+        // MapMXr MapC(C, N2, N2);
+        // MapA = (MapB * (MapC * MapD.adjoint())).eval();
+    }
+}
+
+void ARRAY_MATMUL3_TRANS2(kids_complex* A, kids_real* B, kids_real* C, kids_real* D,  //
                           size_t N1, size_t N2, size_t N0, size_t N3) {
     // MapMXc MapA(A, N1, N3);
     // MapMXc MapB(B, N1, N2);

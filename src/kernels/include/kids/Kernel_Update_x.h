@@ -41,9 +41,13 @@ class Kernel_Update_x final : public Kernel {
     double *x, *p, *m, *minv;
     double  scale, *dt;
 
+    kids_real *mono, *monodt;
+
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
     virtual Status& executeKernel_impl(Status& stat);
+
+    void update_monodromy();
 };
 
 };  // namespace PROJECT_NS

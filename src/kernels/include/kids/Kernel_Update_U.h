@@ -49,7 +49,7 @@ class Kernel_Update_U final : public Kernel {
     kids_complex* U;    ///< full propagator along classical path approximation (CPA)
 
     ///< solve Diabatic propagator
-    kids_real* eig;         ///< Eigenvalue for diabatic V
+    kids_real *eig, *dE;    ///< Eigenvalue for diabatic V
     kids_real *T, *T_init;  ///< Eigenvector for diabatic V
 
     ///< solve Adiabatic propagator
@@ -64,6 +64,9 @@ class Kernel_Update_U final : public Kernel {
     kids_complex *rho_nuc, *rho_nuc_init;
     kids_complex *rho_dual, *rho_dual_init;
 
+    kids_real *   mono, *monodt;
+    kids_complex *MFFtmp1, *MFFtmp2;
+
     kids_real  scale;
     kids_real* dt;
 
@@ -74,6 +77,8 @@ class Kernel_Update_U final : public Kernel {
     virtual Status& initializeKernel_impl(Status& stat);
 
     virtual Status& executeKernel_impl(Status& stat);
+
+    void update_monodromy();
 };
 
 

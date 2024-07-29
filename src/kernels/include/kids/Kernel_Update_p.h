@@ -38,15 +38,26 @@ class Kernel_Update_p : public Kernel {
     virtual int getType() const;
 
    private:
-    double *p, *f, *minv, *ve;
-    double* Ekin;
-    double  scale, *dt;
+    bool          use_smooth = false;
+    double *      p, *f, *fadd, *minv, *ve;
+    kids_real *   mono, *monodt;
+    kids_real *   T, *eig, *dE, *dV, *ddV, *nac, *grad, *hess;
+    kids_complex *mask, *dmask;
+    kids_complex *c, *rho_nuc;
+    double *      Ekin;
+    double        scale, *dt;
+
+    kids_complex *MFFtmp1, *MFFtmp2, *MFFtmp3, *MFFtmp4, *MFFtmp5, *MFFtmp6;
+
+    virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
-    virtual Status& initializeKernel_impl(Status& stat);
+    virtual Status &initializeKernel_impl(Status &stat);
 
-    virtual Status& executeKernel_impl(Status& stat);
+    virtual Status &executeKernel_impl(Status &stat);
+
+    void update_monodromy();
 };
 
 

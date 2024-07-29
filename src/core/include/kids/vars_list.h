@@ -57,6 +57,7 @@ extern std::size_t NN;    ///< Product of N and N (N * N).
 extern std::size_t FF;    ///< Product of F and F (F * F).
 extern std::size_t NFF;   ///< Product of N, F, and F (N * F * F).
 extern std::size_t NNFF;  ///< Product of N, N, F, and F (N * N * F * F).
+extern std::size_t N4;    ///<  (N + 2* F).
 
 extern std::size_t Fadd1;  ///< F plus 1 (F + 1).
 
@@ -84,6 +85,7 @@ extern Shape shape_NN;     ///< Shape for the product of N and N (N * N).
 extern Shape shape_FF;     ///< Shape for the product of F and F (F * F).
 extern Shape shape_NFF;    ///< Shape for the product of N, F, and F (N * F * F).
 extern Shape shape_NNFF;   ///< Shape for the product of N, N, F, and F (N * N * F * F).
+extern Shape shape_PN4N4;  ///< Shape for the product of (N + 2 * F)(N + 2 * F).
 
 extern Shape shape_Nb;        ///< Shape for the number of discretized modes
 extern Shape shape_nbathFF;   ///< Shape for the product of nbath, F, and F (nbath * F * F)
@@ -220,6 +222,22 @@ extern VARIABLE<kids_real>    trKTWD;
 extern VARIABLE<kids_real>    sqcw;
 extern VARIABLE<kids_real>    sqcw0;
 extern VARIABLE<kids_real>    sqcwh;
+
+namespace monodromy {
+extern VARIABLE<kids_real>    mono;
+extern VARIABLE<kids_real>    monodt;
+extern VARIABLE<kids_complex> MFFtmp1;
+extern VARIABLE<kids_complex> MFFtmp2;
+extern VARIABLE<kids_complex> MFFtmp3;
+extern VARIABLE<kids_complex> MFFtmp4;
+extern VARIABLE<kids_complex> MFFtmp5;
+extern VARIABLE<kids_complex> MFFtmp6;
+};  // namespace monodromy
+
+namespace forceeval {
+extern VARIABLE<kids_complex> mask;
+extern VARIABLE<kids_complex> dmask;
+};  // namespace forceeval
 
 namespace tmp {
 extern VARIABLE<kids_complex> I_PP;
