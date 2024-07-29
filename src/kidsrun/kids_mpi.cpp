@@ -99,7 +99,6 @@ int main(int argc, char* argv[]) {
         }
         MPI_Barrier(MPI_COMM_WORLD);
 
-
         auto collect = solver2_kernel->getRuleSet()->getCollect().data();
         auto reduced = solver2_kernel->getRuleSet()->getReduced().data();
         for (int i = 0; i < collect.size(); ++i) {
@@ -107,7 +106,8 @@ int main(int argc, char* argv[]) {
             auto [key2, to_data, type2, size2, nframe2]   = reduced[i];
             MPI_Guard::reduce(std::make_tuple(type1, from_data, to_data, size1));
         }
-        if (MPI_Guard::isroot) { RuleSet::flush_all(solver2_kernel->directory, 2); }
+        // RuleSet::flush_all(solver2_kernel->directory, utils::concat(".mpi", MPI_Guard::rank), 1);
+        if (MPI_Guard::isroot) { RuleSet::flush_all(solver2_kernel->directory, "", 2); }
     }
     auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();

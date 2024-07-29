@@ -39,13 +39,13 @@ RuleSet::RuleSet(std::shared_ptr<RuleEvaluator>& expr_rule) {
     appendHeader(expr_rule);
 }
 
-void RuleSet::flush_all(const std::string& path, int level) {
+void RuleSet::flush_all(const std::string& path, const std::string& suff, int level) {
     auto& expression_ios = getRuleSets();
-    for (auto& io : expression_ios) io->flush(path, level);
+    for (auto& io : expression_ios) io->flush(path, suff, level);
 }
 
-void RuleSet::flush(const std::string& path, int level) {
-    std::ofstream ofs(utils::concat(path, "/", unique_name));
+void RuleSet::flush(const std::string& path, const std::string& suff, int level) {
+    std::ofstream ofs(utils::concat(path, "/", unique_name, suff));
     ofs << header << "\n";
     for (int iframe = 0; iframe < totalFrameNumber; ++iframe) {
         for (auto& r : rules) {

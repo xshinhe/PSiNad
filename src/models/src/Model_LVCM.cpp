@@ -381,11 +381,6 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     // init & integrator
     x = DS->def(DATA::integrator::x);
     p = DS->def(DATA::integrator::p);
-
-    double dt0 = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1f);
-    for (int j = 0; j < Dimension::N; ++j) { std::cout << "check: " << w[j] * dt0 << "\n"; }
-    std::cout << "\n";
-    exit(0);
 }
 
 Status &Model_LVCM::initializeKernel_impl(Status &stat) { return stat; }

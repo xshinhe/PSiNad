@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
                           << std::endl;
             }
         }
-        RuleSet::flush_all(solver_kernel->directory, 1);
+        RuleSet::flush_all(solver_kernel->directory, "", 1);
     }
     auto   end        = std::chrono::steady_clock::now();
     double total_time = static_cast<std::chrono::duration<double>>(end - begin).count();

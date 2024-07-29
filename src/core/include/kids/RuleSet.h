@@ -74,7 +74,7 @@ class RuleSet final {
     /**
      * @brief Flush data to all output files.
      */
-    static void flush_all(const std::string& path, int level);
+    static void flush_all(const std::string& path, const std::string& suff, int level);
 
     std::vector<std::shared_ptr<RuleEvaluator>>& getRules();
 
@@ -112,7 +112,7 @@ class RuleSet final {
      * @param path Path for writing the file
      * Writes the file header followed by data for each frame according to registered rules.
      */
-    void flush(const std::string& path, int level);
+    void flush(const std::string& path, const std::string& suff, int level);
 
     /**
      * @brief Append header information to the output file.
