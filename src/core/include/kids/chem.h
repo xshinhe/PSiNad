@@ -29,6 +29,7 @@
 
 #ifndef CHEM_H
 #define CHEM_H
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <string>
@@ -192,6 +193,15 @@ const std::array<ElemInfo, max_number+1> ElementList = {
 static inline std::string getElemLabel(int Z) {
     if (Z <= 0 && Z > elem::max_number) throw std::runtime_error("bad Z number");
     return elem::ElementList[Z].label;
+}
+
+static inline int getElemIndex(const std::string& label) {
+    std::string copylabel = label;
+    std::for_each(copylabel.begin(), copylabel.end(), [](char& c) { c = ::toupper(c); });
+    for (int z = 1; z <= elem::max_number; ++z) {
+        if (copylabel == elem::ElementList[z].label) return z;
+    }
+    return 0;
 }
 
 static inline double getElemMass(int Z) {

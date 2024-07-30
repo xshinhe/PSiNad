@@ -1,18 +1,16 @@
 #include "kids/Kernel.h"
-#include "kids/Kernel_Elec.h"
 
 namespace PROJECT_NS {
 
-class Kernel_GWP final : public Kernel {
+class Kernel_MultiConfigCoup final : public Kernel {
    public:
     virtual const std::string getName();
 
     virtual int getType() const;
 
-    Kernel_GWP(std::shared_ptr<Kernel> kmodel, std::shared_ptr<Kernel> krepr, std::shared_ptr<Kernel> kforce)
-        : _kmodel{kmodel}, _krepr{krepr}, _kforce{kforce} {
-        appendChild(std::shared_ptr<Kernel_Elec>(new Kernel_Elec()));  //
-    }
+    Kernel_MultiConfigCoup(std::shared_ptr<Kernel> kmodel, std::shared_ptr<Kernel> krepr,
+                           std::shared_ptr<Kernel> kforce)
+        : _kmodel{kmodel}, _krepr{krepr}, _kforce{kforce} {};
 
     static int calc_Ekin(kids_real* Ekin,  // [P]
                          kids_real* p,     // [P,N]
@@ -60,6 +58,7 @@ class Kernel_GWP final : public Kernel {
                                kids_complex* Acoeff,  // [P]
                                kids_complex* Snuc,    // [P,P]
                                kids_complex* c,       // [P,F]
+                               kids_complex* Mtmp,    // [P,P]
                                kids_real xi, kids_real gamma, int Pu, int P, int F);
 
     static int calc_Hbasis(kids_complex* Hbasis,  // [P,P]
@@ -107,8 +106,8 @@ class Kernel_GWP final : public Kernel {
     kids_real *ve, *veF;
 
     kids_real *   vpes, *grad;
-    kids_real *   V, *dV, *E, *dE, *T;
-    kids_complex *c, *Udt, *H;
+    kids_real *   V, *dV, *eig, *dE, *T;
+    kids_complex *c, *U, *Udt, *H;
 
     kids_complex *Snuc, *Sele, *S, *invS;
     kids_real *   L1, *L2;
@@ -139,7 +138,7 @@ class Kernel_GWP final : public Kernel {
 
     ///
     kids_real *   x_last, *p_last, *grad_last, *dV_last, *g_last;
-    kids_complex* c_last;
+    kids_complex *c_last, *c_init;
 
     // bool* pf_cross;
     int        P_used, P_used0;
@@ -147,6 +146,13 @@ class Kernel_GWP final : public Kernel {
     int        max_clone;
     int*       clone_account;
     kids_real* norm_ptr;
+
+    kids_complex* w;
+    kids_complex* rho_nuc;
+    kids_int*     occ_nuc;
+    kids_real*    T_init;
+
+    int occ0;
 
     void setInputParam_impl(std::shared_ptr<Param> PM);
 

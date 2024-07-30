@@ -101,6 +101,11 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
     void setRuleSet(std::shared_ptr<RuleSet> RS);
 
     /**
+     * Set flags for only once call.
+     */
+    void setCallOnlyOnce();
+
+    /**
      * Set input parameters for the kernel and its children.
      *
      * @param PM Shared pointer to the Param object.
@@ -270,14 +275,15 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
     bool        enable_call_child = true;
     bool        is_timing         = false;  ///< Flag indicating whether timing is enabled for this kernel.
     bool        has_parent        = false;  ///< Flag indicating whether the kernel has a parent.
-    int         count_calc        = 0;      ///< Counter for the number of calculations performed by this kernel.
-    int         count_exec        = 0;      ///< Counter for the number of executions performed by this kernel.
-    int         kernel_id         = 0;      ///< ID of the kernel.
-    int         kernel_type       = 0;      ///< Type of the kernel.
-    double      exec_time         = 0.0f;   ///< Total execution time of the kernel.
-    int         depth             = 0;      ///< Depth of the kernel in the tree structure.
-    int         max_align_size    = 0;      ///< Maximum alignment size used by this kernel.
-    std::string kernel_name;                ///< Name of the kernel.
+    bool        once_called       = false;
+    int         count_calc        = 0;     ///< Counter for the number of calculations performed by this kernel.
+    int         count_exec        = 0;     ///< Counter for the number of executions performed by this kernel.
+    int         kernel_id         = 0;     ///< ID of the kernel.
+    int         kernel_type       = 0;     ///< Type of the kernel.
+    double      exec_time         = 0.0f;  ///< Total execution time of the kernel.
+    int         depth             = 0;     ///< Depth of the kernel in the tree structure.
+    int         max_align_size    = 0;     ///< Maximum alignment size used by this kernel.
+    std::string kernel_name;               ///< Name of the kernel.
     /**
      * @}
      */

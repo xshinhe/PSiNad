@@ -202,7 +202,9 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                 if (offd_projected) {  // then the offdiagonal force is projected
                     double fdotv = 0.0e0, Pdotv = 0.0e0;
                     for (int j = 0; j < Dimension::N; ++j) fdotv += fproj[j] * p[j] / m[j], Pdotv += p[j] * p[j] / m[j];
-                    for (int j = 0; j < Dimension::N; ++j) fproj[j] -= fdotv / Pdotv * p[j];
+                    if (Pdotv > 1.0E-8) {
+                        for (int j = 0; j < Dimension::N; ++j) fproj[j] -= fdotv / Pdotv * p[j];
+                    }
                 }
                 for (int j = 0; j < Dimension::N; ++j) f[j] += fproj[j];
                 // PRINT_ARRAY(f, 1, Dimension::N);

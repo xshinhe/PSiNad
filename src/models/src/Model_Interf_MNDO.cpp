@@ -63,7 +63,7 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     f_rp             = DS->def(DATA::model::f_rp);
     V                = DS->def(DATA::model::V);
     dV               = DS->def(DATA::model::dV);
-    E                = DS->def(DATA::model::rep::E);
+    eig              = DS->def(DATA::model::rep::eig);
     T                = DS->def(DATA::model::rep::T);
     dE               = DS->def(DATA::model::rep::dE);
     nac              = DS->def(DATA::model::rep::nac);
@@ -241,7 +241,7 @@ Status& Model_Interf_MNDO::executeKernel_impl(Status& stat_in) {
         for (int j = 0; j < Dimension::F; ++j) {
             for (int k = 0; k < Dimension::F; ++k, ++idx) {
                 if (j == k) continue;
-                dE[idx] = nac[idx] * (E[k] - E[j]);
+                dE[idx] = nac[idx] * (eig[k] - eig[j]);
             }
         }
     }
@@ -252,8 +252,8 @@ Status& Model_Interf_MNDO::executeKernel_impl(Status& stat_in) {
     // ARRAY_SHOW(dE, Dimension::N, Dimension::FF);
 
     // convert units
-    for (int i = 0; i < Dimension::N; ++i) x[i] /= phys::au_2_ang;        ///< convert Angstrom to Bohr
-    for (int i = 0; i < Dimension::F; ++i) E[i] /= phys::au_2_kcal_1mea;  ///< convert kcalpmol to Hartree
+    for (int i = 0; i < Dimension::N; ++i) x[i] /= phys::au_2_ang;          ///< convert Angstrom to Bohr
+    for (int i = 0; i < Dimension::F; ++i) eig[i] /= phys::au_2_kcal_1mea;  ///< convert kcalpmol to Hartree
     for (int i = 0; i < Dimension::NFF; ++i)
         dE[i] /= (phys::au_2_kcal_1mea / phys::au_2_ang);  ///< convert to Hartree/Bohr
 
@@ -497,7 +497,7 @@ Status& Model_Interf_MNDO::parse_standard(const std::string& log, Status& stat_i
         else if (eachline.find("SUMMARY OF MULTIPLE CI CALCULATIONS") != eachline.npos) {
             for (int i = 0; i < 4; ++i) getline(ifs, eachline);
             for (int i = 0; i < Dimension::F; ++i) {  ///< E in [kcalpmol]
-                ifs >> stmp >> stmp >> E[i] >> stmp >> stmp;
+                ifs >> stmp >> stmp >> eig[i] >> stmp >> stmp;
             }
             stat = 0;
         }
@@ -793,7 +793,7 @@ int Model_Interf_MNDO::calc_samp() {
 
     for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i];
     executeKernel_impl(stat);
-    double ref_ener = E[0];
+    double ref_ener = eig[0];
     std::cout << ref_ener;
 
     for (int isamp = 0; isamp < 500; ++isamp) {
@@ -818,7 +818,7 @@ int Model_Interf_MNDO::calc_samp() {
 
         // fluctuation of potential energy
         executeKernel_impl(stat);
-        double Epot = (E[0] - ref_ener);  // convert to au
+        double Epot = (eig[0] - ref_ener);  // convert to au
         std::cout << Epot;
         std::cout << "::: " << beta * Epot / Qeff << " " << beta * Ekin / Qeff;
 

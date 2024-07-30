@@ -59,7 +59,7 @@ class Model_Interf_MNDO final : public Model {
     kids_real* mass;
     kids_real *vpes, *grad, *hess, *Tmod;
     kids_real *V, *dV;
-    kids_real *T, *E, *dE;
+    kids_real *T, *eig, *dE;
     kids_real *nac, *nac_prev;
 
     kids_real *f_r, *f_p, *f_rp;

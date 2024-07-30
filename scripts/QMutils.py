@@ -9,6 +9,10 @@ import typing
 import numpy as np
 import numpy.typing as npt
 
+au_2_ang = 5.291772104260590e-01
+au_2_kcal_1mea = 6.275094742071363e+02
+au_2_kcal_1mea_per_ang =  1.185821047928172e+03
+
 periodic_table = '''
   -----                                                               -----
 1 | H |                                                               |He |

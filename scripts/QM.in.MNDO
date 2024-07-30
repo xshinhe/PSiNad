@@ -12,7 +12,9 @@ scratchdir="..."
 savedir="..."
 
 [QM.MNDO]
-path = "full/path/to/MNDO"
+path = "/usr/bin/mndo2020"
+N = 9
+F = 2
 
 toplines = """JOP=-2 IOP=-6 IGEOM=1 IFORM=1 ICUTS=-1 ICUTG=-1  +
 ISCF=9 IPLSCF=9 DPREC=1D-8 DSTEP=1D-5 IPRINT=1 +

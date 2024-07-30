@@ -32,7 +32,7 @@
 namespace PROJECT_NS {
 
 struct Status {
-    Status() : succ{true}, istage{0}, mpi_rank{0}, icalc{0} {};
+    Status() : succ{true}, istage{0}, mpi_rank{0}, icalc{0}, istep{0} {};
 
     Status(bool succ, int stage = 0, int mpi_rank = 0, int icalc = 0)
         : succ{succ}, istage{stage}, mpi_rank{mpi_rank}, icalc{icalc} {};
@@ -49,6 +49,7 @@ struct Status {
     int  istage       = 0;
     int  isolver      = 0;
     int  icalc        = 0;
+    int  istep        = 0;
     int  mpi_rank     = 0;
 };
 

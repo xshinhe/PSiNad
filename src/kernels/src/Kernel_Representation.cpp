@@ -144,8 +144,6 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                             ARRAY_MATMUL(eig, eig, TtTold, 1, Dimension::F, Dimension::F);
                         }
                     }
-                    for (int i = 0, ik = 0; i < Dimension::F; ++i)
-                        for (int k = 0; k < Dimension::F; ++k, ++ik) E[ik] = (i == k) ? eig[i] : 0.0e0;
 
                     if (FORCE_OPT::BATH_FORCE_BILINEAR) {
                         int&    B    = FORCE_OPT::nbath;
@@ -168,6 +166,8 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                         ARRAY_TRANSPOSE(dE, Dimension::FF, Dimension::N);
                     }
                 }
+                for (int i = 0, ik = 0; i < Dimension::F; ++i)
+                    for (int k = 0; k < Dimension::F; ++k, ++ik) E[ik] = (i == k) ? eig[i] : 0.0e0;
 
                 // calc H = E - im * nacv * p / m, and note here nacv_{ij} = dEij / (Ej - Ei)
                 for (int i = 0; i < Dimension::N; ++i) ve[i] = p[i] / m[i];

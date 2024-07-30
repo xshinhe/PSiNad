@@ -28,19 +28,28 @@ void Kernel::setRuleSet(std::shared_ptr<RuleSet> ruleset) {
     for (auto& pkernel : _child_kernels) pkernel->setRuleSet(ruleset);
 }
 
+void Kernel::setCallOnlyOnce() {
+    once_called = false;
+    for (auto& pkernel : _child_kernels) pkernel->setCallOnlyOnce();
+}
+
 void Kernel::setInputParam(std::shared_ptr<Param> PM) {
+    if (!has_parent) setCallOnlyOnce();
     _param     = PM;
     is_timing  = _param->get_bool({"solver.timing", "timing"}, LOC(), is_timing);
     montecarlo = _param->get_int({"solver.M"}, LOC(), 1);
     directory  = _param->get_string({"solver.directory", "directory"}, LOC(), "default");
-    setInputParam_impl(PM);
+    if (!once_called) setInputParam_impl(PM);
+    once_called = true;
     for (auto& pkernel : _child_kernels) pkernel->setInputParam(PM);
 }
 
 void Kernel::setInputDataSet(std::shared_ptr<DataSet> DS) {
+    if (!has_parent) setCallOnlyOnce();
     if (!_param) throw kids_error("Param must be passed before");
     _dataset = DS;
-    setInputDataSet_impl(DS);
+    if (!once_called) setInputDataSet_impl(DS);
+    once_called = true;
     for (auto& pkernel : _child_kernels) pkernel->setInputDataSet(DS);
 }
 

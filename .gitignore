@@ -2,4 +2,5 @@ generate
 build
 wrappers/rustkids/target
 docs/html
+__pycache__
 # thirdpart
