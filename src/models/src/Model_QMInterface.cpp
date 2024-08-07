@@ -147,9 +147,14 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     }
 }
 
-Status& Model_QMInterface::initializeKernel_impl(Status& stat) { return stat; }
+Status& Model_QMInterface::initializeKernel_impl(Status& stat) {
+    try_level = 0;
+    return stat;
+}
 
 Status& Model_QMInterface::executeKernel_impl(Status& stat) {
+    if (stat.frozen) return stat;
+
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;
 
     std::string path_str;
@@ -192,7 +197,14 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     ofs << config_content;
     ofs.close();
 
-    std::string qm_call_str = utils::concat("python ", pykids_path, "/QM.py -d ", path_str, " -i ", tmp_input);
+    if (stat.last_attempt && stat.fail_type == 1) {
+        try_level++;
+    } else {
+        try_level = 0;
+    }
+
+    std::string qm_call_str = utils::concat("python ", pykids_path, "/QM.py -t ", try_level,  //
+                                            " -d ", path_str, " -i ", tmp_input);
     int         s           = system(qm_call_str.c_str());
     if (s != 0) {
         stat.succ = false;
@@ -201,7 +213,8 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
         return stat;
     }
 
-    if (!isFileExists(utils::concat(path_str, "/energy.dat")) ||    //
+    if (!isFileExists(utils::concat(path_str, "/stat.dat")) ||
+        !isFileExists(utils::concat(path_str, "/energy.dat")) ||    //
         !isFileExists(utils::concat(path_str, "/gradient.dat")) ||  //
         !isFileExists(utils::concat(path_str, "/nacv.dat"))) {
         stat.succ = false;
@@ -210,6 +223,25 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     }
 
     std::ifstream ifs;
+    ifs.open(utils::concat(path_str, "/stat.dat"));
+    int         stat_number;
+    std::string error_msg;
+    ifs >> stat_number >> error_msg;
+    ifs.close();
+    if (stat_number == 0) {
+        stat.succ = true;
+        if (stat.last_attempt && stat.fail_type == 1) {
+            std::cout << "survive in last try mndo\n";
+        } else if (stat.last_attempt && stat.fail_type == 2) {
+            std::cout << "mndo pass first, see next\n";
+        }
+        if (stat.fail_type == 1) stat.fail_type = 0;
+    } else {
+        stat.succ      = false;
+        stat.fail_type = 1;  // failture from QM
+        std::cout << "fail in calling MNDO! " << error_msg << "\n";
+    }
+
     ifs.open(utils::concat(path_str, "/energy.dat"));
     for (int i = 0; i < Dimension::F; ++i) ifs >> eig[i];
     ifs.close();

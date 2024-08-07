@@ -47,7 +47,10 @@ Status& Kernel_Iterative::initializeKernel_impl(Status& stat) {
 Status& Kernel_Iterative::executeKernel_impl(Status& stat) {
     stat.first_step = true;
     while (istep[0] <= nstep) {
-        if (istep[0] == nstep) dt[0] = 0;  // set dt=0 to remove dynamics! only record in last step
+        if (istep[0] == nstep) {
+            dt[0]       = 0;  // set dt=0 to remove dynamics! only record in last step
+            stat.frozen = true;
+        }
         at_condition[0] = (istep[0] % sstep == 0);
         isamp[0]        = istep[0] / sstep;
         for (auto& pkernel : _child_kernels) { pkernel->executeKernel(stat); }

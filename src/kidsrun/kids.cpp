@@ -8,6 +8,7 @@
 #include "kids/Param.h"
 #include "kids/Solver.h"
 #include "kids/SolverFactory.h"
+#include "kids/phys.h"
 #include "simple_guard.h"
 #include "version.h"
 
@@ -53,6 +54,13 @@ int main(int argc, char* argv[]) {
     std::ofstream ofs(utils::concat(FLAGS_d, "/", "input"));
     ofs << PM->repr();
     ofs.close();
+
+    std::cout << FMT(10) << phys::au_2_ang << "\n";
+    std::cout << FMT(10) << 1.0e0 / phys::au_2_ang << "\n";
+    std::cout << FMT(10) << phys::au_2_ev << "\n";
+    std::cout << FMT(10) << phys::au_2_kcal_1mea << "\n";
+    std::cout << FMT(10) << phys::au_2_kcal_1mea / phys::au_2_ev << "\n";
+    std::cout << FMT(10) << phys::au_2_wn << "\n";
 
     std::shared_ptr<Model>   model          = defaultModelFactory(model_name);
     std::shared_ptr<Solver>  solver1        = defaultSolverFactory("Sampling", model);

@@ -280,6 +280,31 @@ std::string DataSet::repr() {
     return os.str();
 }
 
+void DataSet::dump_match(std::ostream& os, const std::string& prefix) {
+    std::vector<std::tuple<std::string, Node*>> stack;
+    stack.push_back(std::make_tuple("", this));
+
+    while (!stack.empty()) {
+        auto [parent, currentNode] = stack.back();
+        stack.pop_back();
+        std::shared_ptr<DataType> d_ptr = static_cast<DataSet*>(currentNode)->_data;
+        for (auto& i : (*d_ptr)) {
+            std::string key = (parent == "") ? i.first : parent + "." + i.first;
+            if (!i.second) continue;
+            Node* inode = i.second.get();
+
+            if (inode->type() == kids_dataset_type) {
+                stack.push_back(std::make_tuple(key, inode));
+            } else {
+                auto ipos = key.find(prefix);
+                if (ipos != std::string::npos && ipos == 0) {  //
+                    os << key << "\n" << inode->repr() << "\n\n";
+                }
+            }
+        }
+    }
+}
+
 void DataSet::dump(std::ostream& os) { os << repr(); }
 
 void DataSet::load(std::istream& is) {

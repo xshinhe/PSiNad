@@ -68,6 +68,8 @@ class Model_QMInterface final : public Model {
     int  lroot;
     bool refer;
 
+    int try_level;
+
     kids_bint* succ_ptr;
     kids_bint* frez_ptr;
     kids_bint* last_attempt_ptr;

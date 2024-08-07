@@ -41,6 +41,7 @@ class Kernel_Dump_DataSet : public Kernel {
    private:
     std::string fn;        ///< filename (stamp) for dumping
     std::string hdlr_str;  ///< handler type specifier
+    bool        dump_only_init;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

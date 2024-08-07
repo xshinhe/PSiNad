@@ -275,6 +275,12 @@ class DataSet final : public Node {
 
     /**
      * Dump the DataSet to an output stream.
+     * @param os The output stream to dump the DataSet (fixed in field) to.
+     */
+    virtual void dump_match(std::ostream& os, const std::string& prefix);
+
+    /**
+     * Dump the DataSet to an output stream.
      * @param os The output stream to dump the DataSet to.
      */
     virtual void dump(std::ostream& os);

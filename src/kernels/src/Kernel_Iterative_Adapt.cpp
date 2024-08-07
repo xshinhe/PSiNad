@@ -89,6 +89,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         if (istep[0] == nstep) {
             at_condition[0] = true;
             dt[0]           = 0;  // frozen dynamics
+            stat.frozen     = true;
         }
 
         // backup before loop
@@ -105,12 +106,12 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         for (auto& pkernel : _child_kernels) { pkernel->executeKernel(stat); }
 
         char statc = '?';
-        if (stat.succ && !stat.last_attempt) statc = 'T';
-        if (stat.succ && stat.last_attempt) statc = 'R';
-        if (!stat.succ && stat.last_attempt) statc = 'X';
-        if (!stat.succ && !stat.last_attempt && dtsize[0] > 1) statc = 'F';
-        if (!stat.succ && !stat.last_attempt && dtsize[0] == 1) statc = 'L';
-        if (stat.frozen) statc = 'Z';
+        if (stat.succ && !stat.last_attempt) statc = 'T';                     // SUCC=True
+        if (stat.succ && stat.last_attempt) statc = 'R';                      // Recovered
+        if (!stat.succ && stat.last_attempt) statc = 'X';                     // END HERE
+        if (!stat.succ && !stat.last_attempt && dtsize[0] > 1) statc = 'F';   // FAILED
+        if (!stat.succ && !stat.last_attempt && dtsize[0] == 1) statc = 'L';  // FAILED and TODO TRY LAST
+        if (stat.frozen) statc = 'Z';                                         // FROZEN THEN
 
         if (std::ifstream{"X_STAT"}.good() && !stat.frozen) statc = 'X';
         if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good() && !stat.frozen) statc = 'X';
@@ -121,9 +122,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                 std::ofstream ofs{utils::concat(directory, "/fail", stat.icalc, "-", istep[0], ".ds")};
                 _dataset->dump(ofs);
                 ofs.close();
-
                 stat.frozen = true;
-                // not break here!
             }
             case 'T':
             case 'R':

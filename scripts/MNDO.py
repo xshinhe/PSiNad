@@ -18,10 +18,12 @@ import QMutils
 import typing
 
 parser = argparse.ArgumentParser(description='Execute MNDO Calculation')
-parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='MNDO', type=str,
+parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='.', type=str,
     help='work directory')
 parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in.MNDO', type=str,
     help='input file')
+parser.add_argument('-t', '--task', dest='task', nargs='?', default=0, type=int,
+    help='task level')
 parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.out.MNDO', type=str,
     help='output file')
 # args = parser.parse_args()
@@ -34,8 +36,19 @@ def qm_job(qm_data, args):
     xyz = qm_data["geom_xyz"]
     
     job_str = ""
-    if "toplines" in mndo_config:
+    if args.task == 0 and "toplines" in mndo_config:
         job_str += mndo_config["toplines"]  + '\n'
+    elif args.task ==1 and "toplines_1" in mndo_config:
+        job_str += mndo_config["toplines_1"]  + '\n'
+    elif args.task ==2 and "toplines_2" in mndo_config:
+        job_str += mndo_config["toplines_2"]  + '\n'
+    elif args.task ==3:
+        f = open(directory + '/stat.dat', 'w')
+        f.write('1\n')
+        f.write('FINALLY FAILED in LEVEL 3\n')
+        f.flush()
+        f.close()
+        return
     elif "first_keywords" in mndo_config:
         for k in mndo_config["first_keywords"]:
             if mndo_config["first_keywords"][k] == True:
@@ -120,6 +133,7 @@ def parse_result(qm_data, log_file):
     eig = np.zeros((F))
     dE  = np.zeros((F, N))
     nac = np.zeros((F, F, N))
+    Emin = 0
     
     with open(log_file, 'r') as ifs:
         for eachline in ifs:
@@ -131,6 +145,10 @@ def parse_result(qm_data, log_file):
                 ifs.readline()  # headline
                 for i in range(1, nciref):
                     f_r[i], f_p[i], f_rp[i] = map(float, ifs.readline().split()[-3:])
+                stat = 0
+
+            elif "State  1,  Mult. 1," in eachline:
+                Emin = float(eachline.split()[-2]) / QMutils.au_2_ev
                 stat = 0
 
             elif "SUMMARY OF MULTIPLE CI CALCULATIONS" in eachline:
@@ -165,7 +183,13 @@ def parse_result(qm_data, log_file):
                     stat = 2
 
     if stat != 2:
-        print(f"fail in calling MNDO! {ERROR_MSG}")
+        f = open(qm_config['QM']['env']['directory'] + '/stat.dat', 'w')
+        f.write(f'1\n{ERROR_MSG}')
+        f.close()
+    else:
+        f = open(qm_config['QM']['env']['directory'] + '/stat.dat', 'w')
+        f.write('0')
+        f.close()
 
     # convert to au unit
     eig /= QMutils.au_2_kcal_1mea
@@ -196,6 +220,12 @@ def parse_result(qm_data, log_file):
             for k in range(F):
                 f.write('{: 12.8e} '.format(nac[i,k,j]))
         f.write('\n')
+    f.close()
+
+    f = open(qm_config['QM']['env']['directory'] + '/other.dat', 'w')
+    f.write('{: 12.8e}\n'.format(Emin))
+    for i in range(nciref):
+        f.write('{: 12.8e} {: 12.8e} {: 12.8e}\n'.format(f_r[i], f_p[i], f_rp[i]))
     f.close()
     
     #pprint(qmout)

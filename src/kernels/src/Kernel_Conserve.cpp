@@ -67,30 +67,28 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
 
         if (Kernel_Representation::onthefly) {
             double thres = 0.02;
-            if (last_attempt_ptr[0] && fail_type_ptr[0] != 2) { cnt_loose = 3; }
+            if (stat.last_attempt && stat.fail_type != 2) { cnt_loose = 3; }
             if (cnt_loose > 0) {
                 thres = cnt_loose * cnt_loose;  // help for last_attempt of mndo failure
-                std::cout << "disable conserve around last try mndo\n";
+                std::cout << "try loose thres = " << thres << " because failure of QM\n";
                 cnt_loose--;
             }
 
-            if (last_attempt_ptr[0] && fail_type_ptr[0] == 2) {
+            if (stat.last_attempt && stat.fail_type == 2) {
                 thres = 0.5;  // loose threshold
-                std::cout << "last try conservation with thres = " << thres << "\n";
+                std::cout << "try loose thres = " << thres << " because of failure of CONSERVE\n";
             }
 
             if (std::abs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
                 std::cout << "fail in conserve ERROR: "  //
                           << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << " > " << thres << "\n";
-                succ_ptr[0]      = false;
-                fail_type_ptr[0] = 2;
+                stat.succ      = false;
+                stat.fail_type = 2;
             } else {
-                Etot_prev[0]     = Ekin[0] + Epot[0];
-                succ_ptr[0]      = true;
-                fail_type_ptr[0] = 0;
+                Etot_prev[0]   = Ekin[0] + Epot[0];
+                stat.succ      = true;
+                stat.fail_type = 0;
             }
-        } else {
-            succ_ptr[0] = true;
         }
 
         if (conserve_scale) {

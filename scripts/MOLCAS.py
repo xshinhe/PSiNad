@@ -17,27 +17,25 @@ import numpy as np
 import QMutils
 import typing
 
-parser = argparse.ArgumentParser(description='Execute BAGEL Calculation')
-parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='.', type=str,
+parser = argparse.ArgumentParser(description='Execute MOLCAS Calculation')
+parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='MOLCAS', type=str,
     help='work directory')
-parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in.BAGEL', type=str,
+parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in.MOLCAS', type=str,
     help='input file')
-parser.add_argument('-t', '--task', dest='task', nargs='?', default=0, type=int,
-    help='task level')
-parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.out.BAGEL', type=str,
+parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.out.MOLCAS', type=str,
     help='output file')
 # args = parser.parse_args()
 
 def qm_job(qm_data, args):
     qm_config = qm_data["qm_config"]
-    mndo_config = qm_config["QM"]["BAGEL"]
+    mndo_config = qm_config["QM"]["MOLCAS"]
     natom = qm_data["natom"]
     znumber = qm_data["znumber"]
     xyz = qm_data["geom_xyz"]
     
     try:
-        F = int(qm_config['QM']['BAGEL']['F'])
-        N = int(qm_config['QM']['BAGEL']['N'])
+        F = int(qm_config['QM']['MOLCAS']['F'])
+        N = int(qm_config['QM']['MOLCAS']['N'])
         nciref = F # int(qm_config['QM']['MNDO']['keywords']['nciref'])
     except KeyError:
         print(format_exc())
@@ -47,8 +45,8 @@ def qm_job(qm_data, args):
     # molecule part
     job_str += '{\n'
     job_str += '"title": "molecule",\n'
-    job_str += '"basis": "%s",\n'%(qm_config['QM']['BAGEL']['basis'])
-    job_str += '"df_basis": "%s",\n'%(qm_config['QM']['BAGEL']['df_basis'])
+    job_str += '"basis": "%s",\n'%(qm_config['QM']['MOLCAS']['basis'])
+    job_str += '"df_basis": "%s",\n'%(qm_config['QM']['MOLCAS']['df_basis'])
     job_str += '"angstrom": true,\n'
     job_str += '"geometry": [\n'
     for i in range(natom):
@@ -76,35 +74,35 @@ def qm_job(qm_data, args):
     # force methods
     job_str += '"method": ['
 
-    if qm_config['QM']['BAGEL']['method'] == 'casscf' or qm_config['QM']['BAGEL']['method'] == 'caspt2':
+    if qm_config['QM']['MOLCAS']['method'] == 'casscf' or qm_config['QM']['MOLCAS']['method'] == 'caspt2':
         job_str += '{\n'
         job_str += '"title": "casscf",\n'
-        job_str += '"nstate": %d,\n'%(qm_config['QM']['BAGEL']['nstate']) #should >= F (always ==)
-        job_str += '"nact": %d,\n'%(qm_config['QM']['BAGEL']['nact'])
-        # job_str += '"nopen": %d,\n'%(qm_config['QM']['BAGEL']['nopen'])
-        job_str += '"nclosed": %d,\n'%(qm_config['QM']['BAGEL']['nclosed'])
-        if 'active' in qm_config['QM']['BAGEL']:
+        job_str += '"nstate": %d,\n'%(qm_config['QM']['MOLCAS']['nstate']) #should >= F (always ==)
+        job_str += '"nact": %d,\n'%(qm_config['QM']['MOLCAS']['nact'])
+        # job_str += '"nopen": %d,\n'%(qm_config['QM']['MOLCAS']['nopen'])
+        job_str += '"nclosed": %d,\n'%(qm_config['QM']['MOLCAS']['nclosed'])
+        if 'active' in qm_config['QM']['MOLCAS']:
             job_str += '['
             cnt = 0
-            for istate in qm_config['QM']['BAGEL']['active']:
+            for istate in qm_config['QM']['MOLCAS']['active']:
                 if cnt !=0: job_str += ','
                 job_str += '%d'%istate
                 cnt += 1
             job_str += '],\n'
-        if qm_config['QM']['BAGEL']['method'] == 'caspt2':
+        if qm_config['QM']['MOLCAS']['method'] == 'caspt2':
             job_str += '"simth": {\n'
             job_str += '"method": "caspt2",\n'
-            if 'ms' in qm_config['QM']['BAGEL']:
-                job_str += '"ms": "%s",\n'%(qm_config['QM']['BAGEL']['ms'])
-            if 'xms' in qm_config['QM']['BAGEL']:
-                job_str += '"xms": "%s",\n'%(qm_config['QM']['BAGEL']['xms'])
-            if 'sssr' in qm_config['QM']['BAGEL']:
-                job_str += '"sssr": "%s",\n'%(qm_config['QM']['BAGEL']['sssr'])
-            job_str += '"shift": %.3f\n'%(qm_config['QM']['BAGEL']['shift'])
+            if 'ms' in qm_config['QM']['MOLCAS']:
+                job_str += '"ms": "%s",\n'%(qm_config['QM']['MOLCAS']['ms'])
+            if 'xms' in qm_config['QM']['MOLCAS']:
+                job_str += '"xms": "%s",\n'%(qm_config['QM']['MOLCAS']['xms'])
+            if 'sssr' in qm_config['QM']['MOLCAS']:
+                job_str += '"sssr": "%s",\n'%(qm_config['QM']['MOLCAS']['sssr'])
+            job_str += '"shift": %.3f\n'%(qm_config['QM']['MOLCAS']['shift'])
             job_str += '},\n'
 
-        job_str += '"charge": %d,\n'%(qm_config['QM']['BAGEL']['charge'])
-        job_str += '"nspin": %d\n'%(qm_config['QM']['BAGEL']['nspin'])
+        job_str += '"charge": %d,\n'%(qm_config['QM']['MOLCAS']['charge'])
+        job_str += '"nspin": %d\n'%(qm_config['QM']['MOLCAS']['nspin'])
         job_str += '}\n'
     else:
         raise ValueError("unsupport method")
@@ -116,7 +114,7 @@ def qm_job(qm_data, args):
 
     qm_config["QM"]["env"] = {
         "input_is_ready":True,
-        "generated": "QM.run.BAGEL.json",
+        "generated": "QM.run.MOLCAS.json",
         "directory": args.directory,
         "output": args.output,
     }
@@ -131,7 +129,7 @@ def qm_job(qm_data, args):
 
     exe_str = 'cd %s && %s  %s > %s && cd -'%(
         qm_config['QM']['env']['directory'],
-        qm_config['QM']['BAGEL']['path'],
+        qm_config['QM']['MOLCAS']['path'],
         qm_config['QM']['env']['generated'],
         qm_config['QM']['env']['output']
         )
@@ -147,9 +145,9 @@ def parse_result(qm_data, log_path):
     try:
         natom = qm_data['natom']
         qm_config = qm_data['qm_config']
-        F = int(qm_config['QM']['BAGEL']['F'])
-        N = int(qm_config['QM']['BAGEL']['N'])
-        nciref = F # int(qm_config['QM']['BAGEL']['keywords']['nciref'])
+        F = int(qm_config['QM']['MOLCAS']['F'])
+        N = int(qm_config['QM']['MOLCAS']['N'])
+        nciref = F # int(qm_config['QM']['MOLCAS']['keywords']['nciref'])
     except KeyError:
         print(format_exc())
 

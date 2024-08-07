@@ -1,32 +1,38 @@
 3
-Comment:
+Comment: MNDO Template
  S     0.000000     0.000000     0.100841
  H    -0.000000     0.974799     1.182934
  H    -0.000000    -0.974799     1.182934
 
 [QM]
 exec = "BAGEL"
-ncpu = 4
-use_mpi = false
-scratchdir = "$TMPDIR/WORK"
-savedir="./SAVE/"
+ncpu = 4 # if necessary
+use_mpi = false # if nenessary
+scratchdir="..."
+savedir="..."
 
 [QM.BAGEL]
-path = "full/path/to/BAGEL"
-path_to_wfoverlap = "$SHARC/wfoverlap.x"
-path_to_pyquante = "/user/moritz/pyquante"
-States = [5, 2, 2]
-Unit = "Angstrom"           # in which units to interpret the above geometry
-Step = 0                 # Optional, used only to name the backup directories
-calc_H = true
-calc_DM = true
-calc_OV = true
-calc_MOLDEN = true
-calc_NACDR = true
+path = "~/hexin/bagel/obj/src/BAGEL"
+N = 9
+F = 2
 
-[QM.MNDO]
-path = "full/path/to/MNDO"
+basis = "/public3/home/c9l2000009/hexin/bagel/src/basis/cc-pvdz.json"
+df_basis = "/public3/home/c9l2000009/hexin/bagel/src/basis/cc-pvdz-jkfit.json"
+method = "caspt2"
+nstate = 2
+nact = 4
+nclosed = 8
+charge = 0
+nspin = 0
+ms = true
+xms = true
+sssr = false
+shift = 0.2
+
+[QM.MM]
+# QMMM parameters
 
 [MM]
+# MM parameters 
 
-# kate: syntax python
+
