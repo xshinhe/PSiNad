@@ -43,6 +43,36 @@ void Sampling_Nucl::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 Status& Sampling_Nucl::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
+    if (_param->get_bool({"restart"}, LOC(), false)) {  //
+        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
+        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
+        std::string   stmp, eachline;
+        std::ifstream ifs(loadfile);
+
+        double* xinit = _dataset->def_real("init.x", x, Dimension::PN);  // real zero time
+        double* pinit = _dataset->def_real("init.p", p, Dimension::PN);  // real zero time
+
+        while (getline(ifs, eachline)) {
+            if (eachline.find("init.x") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> xinit[i];
+            }
+            if (eachline.find("init.p") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> pinit[i];
+            }
+            if (eachline.find("integrator.x") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> x[i];
+            }
+            if (eachline.find("integrator.p") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> p[i];
+            }
+        }
+        return stat;
+    }
+
     for (int iP = 0; iP < Dimension::P; ++iP) {  /// use P instead of P_NOW
         kids_real* x = this->x + iP * Dimension::N;
         kids_real* p = this->p + iP * Dimension::N;
@@ -82,8 +112,11 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
             case NuclearSamplingPolicy::QcNMA: {
                 Kernel_Random::rand_gaussian(x, Dimension::N);
                 Kernel_Random::rand_gaussian(p, Dimension::N);
-                for (int j = 0; j < 6; ++j) x[j] = 0.0f, p[j] = 0.0f;
                 for (int j = 0; j < Dimension::N; ++j) {
+                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-8) {
+                        x[j] = 0.0f, p[j] = 0.0f;
+                        continue;
+                    }
                     double Qoverbeta = (sampling_type == NuclearSamplingPolicy::ClassicalNMA)
                                            ? ((beta > 0) ? 1.0f / beta : 0.0f)
                                            : (0.5e0 * w[j] / (beta > 0 ? std::tanh(0.5e0 * beta * w[j]) : 1.0f));
@@ -97,6 +130,7 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                         p[j]         = p[j] * scale;
                     }
                 }
+
                 // transfrom normal-mode to cartesian coordinates (ARRAY should be .eval()!)
                 ARRAY_MATMUL(x, Tmod, x, Dimension::N, Dimension::N, 1);
                 ARRAY_MATMUL(p, Tmod, p, Dimension::N, Dimension::N, 1);

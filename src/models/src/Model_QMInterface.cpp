@@ -111,37 +111,46 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     while (getline(ifs, stmp, '\n')) config_content += stmp + "\n";
     ifs.close();
 
-    if (isFileExists("HESS.in")) {  // used for sampling
-        std::ifstream ifs("HESS.in");
-        for (int i = 0; i < Dimension::F; ++i) {
-            if (ifs >> dtmp) ener_refered = dtmp;
-        }
-        for (int i = 0, ik = 0; i < Dimension::N; ++i) {
-            for (int k = 0; k < Dimension::N; ++k, ++ik) {
-                if (ifs >> dtmp) hess[ik] = dtmp;
+    std::string read_hess = _param->get_string({"model.read_hess", "solver.read_hess"}, LOC(), "NULL");
+    if (read_hess != "NULL") {  // used for sampling
+        if (!isFileExists(read_hess)) throw kids_error("cannot open hess as .ds file");
+        std::ifstream ifs(read_hess);  // prepare for NMA
+        bool          read_w = false;
+        bool          read_H = false;
+        bool          read_T = false;
+        std::string   eachline;
+        while (getline(ifs, eachline)) {
+            if (eachline.find("model.vpes") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < 1; ++i) ifs >> ener_refered;
+            }
+            if (eachline.find("model.x0") != eachline.npos && false) {  // read from config_content
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> x0[i];
+            }
+            if (eachline.find("model.p0") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> p0[i];
+            }
+            if (eachline.find("model.hess") != eachline.npos) {
+                read_H = true;
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::NN; ++i) ifs >> hess[i];
+            }
+            if (eachline.find("model.w") != eachline.npos) {
+                read_w = true;
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::N; ++i) ifs >> w[i];
+            }
+            if (eachline.find("model.Tmod") != eachline.npos) {
+                read_T = true;
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::NN; ++i) ifs >> Tmod[i];
             }
         }
-        for (int i = 0; i < Dimension::N; ++i) {
-            if (ifs >> dtmp) w[i] = dtmp;
-        }
-        for (int i = 0, ik = 0; i < Dimension::N; ++i) {
-            for (int k = 0; k < Dimension::N; ++k, ++ik) {
-                if (ifs >> dtmp) Tmod[ik] = dtmp;
-            }
-        }
-        // // from hessian & temperature to prepare initial sampling
-        // for (int j = 0; j < Dimension::N; ++j) {
-        //     if (j < 6 || w[j] < 1.0e-10) {  // cutoff low frequency
-        //         x_sigma[j] = 0.0f;
-        //         p_sigma[j] = 0.0f;
-        //     } else {  // NOTE: it's for normal-mode!
-        //         double Qoverbeta = 0.5f * w[j] / std::tanh(0.5f * beta * w[j]);
-        //         if (classical_bath) Qoverbeta = 1.0e0 / beta;
-        //         x_sigma[j] = std::sqrt(Qoverbeta / (w[j] * w[j]));
-        //         p_sigma[j] = std::sqrt(Qoverbeta);
-        //     }
-        // }
         ifs.close();
+        if (read_H && !read_w) { EigenSolve(w, Tmod, hess, Dimension::N); }
+        if (!read_H && !read_w && !read_T) throw kids_error("cannot read hess from ds");
     } else {
         for (int j = 0; j < Dimension::N; ++j) x_sigma[j] = 0.0e0, p_sigma[j] = 0.0e0;
     }
@@ -172,6 +181,7 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
 
     if (isFileExists(utils::concat(path_str, "/STOP"))) {
         stat.frozen = true;  // force stop
+        for (int i = 0; i < Dimension::N; ++i) x[i] /= phys::au_2_ang;
         return stat;
     }
 
@@ -206,55 +216,37 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     std::string qm_call_str = utils::concat("python ", pykids_path, "/QM.py -t ", try_level,  //
                                             " -d ", path_str, " -i ", tmp_input);
     int         s           = system(qm_call_str.c_str());
-    if (s != 0) {
+    if (s != 0 || !isFileExists(utils::concat(path_str, "/interface.ds"))) {
         stat.succ = false;
-        std::cout << LOC() << "\n";
-        exit(0);
-        return stat;
-    }
-
-    if (!isFileExists(utils::concat(path_str, "/stat.dat")) ||
-        !isFileExists(utils::concat(path_str, "/energy.dat")) ||    //
-        !isFileExists(utils::concat(path_str, "/gradient.dat")) ||  //
-        !isFileExists(utils::concat(path_str, "/nacv.dat"))) {
-        stat.succ = false;
-        throw kids_error("DEBUG TEST");
+        for (int i = 0; i < Dimension::N; ++i) x[i] /= phys::au_2_ang;
         return stat;
     }
 
     std::ifstream ifs;
-    ifs.open(utils::concat(path_str, "/stat.dat"));
-    int         stat_number;
-    std::string error_msg;
-    ifs >> stat_number >> error_msg;
-    ifs.close();
-    if (stat_number == 0) {
-        stat.succ = true;
-        if (stat.last_attempt && stat.fail_type == 1) {
-            std::cout << "survive in last try mndo\n";
-        } else if (stat.last_attempt && stat.fail_type == 2) {
-            std::cout << "mndo pass first, see next\n";
+    int           stat_number = 1;
+    std::string   eachline;
+    ifs.open(utils::concat(path_str, "/interface.ds"));
+    while (getline(ifs, eachline)) {
+        if (eachline.find("interface.stat") != eachline.npos) {
+            getline(ifs, eachline);
+            for (int i = 0; i < 1; ++i) ifs >> stat_number;
         }
-        if (stat.fail_type == 1) stat.fail_type = 0;
-    } else {
-        stat.succ      = false;
-        stat.fail_type = 1;  // failture from QM
-        std::cout << "fail in calling MNDO! " << error_msg << "\n";
+        if (eachline.find("interface.eig") != eachline.npos) {
+            getline(ifs, eachline);
+            for (int i = 0; i < Dimension::F; ++i) ifs >> eig[i];
+        }
+        if (eachline.find("interface.dE") != eachline.npos) {
+            getline(ifs, eachline);
+            for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
+                for (int i = 0, jii = jFF; i < Dimension::F; ++i, jii += Dimension::Fadd1) ifs >> dE[jii];
+            }
+        }
+        if (eachline.find("interface.nac") != eachline.npos) {
+            getline(ifs, eachline);
+            for (int jik = 0; jik < Dimension::NFF; ++jik) ifs >> nac[jik];
+        }
     }
-
-    ifs.open(utils::concat(path_str, "/energy.dat"));
-    for (int i = 0; i < Dimension::F; ++i) ifs >> eig[i];
-    ifs.close();
-
-    ifs.open(utils::concat(path_str, "/gradient.dat"));
-    for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
-        for (int i = 0, jii = jFF; i < Dimension::F; ++i, jii += Dimension::Fadd1) ifs >> dE[jii];
-    }
-    ifs.close();
-
-    ifs.open(utils::concat(path_str, "/nacv.dat"));
-    for (int jik = 0; jik < Dimension::NFF; ++jik) ifs >> nac[jik];
-    ifs.close();
+    if (stat_number != 0) stat.succ = false;
 
     if (!stat.first_step) track_nac_sign();  // @note track_nac_sign is important
     for (int i = 0, idx = 0; i < Dimension::N; ++i) {
@@ -265,13 +257,11 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
             }
         }
     }
-    // exit(0);
-
-    for (int i = 0; i < Dimension::N; ++i) x[i] /= phys::au_2_ang;
     // output unit conversion is performed in python. everthing is au unit now.
     // for (int i = 0; i < Dimension::F; ++i) eig[i] /= phys::au_2_kcal_1mea;  ///< convert kcalpmol to Hartree
     // for (int i = 0; i < Dimension::NFF; ++i)
     //     dE[i] /= (phys::au_2_kcal_1mea / phys::au_2_ang);  ///< convert to Hartree/Bohr
+    for (int i = 0; i < Dimension::N; ++i) x[i] /= phys::au_2_ang;
     return stat;
 }
 
@@ -312,6 +302,4 @@ int Model_QMInterface::track_nac_sign() {
     for (int i = 0; i < Dimension::NFF; ++i) nac_prev[i] = nac[i];  // save a copy
     return 0;
 }
-
-
 };  // namespace PROJECT_NS

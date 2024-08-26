@@ -51,6 +51,62 @@ void Sampling_Elec::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 Status& Sampling_Elec::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Sampling_Elec::executeKernel_impl(Status& stat) {
+    if (_param->get_bool({"restart"}, LOC(), false)) {  //
+        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
+        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
+        std::string   stmp, eachline;
+        std::ifstream ifs(loadfile);
+
+        kids_complex* cinit    = _dataset->def_complex("init.c", c, Dimension::PF);
+        kids_complex* rhoeinit = _dataset->def_complex("init.rho_ele", rho_ele, Dimension::PFF);
+        kids_complex* rhoninit = _dataset->def_complex("init.rho_nuc", rho_nuc, Dimension::PFF);
+        kids_real*    Tinit    = _dataset->def_real("init.T", T, Dimension::PFF);
+
+        while (getline(ifs, eachline)) {
+            if (eachline.find("init.c") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PF; ++i) ifs >> cinit[i];
+            }
+            if (eachline.find("init.rho_ele") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rhoeinit[i];
+            }
+            if (eachline.find("init.rho_nuc") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rhoninit[i];
+            }
+            if (eachline.find("init.T") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PFF; ++i) ifs >> Tinit[i];
+            }
+            if (eachline.find("integrator.c") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PF; ++i) ifs >> c[i];
+            }
+            if (eachline.find("integrator.rho_ele") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rho_ele[i];
+            }
+            if (eachline.find("integrator.rho_nuc") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rho_nuc[i];
+            }
+            if (eachline.find("integrator.occ_nuc") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::P; ++i) ifs >> occ_nuc[i];
+            }
+            if (eachline.find("integrator.w") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::P; ++i) ifs >> w[i];
+            }
+            // if (eachline.find("model.rep.T") != eachline.npos) {
+            //     getline(ifs, eachline);
+            //     for (int i = 0; i < Dimension::N; ++i) ifs >> p[i];
+            // }
+        }
+        return stat;
+    }
+
     for (int iP = 0; iP < Dimension::P; ++iP) {  // use P insread P_NOW
         kids_complex* c       = this->c + iP * Dimension::F;
         kids_complex* rho_ele = this->rho_ele + iP * Dimension::FF;
@@ -199,6 +255,7 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                                          Kernel_Representation::nuc_repr_type,  //
                                          SpacePolicy::L);
         occ_nuc[0] = elec_utils::max_choose(rho_nuc);
+        // PRINT_ARRAY(rho_nuc, Dimension::F, Dimension::F);
         if (use_fssh) occ_nuc[0] = elec_utils::pop_choose(rho_nuc);
         Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
                                          Kernel_Representation::nuc_repr_type,  //

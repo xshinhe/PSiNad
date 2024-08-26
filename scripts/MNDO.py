@@ -22,11 +22,192 @@ parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='.
     help='work directory')
 parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in.MNDO', type=str,
     help='input file')
-parser.add_argument('-t', '--task', dest='task', nargs='?', default=0, type=int,
-    help='task level')
+parser.add_argument('-t', '--task', dest='task', nargs='?', default='nad', type=str,
+    help='task type')
 parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.out.MNDO', type=str,
     help='output file')
 # args = parser.parse_args()
+
+def _get_errormsg_from_lines(lines: list[str]):
+    find = False
+    ERROR_MSG = ''
+    for eachline in lines:
+        if 'ERROR' in eachline or 'STOP' in eachline: # or warnings
+            find = True
+            ERROR_MSG += eachline
+    return find, ERROR_MSG
+
+def _get_unable_from_lines(lines: list[str]):
+    find = False
+    SOME_MSG = ''
+    for eachline in lines:
+        if "UNABLE" in eachline:
+            find = True
+            SOME_MSG += eachline
+        if "ACHIEVED" in eachline:
+            find = False
+            SOME_MSG += eachline
+    return find, SOME_MSG
+
+def _get_oscstrength_from_lines(lines: list[str]):
+    find = False
+    f_strength = [0,]
+    for i in range(len(lines)):
+        if "Properties of transitions   1 -> #" in lines[i]:
+            # i+1 is blankline
+            # i+2 is headline
+            k = 3
+            while lines[i+k].strip() != '':
+                read_pos = -2 # read f_rp only
+                f_strength +=  [ float(lines[i+k].split()[read_pos]) ]
+                k += 1
+            find = True
+            break
+    return find, np.array(f_strength)
+
+def _get_energy_from_lines(lines: list[str]):
+    find = False
+    Emin = 0
+    energies = []
+    for i in range(len(lines)):
+        if "State  1,  Mult. 1,  E-E(1)=  0.000000" in lines[i]:
+            Emin = float(lines[i].split()[-2])
+        elif "SUMMARY OF MULTIPLE CI CALCULATIONS" in lines[i]:
+            k = 5
+            while lines[i+k].strip()[0:2] != '--':
+                energies += [float(lines[i+k].split()[2])]
+                k += 1 
+            find = True
+    return find, np.array(energies)
+
+def _get_gradient_from_lines(lines: list[str]):
+    find = False
+    gradient = {}
+    istate_force = 0
+    i = 0;
+    while i < len(lines):
+        if "CI CALCULATION FOR STATE:" in lines[i]:
+            istate_force = int(lines[i].split()[-1]) - 1
+            k = i + 1
+            while "GRADIENTS (KCAL/(MOL*ANGSTROM))" not in lines[k]: k += 1
+            k += 4
+            grad_local = []
+            while lines[k].strip() != '':
+                grad_local += [ np.array(lines[k].split()[5:]).astype(np.float64) ]
+                k += 1
+            for _ in range(10):
+                k += 1
+                if 'EXTERNAL POINT CHARGES' in lines[k]:
+                    while "GRADIENTS (KCAL/(MOL*ANGSTROM))" not in lines[k]: k += 1
+                    k += 4
+                    while lines[k].strip() != '':
+                        grad_local += [ np.array(lines[k].split()[5:]).astype(np.float64) ]
+                        k += 1
+                    break
+            gradient['%d'%istate_force] = deepcopy(np.array(grad_local))
+            find = True 
+            i = k + 1
+        else:
+            i += 1
+    return find, gradient
+
+def _get_nac_from_lines(lines: list[str]):
+    find = False
+    nac = {}
+    i = 0
+    while i < len(lines):
+        if "CI CALCULATION FOR INTERSTATE COUPLING OF STATES:" in lines[i]:
+            istate, jstate = map(int, lines[i].split()[-2:])
+            istate -= 1; jstate -= 1
+            k = i + 1
+            while "GRADIENTS (KCAL/(MOL*ANGSTROM))" not in lines[k]: k += 1
+            k += 4
+            grad_local = []
+            while lines[k].strip() != '':
+                grad_local += [ np.array(lines[k].split()[5:]).astype(np.float64) ]
+                k += 1
+            for _ in range(10):
+                k += 1
+                if 'EXTERNAL POINT CHARGES' in lines[k]:
+                    while "GRADIENTS (KCAL/(MOL*ANGSTROM))" not in lines[k]: k += 1
+                    k += 4
+                    while lines[k].strip() != '':
+                        grad_local += [ np.array(lines[k].split()[5:]).astype(np.float64) ]
+                        k += 1
+                    break
+            nac['%d-%d'%(istate, jstate)] = np.array(grad_local)
+            nac['%d-%d'%(jstate, istate)] =-np.array(grad_local)
+            find = True
+            i = k + 1
+        else:
+            i += 1
+    return find, nac
+
+def _get_hessian_from_lines(lines: list[str]):
+    find = False
+    hess = {}
+    
+    ncalc = 0
+    for li in lines:
+        if 'CURRENT CARTESIAN GRADIENT' in li:
+            ncalc += 1
+    N = (ncalc - 1)//2
+
+    Emin = 0
+    freq = np.zeros(N)
+    Tmod = np.zeros((N,N))
+    xyz = np.zeros((N))
+    i = 0 
+    while i < len(lines):
+        if "     INPUT GEOMETRY" in lines[i]:
+            k = i + 6
+            xyz_local = []
+            while lines[k].strip() != '':
+                xyz_local += [ np.array(lines[k].split()[2:5]).astype(np.float64) ]
+                k += 1
+            xyz[:] = np.array(xyz_local).flatten()
+            i = k + 1
+        elif "State  1,  Mult. 1,  E-E(1)=  0.00000" in lines[i] and Emin == 0:
+            Emin = float(lines[i].split()[-2])
+            i += 1
+        elif "GRADIENT NORM =" in lines[i]:
+            norm = float(lines[i].split()[3])
+            i += 1
+            if norm > 10.0:
+                # print('Hessian is not used under equilibrium!')
+                pass
+        elif 'EIGENVECTORS OF THE MASS-WEIGHTED' in lines[i]:
+            k = i+3
+            colidx = np.array(lines[k].split()).astype(np.int32) - 1
+            k += 2
+            freq[colidx] = np.array(lines[k].split()).astype(np.float64)
+            k += 2
+            while 'CARTESIAN DISPLACEMENT' not in lines[k]: 
+                if lines[k].strip() == '': 
+                    k += 1
+                    continue
+                terms = lines[k].split()
+                if len(terms) == len(colidx) + 1:
+                    rowidx = int(terms[0]) - 1
+                    Tmod[rowidx, colidx] = np.array(terms[1:]).astype(np.float64)
+                    k += 1
+                if len(terms) <= len(colidx):
+                    colidx = np.array(terms).astype(np.int32) - 1
+                    k += 2
+                    terms = lines[k].split()
+                    freq[colidx] = np.array(terms).astype(np.float64)
+                    k += 1
+            find = True
+            hess['vpes'] = Emin
+            hess['x0'] = xyz
+            hess['w'] = freq
+            hess['Tmod'] = Tmod
+            hess['hess'] = np.einsum('ik,k,kj->ij', Tmod, freq, Tmod.T)
+            i = k + 1
+            break 
+        else:
+            i += 1
+    return find, hess
 
 def qm_job(qm_data, args):
     qm_config = qm_data["qm_config"]
@@ -105,7 +286,7 @@ def qm_job(qm_data, args):
         qm_config['QM']['MNDO']['path'],
         directory + '/' + qm_config['QM']['env']['generated'],
         directory + '/' + qm_config['QM']['env']['output']
-        )
+    )
     os.system(exe_str)
 
     parse_result(
@@ -119,115 +300,75 @@ def parse_result(qm_data, log_file):
         qm_config = qm_data['qm_config']
         F = int(qm_config['QM']['MNDO']['F'])
         N = int(qm_config['QM']['MNDO']['N'])
-        nciref = F # int(qm_config['QM']['MNDO']['keywords']['nciref'])
-    except KeyError:
+        iroot = F # int(qm_config['QM']['MNDO']['keywords']['iroot'])
+
+        f = open(log_file, 'r')
+        lines = f.readlines()
+
+        finde, ERROR_MSG = _get_errormsg_from_lines(lines)
+        findu, UNABLE_MSG = _get_unable_from_lines(lines)
+        find0, energy = _get_energy_from_lines(lines)
+        find1, gradient = _get_gradient_from_lines(lines)
+        findc, nacvector = _get_nac_from_lines(lines)
+        findf, fstrength = _get_oscstrength_from_lines(lines)
+    except (KeyError, IOError):
         print(format_exc())
+        
+    stat = 0
+    if finde or findu:
+        stat = 1
 
-    stat = -1
-    istate_force = 0
-    istate_force_meet = 0
-    ERROR_MSG = ""
-    f_r = np.zeros((nciref))
-    f_p = np.zeros((nciref))
-    f_rp = np.zeros((nciref))
-    eig = np.zeros((F))
-    dE  = np.zeros((F, N))
-    nac = np.zeros((F, F, N))
-    Emin = 0
-    
-    with open(log_file, 'r') as ifs:
-        for eachline in ifs:
-            if "ERROR" in eachline or "UNABLE" in eachline:
-                ERROR_MSG += eachline
+    eig = energy / QMutils.au_2_kcal_1mea
+    dE  = np.zeros((N,F))
+    nac = np.zeros((N,F,F))
+    for i in range(F):
+        dE[:,i] = gradient['%d'%i].flatten() / QMutils.au_2_kcal_1mea_per_ang
+    for i in range(F):
+        for k in range(i+1,F):
+            nac[:,i,k] = nacvector['%d-%d'%(i,k)].flatten() / (1.0e0 / QMutils.au_2_ang)
+            nac[:,k,i] = nacvector['%d-%d'%(k,i)].flatten() / (1.0e0 / QMutils.au_2_ang)
 
-            if "Properties of transitions   1 -> #" in eachline:
-                ifs.readline()  # blankline
-                ifs.readline()  # headline
-                for i in range(1, nciref):
-                    f_r[i], f_p[i], f_rp[i] = map(float, ifs.readline().split()[-3:])
-                stat = 0
-
-            elif "State  1,  Mult. 1," in eachline:
-                Emin = float(eachline.split()[-2]) / QMutils.au_2_ev
-                stat = 0
-
-            elif "SUMMARY OF MULTIPLE CI CALCULATIONS" in eachline:
-                for _ in range(4):
-                    ifs.readline()
-                for i in range(F):
-                    eig[i] = float(ifs.readline().split()[2])
-                stat = 0
-
-            elif "CI CALCULATION FOR STATE:" in eachline:
-                istate_force = int(eachline.split()[-1]) - 1
-
-            elif "GRADIENTS (KCAL/(MOL*ANGSTROM))" in eachline and istate_force_meet == istate_force:
-                istate_force_meet += 1
-                for _ in range(3):
-                    ifs.readline()
-                for i in range(natom):
-                    dE[istate_force,3*i:3*i+3] = ifs.readline().split()[5:]
-
-            elif "CI CALCULATION FOR INTERSTATE COUPLING OF STATES:" in eachline:
-                istate, jstate = map(int, eachline.split()[-2:])
-                istate -= 1; jstate -= 1
-                if istate < F and jstate < F and istate != jstate:
-                    while True:
-                        if "GRADIENTS (KCAL/(MOL*ANGSTROM))" in ifs.readline():
-                            for _ in range(3):
-                                ifs.readline()
-                            for i in range(natom):
-                                nac[istate,jstate,3*i:3*i+3] = ifs.readline().split()[5:]
-                            nac[jstate,istate,:] = -nac[istate,jstate,:]
-                            break
-                    stat = 2
-
-    if stat != 2:
-        f = open(qm_config['QM']['env']['directory'] + '/stat.dat', 'w')
-        f.write(f'1\n{ERROR_MSG}')
-        f.close()
-    else:
-        f = open(qm_config['QM']['env']['directory'] + '/stat.dat', 'w')
-        f.write('0')
-        f.close()
-
-    # convert to au unit
-    eig /= QMutils.au_2_kcal_1mea
-    dE /= QMutils.au_2_kcal_1mea_per_ang
-    nac /= 1.0e0 / QMutils.au_2_ang
-
-    qmout = QMutils.QMout(natom=natom, 
+    qmout = QMutils.QMout(natom=natom,
         energy=eig,
-        gradient=dE.T,
-        nac=np.einsum('ikj->jik', nac)
+        gradient=dE,
+        nac=nac
     )
 
-    f = open(qm_config['QM']['env']['directory'] + '/energy.dat', 'w')
+    f = open(qm_config['QM']['env']['directory'] + '/interface.ds', 'w')
+    f.write('interface.stat\n')
+    f.write(f'kids_int {1}\n')
+    f.write(f'{stat}\n\n')
+
+    f.write('interface.eig\n')
+    f.write(f'kids_real {F}\n')
     for i in range(F):
         f.write('{: 12.8e}\n'.format(eig[i]))
-    f.close()
+    f.write('\n')
 
-    f = open(qm_config['QM']['env']['directory'] + '/gradient.dat', 'w')
+    f.write('interface.dE\n')
+    f.write(f'kids_real {N*F}\n')
     for j in range(N):
         for i in range(F):
-            f.write('{: 12.8e} '.format(dE[i,j]))
+            f.write('{: 12.8e} '.format(dE[j,i]))
         f.write('\n')
-    f.close()
+    f.write('\n')
 
-    f = open(qm_config['QM']['env']['directory'] + '/nacv.dat', 'w')
+    f.write('interface.nac\n')
+    f.write(f'kids_real {N*F*F}\n')
     for j in range(N):
         for i in range(F):
             for k in range(F):
-                f.write('{: 12.8e} '.format(nac[i,k,j]))
+                f.write('{: 12.8e} '.format(nac[j,i,k]))
         f.write('\n')
+    f.write('\n')
+
+    f.write('interface.strength\n')
+    f.write(f'kids_real {F}\n')
+    for i in range(F):
+        f.write('{: 12.8e} '.format(fstrength[i]))
+    f.write('\n')
     f.close()
 
-    f = open(qm_config['QM']['env']['directory'] + '/other.dat', 'w')
-    f.write('{: 12.8e}\n'.format(Emin))
-    for i in range(nciref):
-        f.write('{: 12.8e} {: 12.8e} {: 12.8e}\n'.format(f_r[i], f_p[i], f_rp[i]))
-    f.close()
-    
     #pprint(qmout)
     return qmout
 
@@ -236,8 +377,64 @@ def main():
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    pprint(args)
-    qm_data_in = QMutils.parseQMinput(args.input)
-    qm_job(qm_data_in, args)
+    # pprint(args)
+    if args.task == 'nad':
+        qm_data_in = QMutils.parseQMinput(args.input)
+        qm_job(qm_data_in, args)
+    elif args.task == 'hess_ds':
+        hess_log = args.input
+        lines = open(hess_log, 'r').readlines()
+        find, hess = _get_hessian_from_lines(lines)
+
+        fo = open(args.output, 'w')
+        if 'vpes' in hess:
+            fo.write('model.vpes\n');
+            fo.write(f'kids_real 1\n');
+            fo.write('{: 12.8e} \n\n'.format(hess['vpes'] / QMutils.au_2_ev))
+        if 'hess' in hess:
+            fo.write('model.hess\n');
+            val = hess['hess'].flatten()
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+        if 'Tmod' in hess:
+            fo.write('model.Tmod\n');
+            val = hess['Tmod'].flatten()
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+        if 'w' in hess:
+            fo.write('model.w\n');
+            val = hess['w'].flatten() / QMutils.au_2_wn
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+        if 'x0' in hess:
+            fo.write('model.x0\n');
+            val = hess['x0'].flatten() / QMutils.au_2_ang
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+
+            fo.write('model.p0\n');
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(0))
+            fo.write('\n\n')
+        fo.close()
+        # pprint(hess)
+
+    # debug
+    # pprint(_get_unable_from_lines(lines))
+    # pprint(_get_errormsg_from_lines(lines))
+    # pprint(_get_oscstrength_from_lines(lines))
+    # pprint(_get_energy_from_lines(lines))
+    # pprint(_get_gradient_from_lines(lines))
+    # pprint(_get_nac_from_lines(lines))
+    # pprint(_get_hessian_from_lines(lines))
 
     main()

@@ -37,10 +37,14 @@ void Kernel_Iterative::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Kernel_Iterative::initializeKernel_impl(Status& stat) {
-    t[0]     = t0;
-    dt[0]    = dt0;
-    istep[0] = 0;
-    isamp[0] = 0;
+    t[0]              = t0;
+    dt[0]             = dt0;
+    istep[0]          = 0;
+    isamp[0]          = 0;
+    stat.succ         = true;
+    stat.last_attempt = false;
+    stat.frozen       = false;
+    stat.fail_type    = 0;
     return stat;
 }
 

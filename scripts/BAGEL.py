@@ -22,11 +22,175 @@ parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='.
     help='work directory')
 parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in.BAGEL', type=str,
     help='input file')
-parser.add_argument('-t', '--task', dest='task', nargs='?', default=0, type=int,
-    help='task level')
+parser.add_argument('-t', '--task', dest='task', nargs='?', default='nad', type=str,
+    help='task type')
 parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.out.BAGEL', type=str,
     help='output file')
 # args = parser.parse_args()
+
+def _get_errormsg_from_lines(lines: list[str]):
+    find = False
+    ERROR_MSG = ''
+    for eachline in lines:
+        if 'ERROR' in eachline or 'STOP' in eachline: # or warnings
+            find = True
+            ERROR_MSG += eachline
+    return find, ERROR_MSG
+
+def _get_unable_from_lines(lines: list[str]):
+    find = False
+    SOME_MSG = ''
+    for eachline in lines:
+        if "UNABLE" in eachline:
+            find = True
+            SOME_MSG += eachline
+        if "ACHIEVED" in eachline:
+            find = False
+            SOME_MSG += eachline
+    return find, SOME_MSG
+
+def _get_oscstrength_from_lines(lines: list[str]):
+    find = False
+    f_strength = [0,]
+    for i in range(len(lines)):
+        if "* Oscillator strength for transition between 0" in lines[i]:
+            terms = lines[i].strip().split()
+            f_strength += [float(terms[9])]
+            find = True
+    return find, np.array(f_strength)
+
+def _get_energy(log_path:str, F:int):
+    find = False
+    energies = []
+    with open(log_path+'/ENERGY.out', 'r') as ifs:
+        for i in range(F):
+            energies += [float(ifs.readline())]
+    return find, np.array(energies)
+
+def _get_gradient(log_path:str, N:int, F:int):
+    find = False
+    natom = N //3 
+    gradient = {}
+    for i in range(F):
+        grad_local = []
+        with open(log_path+'/FORCE_%d.out'%i, 'r') as ifs:
+            ifs.readline()
+            for a in range(natom):
+                grad_local += [ np.array(ifs.readline().split()[1:]).astype(np.float64) ]
+        gradient['%d'%i] = np.array(grad_local)
+        find = True
+    return find, gradient
+
+def _get_nac(log_path:str, N:int, F:int):
+    find = False
+    natom = N //3 
+    nac = {}
+    for i in range(F):
+        for k in range(i+1, F):
+            nac_local = []
+            with open(log_path+'/NACME_%d_%d.out'%(i,k), 'r') as ifs:
+                ifs.readline()
+                for a in range(natom):
+                    nac_local += [ np.array(ifs.readline().split()[1:]).astype(np.float64) ]
+            nac['%d-%d'%(i,k)] = np.array(nac_local)
+            nac['%d-%d'%(k,i)] =-np.array(nac_local)
+            find = True
+    return find, nac
+
+def _get_hessian_from_lines(lines: list[str]):
+    find = False
+    geom_begin_idx = -1
+    resforce_begin_idx = -1
+    symwhess_begin_idx = -1
+    whess_eig_begin_idx = -1
+    whess_vec_begin_idx = -1
+    for i in range(len(lines)):
+        if "*** Geometry ***" in lines[i] and geom_begin_idx == -1:
+            geom_begin_idx = i
+        if '++ Symmetrized Mass Weighted Hessian ++' in lines[i] and symwhess_begin_idx == -1:
+            symwhess_begin_idx = i
+        if 'Mass Weighted Hessian Eigenvalues' in lines[i] and whess_eig_begin_idx == -1:
+            whess_eig_begin_idx = i
+        if '++ Mass Weighted Hessian Eigenvectors ++' in lines[i] and whess_vec_begin_idx == -1:
+            whess_vec_begin_idx = i
+            find = True
+
+    # print(geom_begin_idx)
+    # print(hess_begin_idx)
+
+    read_geom = False
+    sym = []
+    xyz = []
+    for i in range(geom_begin_idx+1, len(lines)):
+        ll = lines[i].strip()
+        if ll == '': continue
+        if ll[0] != '{' and not read_geom:
+            continue
+        if ll[0] != '{' and read_geom:
+            break
+        sym += [ll.split(',')[0].split(':')[1].strip().split('"')[1]] 
+        xyz += [ np.array(ll.split('[')[1].split(']')[0].split(',')).astype(np.float64) ]
+    xyz = np.array(xyz)
+    mass = np.zeros(3*len(sym))
+
+    mdict = {'C':12.01, 'H':1.008, 'O': 16.00}
+    for k in range(len(mass)):
+        mass[k] = mdict[sym[k//3]] * 1850
+
+    natom = len(xyz)
+    N = 3*natom
+
+    hess = np.zeros((N,N))
+    i = symwhess_begin_idx+1
+    read_col_num = 0
+    while i < len(lines) and read_col_num < N:
+        ll = lines[i].strip()
+        if ll == '': 
+            i += 1
+            continue
+
+        col_idx = np.array(ll.split()).astype(np.int32)
+        read_col_num += len(col_idx)
+        for k in range(1,1+N):
+            data = np.array(lines[i+k].strip().split())
+            row_idx = int(data[0])
+            data_v = np.array(data[1:]).astype(np.float64)
+            hess[row_idx,col_idx] = data_v
+        
+        i += 1+N
+
+    w = np.array(lines[whess_eig_begin_idx+1].split()).astype(np.float64)
+
+    Tmod = np.zeros((N,N))
+    i = whess_vec_begin_idx+1
+    read_col_num = 0
+    while i < len(lines) and read_col_num < N:
+        ll = lines[i].strip()
+        if ll == '': 
+            i += 1
+            continue
+
+        col_idx = np.array(ll.split()).astype(np.int32)
+        read_col_num += len(col_idx)
+        for k in range(1,1+N):
+            data = np.array(lines[i+k].strip().split())
+            row_idx = int(data[0])
+            data_v = np.array(data[1:]).astype(np.float64)
+            Tmod[row_idx,col_idx] = data_v
+        
+        i += 1+N
+
+    hess_dict = {}
+    hess_dict['hess'] = hess
+    hess_dict['mass'] = mass
+    hess_dict['sym'] = sym
+    hess_dict['x0'] = xyz
+    hess_dict['w'] = w
+    hess_dict['Tmod'] = Tmod
+
+    print(hess_dict['x0'])
+
+    return find, hess_dict
 
 def qm_job(qm_data, args):
     qm_config = qm_data["qm_config"]
@@ -129,13 +293,14 @@ def qm_job(qm_data, args):
     f.flush()
     f.close()
 
-    exe_str = 'cd %s && %s  %s > %s && cd -'%(
+    current_path = os.path.abspath(os.getcwd())
+    exe_str = 'cd %s && %s  %s > %s && cd %s'%(
         qm_config['QM']['env']['directory'],
         qm_config['QM']['BAGEL']['path'],
         qm_config['QM']['env']['generated'],
-        qm_config['QM']['env']['output']
-        )
-    print(exe_str)
+        qm_config['QM']['env']['output'],
+        current_path
+    )
     os.system(exe_str)
 
     parse_result(
@@ -149,61 +314,79 @@ def parse_result(qm_data, log_path):
         qm_config = qm_data['qm_config']
         F = int(qm_config['QM']['BAGEL']['F'])
         N = int(qm_config['QM']['BAGEL']['N'])
-        nciref = F # int(qm_config['QM']['BAGEL']['keywords']['nciref'])
+        output = qm_config['QM']['env']['output']
     except KeyError:
         print(format_exc())
 
     ERROR_MSG = ""
     eig = np.zeros((F))
-    dE  = np.zeros((F, N))
-    nac = np.zeros((F, F, N))
+    dE  = np.zeros((N, F))
+    nac = np.zeros((N, F, F))
+
+    fstrength = np.zeros((F))
     
-    with open(log_path+'/ENERGY.out', 'r') as ifs:
+    lines = open(log_path +'/'+ output, 'r').readlines()
+    finde, ERROR_MSG = _get_errormsg_from_lines(lines)
+    findu, UNABLE_MSG = _get_unable_from_lines(lines)
+    findf, fstrength = _get_oscstrength_from_lines(lines)
+
+    # findf, fstrength = _get_oscstrength_from_lines(lines)
+    stat = 0
+    if finde: stat = 1
+    try:
+        find0, energy = _get_energy(log_path, F)
+        find1, gradient = _get_gradient(log_path, N, F)
+        findc, nacvector = _get_nac(log_path, N, F)
+        eig = energy #/ QMutils.au_2_kcal_1mea
         for i in range(F):
-            eig[i] = float(ifs.readline())
+            dE[:,i] = gradient['%d'%i].flatten() #/ QMutils.au_2_kcal_1mea_per_ang
+        for i in range(F):
+            for k in range(i+1,F):
+                nac[:,i,k] = nacvector['%d-%d'%(i,k)].flatten() #/ (1.0e0 / QMutils.au_2_ang)
+                nac[:,k,i] = nacvector['%d-%d'%(k,i)].flatten() #/ (1.0e0 / QMutils.au_2_ang)    
+    except (IOError, KeyError):
+        stat = 1
 
-    for i in range(F):
-        with open(log_path+'/FORCE_%d.out'%i, 'r') as ifs:
-            ifs.readline()
-            for a in range(natom):
-                dE[i,3*a:3*a+3] = ifs.readline().split()[1:]
-
-    for i in range(F):
-        for k in range(i+1, F):
-            with open(log_path+'/NACME_%d_%d.out'%(i,k), 'r') as ifs:
-                ifs.readline()
-                for a in range(natom):
-                    nac[i,k,3*a:3*a+3] = ifs.readline().split()[1:]
-            nac[k,i,:] = -nac[i,k,:]
-    
-    # convert to au unit(no need)
-    
     qmout = QMutils.QMout(natom=natom, 
         energy=eig,
-        gradient=dE.T,
-        nac=np.einsum('ikj->jik', nac)
+        gradient=dE,
+        nac=nac
     )
 
-    f = open(qm_config['QM']['env']['directory'] + '/energy.dat', 'w')
+    f = open(qm_config['QM']['env']['directory'] + '/interface.ds', 'w')
+    f.write('interface.stat\n')
+    f.write(f'kids_int {1}\n')
+    f.write(f'{stat}\n\n')
+
+    f.write('interface.eig\n')
+    f.write(f'kids_real {F}\n')
     for i in range(F):
         f.write('{: 12.8e}\n'.format(eig[i]))
-    f.close()
+    f.write('\n')
 
-    f = open(qm_config['QM']['env']['directory'] + '/gradient.dat', 'w')
+    f.write('interface.dE\n')
+    f.write(f'kids_real {N*F}\n')
     for j in range(N):
         for i in range(F):
-            f.write('{: 12.8e} '.format(dE[i,j]))
+            f.write('{: 12.8e} '.format(dE[j,i]))
         f.write('\n')
-    f.close()
+    f.write('\n')
 
-    f = open(qm_config['QM']['env']['directory'] + '/nacv.dat', 'w')
+    f.write('interface.nac\n')
+    f.write(f'kids_real {N*F*F}\n')
     for j in range(N):
         for i in range(F):
             for k in range(F):
-                f.write('{: 12.8e} '.format(nac[i,k,j]))
+                f.write('{: 12.8e} '.format(nac[j,i,k]))
         f.write('\n')
+    f.write('\n')
+
+    f.write('interface.strength\n')
+    f.write(f'kids_real {F}\n')
+    for i in range(F):
+        f.write('{: 12.8e} '.format(fstrength[i]))
+    f.write('\n')
     f.close()
-    
     #pprint(qmout)
     return qmout
 
@@ -212,8 +395,74 @@ def main():
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    pprint(args)
-    qm_data_in = QMutils.parseQMinput(args.input)
-    qm_job(qm_data_in, args)
+    # pprint(args)
+    if args.task == 'nad':
+        qm_data_in = QMutils.parseQMinput(args.input)
+        qm_job(qm_data_in, args)
+    elif args.task == 'hess_ds':
+        hess_log = args.input
+        lines = open(hess_log, 'r').readlines()
+        find, hess = _get_hessian_from_lines(lines)
 
-    main()
+        fo = open(args.output, 'w')
+        if 'vpes' in hess:
+            fo.write('model.vpes\n');
+            fo.write(f'kids_real 1\n');
+            fo.write('{: 12.8e} \n\n'.format(hess['vpes'] / QMutils.au_2_ev))
+        if 'hess' in hess:
+            fo.write('model.hess\n');
+            val = hess['hess'].flatten()
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+        if 'Tmod' in hess:
+            fo.write('model.Tmod\n');
+            val = hess['Tmod'].flatten()
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+        if 'w' in hess:
+            fo.write('model.w\n');
+            val = hess['w'].flatten() #?
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+        if 'x0' in hess:
+            fo.write('model.x0\n');
+            val = hess['x0'].flatten() #?
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(val[i]))
+            fo.write('\n\n')
+
+            fo.write('model.p0\n');
+            fo.write(f'kids_real {len(val)}\n');
+            for i in range(len(val)):
+                fo.write('{: 12.8e} '.format(0))
+            fo.write('\n\n')
+        fo.close()
+        for i in range(len(hess['w'])):
+            print(hess['x0'])
+
+            w = np.array(hess['w']).flatten()
+            x0 = np.array(hess['x0']).flatten() * QMutils.au_2_ang
+            Tmod = np.array(hess['Tmod'])
+            mass = np.array(hess['mass']).flatten()
+            sym = hess['sym']
+            print(sym, mass)
+            Natom = len(w)//3
+            ft = open('nma-%d.xyz'%i, 'w')
+            for t in np.linspace(0, np.pi*10/w[i], 100):
+                ft.write('%d\n\n'%Natom)
+                dx = x0*0 
+                dx[i] = 1*np.sin(w[i]*t)
+                xt = x0 + 10 / np.sqrt(mass) * np.dot(Tmod, dx)
+
+                for ia in range(Natom):
+                    ft.write('%s %12.8f %12.8f %12.8f\n'%(sym[ia//3], xt[3*ia], xt[3*ia+1], xt[3*ia+2]))
+            ft.close()
+
+        # pprint(hess)

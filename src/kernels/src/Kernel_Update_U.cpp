@@ -52,6 +52,20 @@ void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Kernel_Update_U::initializeKernel_impl(Status& stat) {
+    if (_param->get_bool({"restart"}, LOC(), false)) {  //
+        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
+        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
+        std::string   stmp, eachline;
+        std::ifstream ifs(loadfile);
+        while (getline(ifs, eachline)) {
+            if (eachline.find("integrator.U") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::PFF; ++i) ifs >> U[i];
+            }
+        }
+        return stat;
+    }
+
     for (int iP = 0; iP < Dimension::P; ++iP) {
         kids_complex* U = this->U + iP * Dimension::FF;
         ARRAY_EYE(U, Dimension::F);

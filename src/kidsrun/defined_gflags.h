@@ -15,6 +15,7 @@ DECLARE_string(d);
 DECLARE_string(load);
 DECLARE_string(dump);
 DECLARE_double(backup_time);
+DECLARE_bool(restart);
 DECLARE_bool(timing);
 DECLARE_bool(profiling);
 DECLARE_int32(seed);

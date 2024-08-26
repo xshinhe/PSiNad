@@ -237,6 +237,10 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
+        Kernel_Representation::transform(KSHA, T, Dimension::F,                 //
+                                         RepresentationPolicy::Adiabatic,       //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         SpacePolicy::L);
 
         // 2) Diabatic representation
         Kernel_Representation::transform(rho_ele, T, Dimension::F,         //
