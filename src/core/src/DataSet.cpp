@@ -365,17 +365,27 @@ void DataSet::dump_match(std::ostream& os, const std::string& prefix) {
 void DataSet::dump(std::ostream& os) { os << repr(); }
 
 void DataSet::load(std::istream& is) {
-    std::string key, typeflag;
+    std::string key, typeflag, eachline;
     int         size;
-    while (is >> key >> typeflag >> size) {
+    while (is >> key) {
+        getline(is, eachline);
+        getline(is, eachline);
+        std::stringstream ss(eachline);
+        ss >> typeflag >> size;
+        std::size_t              idim;
+        std::vector<std::size_t> dims;
+        while (ss >> idim) dims.push_back(idim);
+        Shape shtmp(dims);
+        if (shtmp.size() != size) throw kids_error("load ds error");
+
         if (typeflag == as_str<int>()) {
-            int* ptr = def<int>(key, size);
+            int* ptr = def<int>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
         } else if (typeflag == as_str<kids_real>()) {
-            kids_real* ptr = def<kids_real>(key, size);
+            kids_real* ptr = def<kids_real>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
         } else if (typeflag == as_str<kids_complex>()) {
-            kids_complex* ptr = def<kids_complex>(key, size);
+            kids_complex* ptr = def<kids_complex>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
         }
     }

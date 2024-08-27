@@ -52,25 +52,10 @@ void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Kernel_Update_U::initializeKernel_impl(Status& stat) {
-    // if restart, we should get all initial values and current values!
-    // not that: all values defined by Kernel_Elec_Functions will also be recoveed later.
-    // not that: all values defined by Kernel_Recorder will also be recovered later.
     if (_param->get_bool({"restart"}, LOC(), false)) {  //
         std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
         if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
-        std::string   stmp, eachline;
-        std::ifstream ifs(loadfile);
-
-        bool find0 = false;
-        while (getline(ifs, eachline)) {
-            // get U instead of identity
-            if (eachline.find("integrator.U") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PFF; ++i) ifs >> U[i];
-                find0 = true;
-            }
-        }
-        if (!find0) throw kids_error("cannot restart past evolution");
+        _dataset->def(DATA::integrator::U, loadfile);
         return stat;
     }
 

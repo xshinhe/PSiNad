@@ -1,5 +1,7 @@
 #include "kids/Model_SystemBath.h"
 
+#include <unistd.h>
+
 #include "kids/Kernel_NAForce.h"
 #include "kids/Kernel_Random.h"
 #include "kids/hamiltonian_data.h"
@@ -201,6 +203,9 @@ Status& Model_SystemBath::initializeKernel_impl(Status& stat) {
 }
 
 Status& Model_SystemBath::executeKernel_impl(Status& stat) {
+    if (stat.frozen) return stat;
+
+    usleep(250000);
     for (int iP = 0; iP < Dimension::P_NOW; ++iP) {
         ///< get one instance from trajectory swarms
         auto x    = this->x.subspan(iP * Dimension::N, Dimension::N);

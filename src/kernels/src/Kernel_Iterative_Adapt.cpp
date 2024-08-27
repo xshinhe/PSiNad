@@ -31,13 +31,14 @@ void Kernel_Iterative_Adapt::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    t            = DS->def(DATA::flowcontrol::t);
-    dt           = DS->def(DATA::flowcontrol::dt);
-    istep        = DS->def(DATA::flowcontrol::istep);
-    isamp        = DS->def(DATA::flowcontrol::isamp);
-    tsize        = DS->def(DATA::flowcontrol::tsize);
-    dtsize       = DS->def(DATA::flowcontrol::dtsize);
-    at_condition = DS->def(DATA::flowcontrol::at_condition);
+    t                 = DS->def(DATA::flowcontrol::t);
+    dt                = DS->def(DATA::flowcontrol::dt);
+    istep             = DS->def(DATA::flowcontrol::istep);
+    isamp             = DS->def(DATA::flowcontrol::isamp);
+    tsize             = DS->def(DATA::flowcontrol::tsize);
+    dtsize            = DS->def(DATA::flowcontrol::dtsize);
+    last_tried_dtsize = DS->def(DATA::flowcontrol::last_tried_dtsize);
+    at_condition      = DS->def(DATA::flowcontrol::at_condition);
 
     // initializarion
     DS->def(VARIABLE<kids_int>("flowcontrol.sstep", &Dimension::shape_1, "@"))[0] = sstep;
@@ -47,12 +48,34 @@ void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
-    t[0]      = t0;
-    dt[0]     = dt0;
-    isamp[0]  = 0;
-    istep[0]  = 0;
-    tsize[0]  = 0;
-    dtsize[0] = msize;
+    if (_param->get_bool({"restart"}, LOC(), false)) {  //
+        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
+        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
+
+        if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
+        if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
+            std::string rmfile = utils::concat("X_STAT", stat.icalc);
+            remove(rmfile.c_str());
+        }
+        istep[0]             = _dataset->def_int("restart.istep", 1)[0];
+        tsize[0]             = _dataset->def_int("restart.tsize", 1)[0];
+        dtsize[0]            = _dataset->def_int("restart.dtsize", 1)[0];
+        last_tried_dtsize[0] = _dataset->def_int("restart.last_tried_dtsize", 1)[0];
+
+        stat.succ         = true;
+        stat.last_attempt = false;
+        stat.frozen       = false;
+        stat.fail_type    = 0;
+        return stat;
+    }
+
+    t[0]                 = t0;
+    dt[0]                = dt0;
+    isamp[0]             = 0;
+    istep[0]             = 0;
+    tsize[0]             = 0;
+    dtsize[0]            = msize;
+    last_tried_dtsize[0] = msize;
 
     stat.succ         = true;
     stat.last_attempt = false;
@@ -62,8 +85,6 @@ Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
 }
 
 Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
-    int last_tried_dtsize = msize;
-
     std::cout << "S|: "                       //
               << std::setw(10) << "Progress"  //
               << std::setw(10) << "Time"      //
@@ -72,6 +93,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
               << std::setw(10) << "try"       //
               << "\n";
 
+    isamp[0] = istep[0] / sstep;
     while (istep[0] <= nstep) {
         int  tsize_before_loop     = tsize[0];              ///< current time-point tick
         int  tsize_after_loop      = tsize[0] + dtsize[0];  ///< next time-point tick after loop
@@ -113,8 +135,23 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
 
         switch (statc) {
             case 'X': {
+                for (auto& fname : backup_fields) {
+                    _dataset->_def(utils::concat("integrator.", fname),     //
+                                   utils::concat("backup.", 1, ".", fname)  //
+                    );
+                    for (int bto = nbackup, bfrom = bto - 1; bto > 1; --bto, --bfrom) {
+                        _dataset->_def(utils::concat("backup.", bfrom, ".", fname),
+                                       utils::concat("backup.", bto, ".", fname));
+                    }
+                }
+
+                _dataset->def_int("restart.istep", istep.data(), 1);
+                _dataset->def_int("restart.tsize", tsize.data(), 1);
+                _dataset->def_int("restart.dtsize", dtsize.data(), 1);
+                _dataset->def_int("restart.last_trie_dtsize", last_tried_dtsize.data(), 1);
+
                 // save breakdown information
-                std::ofstream ofs{utils::concat(directory, "/fail", stat.icalc, "-", istep[0], ".ds")};
+                std::ofstream ofs{utils::concat(directory, "/frozen", stat.icalc, "-", tsize[0], ".ds")};
                 _dataset->dump(ofs);
                 ofs.close();
                 stat.frozen = true;
@@ -127,18 +164,18 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                 if (at_fullstep_finally) istep[0]++;
                 tsize[0] += dtsize[0];
 
-                int extend_dtsize = (at_fullstep_finally) ? 2 * last_tried_dtsize : 2 * dtsize[0];
-                int remain_dtsize = msize - (tsize[0] % msize);
-                int new_dtsize    = std::min({msize, extend_dtsize, remain_dtsize});
-                last_tried_dtsize = dtsize[0];
-                dtsize[0]         = new_dtsize;
+                int extend_dtsize    = (at_fullstep_finally) ? 2 * last_tried_dtsize[0] : 2 * dtsize[0];
+                int remain_dtsize    = msize - (tsize[0] % msize);
+                int new_dtsize       = std::min({msize, extend_dtsize, remain_dtsize});
+                last_tried_dtsize[0] = dtsize[0];
+                dtsize[0]            = new_dtsize;
                 break;
             }
             case 'L':
             case 'F': {
-                stat.last_attempt = (dtsize[0] == 1);
-                last_tried_dtsize = dtsize[0];
-                dtsize[0]         = (stat.last_attempt) ? dtsize[0] : dtsize[0] / 2;
+                stat.last_attempt    = (dtsize[0] == 1);
+                last_tried_dtsize[0] = dtsize[0];
+                dtsize[0]            = (stat.last_attempt) ? dtsize[0] : dtsize[0] / 2;
                 tsize[0] += 0;
 
                 for (auto& fname : backup_fields) {
@@ -159,7 +196,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                   << std::resetiosflags(std::ios::fixed) << std::setiosflags(std::ios::scientific)
                   << std::setprecision(2) << std::setw(10) << t[0] / time_unit  //
                   << std::setw(10) << tsize_before_loop                         //
-                  << std::setw(10) << last_tried_dtsize                         //
+                  << std::setw(10) << last_tried_dtsize[0]                      //
                   << std::setw(10) << dtsize[0] << "\n";
         isamp[0] = istep[0] / sstep;
     }

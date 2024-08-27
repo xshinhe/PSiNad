@@ -283,6 +283,7 @@ extern VARIABLE<kids_bint> at_condition;
 extern VARIABLE<kids_real> dt;
 extern VARIABLE<kids_real> pertimeunit;
 extern VARIABLE<kids_int>  dtsize;
+extern VARIABLE<kids_int>  last_tried_dtsize;
 extern VARIABLE<kids_int>  fail_type;
 extern VARIABLE<kids_bint> frez;
 extern VARIABLE<kids_int>  isamp;

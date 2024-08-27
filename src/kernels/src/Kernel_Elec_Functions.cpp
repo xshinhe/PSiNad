@@ -90,11 +90,9 @@ void Kernel_Elec_Functions::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     KTWD = DS->def(DATA::integrator::KTWD);
 
     ////
-    ww_A_init = _dataset->def(VARIABLE<kids_complex>("init.ww_A", &Dimension::shape_P, "@"));
-    ww_D_init = _dataset->def(VARIABLE<kids_complex>("init.ww_D", &Dimension::shape_P, "@"));
-    sqcw      = DS->def(DATA::integrator::sqcw);
-    trKTWA    = DS->def(DATA::integrator::trKTWA);
-    trKTWD    = DS->def(DATA::integrator::trKTWD);
+    sqcw   = DS->def(DATA::integrator::sqcw);
+    trKTWA = DS->def(DATA::integrator::trKTWA);
+    trKTWD = DS->def(DATA::integrator::trKTWD);
 
     OpA = DS->def(DATA::integrator::OpA);
     OpB = DS->def(DATA::integrator::OpB);
@@ -152,7 +150,8 @@ Status& Kernel_Elec_Functions::initializeKernel_impl(Status& stat) {
         return stat;
     }
 
-
+    ww_A_init = span<kids_complex>();  // blank for asking initialization
+    ww_D_init = span<kids_complex>();  // blank for asking initialization
     executeKernel_impl(stat);
     _dataset->def(VARIABLE<kids_real>("integrator.1", &Dimension::shape_1, "@"))[0] = 1;
     _dataset->def(VARIABLE<kids_real>("init.1", &Dimension::shape_1, "@"))[0]       = 1;
@@ -167,18 +166,13 @@ Status& Kernel_Elec_Functions::initializeKernel_impl(Status& stat) {
     _dataset->def(VARIABLE<kids_complex>("init.K2QD", &Dimension::shape_PFF, "@"), K2QD);
     _dataset->def(VARIABLE<kids_complex>("init.K1DD", &Dimension::shape_PFF, "@"), K1DD);
     _dataset->def(VARIABLE<kids_complex>("init.K2DD", &Dimension::shape_PFF, "@"), K2DD);
-
-
     _dataset->def(VARIABLE<kids_complex>("init.KSHA", &Dimension::shape_PFF, "@"), KSHA);
     _dataset->def(VARIABLE<kids_complex>("init.KTWA", &Dimension::shape_PFF, "@"), KTWA);
     _dataset->def(VARIABLE<kids_complex>("init.KTWD", &Dimension::shape_PFF, "@"), KTWD);
-
     _dataset->def(VARIABLE<kids_complex>("init.w", &Dimension::shape_P, "@"), w);
     _dataset->def(VARIABLE<kids_complex>("init.wz_A", &Dimension::shape_P, "@"), wz_A);
     _dataset->def(VARIABLE<kids_complex>("init.wz_D", &Dimension::shape_P, "@"), wz_D);
-
-
-    // ? check if it is used ?
+    // fetch initialization
     ww_A_init = _dataset->def(VARIABLE<kids_complex>("init.ww_A", &Dimension::shape_P, "@"), ww_A);
     ww_D_init = _dataset->def(VARIABLE<kids_complex>("init.ww_D", &Dimension::shape_P, "@"), ww_D);
     T_init    = _dataset->def(VARIABLE<kids_real>("init.T", &Dimension::shape_PFF, "@"), T);
@@ -227,7 +221,6 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
             wz_A[0] *= std::abs(rho_ele[occ0 * Dimension::Fadd1] - rho_ele[ii]);
         }
 
-
         int    max_pop = elec_utils::max_choose(rho_ele.data());
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
 
@@ -236,12 +229,8 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
         elec_utils::ker_from_rho(K1QA.data(), rho_ele.data(), 1, 0, Dimension::F, true, act);
         ARRAY_MAT_DIAG(K1DA.data(), K1QA.data(), Dimension::F);
 
-
         ww_A[0] = 4.0 - 1.0 / (max_val * max_val);
-
-
-        ww_A[0] = std::min({std::abs(ww_A[0]), std::abs(ww_A_init[0])});
-
+        if (ww_A_init.size() > 0) ww_A[0] = std::min({std::abs(ww_A[0]), std::abs(ww_A_init[0])});
 
         // K2Q cutoff quantization (w2-window)
         elec_utils::ker_from_rho(K2QA.data(), rho_ele.data(), 1, 0, Dimension::F);
@@ -317,7 +306,7 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
                       (9.0e0 / 4.0 - 9.0e0 * y * y - 420.0e0 * y * y * y * y + 1680.0e0 * y * y * y * y * y * y) *
                           atan(2.0e0 * y);
         }
-        ww_D[0] = std::min({std::abs(ww_D[0]), std::abs(ww_D_init[0])});
+        if (ww_D_init.size() > 0) ww_D[0] = std::min({std::abs(ww_D[0]), std::abs(ww_D_init[0])});
 
         // general squeezed sqc
         if (false) {

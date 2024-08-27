@@ -56,6 +56,7 @@ class Tensor final : public Node {
         T*                 ptr = _data->data();
         os << as_str<T>();
         os << FMT(0) << _size;
+        for (auto idim : _shape.dims()) os << " " << idim;
         os << "\n";
         for (int i = 0; i < _size; ++i) os << FMT(8) << ptr[i];
         return os.str();

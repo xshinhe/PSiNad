@@ -223,28 +223,6 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                                          Kernel_Representation::nuc_repr_type,    //
                                          Kernel_Representation::inp_repr_type,    //
                                          SpacePolicy::L);
-
-        // weight factor in tcf_repr /// moved to Kernel_Elec_Functions
-        // Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-        //                                  Kernel_Representation::inp_repr_type,  //
-        //                                  RepresentationPolicy::Adiabatic,       //
-        //                                  SpacePolicy::L);
-        // wz_A[0]        = std::abs(rho_ele[0] - rho_ele[3]);
-        // int    max_pop = elec_utils::max_choose(rho_ele);
-        // double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
-        // ww_A[0]        = 4.0 - 1.0 / (max_val * max_val);
-        // Kernel_Representation::transform(rho_ele, T, Dimension::F,         //
-        //                                  RepresentationPolicy::Adiabatic,  //
-        //                                  RepresentationPolicy::Diabatic,   //
-        //                                  SpacePolicy::L);
-        // wz_D[0] = std::abs(rho_ele[0] - rho_ele[3]);
-        // max_pop = elec_utils::max_choose(rho_ele);
-        // max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
-        // ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
-        // Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-        //                                  RepresentationPolicy::Diabatic,        //
-        //                                  Kernel_Representation::inp_repr_type,  //
-        //                                  SpacePolicy::L);
     }
     _dataset->def(DATA::init::c, c);
     _dataset->def(DATA::init::rho_ele, rho_ele);

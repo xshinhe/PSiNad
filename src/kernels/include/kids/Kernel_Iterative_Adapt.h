@@ -45,7 +45,7 @@ class Kernel_Iterative_Adapt final : public Kernel {
     span<kids_bint> at_condition;
 
     int            msize;
-    span<kids_int> tsize, dtsize;
+    span<kids_int> tsize, dtsize, last_tried_dtsize;
     span<kids_int> istep, isamp;
     int            nbackup;
 

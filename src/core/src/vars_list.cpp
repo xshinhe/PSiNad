@@ -261,6 +261,7 @@ VARIABLE<kids_bint>    NAME_WRAPPER(flowcontrol::at_condition, &shape_1, "");
 VARIABLE<kids_real>    NAME_WRAPPER(flowcontrol::dt, &shape_1, "");
 VARIABLE<kids_real>    NAME_WRAPPER(flowcontrol::pertimeunit, &shape_1, "");
 VARIABLE<kids_int>     NAME_WRAPPER(flowcontrol::dtsize, &shape_1, "");
+VARIABLE<kids_int>     NAME_WRAPPER(flowcontrol::last_tried_dtsize, &shape_1, "");
 VARIABLE<kids_int>     NAME_WRAPPER(flowcontrol::fail_type, &shape_1, "");
 VARIABLE<kids_bint>    NAME_WRAPPER(flowcontrol::frez, &shape_1, "");
 VARIABLE<kids_int>     NAME_WRAPPER(flowcontrol::isamp, &shape_1, "");
