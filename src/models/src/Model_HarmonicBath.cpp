@@ -118,7 +118,7 @@ void Model_HarmonicBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                 }
                 ifs.close();
             } catch (std::runtime_error& e) { throw kids_error("read Kmat.dat from bath_file fails"); }
-            EigenSolve(w, Tmod, Kmat, Dimension::N);
+            EigenSolve(w.data(), Tmod.data(), Kmat.data(), Dimension::N);
             for (int i = 0; i < Dimension::N; ++i) w[i] = std::sqrt(w[i]);
         } else {
             try {

@@ -28,24 +28,24 @@ class Model_ManyBody : public Model {
     Model_ManyBody(){};
 
    private:
-    kids_real* w;
-    kids_real* x_sigma;
-    kids_real* p_sigma;
-    kids_real* x0;
-    kids_real* p0;
-    kids_real *x, *p;
-    kids_real* mass;
-    kids_real *vpes, *grad, *hess;
-    kids_real *V, *dV, *ddV;
+    span<kids_real> w;
+    span<kids_real> x_sigma;
+    span<kids_real> p_sigma;
+    span<kids_real> x0;
+    span<kids_real> p0;
+    span<kids_real> x, p;
+    span<kids_real> mass;
+    span<kids_real> vpes, grad, hess;
+    span<kids_real> V, dV, ddV;
 
-    kids_real*    Jpmat;
-    kids_real*    Jzmat;
-    kids_complex* SXred;
-    kids_complex* SYred;
-    kids_complex* SZred;
-    kids_complex *H1, *H2;
-    kids_complex* H;
-    kids_complex* rho_ele;
+    span<kids_real>    Jpmat;
+    span<kids_real>    Jzmat;
+    span<kids_complex> SXred;
+    span<kids_complex> SYred;
+    span<kids_complex> SZred;
+    span<kids_complex> H1, H2;
+    span<kids_complex> H;
+    span<kids_complex> rho_ele;
 
     kids_real Jp, Jz;
     kids_real alpha;

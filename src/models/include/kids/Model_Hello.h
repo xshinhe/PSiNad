@@ -14,9 +14,9 @@ class Model_Hello final : public Model {
     virtual int getType() const { return utils::hash(FUNCTION_NAME); }
 
    private:
-    int     N, F;
-    double *x, *V, *dV, *ddV;
-    double *m, *w;
+    int             N, F;
+    span<kids_real> x, V, dV, ddV;
+    span<kids_real> m, w;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM){};
 

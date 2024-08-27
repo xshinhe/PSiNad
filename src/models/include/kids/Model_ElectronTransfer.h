@@ -23,8 +23,8 @@ class Model_ElectronTransfer final : public Model {
     int Nb;     // discrete no.
 
     // system & coupling
-    kids_real* Hsys; /* Hamiltonian for system part */
-    kids_real* Q;    /* system part in interaction with different bath  [size: NvalinQ * nbath * FF] */
+    span<kids_real> Hsys; /* Hamiltonian for system part */
+    span<kids_real> Q;    /* system part in interaction with different bath  [size: NvalinQ * nbath * FF] */
 
 
     kids_real omega0;
@@ -34,18 +34,18 @@ class Model_ElectronTransfer final : public Model {
     int       scan_flag;
 
     // bath
-    kids_real* omegas;  ///< save discrete frequencies (only for simple model, L=1)
-    kids_real* coeffs;  ///< save coupling coefficients (only for simple model, L=1)
-    kids_real* x_sigma;
-    kids_real* p_sigma;
+    span<kids_real> omegas;  ///< save discrete frequencies (only for simple model, L=1)
+    span<kids_real> coeffs;  ///< save coupling coefficients (only for simple model, L=1)
+    span<kids_real> x_sigma;
+    span<kids_real> p_sigma;
 
     // integrator
-    kids_real *x, *p, *m;
+    span<kids_real> x, p, m;
 
     // model
-    kids_real* mass;
-    kids_real *vpes, *grad, *hess;
-    kids_real *V, *dV, *ddV;
+    span<kids_real> mass;
+    span<kids_real> vpes, grad, hess;
+    span<kids_real> V, dV, ddV;
 
     virtual void    setInputParam_impl(std::shared_ptr<Param> PM);
     virtual void    setInputDataSet_impl(std::shared_ptr<DataSet> DS);

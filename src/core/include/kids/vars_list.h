@@ -166,7 +166,7 @@ extern VARIABLE<kids_complex> KTWA;
 extern VARIABLE<kids_complex> KTWD;
 extern VARIABLE<kids_complex> OpA;
 extern VARIABLE<kids_complex> OpB;
-extern VARIABLE<kids_real>    P_used;
+extern VARIABLE<kids_int>     P_used;
 extern VARIABLE<kids_complex> S;
 extern VARIABLE<kids_complex> Sele;
 extern VARIABLE<kids_complex> Snuc;

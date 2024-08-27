@@ -35,7 +35,6 @@ void Model_QMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
     qm_config_in          = _param->get_string({"model.qm_config"}, LOC(), "QM.in");
     save_every_calc       = _param->get_bool({"model.qm_save_every_calc"}, LOC(), true);
     save_every_step       = _param->get_bool({"model.qm_save_every_step"}, LOC(), false);
-    qm_type               = QMPolicy::_from(qm_string);
 
     char* p = getenv("KIDS_PYTHON");
     if (p != nullptr) pykids_path = p;
@@ -88,8 +87,8 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     t_ptr            = DS->def(DATA::flowcontrol::t);
     istep_ptr        = DS->def(DATA::flowcontrol::istep);
 
-    ARRAY_EYE(T, Dimension::F);
-    ARRAY_EYE(Tmod, Dimension::N);
+    ARRAY_EYE(T.data(), Dimension::F);
+    ARRAY_EYE(Tmod.data(), Dimension::N);
 
     double        dtmp;
     int           itmp;
@@ -149,7 +148,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             }
         }
         ifs.close();
-        if (read_H && !read_w) { EigenSolve(w, Tmod, hess, Dimension::N); }
+        if (read_H && !read_w) { EigenSolve(w.data(), Tmod.data(), hess.data(), Dimension::N); }
         if (!read_H && !read_w && !read_T) throw kids_error("cannot read hess from ds");
     } else {
         for (int j = 0; j < Dimension::N; ++j) x_sigma[j] = 0.0e0, p_sigma[j] = 0.0e0;

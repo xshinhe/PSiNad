@@ -72,9 +72,9 @@ void Kernel_NAForce::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
 Status& Kernel_NAForce::initializeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real* V     = this->V + iP * Dimension::FF;
-        kids_real* alpha = this->alpha + iP;
-        alpha[0]         = calc_alpha(V);
+        auto V     = this->V.subspan(iP * Dimension::FF, Dimension::FF);
+        auto alpha = this->alpha.subspan(iP, 1);
+        alpha[0]   = calc_alpha(V.data());
     }
     executeKernel(stat);
     return stat;
@@ -84,36 +84,36 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
     if (stat.frozen) return stat;
 
     for (int iP = 0; iP < Dimension::P_NOW; ++iP) {
-        int*          occ_nuc  = this->occ_nuc + iP;
-        kids_complex* rho_ele  = this->rho_ele + iP * Dimension::FF;
-        kids_complex* rho_nuc  = this->rho_nuc + iP * Dimension::FF;
-        kids_real*    f        = this->f + iP * Dimension::N;
-        kids_real*    p        = this->p + iP * Dimension::N;
-        kids_real*    m        = this->m + iP * Dimension::N;
-        kids_real*    fadd     = this->fadd + iP * Dimension::N;
-        kids_real*    grad     = this->grad + iP * Dimension::N;
-        kids_real*    ForceMat = this->ForceMat + iP * Dimension::NFF;
-        kids_real*    EMat     = this->EMat + iP * Dimension::FF;
-        kids_real*    T        = this->T + iP * Dimension::FF;
-        kids_real*    V        = this->V + iP * Dimension::FF;
-        kids_real*    vpes     = this->vpes + iP;
-
-        kids_real* alpha = this->alpha + iP;
+        auto occ_nuc  = this->occ_nuc.subspan(iP, 1);
+        auto rho_ele  = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_nuc  = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);
+        auto f        = this->f.subspan(iP * Dimension::N, Dimension::N);
+        auto p        = this->p.subspan(iP * Dimension::N, Dimension::N);
+        auto m        = this->m.subspan(iP * Dimension::N, Dimension::N);
+        auto fadd     = this->fadd.subspan(iP * Dimension::N, Dimension::N);
+        auto grad     = this->grad.subspan(iP * Dimension::N, Dimension::N);
+        auto ForceMat = this->ForceMat.subspan(iP * Dimension::NFF, Dimension::NFF);
+        auto EMat     = this->EMat.subspan(iP * Dimension::FF, Dimension::FF);
+        auto T        = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        auto V        = this->V.subspan(iP * Dimension::FF, Dimension::FF);
+        auto vpes     = this->vpes.subspan(iP, 1);
+        auto alpha    = this->alpha.subspan(iP, 1);
 
         /////////////////////////////////////////////////////////////////
         // smooth dynamics force
         if (NAForce_type == NAForcePolicy::BOSD || NAForce_type == NAForcePolicy::NAFSD) {
-            Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             Kernel_Representation::nuc_repr_type,  //
+            Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                             Kernel_Representation::inp_repr_type,    //
+                                             Kernel_Representation::nuc_repr_type,    //
                                              SpacePolicy::L);
-            ARRAY_CLEAR(fadd, Dimension::N);  // additional force
-            elec_utils::calc_distorted_rho(wrho, rho_ele, 1, 0, alpha[0]);
-            double Ew_old = elec_utils::calc_ElectricalEnergy(EMat, wrho, occ_nuc[0]);
-            alpha[0]      = calc_alpha(V);
-            elec_utils::calc_distorted_rho(wrho, rho_ele, 1, 0, alpha[0]);
-            double Ew_new = elec_utils::calc_ElectricalEnergy(EMat, wrho, occ_nuc[0]);
-            elec_utils::calc_distorted_force(ftmp, EMat, ForceMat, wrho, rho_ele, alpha[0]);
+            ARRAY_CLEAR(fadd.data(), Dimension::N);  // additional force
+            elec_utils::calc_distorted_rho(wrho.data(), rho_ele.data(), 1, 0, alpha[0]);
+            double Ew_old = elec_utils::calc_ElectricalEnergy(EMat.data(), wrho.data(), occ_nuc[0]);
+            alpha[0]      = calc_alpha(V.data());
+            elec_utils::calc_distorted_rho(wrho.data(), rho_ele.data(), 1, 0, alpha[0]);
+            double Ew_new = elec_utils::calc_ElectricalEnergy(EMat.data(), wrho.data(), occ_nuc[0]);
+            elec_utils::calc_distorted_force(ftmp.data(), EMat.data(), ForceMat.data(), wrho.data(), rho_ele.data(),
+                                             alpha[0]);
 
             // non-linear force
             for (int j = 0; j < Dimension::N; ++j) fadd[j] += ftmp[j];
@@ -128,13 +128,13 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                 for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = wrho[ik];
             }
 
-            Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                             Kernel_Representation::nuc_repr_type,  //
-                                             Kernel_Representation::inp_repr_type,  //
+            Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                             Kernel_Representation::nuc_repr_type,    //
+                                             Kernel_Representation::inp_repr_type,    //
                                              SpacePolicy::L);
-            Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                             Kernel_Representation::nuc_repr_type,  //
-                                             Kernel_Representation::inp_repr_type,  //
+            Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                             Kernel_Representation::nuc_repr_type,    //
+                                             Kernel_Representation::inp_repr_type,    //
                                              SpacePolicy::L);
         }
 
@@ -145,9 +145,9 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                 break;
             }
             case NAForcePolicy::EHR: {
-                Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                                 Kernel_Representation::inp_repr_type,  //
-                                                 Kernel_Representation::nuc_repr_type,  //
+                Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                                 Kernel_Representation::inp_repr_type,    //
+                                                 Kernel_Representation::nuc_repr_type,    //
                                                  SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {  // for both dV & dE (only for FMO-like model)
                     int& B   = FORCE_OPT::nbath;
@@ -155,28 +155,30 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     int  JFF = J * Dimension::FF;
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
-                        double* Forceb0 = ForceMat + b0FF;
-                        double  fb0     = std::real(ARRAY_TRACE2(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        auto   Forceb0 = ForceMat.subspan(b0FF, Dimension::FF);
+                        double fb0     = std::real(ARRAY_TRACE2(rho_nuc.data(), Forceb0.data(),  //
+                                                            Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj] = fb0 * ForceMat[bjbb] / ForceMat[b0bb];
                         }
                     }
                 } else {
                     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
-                        double* dVj = ForceMat + jFF;
-                        f[j]        = std::real(ARRAY_TRACE2(rho_nuc, dVj, Dimension::F, Dimension::F));
+                        auto dVj = ForceMat.subspan(jFF, Dimension::FF);
+                        f[j]     = std::real(ARRAY_TRACE2(rho_nuc.data(), dVj.data(),  //
+                                                      Dimension::F, Dimension::F));
                     }
                 }
-                Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                                 Kernel_Representation::nuc_repr_type,  //
-                                                 Kernel_Representation::inp_repr_type,  //
+                Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                                 Kernel_Representation::nuc_repr_type,    //
+                                                 Kernel_Representation::inp_repr_type,    //
                                                  SpacePolicy::L);
                 break;
             }
             case NAForcePolicy::NAF: {
-                Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                                 Kernel_Representation::inp_repr_type,  //
-                                                 Kernel_Representation::nuc_repr_type,  //
+                Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                                 Kernel_Representation::inp_repr_type,    //
+                                                 Kernel_Representation::nuc_repr_type,    //
                                                  SpacePolicy::L);
                 if (FORCE_OPT::BATH_FORCE_BILINEAR) {
                     int& B   = FORCE_OPT::nbath;
@@ -184,9 +186,10 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     int  JFF = J * Dimension::FF;
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
-                        double* Forceb0 = ForceMat + b0FF;
-                        double  fb0     = Forceb0[(occ_nuc[0]) * Dimension::Fadd1];
-                        double  fprojb0 = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        auto   Forceb0 = ForceMat.subspan(b0FF, Dimension::FF);
+                        double fb0     = Forceb0[(occ_nuc[0]) * Dimension::Fadd1];
+                        double fprojb0 = std::real(ARRAY_TRACE2_OFFD(rho_nuc.data(), Forceb0.data(),  //
+                                                                     Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj]     = fb0 * ForceMat[bjbb] / ForceMat[b0bb];  // @bug
                             fproj[bj] = fprojb0 * ForceMat[bjbb] / ForceMat[b0bb];
@@ -194,9 +197,9 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     }
                 } else {
                     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
-                        double* dVj = ForceMat + jFF;
-                        f[j]        = dVj[(occ_nuc[0]) * Dimension::Fadd1];
-                        fproj[j]    = std::real(ARRAY_TRACE2_OFFD(rho_nuc, dVj, Dimension::F, Dimension::F));
+                        auto dVj = ForceMat.subspan(jFF, Dimension::FF);
+                        f[j]     = dVj[(occ_nuc[0]) * Dimension::Fadd1];
+                        fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_nuc.data(), dVj.data(), Dimension::F, Dimension::F));
                     }
                 }
                 if (offd_projected) {  // then the offdiagonal force is projected
@@ -207,29 +210,28 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     }
                 }
                 for (int j = 0; j < Dimension::N; ++j) f[j] += fproj[j];
-                // PRINT_ARRAY(f, 1, Dimension::N);
-                // PRINT_ARRAY(fproj, 1, Dimension::N);
-                Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                                 Kernel_Representation::nuc_repr_type,  //
-                                                 Kernel_Representation::inp_repr_type,  //
+                Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                                 Kernel_Representation::nuc_repr_type,    //
+                                                 Kernel_Representation::inp_repr_type,    //
                                                  SpacePolicy::L);
                 break;
             }
             case NAForcePolicy::BOSD:
-            case NAForcePolicy::NAFSD: {                                                // smooth dynamics
-                Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                                 Kernel_Representation::inp_repr_type,  //
-                                                 Kernel_Representation::nuc_repr_type,  //
+            case NAForcePolicy::NAFSD: {                                                  // smooth dynamics
+                Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                                 Kernel_Representation::inp_repr_type,    //
+                                                 Kernel_Representation::nuc_repr_type,    //
                                                  SpacePolicy::L);
 
                 // calculation of additional force
-                ARRAY_CLEAR(fadd, Dimension::N);
-                elec_utils::calc_distorted_rho(wrho, rho_ele, 1, 0, alpha[0]);
-                double Ew_old = elec_utils::calc_ElectricalEnergy(EMat, wrho, occ_nuc[0]);
-                alpha[0]      = calc_alpha(V);
-                elec_utils::calc_distorted_rho(wrho, rho_ele, 1, 0, alpha[0]);
-                double Ew_new = elec_utils::calc_ElectricalEnergy(EMat, wrho, occ_nuc[0]);
-                elec_utils::calc_distorted_force(ftmp, EMat, ForceMat, wrho, rho_ele, alpha[0]);
+                ARRAY_CLEAR(fadd.data(), Dimension::N);
+                elec_utils::calc_distorted_rho(wrho.data(), rho_ele.data(), 1, 0, alpha[0]);
+                double Ew_old = elec_utils::calc_ElectricalEnergy(EMat.data(), wrho.data(), occ_nuc[0]);
+                alpha[0]      = calc_alpha(V.data());
+                elec_utils::calc_distorted_rho(wrho.data(), rho_ele.data(), 1, 0, alpha[0]);
+                double Ew_new = elec_utils::calc_ElectricalEnergy(EMat.data(), wrho.data(), occ_nuc[0]);
+                elec_utils::calc_distorted_force(ftmp.data(), EMat.data(), ForceMat.data(), wrho.data(), rho_ele.data(),
+                                                 alpha[0]);
 
                 // add non-linear force
                 for (int j = 0; j < Dimension::N; ++j) fadd[j] += ftmp[j];
@@ -251,9 +253,11 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     int  JFF = J * Dimension::FF;
                     for (int b = 0, bj = 0, b0FF = 0, b0bb = 0; b < B;
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
-                        double* Forceb0 = ForceMat + b0FF;
-                        double  fb0     = std::real(ARRAY_TRACE2_DIAG(rho_nuc, Forceb0, Dimension::F, Dimension::F));
-                        double  fprojb0 = std::real(ARRAY_TRACE2_OFFD(rho_nuc, Forceb0, Dimension::F, Dimension::F));
+                        auto   Forceb0 = ForceMat.subspan(b0FF, Dimension::FF);
+                        double fb0 =
+                            std::real(ARRAY_TRACE2_DIAG(rho_nuc.data(), Forceb0.data(), Dimension::F, Dimension::F));
+                        double fprojb0 =
+                            std::real(ARRAY_TRACE2_OFFD(rho_nuc.data(), Forceb0.data(), Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj]     = fb0 * ForceMat[bjbb] / ForceMat[b0bb];  // @bug
                             fproj[bj] = fprojb0 * ForceMat[bjbb] / ForceMat[b0bb];
@@ -261,9 +265,9 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     }
                 } else {
                     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
-                        double* dVj = ForceMat + jFF;
-                        f[j]        = std::real(ARRAY_TRACE2_DIAG(rho_nuc, dVj, Dimension::F, Dimension::F));
-                        fproj[j]    = std::real(ARRAY_TRACE2_OFFD(rho_nuc, dVj, Dimension::F, Dimension::F));
+                        auto dVj = ForceMat.subspan(jFF, Dimension::FF);
+                        f[j]     = std::real(ARRAY_TRACE2_DIAG(rho_nuc.data(), dVj.data(), Dimension::F, Dimension::F));
+                        fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_nuc.data(), dVj.data(), Dimension::F, Dimension::F));
                     }
                 }
                 if (NAForce_type == NAForcePolicy::NAFSD) {  // twice off-diagonal force? @bug? check it please
@@ -279,13 +283,13 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     }
                 }
                 for (int j = 0; j < Dimension::N; ++j) f[j] += fproj[j];
-                Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                                 Kernel_Representation::nuc_repr_type,  //
-                                                 Kernel_Representation::inp_repr_type,  //
+                Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                                 Kernel_Representation::nuc_repr_type,    //
+                                                 Kernel_Representation::inp_repr_type,    //
                                                  SpacePolicy::L);
-                Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                                 Kernel_Representation::nuc_repr_type,  //
-                                                 Kernel_Representation::inp_repr_type,  //
+                Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                                 Kernel_Representation::nuc_repr_type,    //
+                                                 Kernel_Representation::inp_repr_type,    //
                                                  SpacePolicy::L);
                 break;
             }

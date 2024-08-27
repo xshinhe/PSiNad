@@ -41,22 +41,22 @@ class Model_NAD1D final : public Model {
    private:
     NAD1DPolicy::_type nad1d_type;
 
-    kids_real* Hsys;
+    span<kids_real> Hsys;
 
-    kids_real* x0;
-    kids_real* p0;
-    kids_real* x_sigma;
-    kids_real* p_sigma;
+    span<kids_real> x0;
+    span<kids_real> p0;
+    span<kids_real> x_sigma;
+    span<kids_real> p_sigma;
 
     // integrator
-    kids_real *   x, *p;
-    kids_complex* p_sign;
+    span<kids_real>    x, p;
+    span<kids_complex> p_sign;
 
     // model
-    kids_real* mass;
-    kids_real *vpes, *grad, *hess;
-    kids_real *V, *dV, *ddV;
-    kids_real* pm;
+    span<kids_real> mass;
+    span<kids_real> vpes, grad, hess;
+    span<kids_real> V, dV, ddV;
+    span<kids_real> pm;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

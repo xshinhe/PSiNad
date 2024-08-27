@@ -31,9 +31,10 @@ void Kernel_Iterative::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     istep        = DS->def(DATA::flowcontrol::istep);
     isamp        = DS->def(DATA::flowcontrol::isamp);
     at_condition = DS->def(DATA::flowcontrol::at_condition);
-    DS->def_int("flowcontrol.sstep", &sstep);
-    DS->def_int("flowcontrol.nstep", &nstep);
-    DS->def_int("flowcontrol.nsamp", &nsamp);
+    // save some variables
+    DS->def(VARIABLE<kids_int>("flowcontrol.sstep", &Dimension::shape_1, "@"))[0] = sstep;
+    DS->def(VARIABLE<kids_int>("flowcontrol.nstep", &Dimension::shape_1, "@"))[0] = nstep;
+    DS->def(VARIABLE<kids_int>("flowcontrol.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
 }
 
 Status& Kernel_Iterative::initializeKernel_impl(Status& stat) {

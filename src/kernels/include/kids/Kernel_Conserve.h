@@ -40,23 +40,24 @@ class Kernel_Conserve final : public Kernel {
     virtual int getType() const;
 
    private:
-    kids_real* E;          ///< adiabatic energies
-    kids_real* p;          ///< nuclear momemtum
-    kids_real* m;          ///< nuclear mass
-    kids_real* Etot;       ///< total energy
-    kids_real* Etot_prev;  ///< total energy in previous step
-    kids_real* Etot_init;  ///< total energy at initial time
-    kids_real* Ekin;       ///< kinematic energy
-    kids_real* Epot;       ///< potential energy
-    kids_real* vpes;       ///< potential energy (only nuclear part)
+    span<kids_real> E;          ///< adiabatic energies?
+    span<kids_real> p;          ///< nuclear momemtum
+    span<kids_real> m;          ///< nuclear mass
+    span<kids_real> Etot;       ///< total energy
+    span<kids_real> Etot_prev;  ///< total energy in previous step
+    span<kids_real> Etot_init;  ///< total energy at initial time
+    span<kids_real> Ekin;       ///< kinematic energy
+    span<kids_real> Epot;       ///< potential energy
+    span<kids_real> vpes;       ///< potential energy (only nuclear part)
 
     int conserve_direction;
 
-    kids_bint  conserve_scale;
-    kids_bint* succ_ptr;
-    kids_bint* frez_ptr;
-    kids_bint* last_attempt_ptr;
-    int*       fail_type_ptr;
+    kids_bint conserve_scale;
+
+    span<kids_bint> succ_ptr;  // @deprecated
+    span<kids_bint> frez_ptr;
+    span<kids_bint> last_attempt_ptr;
+    span<kids_int>  fail_type_ptr;
 
     int cnt_loose = 0;
 

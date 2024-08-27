@@ -30,19 +30,19 @@ class Kernel_Elec_Switch final : public Kernel {
     int  hopping_direction_type;
     int  hopping_choose_type;
 
-    int*          occ_nuc;
-    kids_real*    dt_ptr;
-    kids_real*    T;
-    kids_real*    Epot;
-    kids_real*    vpes;
-    kids_real*    p;
-    kids_real*    m;
-    kids_real*    EMat;
-    kids_real*    ForceMat;
-    kids_real*    direction;
-    kids_complex* rho_ele;
-    kids_complex* rho_nuc;
-    kids_complex* H;
+    span<kids_int>     occ_nuc;
+    span<kids_real>    dt_ptr;
+    span<kids_real>    T;
+    span<kids_real>    Epot;
+    span<kids_real>    vpes;
+    span<kids_real>    p;
+    span<kids_real>    m;
+    span<kids_real>    EMat;
+    span<kids_real>    ForceMat;
+    span<kids_real>    direction;
+    span<kids_complex> rho_ele;
+    span<kids_complex> rho_nuc;
+    span<kids_complex> H;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

@@ -158,16 +158,16 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
 
     if (init_nuclinp == "#hess" || init_nuclinp == "#hess2") {  // assuming .hess is given
         // sampling normal-mode
-        Kernel_Random::rand_gaussian(x, Dimension::N);
-        Kernel_Random::rand_gaussian(p, Dimension::N);
+        Kernel_Random::rand_gaussian(x.data(), Dimension::N);
+        Kernel_Random::rand_gaussian(p.data(), Dimension::N);
         for (int i = 0; i < 6; ++i) x[i] = 0.0f, p[i] = 0.0f;
         for (int i = 0; i < Dimension::N; ++i) {
             x[i] *= x_sigma[i];
             p[i] *= p_sigma[i];
         }
         // transfrom normal-mode to cartesian coordinates
-        ARRAY_MATMUL(x, Tmod, x, Dimension::N, Dimension::N, 1);  // .eval()!
-        ARRAY_MATMUL(p, Tmod, p, Dimension::N, Dimension::N, 1);  // .eval()!
+        ARRAY_MATMUL(x.data(), Tmod.data(), x.data(), Dimension::N, Dimension::N, 1);  // .eval()!
+        ARRAY_MATMUL(p.data(), Tmod.data(), p.data(), Dimension::N, Dimension::N, 1);  // .eval()!
         for (int i = 0; i < Dimension::N; ++i) {
             x[i] = x[i] / std::sqrt(mass[i]) + x0[i];
             p[i] = p[i] * std::sqrt(mass[i]) + p0[i];
@@ -195,8 +195,8 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
         // ARRAY_SHOW(p, 1, Dimension::N);
     }
 
-    _dataset->def_real("init.x", x, Dimension::N);
-    _dataset->def_real("init.p", p, Dimension::N);
+    _dataset->def(DATA::init::x, x);
+    _dataset->def(DATA::init::p, p);
 
     std::string hdlr_str = _param->get_string({"model.handler", "handler"}, LOC());
 
@@ -570,7 +570,7 @@ Status& Model_Interf_MNDO::parse_standard(const std::string& log, Status& stat_i
         fail_type_ptr[0] = 1;
         std::cout << "fail in calling MNDO! " << ERROR_MSG << "\n";
 
-        int*        istep_ptr = _dataset->def(DATA::flowcontrol::istep);
+        auto        istep_ptr = _dataset->def(DATA::flowcontrol::istep);
         std::string cmd_exe   = utils::concat("cp ", directory, "/.mndoinp.", stat_in.icalc, "  ", directory,
                                             "/.mndoinp.", stat_in.icalc, ".err.", istep_ptr[0]);
         stat_in.succ          = (system(cmd_exe.c_str()) == 0);
@@ -597,9 +597,9 @@ int Model_Interf_MNDO::parse_hessian(const std::string& log) {
     std::ifstream ifs(log);
 
     // initialization of arrays
-    ARRAY_CLEAR(w, Dimension::N);
-    ARRAY_CLEAR(hess, Dimension::NN);
-    ARRAY_CLEAR(Tmod, Dimension::NN);
+    ARRAY_CLEAR(w.data(), Dimension::N);
+    ARRAY_CLEAR(hess.data(), Dimension::NN);
+    ARRAY_CLEAR(Tmod.data(), Dimension::NN);
 
     std::string stmp, eachline;
     int         v1 = Dimension::N / 10, v2 = Dimension::N % 10, eqstat = 0, itmp;
@@ -669,9 +669,9 @@ int Model_Interf_MNDO::parse_hessian2(const std::string& molden_file) {
     std::ifstream ifs(molden_file);
 
     // initialization of arrays
-    ARRAY_CLEAR(w, Dimension::N);
-    ARRAY_CLEAR(hess, Dimension::NN);
-    ARRAY_CLEAR(Tmod, Dimension::NN);
+    ARRAY_CLEAR(w.data(), Dimension::N);
+    ARRAY_CLEAR(hess.data(), Dimension::NN);
+    ARRAY_CLEAR(Tmod.data(), Dimension::NN);
 
     std::string stmp, eachline;
     int         itmp;
@@ -797,16 +797,16 @@ int Model_Interf_MNDO::calc_samp() {
     std::cout << ref_ener;
 
     for (int isamp = 0; isamp < 500; ++isamp) {
-        Kernel_Random::rand_gaussian(x, Dimension::N);
-        Kernel_Random::rand_gaussian(p, Dimension::N);
+        Kernel_Random::rand_gaussian(x.data(), Dimension::N);
+        Kernel_Random::rand_gaussian(p.data(), Dimension::N);
         for (int i = 0; i < 6; ++i) x[i] = 0.0f, p[i] = 0.0f;
         for (int i = 0; i < Dimension::N; ++i) {
             x[i] *= x_sigma[i];
             p[i] *= p_sigma[i];
         }
         // transfrom normal-mode to cartesian coordinates
-        ARRAY_MATMUL(x, Tmod, x, Dimension::N, Dimension::N, 1);
-        ARRAY_MATMUL(p, Tmod, p, Dimension::N, Dimension::N, 1);
+        ARRAY_MATMUL(x.data(), Tmod.data(), x.data(), Dimension::N, Dimension::N, 1);
+        ARRAY_MATMUL(p.data(), Tmod.data(), p.data(), Dimension::N, Dimension::N, 1);
         for (int i = 0; i < Dimension::N; ++i) {
             x[i] = x[i] / std::sqrt(mass[i]) + x0[i];
             p[i] = p[i] * std::sqrt(mass[i]);

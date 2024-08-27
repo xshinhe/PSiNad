@@ -62,75 +62,77 @@ Status& Kernel_Elec_Switch::initializeKernel_impl(Status& stat) {
 
 Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        int*          occ_nuc  = this->occ_nuc + iP;
-        kids_complex* rho_ele  = this->rho_ele + iP * Dimension::FF;
-        kids_complex* rho_nuc  = this->rho_nuc + iP * Dimension::FF;
-        kids_real*    T        = this->T + iP * Dimension::FF;
-        kids_real*    Epot     = this->Epot + iP;
-        kids_real*    vpes     = this->vpes + iP;
-        kids_real*    p        = this->p + iP * Dimension::N;
-        kids_real*    m        = this->m + iP * Dimension::N;
-        kids_complex* H        = this->H + iP * Dimension::FF;  // ????
-        kids_real*    EMat     = this->EMat + iP * Dimension::FF;
-        kids_real*    ForceMat = this->ForceMat + iP * Dimension::NFF;
+        auto occ_nuc  = this->occ_nuc.subspan(iP, 1);
+        auto rho_ele  = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_nuc  = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);
+        auto T        = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        auto Epot     = this->Epot.subspan(iP, 1);
+        auto vpes     = this->vpes.subspan(iP, 1);
+        auto p        = this->p.subspan(iP * Dimension::N, Dimension::N);
+        auto m        = this->m.subspan(iP * Dimension::N, Dimension::N);
+        auto H        = this->H.subspan(iP * Dimension::FF, Dimension::FF);  // ????
+        auto EMat     = this->EMat.subspan(iP * Dimension::FF, Dimension::FF);
+        auto ForceMat = this->ForceMat.subspan(iP * Dimension::NFF, Dimension::NFF);
 
         //////////////////////////////////////////////////////////////////////
         // switching is taken on nuc_repr_type representation
         // & Emat, ForceMat is aligned with nuc_repr_type representation
         // occ_nuc[0] = occ_nuc[0]; /// occ_nuc is defined in nuc_repr_type representation
-        Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                         Kernel_Representation::inp_repr_type,  //
-                                         Kernel_Representation::nuc_repr_type,  //
+        Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::inp_repr_type,    //
+                                         Kernel_Representation::nuc_repr_type,    //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                         Kernel_Representation::inp_repr_type,  //
-                                         Kernel_Representation::nuc_repr_type,  //
+        Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::inp_repr_type,    //
+                                         Kernel_Representation::nuc_repr_type,    //
                                          SpacePolicy::L);
 
         /// step 1: generate new state
         kids_int  from, to;
         kids_real Efrom, Eto;
-        Efrom = elec_utils::calc_ElectricalEnergy(EMat, rho_nuc, occ_nuc[0]);  // occ_nuc defined in nuc_repr_type
+        Efrom = elec_utils::calc_ElectricalEnergy(EMat.data(), rho_nuc.data(),
+                                                  occ_nuc[0]);  // occ_nuc defined in nuc_repr_type
 
         switch (hopping_choose_type) {
             case 0: {  // from the max elecment of rho_ele
-                to = elec_utils::max_choose(rho_ele);
+                to = elec_utils::max_choose(rho_ele.data());
                 break;
             }
             case 1: {  // from the max elecment of rho_nuc = rho_ele - Gamma
-                to = elec_utils::max_choose(rho_nuc);
+                to = elec_utils::max_choose(rho_nuc.data());
                 break;
             }
             case 2: {  // from hopping rate
                 // @bug if nuc_repr_type = Diabatic, then hopping_choose(rho_ele, V, occ_nuc[0], dt_ptr[0]);
-                to = elec_utils::hopping_choose(rho_ele, H, occ_nuc[0], dt_ptr[0]);
+                to = elec_utils::hopping_choose(rho_ele.data(), H.data(), occ_nuc[0], dt_ptr[0]);
                 break;
             }
             case 3: {  // from the probability of rho_ele
-                to = elec_utils::pop_choose(rho_ele);
+                to = elec_utils::pop_choose(rho_ele.data());
                 break;
             }
             case 4: {  // from the probability of rho_nuc (cutoff of negativity)
-                to = elec_utils::pop_choose(rho_nuc);
+                to = elec_utils::pop_choose(rho_nuc.data());
                 break;
             }
             case 5: {  // from the probability of rho_nuc (absolute of negativity)
-                to = elec_utils::pop_neg_choose(rho_nuc);
+                to = elec_utils::pop_neg_choose(rho_nuc.data());
                 break;
             }
         }
-        Eto = elec_utils::calc_ElectricalEnergy(EMat, rho_nuc, to);
+        Eto = elec_utils::calc_ElectricalEnergy(EMat.data(), rho_nuc.data(), to);
 
         // std::cout << LOC() << occ_nuc[0] << " -> " << to << ": Efrom=" << Efrom << ",  Eto=" << Eto << "\n";
 
         /// step 2: determine a direction
         switch (hopping_direction_type) {
             case 0: {  // along density weighted nacv
-                elec_utils::hopping_direction(direction, EMat, ForceMat, rho_ele, occ_nuc[0], to);
+                elec_utils::hopping_direction(direction.data(), EMat.data(), ForceMat.data(), rho_ele.data(),
+                                              occ_nuc[0], to);
                 break;
             }
             case 1: {  // along nacv
-                elec_utils::hopping_direction(direction, ForceMat, occ_nuc[0], to);
+                elec_utils::hopping_direction(direction.data(), ForceMat.data(), occ_nuc[0], to);
                 break;
             }
             case 2: {  // along p
@@ -147,17 +149,18 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
 
         // step 3: try hop and adjust momentum
         if (occ_nuc[0] != to) {
-            occ_nuc[0] = elec_utils::hopping_impulse(direction, p, m, Efrom, Eto, occ_nuc[0], to, reflect);
+            occ_nuc[0] =
+                elec_utils::hopping_impulse(direction.data(), p.data(), m.data(), Efrom, Eto, occ_nuc[0], to, reflect);
         }
         Epot[0] = vpes[0] + ((occ_nuc[0] == to) ? Eto : Efrom);
 
-        Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                         Kernel_Representation::nuc_repr_type,  //
-                                         Kernel_Representation::inp_repr_type,  //
+        Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::nuc_repr_type,    //
+                                         Kernel_Representation::inp_repr_type,    //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                         Kernel_Representation::nuc_repr_type,  //
-                                         Kernel_Representation::inp_repr_type,  //
+        Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::nuc_repr_type,    //
+                                         Kernel_Representation::inp_repr_type,    //
                                          SpacePolicy::L);
     }
     return stat;

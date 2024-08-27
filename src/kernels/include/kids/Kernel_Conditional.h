@@ -42,7 +42,7 @@ class Kernel_Conditional final : public Kernel {
     virtual int getType() const;
 
    private:
-    kids_bint* at_condition;
+    span<kids_bint> at_condition;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

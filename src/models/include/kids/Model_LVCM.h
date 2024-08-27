@@ -35,23 +35,23 @@ class Model_LVCM final : public Model {
     int               N_coup;
     int               N_mode;
 
-    kids_real* Hsys;
-    kids_real *kcoeff, *lcoeff;
+    span<kids_real> Hsys;
+    span<kids_real> kcoeff, lcoeff;
 
-    kids_real* x_sigma;
-    kids_real* p_sigma;
-    kids_real* x0;
-    kids_real* p0;
+    span<kids_real> x_sigma;
+    span<kids_real> p_sigma;
+    span<kids_real> x0;
+    span<kids_real> p0;
 
     // integrator
-    kids_real *x, *p, *m, *w;
+    span<kids_real> x, p, m, w;
 
     // model
-    kids_real* mass;
-    kids_real *vpes, *grad, *hess;
-    kids_real *V, *dV, *ddV;
+    span<kids_real> mass;
+    span<kids_real> vpes, grad, hess;
+    span<kids_real> V, dV, ddV;
 
-    kids_real *Kmat, *Qmat, *Tmod;
+    span<kids_real> Kmat, Qmat, Tmod;
 
     // int N_ligh;
     // N = N_mode + N_coup + N_ligh

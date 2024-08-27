@@ -47,39 +47,39 @@ class Kernel_Elec_Functions final : public Kernel {
     kids_bool use_strange_win;
     kids_int  sqc_init;
 
-    int           occ0;
-    int *         occ_nuc;
-    kids_complex *rho_ele, *rho_ele_init;  ///< electronic density
-    kids_real *   T, *T_init;
+    int                occ0;
+    span<kids_int>     occ_nuc;
+    span<kids_complex> rho_ele, rho_ele_init;  ///< electronic density
+    span<kids_real>    T, T_init;
 
-    kids_complex *w;  ///< initial measurement of the phase point
-    kids_complex *wz_A;
-    kids_complex *wz_D;
-    kids_complex *ww_A;
-    kids_complex *ww_D;
-    kids_complex *ww_A_init;
-    kids_complex *ww_D_init;
-    kids_complex *w_AA, *w_AD, *w_DD, *w_CC, *w_CP, *w_PP;
-    kids_complex *K0;    ///< partial version of K0
-    kids_complex *K1;    ///< partial version of K1
-    kids_complex *K2;    ///< partial version of K2
-    kids_complex *K1QA;  ///< Simplex Quantization
-    kids_complex *K2QA;  ///< Heaviside Quantization
-    kids_complex *K1DA;
-    kids_complex *K2DA;
-    kids_complex *K1QD;  ///< Simplex Quantization
-    kids_complex *K2QD;  ///< Heaviside Quantization
-    kids_complex *K1DD;
-    kids_complex *K2DD;
+    span<kids_complex> w;  ///< initial measurement of the phase point
+    span<kids_complex> wz_A;
+    span<kids_complex> wz_D;
+    span<kids_complex> ww_A;
+    span<kids_complex> ww_D;
+    span<kids_complex> ww_A_init;
+    span<kids_complex> ww_D_init;
+    span<kids_complex> w_AA, w_AD, w_DD, w_CC, w_CP, w_PP;
+    span<kids_complex> K0;    ///< partial version of K0
+    span<kids_complex> K1;    ///< partial version of K1
+    span<kids_complex> K2;    ///< partial version of K2
+    span<kids_complex> K1QA;  ///< Simplex Quantization
+    span<kids_complex> K2QA;  ///< Heaviside Quantization
+    span<kids_complex> K1DA;
+    span<kids_complex> K2DA;
+    span<kids_complex> K1QD;  ///< Simplex Quantization
+    span<kids_complex> K2QD;  ///< Heaviside Quantization
+    span<kids_complex> K1DD;
+    span<kids_complex> K2DD;
 
-    kids_complex *KSHA;
-    kids_complex *KTWA;
-    kids_complex *KTWD;
+    span<kids_complex> KSHA;
+    span<kids_complex> KTWA;
+    span<kids_complex> KTWD;
 
-    kids_real *sqcw, *trKTWA, *trKTWD;
+    span<kids_real> sqcw, trKTWA, trKTWD;
 
-    kids_complex *OpA, *OpB;
-    kids_complex *TrK1A, *TrK2B;
+    span<kids_complex> OpA, OpB;
+    span<kids_complex> TrK1A, TrK2B;
 
    private:
     void setInputParam_impl(std::shared_ptr<Param> PM);

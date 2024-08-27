@@ -42,12 +42,11 @@ class Kernel_Iterative final : public Kernel {
     virtual int getType() const;
 
    private:
-    double     t0, tend, dt0;
-    double *   t, *dt;
-    kids_bint* at_condition;
-
-    int  sstep, nstep, nsamp;
-    int *istep, *isamp;
+    int             sstep, nstep, nsamp;
+    double          t0, tend, dt0;
+    span<kids_real> t, dt;
+    span<kids_bint> at_condition;
+    span<kids_int>  istep, isamp;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

@@ -51,69 +51,31 @@ void Sampling_Elec::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 Status& Sampling_Elec::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Sampling_Elec::executeKernel_impl(Status& stat) {
+    // if restart, we should get all initial values and current values!
+    // not that: all values defined by Kernel_Elec_Functions will also be recoveed later.
+    // not that: all values defined by Kernel_Recorder will also be recovered later.
     if (_param->get_bool({"restart"}, LOC(), false)) {  //
         std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
         if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
-        std::string   stmp, eachline;
-        std::ifstream ifs(loadfile);
-
-        kids_complex* cinit    = _dataset->def_complex("init.c", c, Dimension::PF);
-        kids_complex* rhoeinit = _dataset->def_complex("init.rho_ele", rho_ele, Dimension::PFF);
-        kids_complex* rhoninit = _dataset->def_complex("init.rho_nuc", rho_nuc, Dimension::PFF);
-        kids_real*    Tinit    = _dataset->def_real("init.T", T, Dimension::PFF);
-
-        while (getline(ifs, eachline)) {
-            if (eachline.find("init.c") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PF; ++i) ifs >> cinit[i];
-            }
-            if (eachline.find("init.rho_ele") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rhoeinit[i];
-            }
-            if (eachline.find("init.rho_nuc") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rhoninit[i];
-            }
-            if (eachline.find("init.T") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PFF; ++i) ifs >> Tinit[i];
-            }
-            if (eachline.find("integrator.c") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PF; ++i) ifs >> c[i];
-            }
-            if (eachline.find("integrator.rho_ele") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rho_ele[i];
-            }
-            if (eachline.find("integrator.rho_nuc") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::PFF; ++i) ifs >> rho_nuc[i];
-            }
-            if (eachline.find("integrator.occ_nuc") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::P; ++i) ifs >> occ_nuc[i];
-            }
-            if (eachline.find("integrator.w") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::P; ++i) ifs >> w[i];
-            }
-            // if (eachline.find("model.rep.T") != eachline.npos) {
-            //     getline(ifs, eachline);
-            //     for (int i = 0; i < Dimension::N; ++i) ifs >> p[i];
-            // }
-        }
+        _dataset->def(DATA::init::c, loadfile);
+        _dataset->def(DATA::init::rho_ele, loadfile);
+        _dataset->def(DATA::init::rho_nuc, loadfile);
+        _dataset->def(DATA::init::T, loadfile);
+        _dataset->def(DATA::integrator::c, loadfile);
+        _dataset->def(DATA::integrator::rho_ele, loadfile);
+        _dataset->def(DATA::integrator::rho_nuc, loadfile);
+        _dataset->def(DATA::integrator::occ_nuc, loadfile);
+        _dataset->def(DATA::integrator::w, loadfile);
         return stat;
     }
 
     for (int iP = 0; iP < Dimension::P; ++iP) {  // use P insread P_NOW
-        kids_complex* c       = this->c + iP * Dimension::F;
-        kids_complex* rho_ele = this->rho_ele + iP * Dimension::FF;
-        kids_complex* rho_nuc = this->rho_nuc + iP * Dimension::FF;
-        kids_complex* w       = this->w + iP;
-        kids_real*    T       = this->T + iP * Dimension::FF;
-        int*          occ_nuc = this->occ_nuc + iP;
+        auto c       = this->c.subspan(iP * Dimension::F, Dimension::F);
+        auto rho_ele = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_nuc = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);
+        auto w       = this->w.subspan(iP, 1);
+        auto T       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        auto occ_nuc = this->occ_nuc.subspan(iP, 1);
 
         /////////////////////////////////////////////////////////////////
 
@@ -124,13 +86,13 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
 
         switch (sampling_type) {
             case ElectronicSamplingPolicy::Focus: {
-                elec_utils::c_focus(c, xi1, gamma1, iocc, Dimension::F);
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, iocc);
+                elec_utils::c_focus(c.data(), xi1, gamma1, iocc, Dimension::F);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
                 break;
             }
             case ElectronicSamplingPolicy::GDTWA: {
-                elec_utils::c_focus(c, xi1, gamma1, iocc, Dimension::F);  // @useless
+                elec_utils::c_focus(c.data(), xi1, gamma1, iocc, Dimension::F);  // @useless
 
                 /// GDTWA sampling step 1: discrete random phase
                 for (int j = 0; j < Dimension::F; ++j) {
@@ -164,17 +126,17 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                         }
                     }
                 }
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, 1, 0, Dimension::F, false, iocc);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), 1, 0, Dimension::F, false, iocc);
                 break;
             }
             case ElectronicSamplingPolicy::SQCtri: {
-                elec_utils::c_window(c, iocc, ElectronicSamplingPolicy::SQCtri, Dimension::F);
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, 1.0, gamma1, Dimension::F, use_cv, iocc);
+                elec_utils::c_window(c.data(), iocc, ElectronicSamplingPolicy::SQCtri, Dimension::F);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), 1.0, gamma1, Dimension::F, use_cv, iocc);
                 break;
             }
             case ElectronicSamplingPolicy::SQCspx: {
-                elec_utils::c_sphere(c, Dimension::F);
+                elec_utils::c_sphere(c.data(), Dimension::F);
                 for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(c[i] * c[i]);
                 c[iocc] += 1.0e0;
                 for (int i = 0; i < Dimension::F; ++i) {
@@ -183,44 +145,45 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                     randu *= phys::math::twopi;
                     c[i] = sqrt(c[i]) * (cos(randu) + phys::math::im * sin(randu));
                 }
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, 1.0, gamma1, Dimension::F, use_cv, iocc);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), 1.0, gamma1, Dimension::F, use_cv, iocc);
                 break;
             }
             case ElectronicSamplingPolicy::SQCtest01: {
-                elec_utils::c_window(c, iocc, ElectronicSamplingPolicy::SQCtri, Dimension::F);
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
+                elec_utils::c_window(c.data(), iocc, ElectronicSamplingPolicy::SQCtri, Dimension::F);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
                 double norm = 0.0;
                 for (int i = 0; i < Dimension::F; ++i) norm += std::abs(rho_ele[i * Dimension::Fadd1]);
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, xi1 / norm, gamma1, Dimension::F, use_cv, iocc);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1 / norm, gamma1, Dimension::F, use_cv,
+                                         iocc);
                 break;
             }
             case ElectronicSamplingPolicy::SQCtest02: {
-                elec_utils::c_window(c, iocc, ElectronicSamplingPolicy::SQCtri, Dimension::F);
+                elec_utils::c_window(c.data(), iocc, ElectronicSamplingPolicy::SQCtri, Dimension::F);
                 double norm = 0.0e0;
                 for (int i = 0; i < Dimension::F; ++i) norm += std::abs(c[i] * c[i]);
                 xi1    = norm;
                 gamma1 = (xi1 - 1.0e0) / Dimension::F;
                 norm   = sqrt(norm);
                 for (int i = 0; i < Dimension::F; ++i) c[i] /= norm;
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
                 norm = 0.0;
                 for (int i = 0; i < Dimension::F; ++i) norm += std::abs(rho_ele[i * Dimension::Fadd1]);
                 double gmeff = (norm - 1.0) / Dimension::F;
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, 1.0, gmeff, Dimension::F, use_cv, iocc);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), 1.0, gmeff, Dimension::F, use_cv, iocc);
                 break;
             }
             case ElectronicSamplingPolicy::Gaussian: {
                 // elec_utils::c_gaussian(c, Dimension::F); /// @debug
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, iocc);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
                 w[0] = kids_complex(Dimension::F);
                 break;
             }
             case ElectronicSamplingPolicy::Constraint: {
-                elec_utils::c_sphere(c, Dimension::F);
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, iocc);
+                elec_utils::c_sphere(c.data(), Dimension::F);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
                 w[0] = kids_complex(Dimension::F);
                 break;
             }
@@ -243,23 +206,22 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                     //     for (int i = 0; i < Dimension::FF; ++i) ifs >> rho_nuc[i];
                     // }
                 }
-                elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);  ///< initial rho_ele
-                elec_utils::ker_from_rho(rho_nuc, rho_ele, xi1, gamma1, Dimension::F, use_cv, iocc);
+                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);  ///< initial rho_ele
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
                 w[0] = phys::math::iu;
             }
         }
 
         // BO occupation in adiabatic representation
-        Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                         Kernel_Representation::inp_repr_type,  //
-                                         Kernel_Representation::nuc_repr_type,  //
+        Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::inp_repr_type,    //
+                                         Kernel_Representation::nuc_repr_type,    //
                                          SpacePolicy::L);
-        occ_nuc[0] = elec_utils::max_choose(rho_nuc);
-        // PRINT_ARRAY(rho_nuc, Dimension::F, Dimension::F);
-        if (use_fssh) occ_nuc[0] = elec_utils::pop_choose(rho_nuc);
-        Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                         Kernel_Representation::nuc_repr_type,  //
-                                         Kernel_Representation::inp_repr_type,  //
+        occ_nuc[0] = elec_utils::max_choose(rho_nuc.data());
+        if (use_fssh) occ_nuc[0] = elec_utils::pop_choose(rho_nuc.data());
+        Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::nuc_repr_type,    //
+                                         Kernel_Representation::inp_repr_type,    //
                                          SpacePolicy::L);
 
         // weight factor in tcf_repr /// moved to Kernel_Elec_Functions
@@ -284,10 +246,14 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
         //                                  Kernel_Representation::inp_repr_type,  //
         //                                  SpacePolicy::L);
     }
-    _dataset->def_complex("init.c", c, Dimension::PF);
-    _dataset->def_complex("init.rho_ele", rho_ele, Dimension::PFF);
-    _dataset->def_complex("init.rho_nuc", rho_nuc, Dimension::PFF);
-    _dataset->def_real("init.T", T, Dimension::PFF);
+    _dataset->def(DATA::init::c, c);
+    _dataset->def(DATA::init::rho_ele, rho_ele);
+    _dataset->def(DATA::init::rho_nuc, rho_nuc);
+    _dataset->def(DATA::init::T, T);
+    // _dataset->def(VARIABLE<kids_complex>("init.c", &Dimension::shape_PF, "@"), c);
+    // _dataset->def(VARIABLE<kids_complex>("init.rho_ele", &Dimension::shape_PFF, "@"), rho_ele);
+    // _dataset->def(VARIABLE<kids_complex>("init.rho_nuc", &Dimension::shape_PFF, "@"), rho_nuc);
+    // _dataset->def(VARIABLE<kids_real>("init.T", &Dimension::shape_PFF, "@"), T);
     return stat;
 }
 

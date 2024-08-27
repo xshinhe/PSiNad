@@ -292,7 +292,6 @@ def qm_job(qm_data, args):
     f.write(job_str)
     f.flush()
     f.close()
-
     current_path = os.path.abspath(os.getcwd())
     exe_str = 'cd %s && %s  %s > %s && cd %s'%(
         qm_config['QM']['env']['directory'],
@@ -302,7 +301,6 @@ def qm_job(qm_data, args):
         current_path
     )
     os.system(exe_str)
-
     parse_result(
         qm_data,
         directory
@@ -408,7 +406,7 @@ if __name__ == '__main__':
         if 'vpes' in hess:
             fo.write('model.vpes\n');
             fo.write(f'kids_real 1\n');
-            fo.write('{: 12.8e} \n\n'.format(hess['vpes'] / QMutils.au_2_ev))
+            fo.write('{: 12.8e} \n\n'.format(hess['vpes']))
         if 'hess' in hess:
             fo.write('model.hess\n');
             val = hess['hess'].flatten()

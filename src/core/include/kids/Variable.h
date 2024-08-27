@@ -37,8 +37,8 @@ namespace PROJECT_NS {
 
 class VARIABLE_BASE {
    public:
-    virtual std::string name() = 0;
-    virtual std::string doc()  = 0;
+    virtual std::string name() const = 0;
+    virtual std::string doc() const  = 0;
 
     static std::vector<VARIABLE_BASE*> _LIST;
 };
@@ -58,9 +58,9 @@ class VARIABLE final : public VARIABLE_BASE {
         VARIABLE_BASE::_LIST.push_back(this);
     }
 
-    std::string name() { return _name; }
+    std::string name() const { return _name; }
 
-    std::string doc() { return _doc; }
+    std::string doc() const { return _doc; }
 
     Shape& shape() const { return (*_shape); }
 

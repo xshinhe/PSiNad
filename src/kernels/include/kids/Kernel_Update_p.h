@@ -38,16 +38,17 @@ class Kernel_Update_p : public Kernel {
     virtual int getType() const;
 
    private:
-    bool          use_smooth = false;
-    double *      p, *f, *fadd, *minv, *ve;
-    kids_real *   mono, *monodt;
-    kids_real *   T, *eig, *dE, *dV, *ddV, *nac, *grad, *hess;
-    kids_complex *mask, *dmask;
-    kids_complex *c, *rho_nuc;
-    double *      Ekin;
-    double        scale, *dt;
+    double             scale;
+    bool               use_smooth = false;
+    span<kids_real>    p, f, fadd, minv, ve;
+    span<kids_real>    mono, monodt;
+    span<kids_real>    T, eig, dE, dV, ddV, nac, grad, hess;
+    span<kids_complex> mask, dmask;
+    span<kids_complex> c, rho_nuc;
+    span<kids_real>    Ekin;
+    span<kids_real>    dt;
 
-    kids_complex *MFFtmp1, *MFFtmp2, *MFFtmp3, *MFFtmp4, *MFFtmp5, *MFFtmp6;
+    span<kids_complex> MFFtmp1, MFFtmp2, MFFtmp3, MFFtmp4, MFFtmp5, MFFtmp6;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

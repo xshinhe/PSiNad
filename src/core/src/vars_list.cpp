@@ -163,7 +163,7 @@ VARIABLE<kids_complex> NAME_WRAPPER(integrator::KTWA, &shape_PFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::KTWD, &shape_PFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::OpA, &shape_FF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::OpB, &shape_FF, "");
-VARIABLE<kids_real>    NAME_WRAPPER(integrator::P_used, &shape_1, "");
+VARIABLE<kids_int>     NAME_WRAPPER(integrator::P_used, &shape_1, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::S, &shape_PP, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::Sele, &shape_PP, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::Snuc, &shape_PP, "");

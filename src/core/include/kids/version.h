@@ -5,4 +5,4 @@
 #define kids kids
 
 constexpr char repo_name[] = "kids";
-constexpr char repo_version[] = "main-(2024-08-07)-b4d22ced663f230f69e78ec10472d05dea91811e";
+constexpr char repo_version[] = "main-(2024-08-26)-b6896865aaeb2eabe8acc58af0ba86e3e43d2823";

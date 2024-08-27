@@ -22,7 +22,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Kmat = DS->def(DATA::model::Kmat);
     Qmat = DS->def(DATA::model::Qmat);
     Tmod = DS->def(DATA::model::Tmod);
-    memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
+    memset(Hsys.data(), 0, Dimension::FF * sizeof(kids_real));
     switch (lvcm_type) {
         case LVCMPolicy::PYR3: {
             kids_assert(Dimension::N == 3, "Dimension Error");
@@ -387,12 +387,12 @@ Status &Model_LVCM::initializeKernel_impl(Status &stat) { return stat; }
 
 Status &Model_LVCM::executeKernel_impl(Status &stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real *x    = this->x + iP * Dimension::N;
-        kids_real *vpes = this->vpes + iP;
-        kids_real *grad = this->grad + iP * Dimension::N;
-        kids_real *hess = this->hess + iP * Dimension::NN;
-        kids_real *V    = this->V + iP * Dimension::FF;
-        kids_real *dV   = this->dV + iP * Dimension::NFF;
+        auto x    = this->x.subspan(iP * Dimension::N, Dimension::N);
+        auto vpes = this->vpes.subspan(iP, 1);
+        auto grad = this->grad.subspan(iP * Dimension::N, Dimension::N);
+        auto hess = this->hess.subspan(iP * Dimension::NN, Dimension::NN);
+        auto V    = this->V.subspan(iP * Dimension::FF, Dimension::FF);
+        auto dV   = this->dV.subspan(iP * Dimension::NFF, Dimension::NFF);
 
         // calculate nuclear vpes and grad
         double term = 0.0f;
@@ -403,7 +403,7 @@ Status &Model_LVCM::executeKernel_impl(Status &stat) {
         vpes[0] = 0.5 * term;
 
         // electronic pes
-        memset(V, 0, Dimension::FF * sizeof(kids_real));
+        memset(V.data(), 0, Dimension::FF * sizeof(kids_real));
         for (int ik = 0; ik < Dimension::FF; ++ik) V[ik] = Hsys[ik];
         // ARRAY_SHOW(V, Dimension::F, Dimension::F);
 

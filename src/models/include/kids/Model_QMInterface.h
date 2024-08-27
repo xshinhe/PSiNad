@@ -44,21 +44,21 @@ class Model_QMInterface final : public Model {
     bool save_every_step;
 
     // integrator
-    kids_real *x, *p;
-    int*       atoms;
-    kids_real* x0;
-    kids_real* p0;
-    kids_real* x_sigma;
-    kids_real* p_sigma;
-    kids_real* w;
-    kids_real* mass;
-    kids_real *vpes, *grad, *hess, *Tmod;
-    kids_real *V, *dV;
-    kids_real *T, *eig, *dE;
-    kids_real *nac, *nac_prev;
-    kids_real *f_r, *f_p, *f_rp;
-    kids_real *dt_ptr, *t_ptr;
-    kids_int*  istep_ptr;
+    span<kids_real> x, p;
+    span<kids_int>  atoms;
+    span<kids_real> x0;
+    span<kids_real> p0;
+    span<kids_real> x_sigma;
+    span<kids_real> p_sigma;
+    span<kids_real> w;
+    span<kids_real> mass;
+    span<kids_real> vpes, grad, hess, Tmod;
+    span<kids_real> V, dV;
+    span<kids_real> T, eig, dE;
+    span<kids_real> nac, nac_prev;
+    span<kids_real> f_r, f_p, f_rp;
+    span<kids_real> dt_ptr, t_ptr;
+    span<kids_int>  istep_ptr;
 
     int  natom;
     int  read_flag;
@@ -70,10 +70,10 @@ class Model_QMInterface final : public Model {
 
     int try_level;
 
-    kids_bint* succ_ptr;
-    kids_bint* frez_ptr;
-    kids_bint* last_attempt_ptr;
-    int*       fail_type_ptr;
+    span<kids_bint> succ_ptr;
+    span<kids_bint> frez_ptr;
+    span<kids_bint> last_attempt_ptr;
+    span<kids_int>  fail_type_ptr;
 
     virtual void    setInputParam_impl(std::shared_ptr<Param> PM);
     virtual void    setInputDataSet_impl(std::shared_ptr<DataSet> DS);

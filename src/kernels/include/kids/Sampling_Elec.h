@@ -64,13 +64,12 @@ class Sampling_Elec final : public Kernel {
     bool      use_sum  = false;
     bool      use_fssh = false;
 
-    kids_real *alpha, *V;
+    span<kids_real> alpha, V;
 
-    kids_int*     occ_nuc;
-    kids_real*    T;
-    kids_complex *c, *rho_ele, *rho_nuc;
-    kids_complex* w;
-
+    span<kids_int>     occ_nuc;
+    span<kids_real>    T;
+    span<kids_complex> c, rho_ele, rho_nuc;
+    span<kids_complex> w;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

@@ -61,7 +61,9 @@ Status& Kernel::initializeKernel(Status& stat) {
     if (!_dataset) throw kids_error("DataSet must be passed before");
     // std::cout << "init: " << LOC() << getName() << "\n";
     // @todo: Consider if the load option is available and ensure it is not overwritten by this function.
+    // std::cout << LOC() << " init 1\n";
     initializeKernel_impl(stat);
+    // std::cout << LOC() << " init 2\n";
     for (auto& pkernel : _child_kernels) pkernel->initializeKernel(stat);
     count_calc++;  // random only called once!!
     return stat;
@@ -75,7 +77,9 @@ Status& Kernel::executeKernel(Status& stat) {
     std::chrono::time_point<std::chrono::steady_clock> begin, end;
     if (is_timing) begin = std::chrono::steady_clock::now();
     {
+        // std::cout << LOC() << " exe 1\n";
         executeKernel_impl(stat);
+        // std::cout << LOC() << " exe 2\n";
         if (enable_call_child)
             for (auto& pkernel : _child_kernels) pkernel->executeKernel(stat);
     }

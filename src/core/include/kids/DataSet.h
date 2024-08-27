@@ -65,6 +65,17 @@
 #include "kids/Variable.h"
 #include "kids/concat.h"
 
+#if (__cplusplus < 202002L)
+// customized span realization
+#include "kids/utils/span.hpp"  // from https://github.com/tcbrindle/span
+template <typename T>
+using span = tcb::span<T>;
+#else
+#include <span>  // span in c++20 standard
+template <typename T>
+using span = std::span<T>;
+#endif
+
 namespace PROJECT_NS {
 
 /**
@@ -84,26 +95,12 @@ class DataSet final : public Node {
      */
     DataSet();
 
-    /**
-     * Define a variable of type kids_int.
-     * @param var The variable to define.
-     * @return Pointer to the defined variable.
-     */
-    kids_int* def(VARIABLE<kids_int>& var);
-
-    /**
-     * Define a variable of type kids_real.
-     * @param var The variable to define.
-     * @return Pointer to the defined variable.
-     */
-    kids_real* def(VARIABLE<kids_real>& var);
-
-    /**
-     * Define a variable of type kids_complex.
-     * @param var The variable to define.
-     * @return Pointer to the defined variable.
-     */
-    kids_complex* def(VARIABLE<kids_complex>& var);
+    span<kids_int>     def(const VARIABLE<kids_int>& var, const span<kids_int>& arr_in = span<kids_int>());
+    span<kids_real>    def(const VARIABLE<kids_real>& var, const span<kids_real>& arr_in = span<kids_real>());
+    span<kids_complex> def(const VARIABLE<kids_complex>& var, const span<kids_complex>& arr_in = span<kids_complex>());
+    span<kids_int>     def(const VARIABLE<kids_int>& var, const std::string& ds_file);
+    span<kids_real>    def(const VARIABLE<kids_real>& var, const std::string& ds_file);
+    span<kids_complex> def(const VARIABLE<kids_complex>& var, const std::string& ds_file);
 
     /**
      * Define an integer variable with a specified key, shape, and info.
@@ -302,6 +299,36 @@ class DataSet final : public Node {
      */
     template <typename T>
     T* def(const std::string& key, Shape S = 1, const std::string& info = "");
+
+    template <typename T>
+    static span<T> static_def(DataSet& DS, const VARIABLE<T>& var, const span<T>& arr_in);
+
+    template <typename T>
+    static span<T> static_def(DataSet& DS, const VARIABLE<T>& var, const std::string& ds_file);
+
+    /**
+     * @deprecated please use span for pass the data
+     * Define a variable of type kids_int.
+     * @param var The variable to define.
+     * @return Pointer to the defined variable.
+     */
+    kids_int* def_get_pointer(VARIABLE<kids_int>& var);
+
+    /**
+     * @deprecated please use span for pass the data
+     * Define a variable of type kids_real.
+     * @param var The variable to define.
+     * @return Pointer to the defined variable.
+     */
+    kids_real* def_get_pointer(VARIABLE<kids_real>& var);
+
+    /**
+     * @deprecated please use span for pass the data
+     * Define a variable of type kids_complex.
+     * @param var The variable to define.
+     * @return Pointer to the defined variable.
+     */
+    kids_complex* def_get_pointer(VARIABLE<kids_complex>& var);
 
     class DataSetKeyParser {
        public:

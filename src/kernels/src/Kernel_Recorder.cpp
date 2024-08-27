@@ -31,12 +31,12 @@ void Kernel_Recorder::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Recorder::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    istep_ptr                = DS->def(DATA::flowcontrol::istep);
-    sstep_ptr                = DS->def(DATA::flowcontrol::sstep);
-    isamp_ptr                = DS->def(DATA::flowcontrol::isamp);
-    nsamp_ptr                = DS->def(DATA::flowcontrol::nsamp);
-    kids_real* per_time_unit = DS->def(DATA::flowcontrol::pertimeunit);
-    per_time_unit[0]         = 1.0e0 / time_unit;
+    istep_ptr = DS->def(DATA::flowcontrol::istep);
+    sstep_ptr = DS->def(DATA::flowcontrol::sstep);
+    isamp_ptr = DS->def(DATA::flowcontrol::isamp);
+    nsamp_ptr = DS->def(DATA::flowcontrol::nsamp);
+    // set time unit in recorder
+    DS->def(DATA::flowcontrol::pertimeunit)[0] = 1.0e0 / time_unit;
 }
 
 void Kernel_Recorder::parse() {

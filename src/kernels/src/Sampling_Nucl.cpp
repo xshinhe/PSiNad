@@ -43,39 +43,22 @@ void Sampling_Nucl::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 Status& Sampling_Nucl::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
+    // if restart, we should get all initial values and current values!
+    // not that: all values defined by Kernel_Elec_Functions will also be recoveed later.
+    // not that: all values defined by Kernel_Recorder will also be recovered later.
     if (_param->get_bool({"restart"}, LOC(), false)) {  //
         std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
         if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
-        std::string   stmp, eachline;
-        std::ifstream ifs(loadfile);
-
-        double* xinit = _dataset->def_real("init.x", x, Dimension::PN);  // real zero time
-        double* pinit = _dataset->def_real("init.p", p, Dimension::PN);  // real zero time
-
-        while (getline(ifs, eachline)) {
-            if (eachline.find("init.x") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> xinit[i];
-            }
-            if (eachline.find("init.p") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> pinit[i];
-            }
-            if (eachline.find("integrator.x") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> x[i];
-            }
-            if (eachline.find("integrator.p") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> p[i];
-            }
-        }
+        _dataset->def(DATA::init::x, loadfile);
+        _dataset->def(DATA::init::p, loadfile);
+        _dataset->def(DATA::integrator::x, loadfile);
+        _dataset->def(DATA::integrator::p, loadfile);
         return stat;
     }
 
     for (int iP = 0; iP < Dimension::P; ++iP) {  /// use P instead of P_NOW
-        kids_real* x = this->x + iP * Dimension::N;
-        kids_real* p = this->p + iP * Dimension::N;
+        auto x = this->x.subspan(iP * Dimension::N, Dimension::N);
+        auto p = this->p.subspan(iP * Dimension::N, Dimension::N);
 
         switch (sampling_type) {
             case NuclearSamplingPolicy::Fix: {
@@ -89,8 +72,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
             case NuclearSamplingPolicy::ClassicalHO:
             case NuclearSamplingPolicy::WignerHO:
             case NuclearSamplingPolicy::QcHO: {
-                Kernel_Random::rand_gaussian(x, Dimension::N);
-                Kernel_Random::rand_gaussian(p, Dimension::N);
+                Kernel_Random::rand_gaussian(x.data(), Dimension::N);
+                Kernel_Random::rand_gaussian(p.data(), Dimension::N);
                 for (int j = 0; j < Dimension::N; ++j) {
                     double Qoverbeta = (sampling_type == NuclearSamplingPolicy::ClassicalHO)
                                            ? ((beta > 0) ? 1.0f / beta : 0.0f)
@@ -110,8 +93,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
             case NuclearSamplingPolicy::ClassicalNMA:
             case NuclearSamplingPolicy::WignerNMA:
             case NuclearSamplingPolicy::QcNMA: {
-                Kernel_Random::rand_gaussian(x, Dimension::N);
-                Kernel_Random::rand_gaussian(p, Dimension::N);
+                Kernel_Random::rand_gaussian(x.data(), Dimension::N);
+                Kernel_Random::rand_gaussian(p.data(), Dimension::N);
                 for (int j = 0; j < Dimension::N; ++j) {
                     if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-8) {
                         x[j] = 0.0f, p[j] = 0.0f;
@@ -132,8 +115,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                 }
 
                 // transfrom normal-mode to cartesian coordinates (ARRAY should be .eval()!)
-                ARRAY_MATMUL(x, Tmod, x, Dimension::N, Dimension::N, 1);
-                ARRAY_MATMUL(p, Tmod, p, Dimension::N, Dimension::N, 1);
+                ARRAY_MATMUL(x.data(), Tmod.data(), x.data(), Dimension::N, Dimension::N, 1);
+                ARRAY_MATMUL(p.data(), Tmod.data(), p.data(), Dimension::N, Dimension::N, 1);
                 for (int j = 0; j < Dimension::N; ++j) {
                     x[j] = x[j] / std::sqrt(mass[j]) + x0[j];
                     p[j] = p[j] * std::sqrt(mass[j]) + p0[j];
@@ -146,8 +129,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                 // PRINT_ARRAY(p0, 1, Dimension::N);
                 // PRINT_ARRAY(x_sigma, 1, Dimension::N);
                 // PRINT_ARRAY(p_sigma, 1, Dimension::N);
-                Kernel_Random::rand_gaussian(x, Dimension::N);
-                Kernel_Random::rand_gaussian(p, Dimension::N);
+                Kernel_Random::rand_gaussian(x.data(), Dimension::N);
+                Kernel_Random::rand_gaussian(p.data(), Dimension::N);
                 for (int j = 0; j < Dimension::N; ++j) {
                     x[j] = x0[j] + x[j] * x_sigma[j];
                     p[j] = p0[j] + p[j] * p_sigma[j];
@@ -177,8 +160,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
             }
         }
     }
-    _dataset->def_real("init.x", x, Dimension::PN);
-    _dataset->def_real("init.p", p, Dimension::PN);
+    _dataset->def(DATA::init::x, x);
+    _dataset->def(DATA::init::p, p);
     return stat;
 }
 

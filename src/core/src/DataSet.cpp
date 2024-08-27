@@ -50,9 +50,66 @@ T* DataSet::def(const std::string& key, Shape S, const std::string& info) {
     }
     return leaf_node_ts->data();
 }
-kids_int*     DataSet::def(VARIABLE<kids_int>& var) { return def_int(var.name(), var.shape(), var.doc()); }
-kids_real*    DataSet::def(VARIABLE<kids_real>& var) { return def_real(var.name(), var.shape(), var.doc()); }
-kids_complex* DataSet::def(VARIABLE<kids_complex>& var) { return def_complex(var.name(), var.shape(), var.doc()); }
+
+template <typename T>
+span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, const span<T>& arr_in) {
+    span<T> arr(DS.def<T>(var.name(), var.shape(), var.doc()), var.shape().size());
+    if (arr_in.size() != 0) {
+        if (arr_in.size() != arr.size()) throw kids_error("mismatched size when copy dataset data");
+        for (int i = 0; i < arr.size(); ++i) arr[i] = arr_in[i];
+    }
+    return arr;
+}
+
+template <typename T>
+span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, const std::string& ds_file) {
+    span<T> arr(DS.def<T>(var.name(), var.shape(), var.doc()), var.shape().size());
+
+    bool          find = false;
+    std::string   eachline;
+    std::ifstream ifs(ds_file);
+    if (!ifs.good()) throw kids_error(utils::concat("cannot open dataset file from: ", ds_file));
+    while (getline(ifs, eachline)) {
+        if (eachline == var.name()) {
+            getline(ifs, eachline);
+            std::string       typeflag;
+            int               vsize;
+            std::stringstream ss(eachline);
+            ss >> typeflag >> vsize;
+            if (typeflag != as_str<T>()) throw kids_error("mismatched type");
+            if (vsize != arr.size()) throw kids_error("mismatched size");
+            for (int i = 0; i < arr.size(); ++i) ifs >> arr[i];
+            find = true;
+        }
+    }
+    if (!find) throw kids_error(utils::concat("cannot fetch values in dataset file: ", ds_file));
+    return arr;
+}
+
+span<kids_int> DataSet::def(const VARIABLE<kids_int>& var, const span<kids_int>& arr_in) {
+    return static_def<kids_int>(*this, var, arr_in);
+}
+span<kids_real> DataSet::def(const VARIABLE<kids_real>& var, const span<kids_real>& arr_in) {
+    return static_def<kids_real>(*this, var, arr_in);
+}
+span<kids_complex> DataSet::def(const VARIABLE<kids_complex>& var, const span<kids_complex>& arr_in) {
+    return static_def<kids_complex>(*this, var, arr_in);
+}
+span<kids_int> DataSet::def(const VARIABLE<kids_int>& var, const std::string& ds_file) {
+    return static_def<kids_int>(*this, var, ds_file);
+}
+span<kids_real> DataSet::def(const VARIABLE<kids_real>& var, const std::string& ds_file) {
+    return static_def<kids_real>(*this, var, ds_file);
+}
+span<kids_complex> DataSet::def(const VARIABLE<kids_complex>& var, const std::string& ds_file) {
+    return static_def<kids_complex>(*this, var, ds_file);
+}
+
+kids_int*  DataSet::def_get_pointer(VARIABLE<kids_int>& var) { return def_int(var.name(), var.shape(), var.doc()); }
+kids_real* DataSet::def_get_pointer(VARIABLE<kids_real>& var) { return def_real(var.name(), var.shape(), var.doc()); }
+kids_complex* DataSet::def_get_pointer(VARIABLE<kids_complex>& var) {
+    return def_complex(var.name(), var.shape(), var.doc());
+}
 
 
 kids_int* DataSet::def_int(const std::string& key, Shape S, const std::string& info) {
@@ -323,8 +380,6 @@ void DataSet::load(std::istream& is) {
         }
     }
 }
-
-
 };  // namespace PROJECT_NS
 
 /**

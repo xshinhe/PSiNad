@@ -52,23 +52,31 @@ void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Kernel_Update_U::initializeKernel_impl(Status& stat) {
+    // if restart, we should get all initial values and current values!
+    // not that: all values defined by Kernel_Elec_Functions will also be recoveed later.
+    // not that: all values defined by Kernel_Recorder will also be recovered later.
     if (_param->get_bool({"restart"}, LOC(), false)) {  //
         std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
         if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
         std::string   stmp, eachline;
         std::ifstream ifs(loadfile);
+
+        bool find0 = false;
         while (getline(ifs, eachline)) {
+            // get U instead of identity
             if (eachline.find("integrator.U") != eachline.npos) {
                 getline(ifs, eachline);
                 for (int i = 0; i < Dimension::PFF; ++i) ifs >> U[i];
+                find0 = true;
             }
         }
+        if (!find0) throw kids_error("cannot restart past evolution");
         return stat;
     }
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_complex* U = this->U + iP * Dimension::FF;
-        ARRAY_EYE(U, Dimension::F);
+        auto U = this->U.subspan(iP * Dimension::FF, Dimension::FF);
+        ARRAY_EYE(U.data(), Dimension::F);
     }
     return stat;
 }
@@ -78,23 +86,23 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         // local variables for iP-th of swarm
-        kids_real*    eig           = this->eig + iP * Dimension::F;
-        kids_real*    T             = this->T + iP * Dimension::FF;
-        kids_real*    lam           = this->lam + iP * Dimension::F;
-        kids_complex* R             = this->R + iP * Dimension::FF;
-        kids_complex* U             = this->U + iP * Dimension::FF;
-        kids_complex* Udt           = this->Udt + iP * Dimension::FF;
-        kids_complex* c             = this->c + iP * Dimension::F;
-        kids_complex* c_init        = this->c_init + iP * Dimension::F;
-        kids_complex* cset          = this->cset + iP * Dimension::F;
-        kids_complex* cset_init     = this->cset_init + iP * Dimension::F;
-        kids_complex* rho_ele       = this->rho_ele + iP * Dimension::FF;
-        kids_complex* rho_ele_init  = this->rho_ele_init + iP * Dimension::FF;
-        kids_complex* rho_nuc       = this->rho_nuc + iP * Dimension::FF;
-        kids_complex* rho_nuc_init  = this->rho_nuc_init + iP * Dimension::FF;
-        kids_complex* rho_dual      = this->rho_dual + iP * Dimension::FF;
-        kids_complex* rho_dual_init = this->rho_dual_init + iP * Dimension::FF;
-        kids_real*    T_init        = this->T_init + iP * Dimension::FF;
+        auto eig           = this->eig.subspan(iP * Dimension::F, Dimension::F);
+        auto T             = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        auto lam           = this->lam.subspan(iP * Dimension::F, Dimension::F);
+        auto R             = this->R.subspan(iP * Dimension::FF, Dimension::FF);
+        auto U             = this->U.subspan(iP * Dimension::FF, Dimension::FF);
+        auto Udt           = this->Udt.subspan(iP * Dimension::FF, Dimension::FF);
+        auto c             = this->c.subspan(iP * Dimension::F, Dimension::F);
+        auto c_init        = this->c_init.subspan(iP * Dimension::F, Dimension::F);
+        auto cset          = this->cset.subspan(iP * Dimension::F, Dimension::F);
+        auto cset_init     = this->cset_init.subspan(iP * Dimension::F, Dimension::F);
+        auto rho_ele       = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_ele_init  = this->rho_ele_init.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_nuc       = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_nuc_init  = this->rho_nuc_init.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_dual      = this->rho_dual.subspan(iP * Dimension::FF, Dimension::FF);
+        auto rho_dual_init = this->rho_dual_init.subspan(iP * Dimension::FF, Dimension::FF);
+        auto T_init        = this->T_init.subspan(iP * Dimension::FF, Dimension::FF);
 
         /**
          * Update propagator U
@@ -102,15 +110,17 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
         switch (Kernel_Representation::ele_repr_type) {
             case RepresentationPolicy::Diabatic: {
                 for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * eig[i] * scale * dt[0]);
-                ARRAY_MATMUL3_TRANS2(Udt, T, invexpidiagdt, T, Dimension::F, Dimension::F, 0, Dimension::F);
-                ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
+                ARRAY_MATMUL3_TRANS2(Udt.data(), T.data(), invexpidiagdt.data(), T.data(),  //
+                                     Dimension::F, Dimension::F, 0, Dimension::F);
+                ARRAY_MATMUL(U.data(), Udt.data(), U.data(), Dimension::F, Dimension::F, Dimension::F);
                 break;
             }
             // DiabaticComplex: ...
             case RepresentationPolicy::Adiabatic: {
                 for (int i = 0; i < Dimension::F; ++i) invexpidiagdt[i] = exp(-phys::math::im * lam[i] * scale * dt[0]);
-                ARRAY_MATMUL3_TRANS2(Udt, R, invexpidiagdt, R, Dimension::F, Dimension::F, 0, Dimension::F);
-                ARRAY_MATMUL(U, Udt, U, Dimension::F, Dimension::F, Dimension::F);
+                ARRAY_MATMUL3_TRANS2(Udt.data(), R.data(), invexpidiagdt.data(), R.data(), Dimension::F, Dimension::F,
+                                     0, Dimension::F);
+                ARRAY_MATMUL(U.data(), Udt.data(), U.data(), Dimension::F, Dimension::F, Dimension::F);
                 break;
             }
             default:  // representation_policy::force, representation_policy::density
@@ -123,12 +133,12 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
          */
         if (enable_update_c) {
             for (int i = 0; i < Dimension::F; ++i) c[i] = c_init[i];
-            Kernel_Representation::transform(c, T_init, Dimension::F,               //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             Kernel_Representation::ele_repr_type,  //
+            Kernel_Representation::transform(c.data(), T_init.data(), Dimension::F,  //
+                                             Kernel_Representation::inp_repr_type,   //
+                                             Kernel_Representation::ele_repr_type,   //
                                              SpacePolicy::H);
-            ARRAY_MATMUL(c, U, c, Dimension::F, Dimension::F, 1);
-            Kernel_Representation::transform(c, T, Dimension::F,                    //
+            ARRAY_MATMUL(c.data(), U.data(), c.data(), Dimension::F, Dimension::F, 1);
+            Kernel_Representation::transform(c.data(), T.data(), Dimension::F,      //
                                              Kernel_Representation::ele_repr_type,  //
                                              Kernel_Representation::inp_repr_type,  //
                                              SpacePolicy::H);
@@ -137,28 +147,30 @@ Status& Kernel_Update_U::executeKernel_impl(Status& stat) {
         }
         if (enable_update_rho_ele) {
             for (int ik = 0; ik < Dimension::FF; ++ik) rho_ele[ik] = rho_ele_init[ik];
-            Kernel_Representation::transform(rho_ele, T_init, Dimension::F,         //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             Kernel_Representation::ele_repr_type,  //
+            Kernel_Representation::transform(rho_ele.data(), T_init.data(), Dimension::F,  //
+                                             Kernel_Representation::inp_repr_type,         //
+                                             Kernel_Representation::ele_repr_type,         //
                                              SpacePolicy::L);
-            ARRAY_MATMUL3_TRANS2(rho_ele, U, rho_ele, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
-            Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                             Kernel_Representation::ele_repr_type,  //
-                                             Kernel_Representation::inp_repr_type,  //
+            ARRAY_MATMUL3_TRANS2(rho_ele.data(), U.data(), rho_ele.data(), U.data(), Dimension::F, Dimension::F,
+                                 Dimension::F, Dimension::F);
+            Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                             Kernel_Representation::ele_repr_type,    //
+                                             Kernel_Representation::inp_repr_type,    //
                                              SpacePolicy::L);
         } else {
-            elec_utils::ker_from_c(rho_ele, c, 1, 0, Dimension::F);
+            elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
         }
         if (true || enable_update_rho_nuc) {  // @TODO
             for (int ik = 0; ik < Dimension::FF; ++ik) rho_nuc[ik] = rho_nuc_init[ik];
-            Kernel_Representation::transform(rho_nuc, T_init, Dimension::F,         //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             Kernel_Representation::ele_repr_type,  //
+            Kernel_Representation::transform(rho_nuc.data(), T_init.data(), Dimension::F,  //
+                                             Kernel_Representation::inp_repr_type,         //
+                                             Kernel_Representation::ele_repr_type,         //
                                              SpacePolicy::L);
-            ARRAY_MATMUL3_TRANS2(rho_nuc, U, rho_nuc, U, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
-            Kernel_Representation::transform(rho_nuc, T, Dimension::F,              //
-                                             Kernel_Representation::ele_repr_type,  //
-                                             Kernel_Representation::inp_repr_type,  //
+            ARRAY_MATMUL3_TRANS2(rho_nuc.data(), U.data(), rho_nuc.data(), U.data(), Dimension::F, Dimension::F,
+                                 Dimension::F, Dimension::F);
+            Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                             Kernel_Representation::ele_repr_type,    //
+                                             Kernel_Representation::inp_repr_type,    //
                                              SpacePolicy::L);
             // where rho_nuc = rho_ele - Gamma, where Gamma is not evolutionary (not unitory!!!)
             if (only_adjust) {
@@ -179,16 +191,16 @@ void Kernel_Update_U::update_monodromy() {
     int N4   = 2 * Dimension::N + 2 * Dimension::F;
     int N4N4 = N4 * N4;
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real*    eig    = this->eig + iP * Dimension::F;
-        kids_real*    T      = this->T + iP * Dimension::FF;
-        kids_real*    dE     = this->dE + iP * Dimension::NFF;
-        kids_real*    mono   = this->mono + iP * N4N4;
-        kids_real*    monodt = this->monodt + iP * N4N4;
-        kids_complex* Udt    = this->Udt + iP * Dimension::FF;
-        kids_complex* c      = this->c + iP * Dimension::F;
+        auto eig    = this->eig.subspan(iP * Dimension::F, Dimension::F);
+        auto T      = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        auto dE     = this->dE.subspan(iP * Dimension::NFF, Dimension::NFF);
+        auto mono   = this->mono.subspan(iP * N4N4, N4N4);
+        auto monodt = this->monodt.subspan(iP * N4N4, N4N4);
+        auto Udt    = this->Udt.subspan(iP * Dimension::FF, Dimension::FF);
+        auto c      = this->c.subspan(iP * Dimension::F, Dimension::F);
 
         // N0-N1: x, N1-N2:x_ele; N2-N3:p; N3-N4:p_ele
-        ARRAY_EYE(monodt, N4);
+        ARRAY_EYE(monodt.data(), N4);
         for (int i = 0, ik = 0; i < Dimension::F; ++i) {
             for (int k = 0; k < Dimension::F; ++k, ++ik) {
                 monodt[(N1 + i) * N4 + (N1 + k)] = std::real(Udt[ik]);
@@ -199,8 +211,8 @@ void Kernel_Update_U::update_monodromy() {
         }
         kids_complex im = phys::math::im;
         for (int j = 0, jik = 0; j < Dimension::N; ++j) {
-            kids_complex* dxjUdt = MFFtmp1;  // as workspace
-            kids_complex* c_tmp  = MFFtmp2;  // as workspace
+            auto& dxjUdt = MFFtmp1;  // as workspace
+            auto& c_tmp  = MFFtmp2;  // as workspace
             for (int i = 0, ii = 0, ik = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
                 for (int k = 0, kk = 0; k < Dimension::F; ++k, kk += Dimension::Fadd1, ++ik, ++jik) {
                     dxjUdt[ik] = (i == k) ? -std::exp(-im * eig[i] * dt[0]) * im * dE[jik] * dt[0]
@@ -208,14 +220,15 @@ void Kernel_Update_U::update_monodromy() {
                                                 (std::exp(-im * eig[k] * dt[0]) - std::exp(-im * eig[i] * dt[0]));
                 }
             }
-            ARRAY_MATMUL3_TRANS2(dxjUdt, T, dxjUdt, T, Dimension::F, Dimension::F, Dimension::F, Dimension::F);
-            ARRAY_MATMUL(c_tmp, dxjUdt, c, Dimension::F, Dimension::F, 1);
+            ARRAY_MATMUL3_TRANS2(dxjUdt.data(), T.data(), dxjUdt.data(), T.data(), Dimension::F, Dimension::F,
+                                 Dimension::F, Dimension::F);
+            ARRAY_MATMUL(c_tmp.data(), dxjUdt.data(), c.data(), Dimension::F, Dimension::F, 1);
             for (int i = 0; i < Dimension::F; ++i) {
                 monodt[(N1 + i) * N4 + (N0 + j)] = std::real(c_tmp[i]);
                 monodt[(N3 + i) * N4 + (N0 + j)] = std::imag(c_tmp[i]);
             }
         }
-        ARRAY_MATMUL(mono, monodt, mono, N4, N4, N4);
+        ARRAY_MATMUL(mono.data(), monodt.data(), mono.data(), N4, N4, N4);
     }
 }
 

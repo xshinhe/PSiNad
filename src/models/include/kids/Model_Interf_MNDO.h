@@ -47,22 +47,22 @@ class Model_Interf_MNDO final : public Model {
     bool classical_bath;
 
     // integrator
-    kids_real *x, *p;
+    span<kids_real> x, p;
 
     // model
-    int*       atoms;
-    kids_real* x0;
-    kids_real* p0;
-    kids_real* x_sigma;
-    kids_real* p_sigma;
-    kids_real* w;
-    kids_real* mass;
-    kids_real *vpes, *grad, *hess, *Tmod;
-    kids_real *V, *dV;
-    kids_real *T, *eig, *dE;
-    kids_real *nac, *nac_prev;
+    span<kids_bint> atoms;
+    span<kids_real> x0;
+    span<kids_real> p0;
+    span<kids_real> x_sigma;
+    span<kids_real> p_sigma;
+    span<kids_real> w;
+    span<kids_real> mass;
+    span<kids_real> vpes, grad, hess, Tmod;
+    span<kids_real> V, dV;
+    span<kids_real> T, eig, dE;
+    span<kids_real> nac, nac_prev;
 
-    kids_real *f_r, *f_p, *f_rp;
+    span<kids_real> f_r, f_p, f_rp;
 
     int  natom;
     int  read_flag;
@@ -72,10 +72,10 @@ class Model_Interf_MNDO final : public Model {
     int  lroot;
     bool refer;
 
-    kids_bint* succ_ptr;
-    kids_bint* frez_ptr;
-    kids_bint* last_attempt_ptr;
-    int*       fail_type_ptr;
+    span<kids_bint> succ_ptr;
+    span<kids_bint> frez_ptr;
+    span<kids_bint> last_attempt_ptr;
+    span<kids_bint> fail_type_ptr;
 
     void setInputParam_impl(std::shared_ptr<Param> PM);
 

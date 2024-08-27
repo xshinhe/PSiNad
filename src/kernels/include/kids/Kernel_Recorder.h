@@ -54,10 +54,10 @@ class Kernel_Recorder final : public Kernel {
     // friend class Kernel_Report;
     int occ0;
 
-    int*                     istep_ptr;
-    int*                     sstep_ptr;
-    int*                     isamp_ptr;
-    int*                     nsamp_ptr;
+    span<kids_int>           istep_ptr;
+    span<kids_int>           sstep_ptr;
+    span<kids_int>           isamp_ptr;
+    span<kids_int>           nsamp_ptr;
     double                   t0, dt, time_unit;
     std::vector<std::string> opened_files;
 

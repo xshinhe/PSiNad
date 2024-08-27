@@ -45,38 +45,38 @@ class Kernel_Update_U final : public Kernel {
     bool enable_update_rho_nuc;
     bool enable_update_rho_dual;
 
-    kids_complex* Udt;  ///< short time propagator
-    kids_complex* U;    ///< full propagator along classical path approximation (CPA)
+    span<kids_complex> Udt;  ///< short time propagator
+    span<kids_complex> U;    ///< full propagator along classical path approximation (CPA)
 
     ///< solve Diabatic propagator
-    kids_real *eig, *dE;    ///< Eigenvalue for diabatic V
-    kids_real *T, *T_init;  ///< Eigenvector for diabatic V
+    span<kids_real> eig, dE;    ///< Eigenvalue for diabatic V
+    span<kids_real> T, T_init;  ///< Eigenvector for diabatic V
 
     ///< solve Adiabatic propagator
-    kids_real*    lam;  ///< Eigenvalue for adiabatic effective Hamiltonian Heff = Eδ - id*P/M
-    kids_complex* R;    ///< Eigenvector for adiabatic effective Hamiltonian Heff = Eδ - id*P/M
+    span<kids_real>    lam;  ///< Eigenvalue for adiabatic effective Hamiltonian Heff = Eδ - id*P/M
+    span<kids_complex> R;    ///< Eigenvector for adiabatic effective Hamiltonian Heff = Eδ - id*P/M
 
-    kids_complex* invexpidiagdt;  ///< temporary variables
+    span<kids_complex> invexpidiagdt;  ///< temporary variables
 
-    kids_complex *c, *c_init;
-    kids_complex *cset, *cset_init;
-    kids_complex *rho_ele, *rho_ele_init;
-    kids_complex *rho_nuc, *rho_nuc_init;
-    kids_complex *rho_dual, *rho_dual_init;
+    span<kids_complex> c, c_init;
+    span<kids_complex> cset, cset_init;
+    span<kids_complex> rho_ele, rho_ele_init;
+    span<kids_complex> rho_nuc, rho_nuc_init;
+    span<kids_complex> rho_dual, rho_dual_init;
 
-    kids_real *   mono, *monodt;
-    kids_complex *MFFtmp1, *MFFtmp2;
+    span<kids_real>    mono, monodt;
+    span<kids_complex> MFFtmp1, MFFtmp2;
 
-    kids_real  scale;
-    kids_real* dt;
+    kids_real       scale;
+    span<kids_real> dt;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 
-    virtual Status& initializeKernel_impl(Status& stat);
+    virtual Status &initializeKernel_impl(Status &stat);
 
-    virtual Status& executeKernel_impl(Status& stat);
+    virtual Status &executeKernel_impl(Status &stat);
 
     void update_monodromy();
 };

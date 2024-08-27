@@ -43,16 +43,16 @@ class Kernel_Representation final : public Kernel {
     bool phase_correction;
     bool basis_switch;
 
-    double *             V, *dV, *ddV;
-    double *             eig, *E, *T, *Told, *dE, *ddE;
-    double*              lam;
-    std::complex<double>*R, *dL, *ddL;
-    std::complex<double>*H, *dH, *ddH;
+    span<kids_real>    V, dV, ddV;
+    span<kids_real>    eig, E, T, Told, dE, ddE;
+    span<kids_real>    lam;
+    span<kids_complex> R, dL, ddL;
+    span<kids_complex> H, dH, ddH;
 
-    double *      x, *p, *m;
-    int*          occ_nuc;
-    kids_complex* rho_ele;
-    double *      ve, *vedE, *TtTold;
+    span<kids_real>    x, p, m;
+    span<kids_int>     occ_nuc;
+    span<kids_complex> rho_ele;
+    span<kids_real>    ve, vedE, TtTold;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

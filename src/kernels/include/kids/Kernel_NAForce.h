@@ -61,19 +61,19 @@ class Kernel_NAForce : public Kernel {
    private:
     bool offd_projected;
 
-    kids_real *   f, *grad, *dV, *dE, *ForceMat, *EMat, *T, *V;
-    kids_real *   p, *m;
-    kids_real *   fadd, *ftmp, *fproj;
-    kids_real*    alpha;
-    kids_complex* wrho;
+    span<kids_real>    f, grad, dV, dE, ForceMat, EMat, T, V;
+    span<kids_real>    p, m;
+    span<kids_real>    fadd, ftmp, fproj;
+    span<kids_real>    alpha;
+    span<kids_complex> wrho;
 
-    kids_real *Epot, *vpes;
-    kids_real* dt_ptr;
+    span<kids_real> Epot, vpes;
+    span<kids_real> dt_ptr;
 
-    kids_int*     occ_nuc;
-    kids_complex *rho_ele, *rho_nuc;
+    span<kids_int>     occ_nuc;
+    span<kids_complex> rho_ele, rho_nuc;
 
-    kids_bint* succ_ptr;
+    span<kids_bint> succ_ptr;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

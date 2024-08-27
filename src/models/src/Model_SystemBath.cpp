@@ -203,18 +203,18 @@ Status& Model_SystemBath::initializeKernel_impl(Status& stat) {
 Status& Model_SystemBath::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P_NOW; ++iP) {
         ///< get one instance from trajectory swarms
-        kids_real* x    = this->x + iP * Dimension::N;
-        kids_real* vpes = this->vpes + iP;
-        kids_real* grad = this->grad + iP * Dimension::N;
-        kids_real* hess = this->hess + iP * Dimension::NN;
-        kids_real* V    = this->V + iP * Dimension::FF;
-        kids_real* dV   = this->dV + iP * Dimension::NFF;
+        auto x    = this->x.subspan(iP * Dimension::N, Dimension::N);
+        auto vpes = this->vpes.subspan(iP, 1);
+        auto grad = this->grad.subspan(iP * Dimension::N, Dimension::N);
+        auto hess = this->hess.subspan(iP * Dimension::NN, Dimension::NN);
+        auto V    = this->V.subspan(iP * Dimension::FF, Dimension::FF);
+        auto dV   = this->dV.subspan(iP * Dimension::NFF, Dimension::NFF);
 
         if (nbath <= 0) {
             // H = 0.5*p*p + Hsys + 0.5*x*Kmat*x + x*Qmat
-            vpes[0] = ARRAY_INNER_VMV_TRANS1(x, Kmat, x, Dimension::N, Dimension::N);
+            vpes[0] = ARRAY_INNER_VMV_TRANS1(x.data(), Kmat.data(), x.data(), Dimension::N, Dimension::N);
             vpes[0] *= 0.5e0;
-            ARRAY_MATMUL(grad, Kmat, x, Dimension::N, Dimension::N, 1);
+            ARRAY_MATMUL(grad.data(), Kmat.data(), x.data(), Dimension::N, Dimension::N, 1);
         } else {
             double term = 0.0f;
             for (int ibath = 0, idxR = 0; ibath < Dimension::nbath; ++ibath) {
@@ -236,11 +236,11 @@ Status& Model_SystemBath::executeKernel_impl(Status& stat) {
         // calculate electronic V and dV
         if (nbath <= 0) {
             // H = 0.5*p*p + Hsys + 0.5*x*Kmat*x + x*Qmat
-            ARRAY_MATMUL(V, x, Qmat, 1, Dimension::N, Dimension::FF);
+            ARRAY_MATMUL(V.data(), x.data(), Qmat.data(), 1, Dimension::N, Dimension::FF);
             for (int i = 0; i < Dimension::FF; ++i) V[i] += Hsys[i];
 
             if (count_exec == 0) {  // only calculate once time
-                ARRAY_CLEAR(dV, Dimension::NFF);
+                ARRAY_CLEAR(dV.data(), Dimension::NFF);
                 for (int idxdV = 0; idxdV < Dimension::NFF; ++idxdV) dV[idxdV] = Qmat[idxdV];
             }
         } else {
@@ -305,7 +305,7 @@ Status& Model_SystemBath::executeKernel_impl(Status& stat) {
                 }
             }
             if (count_exec == 0) {  // only calculate once time
-                ARRAY_CLEAR(dV, Dimension::NFF);
+                ARRAY_CLEAR(dV.data(), Dimension::NFF);
                 for (int ibath = 0, idxQ0 = 0, idxdV = 0; ibath < Dimension::nbath; ++ibath, idxQ0 += Dimension::FF) {
                     for (int j = 0; j < Dimension::Nb; ++j) {
                         for (int i = 0, idxQ = idxQ0; i < Dimension::FF; ++i, ++idxQ, ++idxdV) {

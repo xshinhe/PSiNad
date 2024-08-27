@@ -68,8 +68,8 @@ class Kernel_Random : public Kernel {
     static int rand_sphere(kids_real* res_arr, int N = 1, kids_real constr = 1.0f);
 
    private:
-    int* seed;
-    bool restart;
+    span<kids_int> seed;
+    bool           restart;
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 

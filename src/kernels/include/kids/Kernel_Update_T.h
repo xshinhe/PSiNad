@@ -39,13 +39,15 @@ class Kernel_Update_T : public Kernel {
     virtual int getType() const;
 
    private:
-    double *p, *m;
+    span<kids_real> p, m;
     // for Langevin
-    double *c1, *c2p;
+    span<kids_real> c1, c2p;
     // for NHC
-    double *nhc_x, *nhc_p, *nhc_G, *nhc_Q;
+    span<kids_real> nhc_x, nhc_p, nhc_G, nhc_Q;
     //
-    double scale, *dt_ptr;
+    span<kids_real> dt_ptr;
+
+    double scale;
     double beta;
     double gammal;
     double randu;

@@ -21,8 +21,8 @@ void Kernel_Update_T::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     p      = DS->def(DATA::integrator::p);
 
     // if Langevin dynamics, set optimal c1 & c2p
-    c1  = DS->def_real("integrator.c1", Dimension::PN);
-    c2p = DS->def_real("integrator.c2p", Dimension::PN);
+    c1  = DS->def(DATA::integrator::c1);
+    c2p = DS->def(DATA::integrator::c2p);
     for (int i = 0; i < Dimension::PN; ++i) {
         c1[i]  = exp(-gammal * scale * dt_ptr[0]);
         c2p[i] = sqrt(1.0 - c1[i] * c1[i]);

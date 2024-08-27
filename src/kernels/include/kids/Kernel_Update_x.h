@@ -38,10 +38,11 @@ class Kernel_Update_x final : public Kernel {
     virtual int getType() const;
 
    private:
-    double *x, *p, *m, *minv;
-    double  scale, *dt;
+    span<kids_real> x, p, m, minv;
+    span<kids_real> dt;
+    double          scale;
 
-    kids_real *mono, *monodt;
+    span<kids_real> mono, monodt;
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 

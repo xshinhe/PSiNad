@@ -59,7 +59,7 @@ class elec_utils {
 
 
     /**
-     * @brief convert c (electonic amplititude) to kernel (affine map of the density)
+     * @brief convert kernel to kernel (affine map of the density)
      */
     static int ker_from_rho(kids_complex* ker, kids_complex* rho, kids_real xi, kids_real gamma, int fdim,
                             bool quantize = false, int occ = -1) {
@@ -338,7 +338,11 @@ class elec_utils {
         return 0;
     }
 
-    static int c_window(kids_complex* c, int iocc, int type, int fdim) {
+    static int c_window(kids_complex* c,     // array[fdim]: c = (xele + im*pele) / sqrt(2)
+                        int           iocc,  // index state which is occupied (count from 0)
+                        int           type,  // window type (default TRI: triangle window function)
+                        int           fdim   // DoFs of electonic states
+    ) {
         switch (type) {
             case SQCPolicy::TRI: {
                 kids_real tmp2[2];

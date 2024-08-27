@@ -117,23 +117,23 @@ void Sampling_MC::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
 Status& Sampling_MC::executeKernel_impl(Status& stat) {
     // @begin debug
-    // for (int iP = 0; iP < Dimension::P; ++iP) {
-    //     kids_real* x = this->x + iP * Dimension::N;
-    //     kids_real* p = this->p + iP * Dimension::N;
-    //     for (int j = 0; j < Dimension::N; ++j) {
-    //         x[j] = iP * 0.02 * (iP % 2 - 0.5) + 0.1 * j;
-    //         p[j] = -iP * 0.02 * (iP % 2 - 0.5) + 0.2 * j;
-    //     }
-    // }
+    for (int iP = 0; iP < Dimension::P; ++iP) {
+        auto x = this->x.subspan(iP * Dimension::N, Dimension::N);
+        auto p = this->p.subspan(iP * Dimension::N, Dimension::N);
+        //     for (int j = 0; j < Dimension::N; ++j) {
+        //         x[j] = iP * 0.02 * (iP % 2 - 0.5) + 0.1 * j;
+        //         p[j] = -iP * 0.02 * (iP % 2 - 0.5) + 0.2 * j;
+        //     }
+    }
     // @end debug
 
     // assuming Nucl & Elec are already performed. the following will give revision
 
     if (samp_type == 1) {  // overlap re-sampling
         for (int iP = 0; iP < Dimension::P; ++iP) {
-            kids_real*    x = this->x + iP * Dimension::N;
-            kids_real*    p = this->p + iP * Dimension::N;
-            kids_complex* c = this->c + iP * Dimension::N;
+            auto x = this->x.subspan(iP * Dimension::N, Dimension::N);
+            auto p = this->p.subspan(iP * Dimension::N, Dimension::N);
+            auto c = this->c.subspan(iP * Dimension::N, Dimension::N);
             for (int j = 0; j < Dimension::N; ++j) {
                 x[j] = this->x[j];
                 p[j] = this->p[j];
@@ -142,9 +142,9 @@ Status& Sampling_MC::executeKernel_impl(Status& stat) {
     }
     if (samp_type == 2) {  // neighbourhood re-sampling
         for (int iP = 0; iP < Dimension::P; ++iP) {
-            kids_real*    x = this->x + iP * Dimension::N;
-            kids_real*    p = this->p + iP * Dimension::N;
-            kids_complex* c = this->c + iP * Dimension::N;
+            auto x = this->x.subspan(iP * Dimension::N, Dimension::N);
+            auto p = this->p.subspan(iP * Dimension::N, Dimension::N);
+            auto c = this->c.subspan(iP * Dimension::N, Dimension::N);
             if (iP > 0) {  // fluctuation
                 for (int j = 0; j < Dimension::N; ++j) {
                     double randu;
@@ -163,19 +163,19 @@ Status& Sampling_MC::executeKernel_impl(Status& stat) {
         _krepr->executeKernel(stat);
         _kforce->executeKernel(stat);
         for (int iP = 1; iP < Dimension::P; ++iP) {
-            kids_real*    x_now       = x + iP * Dimension::N;
-            kids_real*    p_now       = p + iP * Dimension::N;
-            kids_real*    f_now       = f + iP * Dimension::N;
-            kids_complex* U_now       = this->U + iP * Dimension::FF;
-            kids_complex* c_now       = this->c + iP * Dimension::F;
-            kids_complex* rho_nuc_now = this->rho_nuc + iP * Dimension::FF;
-            kids_real*    x_prev      = x + std::max({iP - 2, 0}) * Dimension::N;
-            kids_real*    p_prev      = p + std::max({iP - 2, 0}) * Dimension::N;
-            kids_real*    f_prev      = f + std::max({iP - 2, 0}) * Dimension::N;
-            kids_complex* U_prev      = this->U + std::max({iP - 2, 0}) * Dimension::FF;
-            kids_real*    eig_now     = eig + iP * Dimension::F;
-            kids_real*    T_now       = T + iP * Dimension::FF;
-            kids_complex* Udt_now     = Udt + iP * Dimension::FF;
+            auto x_now       = this->x.subspan(iP * Dimension::N, Dimension::N);
+            auto p_now       = this->p.subspan(iP * Dimension::N, Dimension::N);
+            auto f_now       = this->f.subspan(iP * Dimension::N, Dimension::N);
+            auto U_now       = this->U.subspan(iP * Dimension::FF, Dimension::FF);
+            auto c_now       = this->c.subspan(iP * Dimension::F, Dimension::F);
+            auto rho_nuc_now = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);
+            auto x_prev      = this->x.subspan(std::max({iP - 2, 0}) * Dimension::N, Dimension::N);
+            auto p_prev      = this->p.subspan(std::max({iP - 2, 0}) * Dimension::N, Dimension::N);
+            auto f_prev      = this->f.subspan(std::max({iP - 2, 0}) * Dimension::N, Dimension::N);
+            auto U_prev      = this->U.subspan(std::max({iP - 2, 0}) * Dimension::FF, Dimension::FF);
+            auto eig_now     = this->eig.subspan(iP * Dimension::F, Dimension::F);
+            auto T_now       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+            auto Udt_now     = this->Udt.subspan(iP * Dimension::FF, Dimension::FF);
 
             kids_real signdt = (iP % 2 == 0) ? dt : -dt;
 
@@ -192,14 +192,14 @@ Status& Sampling_MC::executeKernel_impl(Status& stat) {
                         for (int i = 0; i < Dimension::F; ++i) {  //
                             fun_diag_F[i] = exp(-phys::math::im * eig_now[i] * signdt);
                         }
-                        ARRAY_MATMUL3_TRANS2(Udt_now, T_now, fun_diag_F, T_now, Dimension::F, Dimension::F, 0,
-                                             Dimension::F);
+                        ARRAY_MATMUL3_TRANS2(Udt_now.data(), T_now.data(), fun_diag_F.data(), T_now.data(),  //
+                                             Dimension::F, Dimension::F, 0, Dimension::F);
                         break;
                     }
                 }
-                ARRAY_MATMUL(U_now, Udt_now, U_prev, Dimension::F, Dimension::F, Dimension::F);
-                ARRAY_MATMUL(c_now, U_now, c, Dimension::F, Dimension::F, 1);
-                elec_utils::ker_from_c(rho_nuc_now, c_now, xi, gamma, Dimension::F);
+                ARRAY_MATMUL(U_now.data(), Udt_now.data(), U_prev.data(), Dimension::F, Dimension::F, Dimension::F);
+                ARRAY_MATMUL(c_now.data(), U_now.data(), c.data(), Dimension::F, Dimension::F, 1);
+                elec_utils::ker_from_c(rho_nuc_now.data(), c_now.data(), xi, gamma, Dimension::F);
                 _kforce->executeKernel(stat);
                 for (int j = 0; j < Dimension::N; ++j) p_now[j] -= f_now[j] * 0.5 * signdt;
             }
@@ -208,12 +208,12 @@ Status& Sampling_MC::executeKernel_impl(Status& stat) {
         }
 
         for (int iP = 0; iP < Dimension::P; ++iP) {
-            kids_complex* w       = this->w + iP;
-            kids_complex* U       = this->U + iP * Dimension::FF;
-            int*          occ_nuc = this->occ_nuc + iP;
-            w[0]                  = 1.0e0;  ///< initial measure
-            occ_nuc[0]            = occ0;   ///< initial occupation
-            ARRAY_EYE(U, Dimension::F);     ///< initial propagator reset to identity
+            auto w       = this->w.subspan(iP, 1);
+            auto U       = this->U.subspan(iP * Dimension::FF, Dimension::FF);
+            auto occ_nuc = this->occ_nuc.subspan(iP, 1);
+            w[0]         = 1.0e0;               ///< initial measure
+            occ_nuc[0]   = occ0;                ///< initial occupation
+            ARRAY_EYE(U.data(), Dimension::F);  ///< initial propagator reset to identity
         }
     }
     _kmodel->executeKernel(stat);
@@ -232,12 +232,12 @@ Status& Sampling_MC::executeKernel_impl(Status& stat) {
     P_used_ptr[0] = P_used;
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
 
-    _dataset->def_real("init.x", x, Dimension::PN);
-    _dataset->def_real("init.p", p, Dimension::PN);
-    _dataset->def_complex("init.c", c, Dimension::PF);
-    _dataset->def_complex("init.rho_ele", rho_ele, Dimension::PFF);
-    _dataset->def_complex("init.rho_nuc", rho_nuc, Dimension::PFF);
-    _dataset->def_real("init.T", T, Dimension::PFF);
+    _dataset->def(DATA::init::x, x);
+    _dataset->def(DATA::init::p, p);
+    _dataset->def(DATA::init::c, c);
+    _dataset->def(DATA::init::rho_ele, rho_ele);
+    _dataset->def(DATA::init::rho_nuc, rho_nuc);
+    _dataset->def(DATA::init::T, T);
 
     norm_ptr[0] = 1.0e0;
     // PRINT_ARRAY(Acoeff, 1, Dimension::P);

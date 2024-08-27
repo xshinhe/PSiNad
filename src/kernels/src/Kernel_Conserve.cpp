@@ -46,21 +46,32 @@ Status& Kernel_Conserve::initializeKernel_impl(Status& stat) {
     return stat;
 };
 
+#define DECLARE_LOCAL_SPAN(varname, iparrallel, size) auto varname = this->varname.subspan(iparrallel * size, size)
+
 Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
-    // if (!succ_ptr[0] && fail_type_ptr[0] == 1) {
-    //     return stat;  //
-    // }
     if (stat.frozen) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real* E         = this->E + iP * Dimension::F;
-        kids_real* p         = this->p + iP * Dimension::N;
-        kids_real* m         = this->m + iP * Dimension::N;
-        kids_real* Etot      = this->Etot + iP;
-        kids_real* Etot_init = this->Etot_init + iP;
-        kids_real* Ekin      = this->Ekin + iP;
-        kids_real* Epot      = this->Epot + iP;
-        kids_real* vpes      = this->vpes + iP;
+        // DECLARE_LOCAL_SPAN(E, iP, Dimension::F);
+
+        auto E         = this->E.subspan(iP * Dimension::F, Dimension::F);
+        auto p         = this->p.subspan(iP * Dimension::N, Dimension::N);
+        auto m         = this->m.subspan(iP * Dimension::N, Dimension::N);
+        auto Etot      = this->Etot.subspan(iP, 1);
+        auto Etot_init = this->Etot_init.subspan(iP, 1);
+        auto Etot_prev = this->Etot_prev.subspan(iP, 1);
+        auto Ekin      = this->Ekin.subspan(iP, 1);
+        auto Epot      = this->Epot.subspan(iP, 1);
+        auto vpes      = this->vpes.subspan(iP, 1);
+        // kids_real* E         = this->E + iP * Dimension::F;
+        // kids_real* p         = this->p + iP * Dimension::N;
+        // kids_real* m         = this->m + iP * Dimension::N;
+        // kids_real* Etot      = this->Etot + iP;
+        // kids_real* Etot_init = this->Etot_init + iP;
+        // kids_real* Etot_prev = this->Etot_prev + iP;
+        // kids_real* Ekin      = this->Ekin + iP;
+        // kids_real* Epot      = this->Epot + iP;
+        // kids_real* vpes      = this->vpes + iP;
 
         Ekin[0] = 0.0e0;
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];

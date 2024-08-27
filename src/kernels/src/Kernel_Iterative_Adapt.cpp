@@ -39,16 +39,11 @@ void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dtsize       = DS->def(DATA::flowcontrol::dtsize);
     at_condition = DS->def(DATA::flowcontrol::at_condition);
 
-    succ_ptr         = DS->def(DATA::flowcontrol::succ);
-    last_attempt_ptr = DS->def(DATA::flowcontrol::last_attempt);
-    frez_ptr         = DS->def(DATA::flowcontrol::frez);
-    fail_type_ptr    = DS->def(DATA::flowcontrol::fail_type);
-
     // initializarion
-    DS->def_int("flowcontrol.sstep", &sstep);
-    DS->def_int("flowcontrol.nstep", &nstep);
-    DS->def_int("flowcontrol.nsamp", &nsamp);
-    DS->def_int("flowcontrol.msize", &msize);
+    DS->def(VARIABLE<kids_int>("flowcontrol.sstep", &Dimension::shape_1, "@"))[0] = sstep;
+    DS->def(VARIABLE<kids_int>("flowcontrol.nstep", &Dimension::shape_1, "@"))[0] = nstep;
+    DS->def(VARIABLE<kids_int>("flowcontrol.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
+    DS->def(VARIABLE<kids_int>("flowcontrol.msize", &Dimension::shape_1, "@"))[0] = msize;
 }
 
 Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {

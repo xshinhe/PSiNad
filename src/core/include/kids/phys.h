@@ -9,6 +9,13 @@
 #include <iostream>
 #include <map>
 
+// iso standard:
+// C++98   #define __cplusplus 199711
+// C++11   #define __cplusplus 201103
+// C++14   #define __cplusplus 201402
+// C++17   #define __cplusplus 201703
+// C++20   #define __cplusplus 202002
+
 #if (__cplusplus < 201402L)
 /** make this header is compatible to c++11 standard */
 #define CONSTTYPE const
@@ -148,7 +155,7 @@ class dimensions {
         return dimensions{array_add(_data, rdim._data)};
     }
     inline constexpr dimensions power(const T index) const { return dimensions{array_scale(_data, index)}; }
-    inline std::string to_string() const {
+    inline std::string          to_string() const {
         std::ostringstream os;
         os << "<";
         for (auto i : _data) os << i << ", ";
@@ -160,7 +167,7 @@ class dimensions {
 /**
  * @brief dimension7 is provided as compile-time dimensional tools
  */
-const int dimension7_size = 7;
+const int                                           dimension7_size = 7;
 typedef dimensions<real_precision, dimension7_size> dimension7;
 enum dimension7_type {
     _L,  // length dimension7
@@ -454,7 +461,7 @@ inline constexpr uval operator/(const uval& lhs, const uval& rhs) {
 }
 inline constexpr uval operator/(const real_precision& lhs, const uval& rhs) { return uval(lhs) / rhs; }
 inline constexpr uval operator/(const uval& lhs, const real_precision& rhs) { return lhs / uval(rhs); }
-inline const uval operator+(const uval& lhs, const uval& rhs) {
+inline const uval     operator+(const uval& lhs, const uval& rhs) {
     if (lhs.dim != rhs.dim) { throw unit_error("add function must fit the same unit"); }
     return uval(lhs.dim, lhs.value + rhs.value);
 }
@@ -587,10 +594,10 @@ CONSTEXPR_DECOR T exp_int(int n) {
 }
 template <typename T>
 CONSTEXPR_DECOR long double exp(T num) {
-    long double sum  = 0L;
-    long double term = 1L;
-    long int num_i   = (long int) (num);
-    long double pref = exp_int<long double>(num_i);
+    long double sum   = 0L;
+    long double term  = 1L;
+    long int    num_i = (long int) (num);
+    long double pref  = exp_int<long double>(num_i);
     num -= num_i;
     for (unsigned int count = 1; term >= 1e-100 || count < 100; ++count) {
         sum += term;
@@ -638,7 +645,7 @@ struct matrix {
 // gauss-jordan elimination
 template <typename T, std::size_t M, std::size_t N>
 CONSTTYPE std::tuple<matrix<T, M, N>, std::size_t, T> gauss_jordan_impl(matrix<T, M, N> m, T tolerance) {
-    T det         = 1;
+    T           det = 1;
     std::size_t i = 0, j = 0;
     while (i < M && j < N) {
         for (std::size_t ip = i + 1; ip < M; ++ip) {  // Choose largest magnitude as pivot
@@ -675,8 +682,8 @@ CONSTTYPE std::tuple<matrix<T, M, N>, std::size_t, T> gauss_jordan_impl(matrix<T
 
 template <typename T, std::size_t M>
 CONSTTYPE matrix<T, M, M> inverse(matrix<T, M, M> m) {
-    matrix<T, M, M> inv    = {};
-    matrix<T, M, 2 * M> mI = {};
+    matrix<T, M, M>     inv = {};
+    matrix<T, M, 2 * M> mI  = {};
     for (std::size_t i = 0; i < M; ++i) {
         std::size_t j = 0;
         for (std::size_t j1 = 0; j1 < M; ++j1, ++j) mI[i][j] = m[i][j1];
@@ -808,10 +815,10 @@ class unitsys {
             return parse(token1) / parse(token2);
         }
         if ((pos = str.find_last_of("^")) != str.npos) {
-            std::string token1 = str.substr(0, pos);
-            std::string token2 = str.substr(pos + 1);
+            std::string       token1 = str.substr(0, pos);
+            std::string       token2 = str.substr(pos + 1);
             std::stringstream sstr(token2);
-            value_type index;
+            value_type        index;
             sstr >> index;
             return power(parse(token1), index);
         }
@@ -842,7 +849,7 @@ class unitsys {
     static value_type as(const dimension7 dim, const uval& u, const unitsys& us) {
         value_type ovlp = reduce_l_energy(dim) * reduce_l_energy(u.dim);
         if (ovlp == 0) throw unit_error("invalid conversion");
-        uval ux       = (ovlp > 0) ? u : 1L / u;
+        uval       ux = (ovlp > 0) ? u : 1L / u;
         value_type vx = unitsys::conv(ux, us);
 
         value_type diffL = dim._data[0] - ux.dim._data[0];
@@ -867,22 +874,22 @@ class unitsys {
     /// @}
 };
 
-#define PHYS_DEFINE_UNITSYS_NAMESPACE(USNAME, _0, _1, _2, _3, _4, _5, _6)                                      \
-                                                                                                               \
-    namespace USNAME {                                                                                         \
-    using value_type = real_precision;                                                                         \
-    CONSTTYPE unitsys unit(_0, _1, _2, _3, _4, _5, _6);                                                        \
-    CONSTTYPE value_type c  = unitsys::conv(phys::c_lightspeed, unit);                                         \
-    CONSTTYPE value_type h  = unitsys::conv(phys::h_Planck, unit);                                             \
-    CONSTTYPE value_type hb = unitsys::conv(phys::hb_Planck, unit);                                            \
-    CONSTTYPE value_type ke = unitsys::conv(phys::ke_Comloub, unit);                                           \
-    CONSTTYPE value_type me = unitsys::conv(phys::me_mass, unit);                                              \
-    CONSTTYPE value_type e  = unitsys::conv(phys::e_charge, unit);                                             \
-    CONSTTYPE value_type k  = unitsys::conv(phys::k_Boltzman, unit);                                           \
-    CONSTTYPE value_type N  = unitsys::conv(phys::N_Avagadro, unit);                                           \
-    CONSTTYPE value_type G  = unitsys::conv(phys::G_gravitional_constant, unit);                               \
-    inline value_type as(const dimension7 dim, const uval& u) { return unitsys::as(dim, u, unit); }            \
-    inline value_type as(const dimension7 dim, const std::string& str) { return unitsys::as(dim, str, unit); } \
+#define PHYS_DEFINE_UNITSYS_NAMESPACE(USNAME, _0, _1, _2, _3, _4, _5, _6)                                         \
+                                                                                                                  \
+    namespace USNAME {                                                                                            \
+    using value_type = real_precision;                                                                            \
+    CONSTTYPE unitsys    unit(_0, _1, _2, _3, _4, _5, _6);                                                        \
+    CONSTTYPE value_type c  = unitsys::conv(phys::c_lightspeed, unit);                                            \
+    CONSTTYPE value_type h  = unitsys::conv(phys::h_Planck, unit);                                                \
+    CONSTTYPE value_type hb = unitsys::conv(phys::hb_Planck, unit);                                               \
+    CONSTTYPE value_type ke = unitsys::conv(phys::ke_Comloub, unit);                                              \
+    CONSTTYPE value_type me = unitsys::conv(phys::me_mass, unit);                                                 \
+    CONSTTYPE value_type e  = unitsys::conv(phys::e_charge, unit);                                                \
+    CONSTTYPE value_type k  = unitsys::conv(phys::k_Boltzman, unit);                                              \
+    CONSTTYPE value_type N  = unitsys::conv(phys::N_Avagadro, unit);                                              \
+    CONSTTYPE value_type G  = unitsys::conv(phys::G_gravitional_constant, unit);                                  \
+    inline value_type    as(const dimension7 dim, const uval& u) { return unitsys::as(dim, u, unit); }            \
+    inline value_type    as(const dimension7 dim, const std::string& str) { return unitsys::as(dim, str, unit); } \
     };
 
 /** \name universal namespace definitions for useful uval systems */

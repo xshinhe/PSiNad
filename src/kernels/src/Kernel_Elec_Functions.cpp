@@ -90,10 +90,11 @@ void Kernel_Elec_Functions::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     KTWD = DS->def(DATA::integrator::KTWD);
 
     ////
-
-    sqcw   = DS->def(DATA::integrator::sqcw);
-    trKTWA = DS->def(DATA::integrator::trKTWA);
-    trKTWD = DS->def(DATA::integrator::trKTWD);
+    ww_A_init = _dataset->def(VARIABLE<kids_complex>("init.ww_A", &Dimension::shape_P, "@"));
+    ww_D_init = _dataset->def(VARIABLE<kids_complex>("init.ww_D", &Dimension::shape_P, "@"));
+    sqcw      = DS->def(DATA::integrator::sqcw);
+    trKTWA    = DS->def(DATA::integrator::trKTWA);
+    trKTWD    = DS->def(DATA::integrator::trKTWD);
 
     OpA = DS->def(DATA::integrator::OpA);
     OpB = DS->def(DATA::integrator::OpB);
@@ -111,80 +112,111 @@ void Kernel_Elec_Functions::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     (DS->def(DATA::parameter::xiw))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gammaw))[0]);
     (DS->def(DATA::parameter::xir))[0]    = (1 + Dimension::F * (DS->def(DATA::parameter::gammar))[0]);
 
-    kids_real* Is = DS->def(DATA::parameter::Is);
+    auto Is = DS->def(DATA::parameter::Is);
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real* Is0 = Is + iP * Dimension::FF;
+        auto Is0 = Is.subspan(iP * Dimension::FF, Dimension::FF);
         for (int i = 0, ik = 0; i < Dimension::F; ++i)
             for (int k = 0; k < Dimension::F; ++k, ++ik) Is0[ik] = (i == k) ? 1.0e0 : 0.0e0;
     }
 }
 
 Status& Kernel_Elec_Functions::initializeKernel_impl(Status& stat) {
-    ww_A_init = _dataset->def_complex("init.ww_A", ww_A, Dimension::P);  // @bug!!!
-    ww_D_init = _dataset->def_complex("init.ww_D", ww_D, Dimension::P);
-    T_init    = _dataset->def_real("init.T", T, Dimension::PFF);
+    if (_param->get_bool({"restart"}, LOC(), false)) {  //
+        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
+        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
+        _dataset->def(VARIABLE<kids_real>("integrator.1", &Dimension::shape_1, "@"))[0] = 1;
+        _dataset->def(VARIABLE<kids_real>("init.1", &Dimension::shape_1, "@"))[0]       = 1;
+        _dataset->def(VARIABLE<kids_complex>("init.K0", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K1", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K2", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K1QA", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K2QA", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K1DA", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K2DA", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K1QD", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K2QD", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K1DD", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K2DD", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.KSHA", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.KTWA", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.KTWD", &Dimension::shape_PFF, "@"), loadfile);
+
+        _dataset->def(VARIABLE<kids_complex>("init.w", &Dimension::shape_P, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.wz_A", &Dimension::shape_P, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.wz_D", &Dimension::shape_P, "@"), loadfile);
+
+        // ? check if it is used ?
+        ww_A_init = _dataset->def(VARIABLE<kids_complex>("init.ww_A", &Dimension::shape_P, "@"), loadfile);
+        ww_D_init = _dataset->def(VARIABLE<kids_complex>("init.ww_D", &Dimension::shape_P, "@"), loadfile);
+        T_init    = _dataset->def(VARIABLE<kids_real>("init.T", &Dimension::shape_PFF, "@"), loadfile);
+        return stat;
+    }
+
 
     executeKernel_impl(stat);
-    double unit = 1.0e0;
-    _dataset->def_real("integrator.1", &unit);
-    _dataset->def_real("init.1", &unit);
-    _dataset->def_complex("init.K0", K0, Dimension::PFF);
-    _dataset->def_complex("init.K1", K1, Dimension::PFF);
-    _dataset->def_complex("init.K2", K2, Dimension::PFF);
-    _dataset->def_complex("init.K1QA", K1QA, Dimension::PFF);
-    _dataset->def_complex("init.K2QA", K2QA, Dimension::PFF);
-    _dataset->def_complex("init.K1DA", K1DA, Dimension::PFF);
-    _dataset->def_complex("init.K2DA", K2DA, Dimension::PFF);
-    _dataset->def_complex("init.K1QD", K1QD, Dimension::PFF);
-    _dataset->def_complex("init.K2QD", K2QD, Dimension::PFF);
-    _dataset->def_complex("init.K1DD", K1DD, Dimension::PFF);
-    _dataset->def_complex("init.K2DD", K2DD, Dimension::PFF);
+    _dataset->def(VARIABLE<kids_real>("integrator.1", &Dimension::shape_1, "@"))[0] = 1;
+    _dataset->def(VARIABLE<kids_real>("init.1", &Dimension::shape_1, "@"))[0]       = 1;
+    _dataset->def(VARIABLE<kids_complex>("init.K0", &Dimension::shape_PFF, "@"), K0);
+    _dataset->def(VARIABLE<kids_complex>("init.K1", &Dimension::shape_PFF, "@"), K1);
+    _dataset->def(VARIABLE<kids_complex>("init.K2", &Dimension::shape_PFF, "@"), K2);
+    _dataset->def(VARIABLE<kids_complex>("init.K1QA", &Dimension::shape_PFF, "@"), K1QA);
+    _dataset->def(VARIABLE<kids_complex>("init.K2QA", &Dimension::shape_PFF, "@"), K2QA);
+    _dataset->def(VARIABLE<kids_complex>("init.K1DA", &Dimension::shape_PFF, "@"), K1DA);
+    _dataset->def(VARIABLE<kids_complex>("init.K2DA", &Dimension::shape_PFF, "@"), K2DA);
+    _dataset->def(VARIABLE<kids_complex>("init.K1QD", &Dimension::shape_PFF, "@"), K1QD);
+    _dataset->def(VARIABLE<kids_complex>("init.K2QD", &Dimension::shape_PFF, "@"), K2QD);
+    _dataset->def(VARIABLE<kids_complex>("init.K1DD", &Dimension::shape_PFF, "@"), K1DD);
+    _dataset->def(VARIABLE<kids_complex>("init.K2DD", &Dimension::shape_PFF, "@"), K2DD);
 
-    _dataset->def_complex("init.KSHA", KSHA, Dimension::PFF);
-    _dataset->def_complex("init.KTWA", KTWA, Dimension::PFF);
-    _dataset->def_complex("init.KTWD", KTWD, Dimension::PFF);
 
-    _dataset->def_complex("init.w", w, Dimension::P);
-    _dataset->def_complex("init.wz_A", wz_A, Dimension::P);
-    _dataset->def_complex("init.wz_D", wz_D, Dimension::P);
-    ww_A_init = _dataset->def_complex("init.ww_A", ww_A, Dimension::P);
-    ww_D_init = _dataset->def_complex("init.ww_D", ww_D, Dimension::P);
-    T_init    = _dataset->def_real("init.T", T, Dimension::PFF);
+    _dataset->def(VARIABLE<kids_complex>("init.KSHA", &Dimension::shape_PFF, "@"), KSHA);
+    _dataset->def(VARIABLE<kids_complex>("init.KTWA", &Dimension::shape_PFF, "@"), KTWA);
+    _dataset->def(VARIABLE<kids_complex>("init.KTWD", &Dimension::shape_PFF, "@"), KTWD);
+
+    _dataset->def(VARIABLE<kids_complex>("init.w", &Dimension::shape_P, "@"), w);
+    _dataset->def(VARIABLE<kids_complex>("init.wz_A", &Dimension::shape_P, "@"), wz_A);
+    _dataset->def(VARIABLE<kids_complex>("init.wz_D", &Dimension::shape_P, "@"), wz_D);
+
+
+    // ? check if it is used ?
+    ww_A_init = _dataset->def(VARIABLE<kids_complex>("init.ww_A", &Dimension::shape_P, "@"), ww_A);
+    ww_D_init = _dataset->def(VARIABLE<kids_complex>("init.ww_D", &Dimension::shape_P, "@"), ww_D);
+    T_init    = _dataset->def(VARIABLE<kids_real>("init.T", &Dimension::shape_PFF, "@"), T);
     return stat;
 }
 
 Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_complex* wz_A    = this->wz_A + iP;
-        kids_complex* wz_D    = this->wz_D + iP;
-        kids_complex* ww_A    = this->ww_A + iP;
-        kids_complex* ww_D    = this->ww_D + iP;
-        kids_complex* rho_ele = this->rho_ele + iP * Dimension::FF;
-        kids_complex* K0      = this->K0 + iP * Dimension::FF;
-        kids_complex* K1      = this->K1 + iP * Dimension::FF;
-        kids_complex* K2      = this->K2 + iP * Dimension::FF;
-        kids_complex* K1QA    = this->K1QA + iP * Dimension::FF;
-        kids_complex* K2QA    = this->K2QA + iP * Dimension::FF;
-        kids_complex* K1DA    = this->K1DA + iP * Dimension::FF;
-        kids_complex* K2DA    = this->K2DA + iP * Dimension::FF;
-        kids_complex* K1QD    = this->K1QD + iP * Dimension::FF;
-        kids_complex* K2QD    = this->K2QD + iP * Dimension::FF;
-        kids_complex* K1DD    = this->K1DD + iP * Dimension::FF;
-        kids_complex* K2DD    = this->K2DD + iP * Dimension::FF;
-        kids_complex* KSHA    = this->KSHA + iP * Dimension::FF;
-        kids_complex* KTWA    = this->KTWA + iP * Dimension::FF;
-        kids_complex* KTWD    = this->KTWD + iP * Dimension::FF;
+        auto wz_A    = this->wz_A.subspan(iP, 1);
+        auto wz_D    = this->wz_D.subspan(iP, 1);
+        auto ww_A    = this->ww_A.subspan(iP, 1);
+        auto ww_D    = this->ww_D.subspan(iP, 1);
+        auto rho_ele = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K0      = this->K0.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K1      = this->K1.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K2      = this->K2.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K1QA    = this->K1QA.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K2QA    = this->K2QA.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K1DA    = this->K1DA.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K2DA    = this->K2DA.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K1QD    = this->K1QD.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K2QD    = this->K2QD.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K1DD    = this->K1DD.subspan(iP * Dimension::FF, Dimension::FF);
+        auto K2DD    = this->K2DD.subspan(iP * Dimension::FF, Dimension::FF);
+        auto KSHA    = this->KSHA.subspan(iP * Dimension::FF, Dimension::FF);
+        auto KTWA    = this->KTWA.subspan(iP * Dimension::FF, Dimension::FF);
+        auto KTWD    = this->KTWD.subspan(iP * Dimension::FF, Dimension::FF);
 
-        kids_real* sqcw   = this->sqcw + iP * Dimension::F;  // losed identity of sqc
-        kids_real* trKTWA = this->trKTWA + iP;               // losed identity of sqc
-        kids_real* trKTWD = this->trKTWD + iP;               // losed identity of sqc
+        auto sqcw    = this->sqcw.subspan(iP * Dimension::F, Dimension::F);  // losed identity of sqc
+        auto trKTWA  = this->trKTWA.subspan(iP, 1);                          // losed identity of sqc
+        auto trKTWD  = this->trKTWD.subspan(iP, 1);                          // losed identity of sqc
+        auto T       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        auto occ_nuc = this->occ_nuc.subspan(iP, 1);
 
-        kids_real* T       = this->T + iP * Dimension::FF;
-        int*       occ_nuc = this->occ_nuc + iP;
 
-        Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
-                                         Kernel_Representation::inp_repr_type,  //
-                                         RepresentationPolicy::Adiabatic,       //
+        Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::inp_repr_type,    //
+                                         RepresentationPolicy::Adiabatic,         //
                                          SpacePolicy::L);
 
         // 1) Adiabatic representation
@@ -195,62 +227,67 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
             wz_A[0] *= std::abs(rho_ele[occ0 * Dimension::Fadd1] - rho_ele[ii]);
         }
 
-        int    max_pop = elec_utils::max_choose(rho_ele);
+
+        int    max_pop = elec_utils::max_choose(rho_ele.data());
         double max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
 
         // K1Q simplex quantization
         int act = ((use_fall) ? occ_nuc[0] : max_pop);
-        elec_utils::ker_from_rho(K1QA, rho_ele, 1, 0, Dimension::F, true, act);
-        ARRAY_MAT_DIAG(K1DA, K1QA, Dimension::F);
+        elec_utils::ker_from_rho(K1QA.data(), rho_ele.data(), 1, 0, Dimension::F, true, act);
+        ARRAY_MAT_DIAG(K1DA.data(), K1QA.data(), Dimension::F);
+
 
         ww_A[0] = 4.0 - 1.0 / (max_val * max_val);
+
+
         ww_A[0] = std::min({std::abs(ww_A[0]), std::abs(ww_A_init[0])});
 
+
         // K2Q cutoff quantization (w2-window)
-        elec_utils::ker_from_rho(K2QA, rho_ele, 1, 0, Dimension::F);
+        elec_utils::ker_from_rho(K2QA.data(), rho_ele.data(), 1, 0, Dimension::F);
         for (int i = 0; i < Dimension::F; ++i) {
             K2QA[i * Dimension::Fadd1]  //
                 = (std::abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
-        ARRAY_MAT_DIAG(K2DA, K2QA, Dimension::F);
+        ARRAY_MAT_DIAG(K2DA.data(), K2QA.data(), Dimension::F);
 
         // kernel for FSSH
-        elec_utils::ker_from_rho(KSHA, rho_ele, 1, 0, Dimension::F, true, occ_nuc[0]);
+        elec_utils::ker_from_rho(KSHA.data(), rho_ele.data(), 1, 0, Dimension::F, true, occ_nuc[0]);
 
         // kernel for TW
-        elec_utils::ker_binning(KTWA, rho_ele, SQCPolicy::TRI);
-        trKTWA[0] = std::real(ARRAY_TRACE1(KTWA, Dimension::F, Dimension::F));
+        elec_utils::ker_binning(KTWA.data(), rho_ele.data(), SQCPolicy::TRI);
+        trKTWA[0] = std::real(ARRAY_TRACE1(KTWA.data(), Dimension::F, Dimension::F));
 
-        Kernel_Representation::transform(K1QA, T, Dimension::F,                 //
+        Kernel_Representation::transform(K1QA.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K2QA, T, Dimension::F,                 //
+        Kernel_Representation::transform(K2QA.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K1DA, T, Dimension::F,                 //
+        Kernel_Representation::transform(K1DA.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K2DA, T, Dimension::F,                 //
+        Kernel_Representation::transform(K2DA.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(KSHA, T, Dimension::F,                 //
+        Kernel_Representation::transform(KSHA.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Adiabatic,       //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
 
         // 2) Diabatic representation
-        Kernel_Representation::transform(rho_ele, T, Dimension::F,         //
-                                         RepresentationPolicy::Adiabatic,  //
-                                         RepresentationPolicy::Diabatic,   //
+        Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                         RepresentationPolicy::Adiabatic,         //
+                                         RepresentationPolicy::Diabatic,          //
                                          SpacePolicy::L);
 
-        elec_utils::ker_from_rho(K0, rho_ele, 1.0e0, 0.0e0, Dimension::F);
-        elec_utils::ker_from_rho(K1, rho_ele, xi1, gamma1, Dimension::F);
-        elec_utils::ker_from_rho(K2, rho_ele, xi2, gamma2, Dimension::F);
+        elec_utils::ker_from_rho(K0.data(), rho_ele.data(), 1.0e0, 0.0e0, Dimension::F);
+        elec_utils::ker_from_rho(K1.data(), rho_ele.data(), xi1, gamma1, Dimension::F);
+        elec_utils::ker_from_rho(K2.data(), rho_ele.data(), xi2, gamma2, Dimension::F);
 
         wz_D[0] = 1.0e0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
@@ -258,19 +295,19 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
             wz_D[0] *= std::abs(rho_ele[occ0 * Dimension::Fadd1] - rho_ele[ii]);
         }
 
-        max_pop = elec_utils::max_choose(rho_ele);
+        max_pop = elec_utils::max_choose(rho_ele.data());
         max_val = std::abs(rho_ele[max_pop * Dimension::Fadd1]);
 
-        elec_utils::ker_from_rho(K1QD, rho_ele, 1, 0, Dimension::F, true, max_pop);
-        ARRAY_MAT_DIAG(K1DD, K1QD, Dimension::F);
+        elec_utils::ker_from_rho(K1QD.data(), rho_ele.data(), 1, 0, Dimension::F, true, max_pop);
+        ARRAY_MAT_DIAG(K1DD.data(), K1QD.data(), Dimension::F);
 
-        elec_utils::ker_from_rho(K2QD, rho_ele, 1, 0, Dimension::F);
+        elec_utils::ker_from_rho(K2QD.data(), rho_ele.data(), 1, 0, Dimension::F);
         for (int i = 0; i < Dimension::F; ++i) {
             K2QD[i * Dimension::Fadd1] = (std::abs(rho_ele[i * Dimension::Fadd1]) < 1 / xi1) ? 0.0e0 : 1.0e0;
         }
         // if (use_strange_win)  // something else
         //     elec_utils::calc_distorted_rho(K2QD, rho_ele, 1, 0, 0.2);
-        ARRAY_MAT_DIAG(K2DD, K2QD, Dimension::F);
+        ARRAY_MAT_DIAG(K2DD.data(), K2QD.data(), Dimension::F);
 
         ww_D[0] = 4.0 - 1.0 / (max_val * max_val);
         if (check_cxs) {
@@ -284,9 +321,9 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
 
         // general squeezed sqc
         if (false) {
-            Kernel_Representation::transform(rho_ele_init, T_init, Dimension::F,    //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             RepresentationPolicy::Diabatic,        //
+            Kernel_Representation::transform(rho_ele_init.data(), T_init.data(), Dimension::F,  //
+                                             Kernel_Representation::inp_repr_type,              //
+                                             RepresentationPolicy::Diabatic,                    //
                                              SpacePolicy::L);
             double vmax0 = 0.0e0, vsec0 = 0.0e0;
             double vmaxt = 0.0e0, vsect = 0.0e0;
@@ -312,13 +349,13 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
             } else {
                 ww_D[0] = 0.0e0;
             }
-            Kernel_Representation::transform(rho_ele_init, T_init, Dimension::F,    //
-                                             RepresentationPolicy::Diabatic,        //
-                                             Kernel_Representation::inp_repr_type,  //
+            Kernel_Representation::transform(rho_ele_init.data(), T_init.data(), Dimension::F,  //
+                                             RepresentationPolicy::Diabatic,                    //
+                                             Kernel_Representation::inp_repr_type,              //
                                              SpacePolicy::L);
         }
 
-        elec_utils::ker_binning(KTWD, rho_ele, SQCPolicy::TRI);
+        elec_utils::ker_binning(KTWD.data(), rho_ele.data(), SQCPolicy::TRI);
         if (count_exec <= 0) {  // only count at the beginning
             for (int k = 0; k < Dimension::F; ++k) {
                 double radius = std::abs(2.0e0 - rho_ele[occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
@@ -326,43 +363,43 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
             }
         }
         if (sqc_init == 2) {  // overload for KTWD by shangyouhao
-            int    imax = elec_utils::max_choose(rho_ele);
+            int    imax = elec_utils::max_choose(rho_ele.data());
             double vmax = std::abs(rho_ele[imax * Dimension::Fadd1]);
             for (int ik = 0; ik < Dimension::FF; ++ik) KTWD[ik] = 0.0e0;
             if (vmax * vmax * 8.0e0 / 7.0e0 * (Dimension::F + 0.5e0) > 1) KTWD[imax * Dimension::Fadd1] = 1.0e0;
         }
-        trKTWD[0] = std::real(ARRAY_TRACE1(KTWD, Dimension::F, Dimension::F));
+        trKTWD[0] = std::real(ARRAY_TRACE1(KTWD.data(), Dimension::F, Dimension::F));
 
         // 5) transform back from tcf_repr => inp_repr
-        Kernel_Representation::transform(rho_ele, T, Dimension::F,              //
+        Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                         RepresentationPolicy::Diabatic,          //
+                                         Kernel_Representation::inp_repr_type,    //
+                                         SpacePolicy::L);
+        Kernel_Representation::transform(K0.data(), T.data(), Dimension::F,     //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K0, T, Dimension::F,                   //
+        Kernel_Representation::transform(K1.data(), T.data(), Dimension::F,     //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K1, T, Dimension::F,                   //
+        Kernel_Representation::transform(K2.data(), T.data(), Dimension::F,     //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K2, T, Dimension::F,                   //
+        Kernel_Representation::transform(K1QD.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K1QD, T, Dimension::F,                 //
+        Kernel_Representation::transform(K2QD.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K2QD, T, Dimension::F,                 //
+        Kernel_Representation::transform(K1DD.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);
-        Kernel_Representation::transform(K1DD, T, Dimension::F,                 //
-                                         RepresentationPolicy::Diabatic,        //
-                                         Kernel_Representation::inp_repr_type,  //
-                                         SpacePolicy::L);
-        Kernel_Representation::transform(K2DD, T, Dimension::F,                 //
+        Kernel_Representation::transform(K2DD.data(), T.data(), Dimension::F,   //
                                          RepresentationPolicy::Diabatic,        //
                                          Kernel_Representation::inp_repr_type,  //
                                          SpacePolicy::L);

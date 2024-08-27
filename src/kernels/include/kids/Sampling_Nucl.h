@@ -56,8 +56,8 @@ class Sampling_Nucl final : public Kernel {
     std::string                  sampling_file;
     kids_real                    beta;
 
-    kids_real *x, *p;
-    kids_real *x0, *p0, *x_sigma, *p_sigma, *w, *mass, *Tmod;
+    span<kids_real> x, p;
+    span<kids_real> x0, p0, x_sigma, p_sigma, w, mass, Tmod;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

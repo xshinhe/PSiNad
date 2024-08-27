@@ -877,8 +877,8 @@ void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param> PM) {
 };
 
 void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    Hsys = DS->def_real("model.Hsys", Dimension::FF);
-    memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
+    Hsys = DS->def(DATA::model::Hsys);
+    memset(Hsys.data(), 0, Dimension::FF * sizeof(kids_real));
 
     if (nad1d_type == NAD1DPolicy::PURE) {
         std::ifstream ifs("Hsys.dat");
@@ -918,9 +918,6 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     double  dx      = (2 * fabs(x0_read)) / (Nxgird - 1);
     double* xgrid   = DS->def_real("integrator.xgrid", Nxgird);
     for (int i = 0; i < Nxgird; ++i) xgrid[i] = -abs(x0_read) + i * dx;
-
-    DS->def(DATA::init::x);
-    DS->def(DATA::init::p);
 
     mass[0]     = _param->get_real({"model.m0"}, LOC(), 2000.0e0);
     x0[0]       = _param->get_real({"model.x0"}, LOC(), 100.0e0);
@@ -1033,8 +1030,8 @@ Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
             break;
         }
         default: {
-            Kernel_Random::rand_gaussian(x, Dimension::N);
-            Kernel_Random::rand_gaussian(p, Dimension::N);
+            Kernel_Random::rand_gaussian(x.data(), Dimension::N);
+            Kernel_Random::rand_gaussian(p.data(), Dimension::N);
             for (int j = 0; j < Dimension::N; ++j) {
                 x[j] = x0[j] + x[j] * x_sigma[j];
                 p[j] = p0[j] + p[j] * p_sigma[j];
@@ -1047,8 +1044,8 @@ Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
     } else {
         p_sign[0] = phys::math::iz, p_sign[1] = phys::math::iu;
     }
-    _dataset->def(DATA::init::x);
-    _dataset->def(DATA::init::p);
+    _dataset->def(DATA::init::x, x);
+    _dataset->def(DATA::init::p, p);
     executeKernel(stat);
     return stat;
 }
@@ -1056,61 +1053,61 @@ Status& Model_NAD1D::initializeKernel_impl(Status& stat) {
 Status& Model_NAD1D::executeKernel_impl(Status& stat) {
     switch (nad1d_type) {
         case NAD1DPolicy::SAC:
-            mspes_SAC(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_SAC(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::SAC2:
-            mspes_SAC2(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_SAC2(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::SAC3:
-            mspes_SAC3(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_SAC3(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::DAC:
-            mspes_DAC(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_DAC(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::ECR:
-            mspes_ECR(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_ECR(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::DBG:
-            mspes_DBG(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_DBG(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::DAG:
-            mspes_DAG(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_DAG(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::DRN:
-            mspes_DRN(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_DRN(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::DPES:
-            mspes_DPES(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_DPES(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3A:
-            mspes_MORSE3A(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_MORSE3A(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3B:
-            mspes_MORSE3B(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_MORSE3B(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::MORSE3C:
-            mspes_MORSE3C(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_MORSE3C(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::MORSE15:
-            mspes_MORSE15(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_MORSE15(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::MORSE15C:
-            mspes_MORSE15C(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_MORSE15C(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::MORSE15E:
-            mspes_MORSE15E(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_MORSE15E(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::JC1D:
-            mspes_JC1D(V, dV, ddV, x, p, 1, Dimension::N, Dimension::F);
+            mspes_JC1D(V.data(), dV.data(), ddV.data(), x.data(), p.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::RABI:
-            mspes_RABI(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_RABI(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::CL1D:
-            mspes_CL1D(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_CL1D(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::NA_I:
-            mspes_NA_I(V, dV, ddV, x, 1, Dimension::N, Dimension::F);
+            mspes_NA_I(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::PURE: {
             if (count_exec == 0) {

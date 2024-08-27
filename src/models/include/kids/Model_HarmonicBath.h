@@ -54,14 +54,14 @@ class Model_HarmonicBath final : public Model {
     static int fun_Cw(kids_complex* Cw_arr, double* w, int Nw, double* w_arr, double* c_arr, double beta, int Nb);
 
    private:
-    kids_real* Kmat;
-    kids_real* Tmod;
-    kids_real* w;
+    span<kids_real> Kmat;
+    span<kids_real> Tmod;
+    span<kids_real> w;
 
-    kids_real* coeffs;
-    kids_real* omegas;
-    kids_real *x_sigma, *x0;
-    kids_real *p_sigma, *p0;
+    span<kids_real> coeffs;
+    span<kids_real> omegas;
+    span<kids_real> x_sigma, x0;
+    span<kids_real> p_sigma, p0;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

@@ -2,6 +2,7 @@
 
 #include "kids/hash_fnv1a.h"
 #include "kids/macro_utils.h"
+#include "kids/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -90,7 +91,7 @@ int Kernel_Random::rand_sphere(kids_real* res_arr, int N, kids_real constr) {
 }
 
 void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    seed = DS->def_int("random.seed", 1);  //
+    seed = DS->def(DATA::random::seed);
     if (!restart) {
         if (_param->has_key("seed")) {
             seed[0] = _param->get_int({"seed"}, LOC());
@@ -99,7 +100,7 @@ void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             seed[0] = source();
         }
     }
-    Kernel_Random::setSeed(seed);
+    Kernel_Random::setSeed(seed.data());
 }
 
 Status& Kernel_Random::initializeKernel_impl(Status& stat) { return stat; }

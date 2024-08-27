@@ -39,18 +39,15 @@ class Kernel_Iterative_Adapt final : public Kernel {
     virtual int getType() const;
 
    private:
-    double     t0, tend, dt0;
-    double *   t, *dt;
-    kids_bint* at_condition;
+    int             nstep, sstep, nsamp;
+    double          t0, tend, dt0;
+    span<kids_real> t, dt;
+    span<kids_bint> at_condition;
 
-    kids_bint* succ_ptr;
-    kids_bint* frez_ptr;
-    kids_bint* last_attempt_ptr;
-    int*       fail_type_ptr;  // record the failure information (longtime keeped)
-
-    int  msize, *tsize, *dtsize;
-    int *istep, *isamp, nstep, sstep, nsamp;
-    int  nbackup;
+    int            msize;
+    span<kids_int> tsize, dtsize;
+    span<kids_int> istep, isamp;
+    int            nbackup;
 
     double time_unit;
 

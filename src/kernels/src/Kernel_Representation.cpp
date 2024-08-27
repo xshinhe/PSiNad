@@ -71,25 +71,24 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
     if (Dimension::F <= 1) return stat;
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real*    V    = this->V + iP * Dimension::FF;
-        kids_real*    eig  = this->eig + iP * Dimension::F;
-        kids_real*    E    = this->E + iP * Dimension::FF;
-        kids_real*    T    = this->T + iP * Dimension::FF;
-        kids_real*    Told = this->Told + iP * Dimension::FF;
-        kids_real*    dV   = this->dV + iP * Dimension::NFF;
-        kids_real*    dE   = this->dE + iP * Dimension::NFF;
-        kids_real*    lam  = this->lam + iP * Dimension::F;
-        kids_complex* R    = this->R + iP * Dimension::FF;
-        kids_complex* H    = this->H + iP * Dimension::FF;
-
-        kids_real*    p       = this->p + iP * Dimension::N;
-        kids_real*    m       = this->m + iP * Dimension::N;
-        int*          occ_nuc = this->occ_nuc + iP;
-        kids_complex* rho_ele = this->rho_ele + iP * Dimension::FF;
+        auto V       = this->V.subspan(iP * Dimension::FF, Dimension::FF);
+        auto eig     = this->eig.subspan(iP * Dimension::F, Dimension::F);
+        auto E       = this->E.subspan(iP * Dimension::FF, Dimension::FF);
+        auto T       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        auto Told    = this->Told.subspan(iP * Dimension::FF, Dimension::FF);
+        auto dV      = this->dV.subspan(iP * Dimension::NFF, Dimension::NFF);
+        auto dE      = this->dE.subspan(iP * Dimension::NFF, Dimension::NFF);
+        auto lam     = this->lam.subspan(iP * Dimension::F, Dimension::F);
+        auto R       = this->R.subspan(iP * Dimension::FF, Dimension::FF);
+        auto H       = this->H.subspan(iP * Dimension::FF, Dimension::FF);
+        auto p       = this->p.subspan(iP * Dimension::N, Dimension::N);
+        auto m       = this->m.subspan(iP * Dimension::N, Dimension::N);
+        auto occ_nuc = this->occ_nuc.subspan(iP, 1);
+        auto rho_ele = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
 
         switch (representation_type) {
             case RepresentationPolicy::Diabatic: {
-                EigenSolve(eig, T, V, Dimension::F);
+                EigenSolve(eig.data(), T.data(), V.data(), Dimension::F);
                 for (int i = 0, ik = 0; i < Dimension::F; ++i)
                     for (int k = 0; k < Dimension::F; ++k, ++ik) E[ik] = (i == k) ? eig[i] : 0.0e0;
                 for (int ik = 0; ik < Dimension::FF; ++ik) H[ik] = V[ik];
@@ -97,12 +96,13 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
             }
             case RepresentationPolicy::Adiabatic: {
                 if (!onthefly) {
-                    for (int i = 0; i < Dimension::FF; ++i) Told[i] = T[i];  // backup old T matrix
-                    EigenSolve(eig, T, V, Dimension::F);                     // solve new eigen problem
+                    for (int i = 0; i < Dimension::FF; ++i) Told[i] = T[i];    // backup old T matrix
+                    EigenSolve(eig.data(), T.data(), V.data(), Dimension::F);  // solve new eigen problem
 
                     if (do_refer && !stat.first_step) {
                         // calculate permutation matrix = rountint(T^ * Told)
-                        ARRAY_MATMUL_TRANS1(TtTold, T, Told, Dimension::F, Dimension::F, Dimension::F);
+                        ARRAY_MATMUL_TRANS1(TtTold.data(), T.data(), Told.data(),  //
+                                            Dimension::F, Dimension::F, Dimension::F);
 
                         if (!basis_switch) {
                             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
@@ -138,32 +138,33 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                             for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = round(TtTold[i] / vset);
                         }
                         // adjust order of eigenvectors & eigenvalues
-                        ARRAY_MATMUL(T, T, TtTold, Dimension::F, Dimension::F, Dimension::F);
+                        ARRAY_MATMUL(T.data(), T.data(), TtTold.data(),  //
+                                     Dimension::F, Dimension::F, Dimension::F);
                         if (basis_switch) {
                             for (int i = 0; i < Dimension::FF; ++i) TtTold[i] = std::abs(TtTold[i]);
-                            ARRAY_MATMUL(eig, eig, TtTold, 1, Dimension::F, Dimension::F);
+                            ARRAY_MATMUL(eig.data(), eig.data(), TtTold.data(), 1, Dimension::F, Dimension::F);
                         }
                     }
 
                     if (FORCE_OPT::BATH_FORCE_BILINEAR) {
-                        int&    B    = FORCE_OPT::nbath;
-                        int&    J    = FORCE_OPT::Nb;
-                        int     JFF  = J * Dimension::FF;
-                        double* dVb0 = dV;
-                        double* dEb0 = dE;
-                        for (int b = 0, bb = 0; b < B; ++b, bb += Dimension::Fadd1, dVb0 += JFF, dEb0 += JFF) {
-                            ARRAY_MATMUL3_TRANS1(dEb0, T, dVb0, T, Dimension::F, Dimension::F, Dimension::F,
-                                                 Dimension::F);
+                        int& B   = FORCE_OPT::nbath;
+                        int& J   = FORCE_OPT::Nb;
+                        int  JFF = J * Dimension::FF;
+                        for (int b = 0, bb = 0; b < B; ++b, bb += Dimension::Fadd1) {
+                            auto dVb0 = dV.subspan(b * JFF, JFF);
+                            auto dEb0 = dE.subspan(b * JFF, JFF);
+                            ARRAY_MATMUL3_TRANS1(dEb0.data(), T.data(), dVb0.data(), T.data(),  //
+                                                 Dimension::F, Dimension::F, Dimension::F, Dimension::F);
                             for (int j = 0, jik = 0, jbb = bb; j < J; ++j, jbb += Dimension::FF) {
                                 double scale = dVb0[jbb] / dVb0[bb];
                                 for (int ik = 0; ik < Dimension::FF; ++ik, ++jik) { dEb0[jik] = dEb0[ik] * scale; }
                             }
                         }
                     } else {
-                        ARRAY_MATMUL(dE, dV, T, Dimension::NF, Dimension::F, Dimension::F);
-                        ARRAY_TRANSPOSE(dE, Dimension::N, Dimension::FF);
-                        ARRAY_MATMUL_TRANS1(dE, T, dE, Dimension::F, Dimension::F, Dimension::NF);
-                        ARRAY_TRANSPOSE(dE, Dimension::FF, Dimension::N);
+                        ARRAY_MATMUL(dE.data(), dV.data(), T.data(), Dimension::NF, Dimension::F, Dimension::F);
+                        ARRAY_TRANSPOSE(dE.data(), Dimension::N, Dimension::FF);
+                        ARRAY_MATMUL_TRANS1(dE.data(), T.data(), dE.data(), Dimension::F, Dimension::F, Dimension::NF);
+                        ARRAY_TRANSPOSE(dE.data(), Dimension::FF, Dimension::N);
                     }
                 }
                 for (int i = 0, ik = 0; i < Dimension::F; ++i)
@@ -171,7 +172,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
 
                 // calc H = E - im * nacv * p / m, and note here nacv_{ij} = dEij / (Ej - Ei)
                 for (int i = 0; i < Dimension::N; ++i) ve[i] = p[i] / m[i];
-                ARRAY_MATMUL(vedE, ve, dE, 1, Dimension::N, Dimension::FF);
+                ARRAY_MATMUL(vedE.data(), ve.data(), dE.data(), 1, Dimension::N, Dimension::FF);
 
                 double Emean = 0.0e0;
                 for (int i = 0; i < Dimension::F; ++i) Emean += eig[i];
@@ -188,7 +189,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                     for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5f * p[j] * p[j] / m[j];
                     double Epes = 0.0f;
                     if (Kernel_NAForce::NAForce_type == NAForcePolicy::BO) {
-                        Epes = eig[*occ_nuc];
+                        Epes = eig[occ_nuc[0]];
                     } else {
                         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
                             Epes += std::real(rho_ele[ii]) * eig[i];
@@ -198,7 +199,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                         H[ii] = -2 * Ekin * sqrt(std::max<double>(1.0 + (Epes - eig[i]) / Ekin, 0.0f));
                     }
                 }
-                EigenSolve(lam, R, H, Dimension::F);  // R*L*R^ = H
+                EigenSolve(lam.data(), R.data(), H.data(), Dimension::F);  // R*L*R^ = H
                 break;
             }
             case RepresentationPolicy::Force:

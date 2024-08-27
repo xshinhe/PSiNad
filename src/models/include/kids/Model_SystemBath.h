@@ -42,27 +42,27 @@ class Model_SystemBath final : public Model {
     int L;      // no. of nonzero variables in each interaction matrix Q
 
     // system & coupling
-    kids_real* Hsys;  ///< [F * F] (electonic) system Hamiltonian matrix
-    kids_real* Kmat;  ///< [N * N] (nuclear) oscillation strength matrix
-    kids_real* Qmat;  ///< [N * F * F] coupling matrix
-    kids_real* Q;     ///< [nbath * FF] interaction matrix for different bath
-    kids_real* CL;    ///< [L * Nb] discretized coefficients times nonzero terms of Qj
-    kids_real* QL;    ///< [L * Nb * F * F] save coulping matrix, each and L no. of nonzero elements
-    kids_real* Xnj;   ///< [N * F * F] used in Stochastic Schrodinger Equation Methods (alias Qmat)
+    span<kids_real> Hsys;  ///< [F * F] (electonic) system Hamiltonian matrix
+    span<kids_real> Kmat;  ///< [N * N] (nuclear) oscillation strength matrix
+    span<kids_real> Qmat;  ///< [N * F * F] coupling matrix
+    span<kids_real> Q;     ///< [nbath * FF] interaction matrix for different bath
+    span<kids_real> CL;    ///< [L * Nb] discretized coefficients times nonzero terms of Qj
+    span<kids_real> QL;    ///< [L * Nb * F * F] save coulping matrix, each and L no. of nonzero elements
+    span<kids_real> Xnj;   ///< [N * F * F] used in Stochastic Schrodinger Equation Methods (alias Qmat)
 
     // bath
-    kids_real* omegas;  ///< save discrete frequencies (only for simple model, L=1)
-    kids_real* coeffs;  ///< save coupling coefficients (only for simple model, L=1)
-    kids_real* x_sigma;
-    kids_real* p_sigma;
+    span<kids_real> omegas;  ///< save discrete frequencies (only for simple model, L=1)
+    span<kids_real> coeffs;  ///< save coupling coefficients (only for simple model, L=1)
+    span<kids_real> x_sigma;
+    span<kids_real> p_sigma;
 
     // integrator
-    kids_real *x, *p, *m;
+    span<kids_real> x, p, m;
 
     // model
-    kids_real* mass;
-    kids_real *vpes, *grad, *hess;
-    kids_real *V, *dV, *ddV;
+    span<kids_real> mass;
+    span<kids_real> vpes, grad, hess;
+    span<kids_real> V, dV, ddV;
 
     // options
     SystemPolicy::_type   system_type;

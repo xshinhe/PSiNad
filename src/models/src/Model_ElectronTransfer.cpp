@@ -35,8 +35,8 @@ void Model_ElectronTransfer::setInputParam_impl(std::shared_ptr<Param> PM) {
 
 void Model_ElectronTransfer::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     /// 1) System
-    Hsys = DS->def_real("model.Hsys", Dimension::FF);
-    memset(Hsys, 0, Dimension::FF * sizeof(kids_real));
+    Hsys = DS->def(DATA::model::Hsys);
+    memset(Hsys.data(), 0, Dimension::FF * sizeof(kids_real));
 
     omega0             = _param->get_real({"model.omega0"}, LOC(), 3.5e-4);
     lambda0            = _param->get_real({"model.lambda0"}, LOC(), 2.39e-2);
@@ -102,11 +102,11 @@ Status& Model_ElectronTransfer::initializeKernel_impl(Status& stat) {
     return stat;  // @todo
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real* x = this->x + iP * Dimension::N;
-        kids_real* p = this->p + iP * Dimension::N;
+        auto x = this->x.subspan(iP * Dimension::N, Dimension::N);
+        auto p = this->p.subspan(iP * Dimension::N, Dimension::N);
 
-        Kernel_Random::rand_gaussian(x, Dimension::N);
-        Kernel_Random::rand_gaussian(p, Dimension::N);
+        Kernel_Random::rand_gaussian(x.data(), Dimension::N);
+        Kernel_Random::rand_gaussian(p.data(), Dimension::N);
 
         x[0] = x[0] * std::sqrt(0.5e0 / (omega0 * tanh(0.5e0 * beta * omega0)))  //
                - coeff0 / (omega0 * omega0);
@@ -116,21 +116,20 @@ Status& Model_ElectronTransfer::initializeKernel_impl(Status& stat) {
             p[jadd1] = p[jadd1] * std::sqrt(0.5e0 * omegas[j] / (tanh(0.5e0 * beta * omegas[j])));
         }
     }
-
-    _dataset->def_real("init.x", x, Dimension::PN);
-    _dataset->def_real("init.p", p, Dimension::PN);
+    _dataset->def(DATA::init::x, x);
+    _dataset->def(DATA::init::p, p);
     executeKernel(stat);
     return stat;
 }
 
 Status& Model_ElectronTransfer::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        kids_real* x    = this->x + iP * Dimension::N;
-        kids_real* vpes = this->vpes + iP;
-        kids_real* grad = this->grad + iP * Dimension::N;
-        kids_real* hess = this->hess + iP * Dimension::NN;
-        kids_real* V    = this->V + iP * Dimension::FF;
-        kids_real* dV   = this->dV + iP * Dimension::NFF;
+        auto x    = this->x.subspan(iP * Dimension::N, Dimension::N);
+        auto vpes = this->vpes.subspan(iP, 1);
+        auto grad = this->grad.subspan(iP * Dimension::N, Dimension::N);
+        auto hess = this->hess.subspan(iP * Dimension::NN, Dimension::NN);
+        auto V    = this->V.subspan(iP * Dimension::FF, Dimension::FF);
+        auto dV   = this->dV.subspan(iP * Dimension::NFF, Dimension::NFF);
 
         // note we implement mass = 1
 
@@ -154,7 +153,7 @@ Status& Model_ElectronTransfer::executeKernel_impl(Status& stat) {
         V[3] -= coeff0 * x[0];
 
         if (count_exec == 0) {  // only calculate once time
-            ARRAY_CLEAR(dV, Dimension::NFF);
+            ARRAY_CLEAR(dV.data(), Dimension::NFF);
             dV[0] = coeff0;
             dV[3] = -coeff0;
         }
