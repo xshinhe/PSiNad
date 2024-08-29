@@ -239,7 +239,7 @@ Status& Kernel_Iterative_Adapt::exchange(Status& stat) {
                 for (int i = 0; i < list1.size(); ++i) { ofs << list1[i].first << " " << list2[i].first << "\n"; }
                 ofs.close();
 
-                std::cout << LOC() << "SUMMARY OF EXCHANGE\n";
+                std::cout << "SUMMARY OF EXCHANGE\n";
                 for (int i = 0; i < list1.size(); ++i) {
                     std::cout << "ID " << list1[i].first << " (with istep " << list1[i].second << ")"  //
                               << "-> ID " << list2[i].first << " (with istep " << list2[i].second << ")\n";
