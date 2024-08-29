@@ -244,7 +244,7 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
         elec_utils::ker_from_rho(KSHA.data(), rho_ele.data(), 1, 0, Dimension::F, true, occ_nuc[0]);
 
         // kernel for TW
-        elec_utils::ker_binning(KTWA.data(), rho_ele.data(), SQCPolicy::TRI);
+        elec_utils::ker_binning(KTWA.data(), rho_ele.data(), ElectronicSamplingPolicy::SQCtri);
         trKTWA[0] = std::real(ARRAY_TRACE1(KTWA.data(), Dimension::F, Dimension::F));
 
         Kernel_Representation::transform(K1QA.data(), T.data(), Dimension::F,   //
@@ -344,7 +344,7 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
                                              SpacePolicy::L);
         }
 
-        elec_utils::ker_binning(KTWD.data(), rho_ele.data(), SQCPolicy::TRI);
+        elec_utils::ker_binning(KTWD.data(), rho_ele.data(), ElectronicSamplingPolicy::SQCtri);
         if (count_exec <= 0) {  // only count at the beginning
             for (int k = 0; k < Dimension::F; ++k) {
                 double radius = std::abs(2.0e0 - rho_ele[occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);

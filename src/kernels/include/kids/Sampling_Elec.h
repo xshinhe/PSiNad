@@ -36,6 +36,7 @@ DEFINE_POLICY(ElectronicSamplingPolicy,
               SQCsqr,        // square SQC sampling
               SQCtri,        // triangle SQC sampling (TWF)
               SQCspx,        // simplex SQC sampling
+              SQCspx2,       // simplex SQC sampling
               SQCtest01,     // used for sqc test 1
               SQCtest02,     // used for sqc test 2
               SQCtest03,     // used for sqc test 3

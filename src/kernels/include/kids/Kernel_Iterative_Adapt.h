@@ -26,6 +26,8 @@
 #ifndef Kernel_Iterative_Adapt_H
 #define Kernel_Iterative_Adapt_H
 
+#include <chrono>
+
 #include "kids/Kernel.h"
 
 namespace PROJECT_NS {
@@ -48,10 +50,19 @@ class Kernel_Iterative_Adapt final : public Kernel {
     span<kids_int> tsize, dtsize, last_tried_dtsize;
     span<kids_int> istep, isamp;
     int            nbackup;
+    double         time_unit;
 
-    double time_unit;
+    bool                                               restart;
+    bool                                               use_exchange;
+    int                                                exchange_root;
+    int                                                exchange_num;
+    double                                             exchange_time;
+    double                                             exchange_fulltime;
+    std::chrono::time_point<std::chrono::steady_clock> ex_begin;
 
-    const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot"};
+    Status& exchange(Status& stat);
+
+    const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot", "rho_ele", "c"};
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

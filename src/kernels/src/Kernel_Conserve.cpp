@@ -14,7 +14,8 @@ const std::string Kernel_Conserve::getName() { return "Kernel_Conserve"; }
 int Kernel_Conserve::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Conserve::setInputParam_impl(std::shared_ptr<Param> PM) {
-    conserve_scale = _param->get_bool({"solver.conserve_scale"}, LOC(), false);  // default as false
+    conserve_scale   = _param->get_bool({"solver.conserve_scale"}, LOC(), false);  // default as false
+    thres_kcalpermol = _param->get_real({"solver.thres_kcalpermol"}, LOC(), 0.02);
 }
 
 void Kernel_Conserve::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -46,14 +47,11 @@ Status& Kernel_Conserve::initializeKernel_impl(Status& stat) {
     return stat;
 };
 
-#define DECLARE_LOCAL_SPAN(varname, iparrallel, size) auto varname = this->varname.subspan(iparrallel * size, size)
-
 Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
     if (stat.frozen) return stat;
+    if (!stat.succ) return stat;  // reject conservation for un-succesful calculation
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        // DECLARE_LOCAL_SPAN(E, iP, Dimension::F);
-
         auto E         = this->E.subspan(iP * Dimension::F, Dimension::F);
         auto p         = this->p.subspan(iP * Dimension::N, Dimension::N);
         auto m         = this->m.subspan(iP * Dimension::N, Dimension::N);
@@ -63,49 +61,42 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
         auto Ekin      = this->Ekin.subspan(iP, 1);
         auto Epot      = this->Epot.subspan(iP, 1);
         auto vpes      = this->vpes.subspan(iP, 1);
-        // kids_real* E         = this->E + iP * Dimension::F;
-        // kids_real* p         = this->p + iP * Dimension::N;
-        // kids_real* m         = this->m + iP * Dimension::N;
-        // kids_real* Etot      = this->Etot + iP;
-        // kids_real* Etot_init = this->Etot_init + iP;
-        // kids_real* Etot_prev = this->Etot_prev + iP;
-        // kids_real* Ekin      = this->Ekin + iP;
-        // kids_real* Epot      = this->Epot + iP;
-        // kids_real* vpes      = this->vpes + iP;
 
         Ekin[0] = 0.0e0;
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
 
         if (Kernel_Representation::onthefly) {
-            double thres = 0.02;
-            if (stat.last_attempt && stat.fail_type != 2) { cnt_loose = 3; }
-            if (cnt_loose > 0) {
-                thres = cnt_loose * cnt_loose;  // help for last_attempt of mndo failure
+            double thres = thres_kcalpermol;
+
+            // if try last QM calculation. we totally loose energy conservation in it's first several steps
+            const int nstep_loose = 5;
+            if (stat.last_attempt && stat.fail_type == 1) { cnt_loose = nstep_loose; }
+            if (stat.fail_type != 2 && cnt_loose > 0) {
+                thres = (cnt_loose * 5.0e0 + (nstep_loose - cnt_loose) * thres_kcalpermol) / nstep_loose;
                 std::cout << "try loose thres = " << thres << " because failure of QM\n";
                 cnt_loose--;
             }
 
             if (stat.last_attempt && stat.fail_type == 2) {
-                thres = 0.5;  // loose threshold
-                std::cout << "try loose thres = " << thres << " because of failure of CONSERVE\n";
+                thres = 10.0 * thres_kcalpermol;  // loose threshold
+                std::cout << "try loose thres = " << thres << " because of failure of CONSERVATION\n";
             }
 
             if (std::abs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea > thres) {
-                std::cout << "fail in conserve ERROR: "  //
-                          << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea << " > " << thres << "\n";
+                std::cout << "fail in conserve ERROR: "                                     //
+                          << fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea  //
+                          << " > " << thres << "\n";
                 stat.succ      = false;
                 stat.fail_type = 2;
             } else {
                 Etot_prev[0]   = Ekin[0] + Epot[0];
-                stat.succ      = true;
-                stat.fail_type = 0;
+                stat.fail_type = 0;  // as long as both succeed, we reset the fail_type as 0
             }
         }
 
         if (conserve_scale) {
             double scale = std::sqrt(std::max({Etot_init[0] - Epot[0], 0.0e0}) / Ekin[0]);
             for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
-            // Ekin[0] = Etot_init[0] - Epot[0];
         }
         Etot[0] = Epot[0] + Ekin[0];
     }

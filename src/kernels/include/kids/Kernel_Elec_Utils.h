@@ -24,13 +24,6 @@
 
 namespace PROJECT_NS {
 
-DEFINE_POLICY(SQCPolicy,
-              SQR,  // square window
-              TRI,  // triangle window
-              SPX,  // simplex window
-              BIG   // simplex window
-);
-
 class elec_utils {
    public:
     /// @{
@@ -344,7 +337,7 @@ class elec_utils {
                         int           fdim   // DoFs of electonic states
     ) {
         switch (type) {
-            case SQCPolicy::TRI: {
+            case ElectronicSamplingPolicy::SQCtri: {
                 kids_real tmp2[2];
                 Kernel_Random::rand_uniform(tmp2, 2);
                 while (tmp2[0] + tmp2[1] > 1.0f) Kernel_Random::rand_uniform(tmp2, 2);
@@ -359,21 +352,7 @@ class elec_utils {
                 c[iocc] += 1.0e0;
                 break;
             }
-            case SQCPolicy::SPX: {
-                c_sphere(c, Dimension::F);
-                for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(c[i] * c[i]);
-                c[iocc] += 1.0e0;
-                break;
-            }
-            case SQCPolicy::BIG: {
-                kids_complex* cadd1 = new kids_complex[Dimension::Fadd1];
-                c_sphere(cadd1, Dimension::Fadd1);
-                for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(cadd1[i] * cadd1[i]);
-                c[iocc] += 1.0e0;
-                delete[] cadd1;
-                break;
-            }
-            case SQCPolicy::SQR: {
+            case ElectronicSamplingPolicy::SQCsqr: {
                 const kids_real gm0 = gamma_wigner(2.0f);
                 for (int i = 0; i < fdim; ++i) {
                     kids_real randu;
@@ -382,6 +361,23 @@ class elec_utils {
                 }
                 c[iocc] += 1.0e0;
                 break;
+            }
+            case ElectronicSamplingPolicy::SQCspx: {
+                c_sphere(c, Dimension::F);
+                for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(c[i] * c[i]);
+                c[iocc] += 1.0e0;
+                break;
+            }
+            case ElectronicSamplingPolicy::SQCspx2: {
+                kids_complex* cadd1 = new kids_complex[Dimension::Fadd1];
+                c_sphere(cadd1, Dimension::Fadd1);
+                for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(cadd1[i] * cadd1[i]);
+                c[iocc] += 1.0e0;
+                delete[] cadd1;
+                break;
+            }
+            default: {
+                throw kids_error("Unsupport Sampling for SQC");
             }
         }
         for (int i = 0; i < fdim; ++i) {
@@ -407,21 +403,24 @@ class elec_utils {
                     double vk      = std::abs(rho[kk]);
                     bool   Outlier = false;
                     switch (sqc_type) {
-                        case SQCPolicy::TRI:
-                        case SQCPolicy::SPX:
-                        case SQCPolicy::BIG:
+                        case ElectronicSamplingPolicy::SQCtri:
+                        case ElectronicSamplingPolicy::SQCspx:
+                        case ElectronicSamplingPolicy::SQCspx2:
                             Outlier = (i == j) ? ((k != i && vk > 1) || (k == i && vk < 1))
                                                : ((k != i && k != j && vk > 1) || ((k == i || k == j) && vk < 0.5f));
 
                             if (i != j) Outlier = false;
                             break;
-                        case SQCPolicy::SQR:  // @bug?
+                        case ElectronicSamplingPolicy::SQCsqr:  // @bug?
                             Outlier = (i == j) ? ((k != i && std::abs(vk - gm0) < gm0) ||
                                                   (k == i && std::abs(vk - gm1) < gm0))
                                                : ((k != i && std::abs(vk - gm0) > gm0) ||  //
                                                   (k == i && std::abs(vk - gmh) > gm0) ||  //
                                                   (k == j && std::abs(vk - gmh) > gm0));
                             break;
+                        default: {
+                            throw kids_error("unknown binnig type for sqc");
+                        }
                     }
                     if (Outlier) {
                         ker[ij] = phys::math::iz;

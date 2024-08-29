@@ -62,43 +62,66 @@ def _get_oscstrength_from_lines(lines: list[str]):
 def _get_energy(log_path:str, F:int):
     find = False
     energies = []
-    with open(log_path+'/ENERGY.out', 'r') as ifs:
-        for i in range(F):
-            energies += [float(ifs.readline())]
+    if os.path.exists(log_path + '/ENERGY.out'):
+        find = True
+        with open(log_path+'/ENERGY.out', 'r') as ifs:
+            for i in range(F):
+                energies += [float(ifs.readline())]
+        os.rename(log_path + '/ENERGY.out', log_path + '/ENERGY-OLD.out')
+
     return find, np.array(energies)
 
 def _get_gradient(log_path:str, N:int, F:int):
-    find = False
+    find = {}
     natom = N //3 
     gradient = {}
     for i in range(F):
+        find[i] = False
         grad_local = []
-        with open(log_path+'/FORCE_%d.out'%i, 'r') as ifs:
-            ifs.readline()
-            for a in range(natom):
-                grad_local += [ np.array(ifs.readline().split()[1:]).astype(np.float64) ]
-        gradient['%d'%i] = np.array(grad_local)
-        find = True
-    return find, gradient
+        if os.path.exists(log_path+'/FORCE_%d.out'%i):
+            find[i] = True
+            with open(log_path+'/FORCE_%d.out'%i, 'r') as ifs:
+                ifs.readline()
+                for a in range(natom):
+                    grad_local += [ np.array(ifs.readline().split()[1:]).astype(np.float64) ]
+            gradient['%d'%i] = np.array(grad_local)
+            os.rename(log_path+'/FORCE_%d.out'%i, log_path+'/FORCE_%d-OLD.out'%i)
+    allfind = True
+    for i in range(F):
+        if find[i] == False:
+            allfind = False
+            break
+    return allfind, gradient
 
 def _get_nac(log_path:str, N:int, F:int):
-    find = False
+    find = {}
     natom = N //3 
     nac = {}
     for i in range(F):
         for k in range(i+1, F):
+            find['%d-%d'%(i,k)] = False
             nac_local = []
-            with open(log_path+'/NACME_%d_%d.out'%(i,k), 'r') as ifs:
-                ifs.readline()
-                for a in range(natom):
-                    nac_local += [ np.array(ifs.readline().split()[1:]).astype(np.float64) ]
-            nac['%d-%d'%(i,k)] = np.array(nac_local)
-            nac['%d-%d'%(k,i)] =-np.array(nac_local)
-            find = True
-    return find, nac
+            if os.path.exists(log_path+'/NACME_%d_%d.out'%(i,k)):
+                find['%d-%d'%(i,k)] = True
+                with open(log_path+'/NACME_%d_%d.out'%(i,k), 'r') as ifs:
+                    ifs.readline()
+                    for a in range(natom):
+                        nac_local += [ np.array(ifs.readline().split()[1:]).astype(np.float64) ]
+                nac['%d-%d'%(i,k)] = np.array(nac_local)
+                nac['%d-%d'%(k,i)] =-np.array(nac_local)
+                os.rename(log_path+'/NACME_%d_%d.out'%(i,k), log_path+'/NACME_%d_%d-OLD.out'%(i,k))
+    allfind = True
+    for i in range(F):
+        for k in range(i+1,F):
+            if find["%d-%d"%(i,k)] == False:
+                allfind = False
+                break
+    return allfind, nac
+
 
 def _get_hessian_from_lines(lines: list[str]):
-    find = False
+    find = {}
+    hess_dict = {}
     geom_begin_idx = -1
     resforce_begin_idx = -1
     symwhess_begin_idx = -1
@@ -107,90 +130,79 @@ def _get_hessian_from_lines(lines: list[str]):
     for i in range(len(lines)):
         if "*** Geometry ***" in lines[i] and geom_begin_idx == -1:
             geom_begin_idx = i
+            find['x0'] = True
         if '++ Symmetrized Mass Weighted Hessian ++' in lines[i] and symwhess_begin_idx == -1:
             symwhess_begin_idx = i
+            find['hess'] = True
         if 'Mass Weighted Hessian Eigenvalues' in lines[i] and whess_eig_begin_idx == -1:
+            find['w'] = True
             whess_eig_begin_idx = i
         if '++ Mass Weighted Hessian Eigenvectors ++' in lines[i] and whess_vec_begin_idx == -1:
+            find['Tmod'] = True
             whess_vec_begin_idx = i
-            find = True
 
-    # print(geom_begin_idx)
-    # print(hess_begin_idx)
-
-    read_geom = False
-    sym = []
-    xyz = []
-    for i in range(geom_begin_idx+1, len(lines)):
-        ll = lines[i].strip()
-        if ll == '': continue
-        if ll[0] != '{' and not read_geom:
-            continue
-        if ll[0] != '{' and read_geom:
-            break
-        sym += [ll.split(',')[0].split(':')[1].strip().split('"')[1]] 
-        xyz += [ np.array(ll.split('[')[1].split(']')[0].split(',')).astype(np.float64) ]
-    xyz = np.array(xyz)
-    mass = np.zeros(3*len(sym))
-
-    mdict = {'C':12.01, 'H':1.008, 'O': 16.00}
-    for k in range(len(mass)):
-        mass[k] = mdict[sym[k//3]] * 1850
-
-    natom = len(xyz)
-    N = 3*natom
-
-    hess = np.zeros((N,N))
-    i = symwhess_begin_idx+1
-    read_col_num = 0
-    while i < len(lines) and read_col_num < N:
-        ll = lines[i].strip()
-        if ll == '': 
-            i += 1
-            continue
-
-        col_idx = np.array(ll.split()).astype(np.int32)
-        read_col_num += len(col_idx)
-        for k in range(1,1+N):
-            data = np.array(lines[i+k].strip().split())
-            row_idx = int(data[0])
-            data_v = np.array(data[1:]).astype(np.float64)
-            hess[row_idx,col_idx] = data_v
+    if 'x0' in find:
+        sym = []
+        xyz = []
+        for i in range(geom_begin_idx+1, len(lines)):
+            ll = lines[i].strip()
+            if ll == '': continue
+            if ll[0] != '{' and not read_geom:
+                continue
+            if ll[0] != '{' and read_geom:
+                break
+            sym += [ll.split(',')[0].split(':')[1].strip().split('"')[1]] 
+            xyz += [ np.array(ll.split('[')[1].split(']')[0].split(',')).astype(np.float64) ]
+        xyz = np.array(xyz)
+        hess_dict['sym'] = sym
+        hess_dict['x0'] = xyz
         
-        i += 1+N
+    if 'hess' in find:
+        natom = len(xyz)
+        N = 3*natom
+        hess = np.zeros((N,N))
+        i = symwhess_begin_idx+1
+        read_col_num = 0
+        while i < len(lines) and read_col_num < N:
+            ll = lines[i].strip()
+            if ll == '': 
+                i += 1
+                continue
+            col_idx = np.array(ll.split()).astype(np.int32)
+            read_col_num += len(col_idx)
+            for k in range(1,1+N):
+                data = np.array(lines[i+k].strip().split())
+                row_idx = int(data[0])
+                data_v = np.array(data[1:]).astype(np.float64)
+                hess[row_idx,col_idx] = data_v    
+            i += 1+N
+        hess_dict['hess'] = hess
 
-    w = np.array(lines[whess_eig_begin_idx+1].split()).astype(np.float64)
+    if 'w' in find:
+        w = np.array(lines[whess_eig_begin_idx+1].split()).astype(np.float64)
+        hess_dict['w'] = w
 
-    Tmod = np.zeros((N,N))
-    i = whess_vec_begin_idx+1
-    read_col_num = 0
-    while i < len(lines) and read_col_num < N:
-        ll = lines[i].strip()
-        if ll == '': 
-            i += 1
-            continue
+    if 'Tmod' in find:
+        Tmod = np.zeros((N,N))
+        i = whess_vec_begin_idx+1
+        read_col_num = 0
+        while i < len(lines) and read_col_num < N:
+            ll = lines[i].strip()
+            if ll == '': 
+                i += 1
+                continue
+            col_idx = np.array(ll.split()).astype(np.int32)
+            read_col_num += len(col_idx)
+            for k in range(1,1+N):
+                data = np.array(lines[i+k].strip().split())
+                row_idx = int(data[0])
+                data_v = np.array(data[1:]).astype(np.float64)
+                Tmod[row_idx,col_idx] = data_v
+            i += 1+N
+        hess_dict['Tmod'] = Tmod
 
-        col_idx = np.array(ll.split()).astype(np.int32)
-        read_col_num += len(col_idx)
-        for k in range(1,1+N):
-            data = np.array(lines[i+k].strip().split())
-            row_idx = int(data[0])
-            data_v = np.array(data[1:]).astype(np.float64)
-            Tmod[row_idx,col_idx] = data_v
-        
-        i += 1+N
+    return find != {}, hess_dict
 
-    hess_dict = {}
-    hess_dict['hess'] = hess
-    hess_dict['mass'] = mass
-    hess_dict['sym'] = sym
-    hess_dict['x0'] = xyz
-    hess_dict['w'] = w
-    hess_dict['Tmod'] = Tmod
-
-    print(hess_dict['x0'])
-
-    return find, hess_dict
 
 def qm_job(qm_data, args):
     qm_config = qm_data["qm_config"]
@@ -202,9 +214,11 @@ def qm_job(qm_data, args):
     try:
         F = int(qm_config['QM']['BAGEL']['F'])
         N = int(qm_config['QM']['BAGEL']['N'])
-        nciref = F # int(qm_config['QM']['MNDO']['keywords']['nciref'])
     except KeyError:
         print(format_exc())
+    nproc = 1
+    if 'nproc' in qm_config['QM']:
+        nproc = qm_config['QM']['nproc']
 
     job_str = '{"bagel": [\n'
 
@@ -222,12 +236,18 @@ def qm_job(qm_data, args):
     job_str += ']\n' # end geometry
     job_str += '},\n' # end molecule part
 
+    if os.path.exists(args.directory + '/laststep.archive'):
+        job_str += '{\n'
+        job_str += '"title": "load_ref",\n'
+        job_str += '"file": "laststep",\n'
+        job_str += '"continue_geom": false\n'
+        job_str += '},\n'
+
     # force part
     job_str += '{\n'
     job_str += '"title": "forces",\n'
     job_str += '"dipole": true,\n'
     job_str += '"export": true,\n'
-    job_str += '"nproc": 1,\n'
     job_str += '"grads": [\n'
     for i in range(F):
         end = ',' if i!=F-1 else ''
@@ -274,7 +294,13 @@ def qm_job(qm_data, args):
         raise ValueError("unsupport method")
 
     job_str += ']\n' # end method
-    job_str += '}\n' # end force part
+    job_str += '},\n' # end force part
+
+    # save part
+    job_str += '{\n'
+    job_str += '"title": "save_ref",\n'
+    job_str += '"file": "laststep"\n'
+    job_str += '}\n'
 
     job_str += ']}' # end of bagel parameter
 
@@ -293,7 +319,8 @@ def qm_job(qm_data, args):
     f.flush()
     f.close()
     current_path = os.path.abspath(os.getcwd())
-    exe_str = 'cd %s && %s  %s > %s && cd %s'%(
+    exe_str = 'export BAGEL_NUM_THREADS=%d && cd %s && %s  %s > %s && cd %s'%(
+        nproc,
         qm_config['QM']['env']['directory'],
         qm_config['QM']['BAGEL']['path'],
         qm_config['QM']['env']['generated'],
@@ -328,20 +355,19 @@ def parse_result(qm_data, log_path):
     findu, UNABLE_MSG = _get_unable_from_lines(lines)
     findf, fstrength = _get_oscstrength_from_lines(lines)
 
-    # findf, fstrength = _get_oscstrength_from_lines(lines)
     stat = 0
     if finde: stat = 1
     try:
         find0, energy = _get_energy(log_path, F)
         find1, gradient = _get_gradient(log_path, N, F)
         findc, nacvector = _get_nac(log_path, N, F)
-        eig = energy #/ QMutils.au_2_kcal_1mea
+        eig = energy # already in au
         for i in range(F):
-            dE[:,i] = gradient['%d'%i].flatten() #/ QMutils.au_2_kcal_1mea_per_ang
+            dE[:,i] = gradient['%d'%i].flatten() # already in au
         for i in range(F):
             for k in range(i+1,F):
-                nac[:,i,k] = nacvector['%d-%d'%(i,k)].flatten() #/ (1.0e0 / QMutils.au_2_ang)
-                nac[:,k,i] = nacvector['%d-%d'%(k,i)].flatten() #/ (1.0e0 / QMutils.au_2_ang)    
+                nac[:,i,k] = nacvector['%d-%d'%(i,k)].flatten() # already in au
+                nac[:,k,i] = nacvector['%d-%d'%(k,i)].flatten() # already in au
     except (IOError, KeyError):
         stat = 1
 
@@ -356,35 +382,39 @@ def parse_result(qm_data, log_path):
     f.write(f'kids_int {1}\n')
     f.write(f'{stat}\n\n')
 
-    f.write('interface.eig\n')
-    f.write(f'kids_real {F}\n')
-    for i in range(F):
-        f.write('{: 12.8e}\n'.format(eig[i]))
-    f.write('\n')
-
-    f.write('interface.dE\n')
-    f.write(f'kids_real {N*F}\n')
-    for j in range(N):
+    if find0:
+        f.write('interface.eig\n')
+        f.write(f'kids_real {F}\n')
         for i in range(F):
-            f.write('{: 12.8e} '.format(dE[j,i]))
+            f.write('{: 12.8e}\n'.format(eig[i]))
         f.write('\n')
-    f.write('\n')
 
-    f.write('interface.nac\n')
-    f.write(f'kids_real {N*F*F}\n')
-    for j in range(N):
-        for i in range(F):
-            for k in range(F):
-                f.write('{: 12.8e} '.format(nac[j,i,k]))
+    if find1:
+        f.write('interface.dE\n')
+        f.write(f'kids_real {N*F}\n')
+        for j in range(N):
+            for i in range(F):
+                f.write('{: 12.8e} '.format(dE[j,i]))
+            f.write('\n')
         f.write('\n')
-    f.write('\n')
 
-    f.write('interface.strength\n')
-    f.write(f'kids_real {F}\n')
-    for i in range(F):
-        f.write('{: 12.8e} '.format(fstrength[i]))
-    f.write('\n')
-    f.close()
+    if findc:
+        f.write('interface.nac\n')
+        f.write(f'kids_real {N*F*F}\n')
+        for j in range(N):
+            for i in range(F):
+                for k in range(F):
+                    f.write('{: 12.8e} '.format(nac[j,i,k]))
+            f.write('\n')
+        f.write('\n')
+
+    if findf:
+        f.write('interface.strength\n')
+        f.write(f'kids_real {F}\n')
+        for i in range(len(fstrength)):
+            f.write('{: 12.8e} '.format(fstrength[i]))
+        f.write('\n')
+        f.close()
     #pprint(qmout)
     return qmout
 

@@ -20,14 +20,14 @@ import QMutils
 import MNDO
 import BAGEL
 
-parser = argparse.ArgumentParser(description='Execute MNDO Calculation')
+parser = argparse.ArgumentParser(description='Execute QM Calculation')
 parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='.', type=str,
     help='work directory')
-parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in.MNDO', type=str,
+parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in', type=str,
     help='input file')
 parser.add_argument('-t', '--task', dest='task', nargs='?', default=0, type=int,
     help='task level')
-parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.out.MNDO', type=str,
+parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.log', type=str,
     help='output file')
 args = parser.parse_args()
 

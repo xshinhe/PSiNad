@@ -59,7 +59,8 @@ class Kernel_Conserve final : public Kernel {
     span<kids_bint> last_attempt_ptr;
     span<kids_int>  fail_type_ptr;
 
-    int cnt_loose = 0;
+    double thres_kcalpermol;
+    int    cnt_loose = 0;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

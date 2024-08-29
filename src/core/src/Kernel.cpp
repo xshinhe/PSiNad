@@ -74,6 +74,7 @@ Status& Kernel::executeKernel(Status& stat) {
     // if (!_ruleset & !has_parent) std::cerr << "run without rules\n";
 
     // std::cout << "exec: " << LOC() << getName() << "\n";
+    // std::cout << LOC() << stat.succ << "\n";
     std::chrono::time_point<std::chrono::steady_clock> begin, end;
     if (is_timing) begin = std::chrono::steady_clock::now();
     {

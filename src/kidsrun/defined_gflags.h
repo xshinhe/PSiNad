@@ -20,6 +20,10 @@ DECLARE_bool(timing);
 DECLARE_bool(profiling);
 DECLARE_int32(seed);
 DECLARE_int32(BGIDX);
+DECLARE_bool(ex);
+DECLARE_int32(exchange_root);
+DECLARE_int32(exchange_num);
+DECLARE_double(exchange_time);
 
 void check_and_sync_from_gflags(std::shared_ptr<Param> PM);
 
