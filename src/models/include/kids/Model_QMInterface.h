@@ -42,6 +42,7 @@ class Model_QMInterface final : public Model {
 
     bool save_every_calc;
     bool save_every_step;
+    int  sstep_dataset;
 
     // integrator
     span<kids_real> x, p;

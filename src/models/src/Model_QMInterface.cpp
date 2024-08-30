@@ -37,6 +37,7 @@ void Model_QMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
     qm_config_in          = _param->get_string({"model.qm_config"}, LOC(), "QM.in");
     save_every_calc       = _param->get_bool({"model.qm_save_every_calc"}, LOC(), true);
     save_every_step       = _param->get_bool({"model.qm_save_every_step"}, LOC(), false);
+    sstep_dataset         = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
 
     char* p = getenv("KIDS_PYTHON");
     if (p != nullptr) pykids_path = p;
@@ -251,8 +252,19 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
                 for (int jik = 0; jik < Dimension::NFF; ++jik) ifs >> nac[jik];
             }
         }
-        std::string command = utils::concat("mv ", path_str, "/interface.ds ", path_str, "/interface-old.ds ");
+        std::string command;
+        if (sstep_dataset > 0 && istep_ptr[0] % sstep_dataset == 0 && stat_number == 0) {
+            command = utils::concat("cp ", path_str, "/interface.ds ",  //
+                                    path_str, "/interface-", istep_ptr[0], ".ds ");
+            system(command.c_str());
+            if (!save_every_step) {  // also save structure
+                command = utils::concat("cp ", tmp_input, " ", tmp_input, ".", istep_ptr[0]);
+                system(command.c_str());
+            }
+        }
+        command = utils::concat("mv ", path_str, "/interface.ds ", path_str, "/interface-old.ds ");
         system(command.c_str());
+
         if (stat_number != 0) {
             stat.succ      = false;
             stat.fail_type = 1;
