@@ -251,7 +251,17 @@ def qm_job(qm_data, args):
     job_str += ']\n' # end geometry
     job_str += '},\n' # end molecule part
 
-    if os.path.exists(args.directory + '/laststep.archive'):
+    level = 0
+    try:
+        print('current task = ', args.task)
+        if args.task.isnumeric():
+            print('current task = ', args.task)
+            level = int(args.task)
+            if level > 0:
+                print("failed and try by level = ", level)
+    except KeyError:
+        print(format_exc())
+    if os.path.exists(args.directory + '/laststep.archive') and level ==0:
         job_str += '{\n'
         job_str += '"title": "load_ref",\n'
         job_str += '"file": "laststep",\n'
@@ -401,6 +411,7 @@ def parse_result(qm_data, log_path):
                 nac[:,i,k] = nacvector['%d-%d'%(i,k)].flatten() # already in au
                 nac[:,k,i] = nacvector['%d-%d'%(k,i)].flatten() # already in au
     except (IOError, KeyError):
+        print(format_exc())
         print('CANNOT PARSE FILE. try to print ERROR MSG')
         print(ERROR_MSG)
         stat = 1
@@ -412,50 +423,60 @@ def parse_result(qm_data, log_path):
     )
 
     # anyway we alway write the interface.ds
-    f = open(qm_config['QM']['env']['directory'] + '/interface.ds', 'w')
-    f.write('interface.stat\n')
-    f.write(f'kids_int {1}\n')
-    f.write(f'{stat}\n\n')
+    try:
+        f = open(qm_config['QM']['env']['directory'] + '/interface.ds', 'w')
+        f.write('interface.stat\n')
+        f.write(f'kids_int {1}\n')
+        f.write(f'{stat}\n\n')
 
-    if find0:
-        f.write('interface.eig\n')
-        f.write(f'kids_real {F}\n')
-        for i in range(F):
-            f.write('{: 12.8e}\n'.format(eig[i]))
-        f.write('\n')
-
-    if find1:
-        f.write('interface.dE\n')
-        f.write(f'kids_real {N*F}\n')
-        for j in range(N):
+        if find0:
+            f.write('interface.eig\n')
+            f.write(f'kids_real {F}\n')
             for i in range(F):
-                f.write('{: 12.8e} '.format(dE[j,i]))
+                f.write('{: 12.8e}\n'.format(eig[i]))
             f.write('\n')
-        f.write('\n')
 
-    if findc:
-        f.write('interface.nac\n')
-        f.write(f'kids_real {N*F*F}\n')
-        for j in range(N):
-            for i in range(F):
-                for k in range(F):
-                    f.write('{: 12.8e} '.format(nac[j,i,k]))
+        if find1:
+            f.write('interface.dE\n')
+            f.write(f'kids_real {N*F}\n')
+            for j in range(N):
+                for i in range(F):
+                    f.write('{: 12.8e} '.format(dE[j,i]))
+                f.write('\n')
             f.write('\n')
-        f.write('\n')
 
-    if findf:
-        f.write('interface.strength\n')
-        f.write(f'kids_real {F}\n')
-        for i in range(len(fstrength)):
-            f.write('{: 12.8e} '.format(fstrength[i]))
-        f.write('\n')
-        f.close()
+        if findc:
+            f.write('interface.nac\n')
+            f.write(f'kids_real {N*F*F}\n')
+            for j in range(N):
+                for i in range(F):
+                    for k in range(F):
+                        f.write('{: 12.8e} '.format(nac[j,i,k]))
+                f.write('\n')
+            f.write('\n')
+
+        if findf:
+            f.write('interface.strength\n')
+            f.write(f'kids_real {F}\n')
+            for i in range(len(fstrength)):
+                f.write('{: 12.8e} '.format(fstrength[i]))
+            f.write('\n')
+            f.close()
+    except (IOError, KeyError):
+        print('CANNOT WRITE THE FILE')
+        print(format_exc())
     #pprint(qmout)
     if stat != 0:
+        current_path = os.path.abspath(os.getcwd())
         tmp = time.strftime('%m-%d-%H-%M-%S', time.localtime())
         print('backup QM.log to QM.log.' + tmp)
-        os.system('cp QM.log QM.log.%s'%tmp)
-        os.system('cp casscf.log casscf.log.%s'%tmp)
+        exe_str = 'cd %s && cp QM.log QM.log.%s && cd %s'%(
+            qm_config['QM']['env']['directory'],
+            tmp,
+            current_path
+        )
+        os.system(exe_str)
+
     return qmout
 
 def main():
