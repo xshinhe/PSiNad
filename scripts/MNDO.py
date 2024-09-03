@@ -22,9 +22,9 @@ parser.add_argument('-d', '--directory', dest='directory', nargs='?', default='.
     help='work directory')
 parser.add_argument('-i', '--input', dest='input', nargs='?', default='QM.in.MNDO', type=str,
     help='input file')
-parser.add_argument('-t', '--task', dest='task', nargs='?', default='nad', type=str,
+parser.add_argument('-t', '--task', dest='task', nargs='?', default='0', type=str,
     help='task type')
-parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.out.MNDO', type=str,
+parser.add_argument('-o', '--output', dest='output', nargs='?', default='QM.log', type=str,
     help='output file')
 # args = parser.parse_args()
 

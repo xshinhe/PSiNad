@@ -35,6 +35,7 @@ void Model_QMMMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
 
     std::string qm_string = _param->get_string({"model.qmmm_flag"}, LOC(), "MNDO");
     qmmm_config_in        = _param->get_string({"model.qmmm_config"}, LOC(), "QMMM.in");
+    qmmm_layer_info       = _param->get_string({"model.qmmm_layer_info"}, LOC(), "layer_real.xyz");
     save_every_calc       = _param->get_bool({"model.qmmm_save_every_calc"}, LOC(), true);
     save_every_step       = _param->get_bool({"model.qmmm_save_every_step"}, LOC(), false);
     sstep_dataset         = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
@@ -96,21 +97,19 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     double        dtmp;
     int           itmp;
     std::string   stmp;
-    std::ifstream ifs(qmmm_config_in);
-    getline(ifs, stmp, '\n');
-    if (std::stringstream{stmp} >> itmp) natom = itmp;
-    kids_assert(natom * 3 == Dimension::N, "Dimension Error");
-    getline(ifs, stmp, '\n');
-    for (int iatom = 0, idx = 0; iatom < natom; ++iatom) {
-        if (ifs >> stmp) atoms[iatom] = chem::getElemIndex(stmp);
+    std::ifstream ifs(qmmm_layer_info);
+    int iatom = 0;
+    while(getline(ifs, stmp, '\n')){
+        std::stringstream ss{stmp};
+        std::string sym, type;
+        double charg;
+        ss >> sym >> charg >> x0[3*iatom] >> x0[3*iatom+1] >> x0[3*iatom+2] >> type;
+        atoms[iatom] = chem::getElemIndex(sym);
         for (int a = 0; a < 3; ++a) {
-            if (ifs >> dtmp) x0[idx] = dtmp / phys::au_2_ang;
-            mass[idx] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;
-            idx++;
+            x0[3*iatom+a] /= phys::au_2_ang;
+            mass[3*iatom+a] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;
         }
     }
-    config_content = "";
-    while (getline(ifs, stmp, '\n')) config_content += stmp + "\n";
     ifs.close();
 
     std::string read_hess = _param->get_string({"model.read_hess", "solver.read_hess"}, LOC(), "NULL");
@@ -186,18 +185,18 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     }
 
     // prepare input run for calculation
-    std::string tmp_input;
+    std::string crd_input;
     if (save_every_step) {
-        tmp_input = utils::concat(path_str, "/real", istep_ptr[0], ".crd");
+        crd_input = utils::concat(path_str, "/real", istep_ptr[0], ".crd");
     } else {
-        tmp_input = utils::concat(path_str, "/real.crd");
+        crd_input = utils::concat(path_str, "/real.crd");
     }
 
     // convert AU to Angstrom
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;
 
     // write input
-    std::ofstream ofs(tmp_input);
+    std::ofstream ofs(crd_input);
     ofs << "\n" << natom << "\n";
     for (int iatom = 0, idx = 0; iatom < natom; ++iatom) {
         // ofs << chem::getElemLabel(atoms[iatom]);  //
@@ -219,7 +218,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
 
     // call python executation
     std::string qm_call_str = utils::concat("python ", kidsqmmm_path, "/kidsqmm.py -t ", try_level,  //
-                                            " -d ", path_str, " -i ", tmp_input);
+                                            " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input);
     int         s           = system(qm_call_str.c_str());
 
     // checkout the result
@@ -256,7 +255,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
                                     path_str, "/interface-", istep_ptr[0], ".ds ");
             system(command.c_str());
             if (!save_every_step) {  // also save structure
-                command = utils::concat("cp ", tmp_input, " ", tmp_input, ".", istep_ptr[0]);
+                command = utils::concat("cp ", crd_input, " ", crd_input, ".", istep_ptr[0]);
                 system(command.c_str());
             }
         }
@@ -273,7 +272,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
             if (stat.fail_type == 1 && !stat.last_attempt) stat.fail_type = 0;
         }
     } else {
-        if (s != 0) std::cout << "kidsqmm shell status bug\n";
+        if (s != 0) std::cout << "kids external shell status bug\n";
         if (!isFileExists(utils::concat(path_str, "/interface.ds"))) std::cout << "interface.ds is not generated\n";
         stat.succ      = false;
         stat.fail_type = 1;

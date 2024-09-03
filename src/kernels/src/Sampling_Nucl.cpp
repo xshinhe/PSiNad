@@ -187,6 +187,29 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                 //exit(0);
                 break;
             }
+            case NuclearSamplingPolicy::ReadAmberRST: {
+                std::string open_file = sampling_file;
+                if (!isFileExists(sampling_file)) open_file = utils::concat(sampling_file, stat.icalc, ".ds");
+                std::string   stmp, eachline;
+                std::ifstream ifs(open_file);
+                getline(ifs, eachline);
+                getline(ifs, eachline);
+                std::stringstream ss{eachline};
+                int NatomCheck;
+                ss >> NatomCheck;
+                if(3*NatomCheck != Dimension::N) throw kids_error("dimension error for rst");
+                for(int i=0; i< Dimension::N; ++i) {
+                    ifs >> x[i];
+                    x[i] /= phys::au_2_ang;
+                }
+                double au_2_angper50fs = phys::au_2_ang / (phys::au_2_fs / 50.0e0);
+                for(int i=0; i< Dimension::N; ++i) {
+                    ifs >> p[i];
+                    p[i] /= au_2_angper50fs;
+                    p[i] *= mass[i];
+                }
+                break;
+            }
             case NuclearSamplingPolicy::ReadXYZ: {
                 //
                 break;

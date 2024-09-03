@@ -41,6 +41,7 @@ DEFINE_POLICY(NuclearSamplingPolicy,
               QcNMA,         // from quasi-classical normal-mode analysis
               Gaussian,      // from gaussian distribution
               ReadDataSet,   // read from dataset file
+              ReadAmberRST,   // read from Amber's RST file
               ReadXYZ);      // read from XYZ format file
 
 class Sampling_Nucl final : public Kernel {

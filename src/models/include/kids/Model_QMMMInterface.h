@@ -29,6 +29,7 @@ class Model_QMMMInterface final : public Model {
 
     std::string kidsqmmm_path;
     std::string qmmm_config_in;
+    std::string qmmm_layer_info;
     std::string config_content;
     std::string exec_file;
 

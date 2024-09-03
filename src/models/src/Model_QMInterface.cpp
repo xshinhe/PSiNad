@@ -275,7 +275,7 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
             if (stat.fail_type == 1 && !stat.last_attempt) stat.fail_type = 0;
         }
     } else {
-        if(s!=0) std::cout << "kidsqmm shell status bug\n";
+        if(s!=0) std::cout << "kids external shell status bug\n";
         if (!isFileExists(utils::concat(path_str, "/interface.ds"))) std::cout << "interface.ds is not generated\n";
         stat.succ      = false;
         stat.fail_type = 1;
