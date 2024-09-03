@@ -262,8 +262,10 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
                 system(command.c_str());
             }
         }
-        command = utils::concat("mv ", path_str, "/interface.ds ", path_str, "/interface-old.ds ");
-        system(command.c_str());
+        if(stat_number == 0){
+            command = utils::concat("mv ", path_str, "/interface.ds ", path_str, "/interface-old.ds ");
+            system(command.c_str());
+        }
 
         if (stat_number != 0) {
             stat.succ      = false;
@@ -273,6 +275,8 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
             if (stat.fail_type == 1 && !stat.last_attempt) stat.fail_type = 0;
         }
     } else {
+        if(s!=0) std::cout << "kidsqmm shell status bug\n";
+        if (!isFileExists(utils::concat(path_str, "/interface.ds"))) std::cout << "interface.ds is not generated\n";
         stat.succ      = false;
         stat.fail_type = 1;
     }

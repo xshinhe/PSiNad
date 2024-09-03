@@ -22,6 +22,8 @@ void Sampling_Nucl::setInputParam_impl(std::shared_ptr<Param> PM) {
     sampling_type = NuclearSamplingPolicy::_from(
         _param->get_string({"solver.sampling_nuc_flag", "solver.sampling.nuc_flag"}, LOC(), "Gaussian"));
     sampling_file      = _param->get_string({"solver.sampling_file", "solver.sampling.file"}, LOC(), "init");
+    screen_hfreq_type  = _param->get_int({"solver.screen_hfreq_type"}, LOC(), 0);
+    ignore_nma         = _param->get_string({"solver.ignore_nma"}, LOC(), ",");
     double temperature = _param->get_real({"model.bath_temperature", "model.bath.temperature",  //
                                            "model.temperature", "solver.temperature"},
                                           LOC(), phys::temperature_d, 1.0f);
@@ -93,16 +95,43 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
             case NuclearSamplingPolicy::ClassicalNMA:
             case NuclearSamplingPolicy::WignerNMA:
             case NuclearSamplingPolicy::QcNMA: {
+                double E_sampled_NMA = 0.0e0;
                 Kernel_Random::rand_gaussian(x.data(), Dimension::N);
                 Kernel_Random::rand_gaussian(p.data(), Dimension::N);
                 for (int j = 0; j < Dimension::N; ++j) {
-                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-8) {
+                    std::string findflag = utils::concat(",", j, ",");
+                    bool find_in_ignore = ignore_nma.find(findflag) != std::string::npos;
+                    if (find_in_ignore) {
+                        std::cout << "here ignore nma of " << j << "-th frequency\n";
+                    }
+                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-8 || find_in_ignore) {
                         x[j] = 0.0f, p[j] = 0.0f;
                         continue;
+                    }
+                    double Hratio = 0.0e0;
+                    for(int k = 0; k < Dimension::N; ++k) {
+                        if(mass[k] < 2000.0) Hratio += Tmod[k * Dimension::N + j] * Tmod[k * Dimension::N + j];
                     }
                     double Qoverbeta = (sampling_type == NuclearSamplingPolicy::ClassicalNMA)
                                            ? ((beta > 0) ? 1.0f / beta : 0.0f)
                                            : (0.5e0 * w[j] / (beta > 0 ? std::tanh(0.5e0 * beta * w[j]) : 1.0f));
+
+                    double wincm = w[j] * phys::au_2_wn;
+                    if(Hratio > 0.8 && wincm > 2500 && screen_hfreq_type > 0){
+                        std::cout << "WARNING: using with screen on H freq: type = " << screen_hfreq_type << "\n";
+                        if(screen_hfreq_type == 1){
+                            x[j] = 0.0e0, p[j] = 0.0e0;
+                        }
+                        if(screen_hfreq_type == 2){
+                            x[j] *= 0.1, p[j] *= 0.1;
+                        }
+                        if(screen_hfreq_type == 3){
+                            Qoverbeta =  ((beta > 0) ? 1.0f / beta : 0.0f);
+                            x[j] *= 0.1, p[j] *= 0.1;
+                        }
+                    }
+                    E_sampled_NMA += w[j] * (x[j]*x[j] + p[j]*p[j]);
+
                     x_sigma[j]       = std::sqrt(Qoverbeta / (w[j] * w[j]));
                     p_sigma[j]       = std::sqrt(Qoverbeta);
                     x[j] *= x_sigma[j];
@@ -113,6 +142,7 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                         p[j]         = p[j] * scale;
                     }
                 }
+                // save E_sampled_NMA to dataset;
 
                 // transfrom normal-mode to cartesian coordinates (ARRAY should be .eval()!)
                 ARRAY_MATMUL(x.data(), Tmod.data(), x.data(), Dimension::N, Dimension::N, 1);
@@ -152,6 +182,9 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                         for (int i = 0; i < Dimension::N; ++i) ifs >> p[i];
                     }
                 }
+		//PRINT_ARRAY(x, 1, Dimension::N);
+		//PRINT_ARRAY(p, 1, Dimension::N);
+                //exit(0);
                 break;
             }
             case NuclearSamplingPolicy::ReadXYZ: {

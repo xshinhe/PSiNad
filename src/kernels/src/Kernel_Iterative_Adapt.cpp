@@ -301,7 +301,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
               << std::setw(10) << "tsize"     // tsize before one step
               << std::setw(10) << "dtsize"    // stepsize before this step
               << std::setw(10) << "try"       // stepsize after this step
-              << "\n";
+              << std::endl;
     if (_param->get_bool({"restart"}, LOC(), false)) {
         stat.first_step = false;
     } else {
@@ -416,7 +416,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                   << std::setprecision(2) << std::setw(10) << t[0] / time_unit  //
                   << std::setw(10) << tsize_before_loop                         //
                   << std::setw(10) << last_tried_dtsize[0]                      //
-                  << std::setw(10) << dtsize[0] << "\n";
+                  << std::setw(10) << dtsize[0] << std::endl; // flush into log
         isamp[0] = istep[0] / sstep;
     }
     return stat;

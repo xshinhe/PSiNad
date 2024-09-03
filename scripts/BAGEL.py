@@ -9,7 +9,7 @@ import sys
 import time
 import toml
 from copy import deepcopy
-from multiprocessing import Pool
+from multiprocessing import Pool, Process
 from pprint import pprint
 from traceback import format_exc
 from socket import gethostname
@@ -135,9 +135,9 @@ def _get_hessian_from_lines(lines: list[str]):
             symwhess_begin_idx = i
             find['hess'] = True
         if 'Mass Weighted Hessian Eigenvalues' in lines[i] and whess_eig_begin_idx == -1:
-            find['w'] = True
+            find['w'] = True # BAD!!!
             whess_eig_begin_idx = i
-        if '++ Mass Weighted Hessian Eigenvectors ++' in lines[i] and whess_vec_begin_idx == -1:
+        if '* Vibrational frequencies, IR intensities, and corresponding cartesian eigenvectors' in lines[i] and whess_vec_begin_idx == -1:
             find['Tmod'] = True
             whess_vec_begin_idx = i
 
@@ -147,15 +147,24 @@ def _get_hessian_from_lines(lines: list[str]):
         for i in range(geom_begin_idx+1, len(lines)):
             ll = lines[i].strip()
             if ll == '': continue
-            if ll[0] != '{' and not read_geom:
+            if ll[0] != '{' and 'first_geom' not in find:
+                find['first_geom'] = True
                 continue
-            if ll[0] != '{' and read_geom:
+            if ll[0] != '{' and 'first_geom' in find:
                 break
             sym += [ll.split(',')[0].split(':')[1].strip().split('"')[1]] 
             xyz += [ np.array(ll.split('[')[1].split(']')[0].split(',')).astype(np.float64) ]
         xyz = np.array(xyz)
         hess_dict['sym'] = sym
         hess_dict['x0'] = xyz
+
+        mass = []
+        mass = np.zeros(3*len(sym))
+        mdict = {'C':12.01, 'H':1.008, 'O': 16.00}
+        for k in range(len(mass)):
+            mass[k] = mdict[sym[k//3]] * 1850
+        hess_dict['mass'] = mass
+
         
     if 'hess' in find:
         natom = len(xyz)
@@ -178,12 +187,16 @@ def _get_hessian_from_lines(lines: list[str]):
             i += 1+N
         hess_dict['hess'] = hess
 
-    if 'w' in find:
+    if 'w' in find and False:
         w = np.array(lines[whess_eig_begin_idx+1].split()).astype(np.float64)
+        sign = np.sign(w)
+        w = np.sqrt(np.abs(w)) * sign
         hess_dict['w'] = w
 
     if 'Tmod' in find:
+        find['w'] = True
         Tmod = np.zeros((N,N))
+        wmod = np.zeros((N))
         i = whess_vec_begin_idx+1
         read_col_num = 0
         while i < len(lines) and read_col_num < N:
@@ -193,13 +206,15 @@ def _get_hessian_from_lines(lines: list[str]):
                 continue
             col_idx = np.array(ll.split()).astype(np.int32)
             read_col_num += len(col_idx)
-            for k in range(1,1+N):
+            wmod[col_idx] = np.array(lines[i+1].strip().split()[2:])
+            for k in range(6,6+N):
                 data = np.array(lines[i+k].strip().split())
                 row_idx = int(data[0])
                 data_v = np.array(data[1:]).astype(np.float64)
                 Tmod[row_idx,col_idx] = data_v
-            i += 1+N
+            i += 6+N
         hess_dict['Tmod'] = Tmod
+        hess_dict['w'] = wmod / QMutils.au_2_wn
 
     return find != {}, hess_dict
 
@@ -216,9 +231,9 @@ def qm_job(qm_data, args):
         N = int(qm_config['QM']['BAGEL']['N'])
     except KeyError:
         print(format_exc())
-    nproc = 1
-    if 'nproc' in qm_config['QM']:
-        nproc = qm_config['QM']['nproc']
+    nthread = 1
+    if 'nthread' in qm_config['QM']:
+        nthread = qm_config['QM']['nthread']
 
     job_str = '{"bagel": [\n'
 
@@ -268,6 +283,7 @@ def qm_job(qm_data, args):
         # job_str += '"nopen": %d,\n'%(qm_config['QM']['BAGEL']['nopen'])
         job_str += '"nclosed": %d,\n'%(qm_config['QM']['BAGEL']['nclosed'])
         if 'active' in qm_config['QM']['BAGEL']:
+            job_str += '"active" :'
             job_str += '['
             cnt = 0
             for istate in qm_config['QM']['BAGEL']['active']:
@@ -310,6 +326,8 @@ def qm_job(qm_data, args):
         "directory": args.directory,
         "output": args.output,
     }
+    #print('config managed by kidsqmmm module:')
+    #pprint(qm_config)
 
     directory = qm_config['QM']['env']['directory']
     if not os.path.exists(directory): os.makedirs(directory)
@@ -318,16 +336,29 @@ def qm_job(qm_data, args):
     f.write(job_str)
     f.flush()
     f.close()
+
+    #print("try to do BAGEL job with parameter as:")
+    #print(job_str)
+
     current_path = os.path.abspath(os.getcwd())
     exe_str = 'export BAGEL_NUM_THREADS=%d && cd %s && %s  %s > %s && cd %s'%(
-        nproc,
+        nthread,
         qm_config['QM']['env']['directory'],
         qm_config['QM']['BAGEL']['path'],
         qm_config['QM']['env']['generated'],
         qm_config['QM']['env']['output'],
         current_path
     )
-    os.system(exe_str)
+    stat = os.system(exe_str)
+    
+    #def run_command():
+    #    os.system(exe_str)
+    #p = Process(target=run_command)
+    #p.start()
+    #stat = p.join()
+
+    #print('os executation status: ', stat)
+    #print('now try to parse somthing')
     parse_result(
         qm_data,
         directory
@@ -351,6 +382,7 @@ def parse_result(qm_data, log_path):
     fstrength = np.zeros((F))
     
     lines = open(log_path +'/'+ output, 'r').readlines()
+    #pprint(lines)
     finde, ERROR_MSG = _get_errormsg_from_lines(lines)
     findu, UNABLE_MSG = _get_unable_from_lines(lines)
     findf, fstrength = _get_oscstrength_from_lines(lines)
@@ -369,6 +401,8 @@ def parse_result(qm_data, log_path):
                 nac[:,i,k] = nacvector['%d-%d'%(i,k)].flatten() # already in au
                 nac[:,k,i] = nacvector['%d-%d'%(k,i)].flatten() # already in au
     except (IOError, KeyError):
+        print('CANNOT PARSE FILE. try to print ERROR MSG')
+        print(ERROR_MSG)
         stat = 1
 
     qmout = QMutils.QMout(natom=natom, 
@@ -377,6 +411,7 @@ def parse_result(qm_data, log_path):
         nac=nac
     )
 
+    # anyway we alway write the interface.ds
     f = open(qm_config['QM']['env']['directory'] + '/interface.ds', 'w')
     f.write('interface.stat\n')
     f.write(f'kids_int {1}\n')
@@ -416,6 +451,11 @@ def parse_result(qm_data, log_path):
         f.write('\n')
         f.close()
     #pprint(qmout)
+    if stat != 0:
+        tmp = time.strftime('%m-%d-%H-%M-%S', time.localtime())
+        print('backup QM.log to QM.log.' + tmp)
+        os.system('cp QM.log QM.log.%s'%tmp)
+        os.system('cp casscf.log casscf.log.%s'%tmp)
     return qmout
 
 def main():

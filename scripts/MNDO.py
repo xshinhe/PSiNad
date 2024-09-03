@@ -162,10 +162,24 @@ def _get_hessian_from_lines(lines: list[str]):
         if "     INPUT GEOMETRY" in lines[i]:
             k = i + 6
             xyz_local = []
+            sym = []
+            sym_dict = {'1':'H', '6':'C', '7':'N', '8':'O'}
             while lines[k].strip() != '':
-                xyz_local += [ np.array(lines[k].split()[2:5]).astype(np.float64) ]
+                terms = lines[k].split()
+                if terms[3] == '*':
+                    xyz_local += [ np.array([terms[2], terms[4], terms[6]]).astype(np.float64) ]
+                else:
+                    xyz_local += [ np.array(terms[2], terms[3], terms[5]).astype(np.float64) ]
+                sym += [ sym_dict[terms[1]] ]
                 k += 1
             xyz[:] = np.array(xyz_local).flatten()
+            mass = []
+            mass = np.zeros(3*len(sym))
+            mdict = {'C':12.01, 'H':1.008, 'N':14.00, 'O': 16.00}
+            for x in range(len(mass)):
+                mass[x] = mdict[sym[x//3]] * 1850
+            hess['sym'] = sym
+            hess['mass'] = mass
             i = k + 1
         elif "State  1,  Mult. 1,  E-E(1)=  0.00000" in lines[i] and Emin == 0:
             Emin = float(lines[i].split()[-2])
@@ -426,6 +440,30 @@ if __name__ == '__main__':
                 fo.write('{: 12.8e} '.format(0))
             fo.write('\n\n')
         fo.close()
+        for i in range(len(hess['w'])):
+            #print(hess['x0'])
+
+            w = np.array(hess['w']).flatten()
+            x0 = np.array(hess['x0']).flatten() # * QMutils.au_2_ang
+            Tmod = np.array(hess['Tmod'])
+            mass = np.array(hess['mass']).flatten()
+            sym = hess['sym']
+            #print(sym, mass)
+            Natom = len(w)//3
+            ft = open('nma-%d.xyz'%i, 'w')
+            beta = 3.15e5 / 300 
+            sigma = 1 /(np.sqrt(beta) * w[i] / QMutils.au_2_wn)
+            print(sigma)
+            for t in np.linspace(0, np.pi*10/w[i], 100):
+                ft.write('%d\n\n'%Natom)
+                dx = x0*0 
+                dx[i] = 1*np.sin(w[i]*t)
+                xt = x0 +  sigma / np.sqrt(mass) * np.dot(Tmod, dx)
+
+                for ia in range(Natom):
+                    #print(ia, ia//3,  sym[ia//3])
+                    ft.write('%s %12.8f %12.8f %12.8f\n'%(sym[ia], xt[3*ia], xt[3*ia+1], xt[3*ia+2]))
+            ft.close()
         # pprint(hess)
 
     # debug

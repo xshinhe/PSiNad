@@ -54,7 +54,9 @@ class Sampling_Nucl final : public Kernel {
    private:
     NuclearSamplingPolicy::_type sampling_type;
     std::string                  sampling_file;
+    std::string                  ignore_nma;
     kids_real                    beta;
+    kids_int                     screen_hfreq_type;
 
     span<kids_real> x, p;
     span<kids_real> x0, p0, x_sigma, p_sigma, w, mass, Tmod;
