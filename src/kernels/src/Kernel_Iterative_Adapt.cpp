@@ -307,6 +307,9 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
     } else {
         stat.first_step = true;
     }
+
+    int count_fail_type1 = 0;
+
     isamp[0] = istep[0] / sstep;
     while (istep[0] <= nstep) {
         stat.istep = istep[0];  // @TODO CAUTION!!!
@@ -344,6 +347,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         if (stat.succ && !stat.last_attempt) statc = 'T';                     // SUCC=True
         if (stat.succ && stat.last_attempt) statc = 'R';                      // Recovered
         if (!stat.succ && stat.last_attempt) statc = 'X';                     // END HERE
+        if (!stat.succ && count_fail_type1 >= 2) statc = 'X';                 // END HERE
         if (!stat.succ && !stat.last_attempt && dtsize[0] > 1) statc = 'F';   // FAILED
         if (!stat.succ && !stat.last_attempt && dtsize[0] == 1) statc = 'L';  // FAILED and TODO TRY LAST
         if (stat.frozen) statc = 'Z';                                         // FROZEN THEN
@@ -392,9 +396,19 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
             }
             case 'L':
             case 'F': {
+                if (!stat.succ) {
+                    if (stat.fail_type == 1) {
+                        count_fail_type1++;
+                    } else {
+                        count_fail_type1 = 0;
+                    }
+                }
+                // save last tried
                 stat.last_attempt    = (dtsize[0] == 1);
                 last_tried_dtsize[0] = dtsize[0];
-                dtsize[0]            = (stat.last_attempt) ? dtsize[0] : dtsize[0] / 2;
+
+                // suggest new dt (don't minimize dt for fail_type==1)
+                dtsize[0] = (stat.last_attempt || stat.fail_type == 1) ? dtsize[0] : dtsize[0] / 2;
                 tsize[0] += 0;
 
                 for (auto& fname : backup_fields) {
@@ -416,7 +430,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                   << std::setprecision(2) << std::setw(10) << t[0] / time_unit  //
                   << std::setw(10) << tsize_before_loop                         //
                   << std::setw(10) << last_tried_dtsize[0]                      //
-                  << std::setw(10) << dtsize[0] << std::endl; // flush into log
+                  << std::setw(10) << dtsize[0] << std::endl;                   // flush into log
         isamp[0] = istep[0] / sstep;
     }
     return stat;
