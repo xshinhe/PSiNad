@@ -5,6 +5,7 @@
 #include "kids/Model_LVCM.h"
 #include "kids/Model_NAD1D.h"
 #include "kids/Model_QMInterface.h"
+#include "kids/Model_QMMMInterface.h"
 #include "kids/Model_SystemBath.h"
 
 namespace PROJECT_NS {
@@ -21,6 +22,8 @@ std::shared_ptr<Model> defaultModelFactory(const std::string& name) {
         return std::shared_ptr<Model_NAD1D>(new Model_NAD1D());
     } else if (name == "QM") {
         return std::shared_ptr<Model_QMInterface>(new Model_QMInterface());
+    } else if (name == "QMMM") {
+        return std::shared_ptr<Model_QMMMInterface>(new Model_QMMMInterface());
     } else if (name == "Interf_MNDO") {
         return std::shared_ptr<Model_Interf_MNDO>(new Model_Interf_MNDO());
     } else {

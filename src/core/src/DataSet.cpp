@@ -39,7 +39,10 @@ T* DataSet::def(const std::string& key, Shape S, const std::string& info) {
     }
 
     std::shared_ptr<Node>& leaf_node = (*d_ptr)[kh.terms.back()];
-    if (!leaf_node) leaf_node = std::shared_ptr<Tensor<T>>(new Tensor<T>(S, info));
+    if (!leaf_node) {
+		// std::cout << "using size for " << info << " : " << S.size() << std::endl;
+		leaf_node = std::shared_ptr<Tensor<T>>(new Tensor<T>(S, info));
+    }
 
     if (leaf_node->type() != as_enum<T>()) {  //
         throw std::runtime_error("doubly conflicted definition!");

@@ -346,14 +346,21 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         char statc = '?';
         if (stat.succ && !stat.last_attempt) statc = 'T';                     // SUCC=True
         if (stat.succ && stat.last_attempt) statc = 'R';                      // Recovered
-        if (!stat.succ && stat.last_attempt) statc = 'X';                     // END HERE
-        if (!stat.succ && count_fail_type1 >= 2) statc = 'X';                 // END HERE
         if (!stat.succ && !stat.last_attempt && dtsize[0] > 1) statc = 'F';   // FAILED
         if (!stat.succ && !stat.last_attempt && dtsize[0] == 1) statc = 'L';  // FAILED and TODO TRY LAST
+        if (!stat.succ && stat.last_attempt) statc = 'X';                     // END HERE
+        if (!stat.succ && stat.fail_type == 1) {
+            if(count_fail_type1 >=2 ){
+                statc = 'X';
+            } else {
+                count_fail_type1++; // don't change statc
+            }
+        }
+        if (stat.fail_type != 1) count_fail_type1 = 0; // reset to zero
         if (stat.frozen) statc = 'Z';                                         // FROZEN THEN
 
         if (std::ifstream{"X_STAT"}.good() && !stat.frozen) statc = 'X';
-        if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good() && !stat.frozen) statc = 'X';
+        if (std::ifstream{utils::concat("X_STAT_", stat.icalc)}.good() && !stat.frozen) statc = 'X';
 
         switch (statc) {
             case 'X': {
@@ -376,6 +383,9 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                 std::ofstream ofs{utils::concat(directory, "/frozen", stat.icalc, "-", tsize[0], ".ds")};
                 _dataset->dump(ofs);
                 ofs.close();
+                std::ofstream ofs2{utils::concat(directory, "/frozen_last.ds")};
+                _dataset->dump(ofs2);
+                ofs2.close();
                 stat.frozen = true;
             }
             case 'T':
@@ -388,6 +398,10 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                 tsize[0] += dtsize[0];
 
                 int extend_dtsize    = (at_fullstep_finally) ? 2 * last_tried_dtsize[0] : 2 * dtsize[0];
+
+                // in some case, don't enlarge the time size
+                // if (statc == 'T' && stat.fail_type == -1) extend_dtsize    = (at_fullstep_finally) ? last_tried_dtsize[0] : dtsize[0];
+
                 int remain_dtsize    = msize - (tsize[0] % msize);
                 int new_dtsize       = std::min({msize, extend_dtsize, remain_dtsize});
                 last_tried_dtsize[0] = dtsize[0];

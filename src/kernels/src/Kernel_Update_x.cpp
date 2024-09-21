@@ -18,8 +18,10 @@ void Kernel_Update_x::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     p         = DS->def(DATA::integrator::p);
     m         = DS->def(DATA::integrator::m);
     minv      = DS->def(DATA::integrator::minv);
+	if (Kernel_Monodromy::enable){
     mono      = DS->def(DATA::integrator::monodromy::mono);
     monodt    = DS->def(DATA::integrator::monodromy::monodt);
+	}
     auto mass = DS->def(DATA::model::mass);
     dt        = DS->def(DATA::flowcontrol::dt);
     for (int iP = 0; iP < Dimension::P; ++iP) {

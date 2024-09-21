@@ -56,11 +56,13 @@ class Sampling_Nucl final : public Kernel {
     NuclearSamplingPolicy::_type sampling_type;
     std::string                  sampling_file;
     std::string                  ignore_nma;
+    std::string                  squeez_nma;
     kids_real                    beta;
     kids_int                     screen_hfreq_type;
 
     span<kids_real> x, p;
     span<kids_real> x0, p0, x_sigma, p_sigma, w, mass, Tmod;
+	span<kids_int> layer_type;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

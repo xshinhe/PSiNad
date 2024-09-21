@@ -16,7 +16,7 @@
 // C++17   #define __cplusplus 201703
 // C++20   #define __cplusplus 202002
 
-#if (__cplusplus < 201402L)
+#if (__cplusplus < 201402L || true)
 /** make this header is compatible to c++11 standard */
 #define CONSTTYPE const
 #define CONSTEXPR_DECOR

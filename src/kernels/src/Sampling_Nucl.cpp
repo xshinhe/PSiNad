@@ -24,6 +24,7 @@ void Sampling_Nucl::setInputParam_impl(std::shared_ptr<Param> PM) {
     sampling_file      = _param->get_string({"solver.sampling_file", "solver.sampling.file"}, LOC(), "init");
     screen_hfreq_type  = _param->get_int({"solver.screen_hfreq_type"}, LOC(), 0);
     ignore_nma         = _param->get_string({"solver.ignore_nma"}, LOC(), ",");
+    squeez_nma         = _param->get_string({"solver.squeez_nma"}, LOC(), ",");
     double temperature = _param->get_real({"model.bath_temperature", "model.bath.temperature",  //
                                            "model.temperature", "solver.temperature"},
                                           LOC(), phys::temperature_d, 1.0f);
@@ -39,7 +40,10 @@ void Sampling_Nucl::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     p_sigma = DS->def(DATA::model::p_sigma);
     w       = DS->def(DATA::model::w);
     mass    = DS->def(DATA::model::mass);
-    Tmod    = DS->def(DATA::model::Tmod);
+    layer_type = DS->def(DATA::model::layer_type);
+	if(sampling_type != NuclearSamplingPolicy::ReadAmberRST) {
+    Tmod    = DS->def(DATA::model::Tmod); // too big
+	}
 }
 
 Status& Sampling_Nucl::initializeKernel_impl(Status& stat) { return stat; }
@@ -101,12 +105,23 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                 for (int j = 0; j < Dimension::N; ++j) {
                     std::string findflag = utils::concat(",", j, ",");
                     bool find_in_ignore = ignore_nma.find(findflag) != std::string::npos;
+                    bool find_in_squeez = squeez_nma.find(findflag) != std::string::npos;
                     if (find_in_ignore) {
                         std::cout << "here ignore nma of " << j << "-th frequency\n";
                     }
-                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-8 || find_in_ignore) {
+                    if (find_in_squeez) {
+                        std::cout << "here squeez nma of " << j << "-th frequency\n";
+                    }
+                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-8) {
                         x[j] = 0.0f, p[j] = 0.0f;
-                        continue;
+                    }
+                    if (find_in_ignore) {
+                        x[j] = 0.0f; // , p[j] = 0.0f; // just keep sampling of p
+                    }
+                    if (find_in_squeez) {
+                        double act = x[j]*x[j] + p[j]*p[j];
+                        x[j] /= 2;
+                        p[j] *= 2; // std::sqrt(act - x[j]*x[j]);
                     }
                     double Hratio = 0.0e0;
                     for(int k = 0; k < Dimension::N; ++k) {
@@ -134,6 +149,9 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
 
                     x_sigma[j]       = std::sqrt(Qoverbeta / (w[j] * w[j]));
                     p_sigma[j]       = std::sqrt(Qoverbeta);
+
+                    std::cout << j << "-th sigma for x is " << x_sigma[j] << std::endl;
+
                     x[j] *= x_sigma[j];
                     p[j] *= p_sigma[j];
                     if (sampling_type == NuclearSamplingPolicy::QcNMA) {
@@ -189,24 +207,31 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
             }
             case NuclearSamplingPolicy::ReadAmberRST: {
                 std::string open_file = sampling_file;
-                if (!isFileExists(sampling_file)) open_file = utils::concat(sampling_file, stat.icalc, ".ds");
+                if (!isFileExists(sampling_file)) open_file = utils::concat(sampling_file, stat.icalc, ".rst");
                 std::string   stmp, eachline;
                 std::ifstream ifs(open_file);
-                getline(ifs, eachline);
-                getline(ifs, eachline);
+                getline(ifs, eachline, '\n');
+                getline(ifs, eachline, '\n');
                 std::stringstream ss{eachline};
                 int NatomCheck;
                 ss >> NatomCheck;
-                if(3*NatomCheck != Dimension::N) throw kids_error("dimension error for rst");
+                if(3*NatomCheck != Dimension::N) {
+					std::cout << " 1 : " << NatomCheck*3 << std::endl;
+					std::cout << " 2 : " << Dimension::N << std::endl;
+					throw kids_error(utils::concat("openfiel is ", open_file,"; eachline:", 
+								eachline , ";dimension error for rst : ", 3*NatomCheck, "?", Dimension::N));
+				}
                 for(int i=0; i< Dimension::N; ++i) {
                     ifs >> x[i];
                     x[i] /= phys::au_2_ang;
                 }
-                double au_2_angper50fs = phys::au_2_ang / (phys::au_2_fs / 50.0e0);
+                double au_2_akma_time = 20.45482949774598 * phys::au_2_ps;
+                double au_2_akma_vel = phys::au_2_ang / au_2_akma_time;
                 for(int i=0; i< Dimension::N; ++i) {
                     ifs >> p[i];
-                    p[i] /= au_2_angper50fs;
+                    p[i] /= au_2_akma_vel;
                     p[i] *= mass[i];
+					if(layer_type[i / 3] > 1) p[i] = 0.0e0; // Low layer is fixed
                 }
                 break;
             }

@@ -317,6 +317,7 @@ extern VARIABLE<kids_real> Qmat;
 extern VARIABLE<kids_real> Tmod;
 extern VARIABLE<kids_real> V;
 extern VARIABLE<kids_int>  atoms;
+extern VARIABLE<kids_int>  layer_type;
 
 namespace bath {
 extern VARIABLE<kids_real> coeffs;

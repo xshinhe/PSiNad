@@ -24,6 +24,7 @@ void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     p       = DS->def(DATA::integrator::p);
     ve      = DS->def(DATA::integrator::ve);
     minv    = DS->def(DATA::integrator::minv);
+	if (Kernel_Monodromy::enable){
     mono    = DS->def(DATA::integrator::monodromy::mono);
     monodt  = DS->def(DATA::integrator::monodromy::monodt);
     MFFtmp1 = DS->def(DATA::integrator::monodromy::MFFtmp1);
@@ -32,13 +33,14 @@ void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     MFFtmp4 = DS->def(DATA::integrator::monodromy::MFFtmp4);
     MFFtmp5 = DS->def(DATA::integrator::monodromy::MFFtmp5);
     MFFtmp6 = DS->def(DATA::integrator::monodromy::MFFtmp6);
+    hess    = DS->def(DATA::model::hess);
+    ddV     = DS->def(DATA::model::ddV);
+	}
     mask    = DS->def(DATA::integrator::forceeval::mask);
     dmask   = DS->def(DATA::integrator::forceeval::dmask);
     T       = DS->def(DATA::model::rep::T);
     grad    = DS->def(DATA::model::grad);
-    hess    = DS->def(DATA::model::hess);
     dV      = DS->def(DATA::model::dV);
-    ddV     = DS->def(DATA::model::ddV);
     dE      = DS->def(DATA::model::rep::dE);
     nac     = DS->def(DATA::model::rep::nac);
     eig     = DS->def(DATA::model::rep::eig);

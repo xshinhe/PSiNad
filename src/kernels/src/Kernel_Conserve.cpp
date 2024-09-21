@@ -77,31 +77,42 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
                 cnt_loose--;
             }
 
+            bool loose_10 = false;
             if (stat.last_attempt && stat.fail_type == 2) {
+                loose_10 = true;
                 thres = 10.0 * thres_kcalpermol;  // loose threshold
                 std::cout << "try loose thres = " << thres << " because of failure of CONSERVATION\n";
             }
 
             double deltaE = fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea;
             if (deltaE > thres) {
-                std::cout << "fail in conserve ERROR: "  //
-                          << deltaE                      //
+                std::cout << "fail in conserve ERROR: "                                     //
+                          << deltaE  //
                           << " > " << thres << "\n";
                 stat.succ      = false;
                 stat.fail_type = 2;
-                if (stat.first_step) {
+                if(stat.first_step){
                     // the first step fail in energy conversation, so kinematic energy to too large for dt suggested
-                    std::cout << "warning: the conservation for the first step fails! but we continue to run with "
-                                 "loose of threshold\n";
+                    std::cout << "warning: the conservation for the first step fails! but we continue to run with loose of threshold\n";
                     std::cout << "but you'd better kill job and check the initial condition\n";
                     thres_kcalpermol = deltaE * 1.01;
                 }
+                if(loose_10 && Etot_prev[0] > Epot[0]) {
+                    std::cout << "force scale the energy and recover the trajectory! it should be carefull!!!" << std::endl;
+                    double scale = std::sqrt(std::max({Etot_prev[0] - Epot[0], 0.0e0}) / Ekin[0]);
+                    for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
+                    stat.succ      = true;
+                    stat.fail_type = 0;
+                }
             } else {
-                std::cout << "now deltaE: "  //
-                          << deltaE          //
+                std::cout << "now deltaE: "                                     //
+                          << deltaE  //
                           << " <= " << thres << "\n";
                 Etot_prev[0]   = Ekin[0] + Epot[0];
                 stat.fail_type = 0;  // as long as both succeed, we reset the fail_type as 0
+                //if(!stat.last_attempt && thres / deltaE < 1.414e0) { // check if it is reset to -1
+                //    stat.fail_type = -1; // succ but dangerous, so don't increase the step size, just keep it
+                //}
             }
         }
 

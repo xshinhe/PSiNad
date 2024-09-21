@@ -42,7 +42,7 @@ void Model_QMMMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
 
     char* p = getenv("KIDSQMMM_PYTHON");
     if (p != nullptr) kidsqmmm_path = p;
-    if (kidsqmmm_path == "" || !isFileExists(utils::concat(kidsqmmm_path, "/", "kidsqmm.py")))
+    if (kidsqmmm_path == "" || !isFileExists(utils::concat(kidsqmmm_path, "/", "kidsqmmm.py")))
         throw kids_error("please correctly setup env: KIDSQMMM_PYTHON");
 
     if (!isFileExists(qmmm_config_in))
@@ -68,11 +68,12 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
     // model field
     atoms            = DS->def(DATA::model::atoms);
+    layer_type       = DS->def(DATA::model::layer_type);
     mass             = DS->def(DATA::model::mass);
     vpes             = DS->def(DATA::model::vpes);
     grad             = DS->def(DATA::model::grad);
-    hess             = DS->def(DATA::model::hess);
-    Tmod             = DS->def(DATA::model::Tmod);
+    // hess             = DS->def(DATA::model::hess);
+    // Tmod             = DS->def(DATA::model::Tmod);
     f_r              = DS->def(DATA::model::f_r);
     f_p              = DS->def(DATA::model::f_p);
     f_rp             = DS->def(DATA::model::f_rp);
@@ -92,7 +93,11 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     istep_ptr        = DS->def(DATA::flowcontrol::istep);
 
     ARRAY_EYE(T.data(), Dimension::F);
-    ARRAY_EYE(Tmod.data(), Dimension::N);
+    // ARRAY_EYE(Tmod.data(), Dimension::N);
+	
+	if(!isFileExists(qmmm_layer_info)){
+		throw kids_error("qmm_layer_info is needed!");
+	}
 
     double        dtmp;
     int           itmp;
@@ -105,56 +110,20 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         double charg;
         ss >> sym >> charg >> x0[3*iatom] >> x0[3*iatom+1] >> x0[3*iatom+2] >> type;
         atoms[iatom] = chem::getElemIndex(sym);
+		if (type == "H") layer_type[iatom] = 0;
+		if (type == "M") layer_type[iatom] = 1;
+		if (type == "L") layer_type[iatom] = 2;
         for (int a = 0; a < 3; ++a) {
             x0[3*iatom+a] /= phys::au_2_ang;
             mass[3*iatom+a] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;
         }
+		iatom++;
     }
+	// PRINT_ARRAY(mass, 1, 12);
     ifs.close();
-
-    std::string read_hess = _param->get_string({"model.read_hess", "solver.read_hess"}, LOC(), "NULL");
-    if (read_hess != "NULL") {  // used for sampling
-        if (!isFileExists(read_hess)) throw kids_error("cannot open hess as .ds file");
-        std::ifstream ifs(read_hess);  // prepare for NMA
-        bool          read_w = false;
-        bool          read_H = false;
-        bool          read_T = false;
-        std::string   eachline;
-        while (getline(ifs, eachline)) {
-            if (eachline.find("model.vpes") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < 1; ++i) ifs >> ener_refered;
-            }
-            if (eachline.find("model.x0") != eachline.npos && false) {  // read from config_content
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> x0[i];
-            }
-            if (eachline.find("model.p0") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> p0[i];
-            }
-            if (eachline.find("model.hess") != eachline.npos) {
-                read_H = true;
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::NN; ++i) ifs >> hess[i];
-            }
-            if (eachline.find("model.w") != eachline.npos) {
-                read_w = true;
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> w[i];
-            }
-            if (eachline.find("model.Tmod") != eachline.npos) {
-                read_T = true;
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::NN; ++i) ifs >> Tmod[i];
-            }
-        }
-        ifs.close();
-        if (read_H && !read_w) { EigenSolve(w.data(), Tmod.data(), hess.data(), Dimension::N); }
-        if (!read_H && !read_w && !read_T) throw kids_error("cannot read hess from ds");
-    } else {
-        for (int j = 0; j < Dimension::N; ++j) x_sigma[j] = 0.0e0, p_sigma[j] = 0.0e0;
-    }
+	natom = iatom;
+	if(Dimension::N != 3*natom) throw kids_error("mismatch real_layers size with N");
+    for (int j = 0; j < Dimension::N; ++j) x_sigma[j] = 0.0e0, p_sigma[j] = 0.0e0;
 }
 
 Status& Model_QMMMInterface::initializeKernel_impl(Status& stat) {
@@ -194,14 +163,17 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
 
     // convert AU to Angstrom
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;
+    // PRINT_ARRAY(x, 1, 12);
+    // std::cout << std::endl;
 
     // write input
     std::ofstream ofs(crd_input);
     ofs << "\n" << natom << "\n";
+	
     for (int iatom = 0, idx = 0; iatom < natom; ++iatom) {
         // ofs << chem::getElemLabel(atoms[iatom]);  //
         for (int a = 0; a < 3; ++a) {
-            ofs << FMT(8) << x[idx];
+            ofs << std::fixed << std::setprecision(7) << std::setw(12) << x[idx];
             idx++;
         }
         if (iatom % 2 == 1) ofs << "\n";
@@ -217,8 +189,8 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     }
 
     // call python executation
-    std::string qm_call_str = utils::concat("python ", kidsqmmm_path, "/kidsqmm.py -t ", try_level,  //
-                                            " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input);
+    std::string qm_call_str = utils::concat("python ", kidsqmmm_path, "/kidsqmmm.py -t ", try_level,  //
+                                            " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " > ", path_str, "/log");
     int         s           = system(qm_call_str.c_str());
 
     // checkout the result
@@ -256,6 +228,8 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
             system(command.c_str());
             if (!save_every_step) {  // also save structure
                 command = utils::concat("cp ", crd_input, " ", crd_input, ".", istep_ptr[0]);
+                system(command.c_str());
+                command = utils::concat("cp ", path_str, "/log ", path_str, "/log.", istep_ptr[0]);
                 system(command.c_str());
             }
         }

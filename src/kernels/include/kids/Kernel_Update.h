@@ -8,5 +8,6 @@
 #include "kids/Kernel_Update_U.h"
 #include "kids/Kernel_Update_p.h"
 #include "kids/Kernel_Update_x.h"
+#include "kids/Kernel_Update_Coup.h"
 
 #endif  // Kernel_Update_H

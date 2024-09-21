@@ -32,10 +32,12 @@ void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     R             = DS->def(DATA::model::rep::R);
     U             = DS->def(DATA::integrator::U);
     Udt           = DS->def(DATA::integrator::Udt);
+	if (Kernel_Monodromy::enable){
     mono          = DS->def(DATA::integrator::monodromy::mono);
     monodt        = DS->def(DATA::integrator::monodromy::monodt);
     MFFtmp1       = DS->def(DATA::integrator::monodromy::MFFtmp1);
     MFFtmp2       = DS->def(DATA::integrator::monodromy::MFFtmp2);
+	}
     invexpidiagdt = DS->def(DATA::integrator::tmp::invexpidiagdt);
     c             = DS->def(DATA::integrator::c);
     cset          = DS->def(DATA::integrator::cset);

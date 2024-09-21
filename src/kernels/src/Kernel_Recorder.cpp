@@ -114,6 +114,7 @@ Status& Kernel_Recorder::initializeKernel_impl(Status& stat) {
 
 Status& Kernel_Recorder::executeKernel_impl(Status& stat) {
     for (auto& irule : _ruleset->getRules()) { irule->calculateResult(isamp_ptr[0]); }
+    RuleSet::flush_all(this->directory, ".TMP", 0);
     return stat;
 }
 

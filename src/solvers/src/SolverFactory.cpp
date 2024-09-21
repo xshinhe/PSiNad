@@ -6,6 +6,8 @@ extern std::shared_ptr<Solver> Sampling_Kernel(std::shared_ptr<Model> kmodel, st
 
 extern std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
 
+extern std::shared_ptr<Solver> NAD_Coup_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
+
 extern std::shared_ptr<Solver> NAD_Adapt_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
 
 extern std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
@@ -18,6 +20,8 @@ std::shared_ptr<Solver> defaultSolverFactory(const std::string& name, std::share
         return Sampling_Kernel(kmodel, name);
     } else if (name == "NAD") {
         return NAD_Kernel(kmodel, name);
+    } else if (name == "NAD-coup") {
+        return NAD_Coup_Kernel(kmodel, name);
     } else if (name == "NAD-adapt") {
         return NAD_Adapt_Kernel(kmodel, "NAD");
     } else if (name == "NAD-adaptM") {

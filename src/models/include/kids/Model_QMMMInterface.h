@@ -48,6 +48,7 @@ class Model_QMMMInterface final : public Model {
     // integrator
     span<kids_real> x, p;
     span<kids_int>  atoms;
+    span<kids_int>  layer_type;
     span<kids_real> x0;
     span<kids_real> p0;
     span<kids_real> x_sigma;
@@ -69,6 +70,7 @@ class Model_QMMMInterface final : public Model {
     int  iroot;
     int  lroot;
     bool refer;
+    std::string boxinfo;
 
     int try_level;
 
