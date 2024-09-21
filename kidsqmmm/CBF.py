@@ -1,0 +1,555 @@
+#!/usr/bin/env python3
+# coding=utf-8
+
+#    COBRAMM
+#    Copyright (c) 2019 ALMA MATER STUDIORUM - Università di Bologna
+
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#####################################################################################################
+
+# import statements of module from python standard library
+import os
+import shutil
+import gzip
+import shelve
+
+# imports of local modules
+import logwrt
+import amber
+# import turbo
+import molcas
+import molpro
+
+from Timer import Timer  # keep timings of the different sections of the code
+
+
+#####################################################################################################
+#            FUNCTIONS TO MANAGE COBRAMM FILES
+#####################################################################################################
+
+# variable with the name of the input file storage directory
+INPUTSTORAGEDIR = "input_files"
+
+
+# =============================================================================================================
+
+
+def saveinputs():
+    """ save user input files to prevent their damage during the calculation """
+
+    # remove previous input_files directory
+    if INPUTSTORAGEDIR in os.listdir('.'):
+        shutil.rmtree(INPUTSTORAGEDIR)
+    os.mkdir(INPUTSTORAGEDIR)
+
+    # list of files that needs to be saved
+    tocopy = ['cobram.command', 'real_layers.xyz', 'real.top', 'model-H.top', 'real.crd',
+              'geometry.chk', 'gaussian-QM.chk', 'velocity.dat', 'INPORB', 'turboinp']
+    # save file when present
+    for f in tocopy:
+        if f in os.listdir('.'):
+            shutil.copy(f, INPUTSTORAGEDIR)
+
+
+# =============================================================================================================
+
+
+def GZIP(file):
+    """ gzip file named as the input argument """
+
+    with open(file, 'rb') as r_file:
+        w_file = gzip.GzipFile(file + '.gz', 'w', 9)
+        w_file.write(r_file.read())
+        w_file.flush()
+        w_file.close()
+    os.remove(file)
+
+
+# =============================================================================================================
+
+
+def GUNZIP(file):
+    """ ungzip file named as the input argument """
+
+    r_file = gzip.GzipFile(file, 'r')
+    with open(os.path.splitext(file)[0], 'w') as w_file:
+        w_file.write(r_file.read().decode())
+    r_file.close()
+    os.unlink(file)  # Yes this one too.
+
+
+# =============================================================================================================
+
+
+def garbager(geometry, command):
+    # the calculation has a QM part, clean up files from QM run
+    if "H" in geometry.calculationType:
+        if command[51] == '6':  # QM calulation by Molcas
+            molcas.clean_QM_molcas()
+        if command[51] == '7':  # QM calulation by MOLPRO
+            molpro.clean_QM_molpro()
+
+    # the calculation has a MM part, clean up files from MM run
+    if "M" in geometry.calculationType or "L" in geometry.calculationType:
+        amber.clean_MM_amber()
+
+    # remove optimization files and zip chk file
+    toremove2 = ["geometry.com", 'geometry.dat', 'geometry.rwf', 'geometry.d2e', 'geometry.int']
+    for f in toremove2:
+        if os.path.isfile(f): os.remove(f)
+    if os.path.isfile('geometry.chk'): GZIP('geometry.chk')
+
+    # rm geomXXX directories remaining from a parallel calculation
+    for i in range(999):
+        if os.path.isdir("geom" + str(i)): shutil.rmtree("geom" + str(i))
+
+    toremove = ["velocity_0.dat", "cobram-sef", 'frozenmmatoms.pdb', 'basis', 'auxbasis', 'mos',
+                'statistics', 'fort.99', 'test.out', 'infile', 'newfile', 'oldfile']
+    for f in toremove:
+        if os.path.isfile(f): os.remove(f)
+
+    toremove = ["velocity.dat", "EKIN", "ETOT", "velocityOLD.dat", "TSTEP", "states"]
+    for f in toremove:
+        if os.path.isfile(f): os.remove(f)
+
+
+#####################################################################################################
+#            FUNCTIONS TO MANAGE COBRAMM COMMAND FILE
+#####################################################################################################
+
+def getCobrammCommand(filename):
+    # write in the cobram.log the cobram.command file
+    filein = open(filename)
+    x = filein.readlines()
+    filein.close()
+    return x
+
+
+def makehard():
+    # create the list of cobram commands
+    # if you set here a value it will be used as default in all calculations
+    command = []
+    # initialize to 0 all value
+    for i in range(300):
+        command.append(str(0))
+    # insert default command in cobram
+    command[1] = str('optxg')  # calc type (optxg, optxgp, ts, tsp, irc, ircp, ci, cip, freqxg, freqxgp, mdv, mdvp)
+    command[2] = str(0)  # verbosity of cobram.out and cobram.log (0=non verbose, 1=verbose, 2=very verbose)
+    command[3] = str(0)  # 0=do not freeze; 1=freeze all MEDIUM part; 2=freeze all HIGH part;
+    # 3= active MEDIUM (for old G03 optimizer)
+    command[4] = str(0)  # 0=do not freeze; 1=freeze border atoms
+    command[5] = str('500MB')  # allocated memory for geometry optimization
+    command[6] = str('auto')  # if read or not  QM wavefunc (gaussian) from check;
+    command[7] = str(1)  # Nproc for parallel runs
+    command[8] = 0  # run with parallel finite difference: 0 = standard serial calculation, 1 = parallel finite diff
+    command[9] = str(1)  # Nproc for parallel frequency calculations
+    command[10] = str(1)  # 0: displace only in + direction for numerical computations (3*N);
+    # 1: dispace in +/- direction for numerical computations (6*N);
+    # 2: displace only in + direction when hopping is not active, dispace in +/- direction when hopping is active
+    command[11] = str(1)  # 0: optimize only CI coefficients during numerical compuation of the gradient and NACs;
+    # 1: optimize MO and CI coeffcients (works only with MOLCAS so far)
+    command[12] = str(0.001)  # displacement (in Angstrom) for numerical computations (accuracy up to 0.0001)
+    command[13] = str(1)  # state to relax in numerical optxg or follow in numerical mdv (GS = 1, S1 = 2, etc.)
+    command[14] = str(0)  # type of derivative coupling 0: compute DC through spatial NACs;
+    # 1: compute DC numerically through Tully-Hammes-Schaefer from WF at t+dt and t-dt (scaling along GD);
+    command[15] = str(0)  # 0: do not save single points during numerics
+    # 1: save every single point during numerics (for debugging) to molcasALLnum.log
+    command[16] = str(1)  # 0: do not perform numerical differentiation for link atoms in numerics;
+    # 1: perform numerical differentiation for link atoms in numerics
+    command[18] = str(0)  # 0: do not perform QM calculatrions for displacements of M-layer atoms in a frequency calculation (do MM calculation only for such steps) - 1: perform all QM calculations of the freq run (H+M atoms)
+    command[19] = str(0)  # branching plane definition in CI optimizations 0: use NACs 1: use gradient mean (according to eq.6 of J. Chem. Theory Comput., Vol. 6, No. 5, 2010)
+    command[20] = str(0)  # compute forces using the amber velocities (for big systems this is often
+    # faster than using the implemented forcedump routine)
+    # 1 = use pmemd GPU code with a dielektrikum (carefully compare your results!)
+    # 2 = use sander.MPI parallel code
+    # 3 = use serial amber but compute velocities
+    command[21] = str(1.090)  # CH link distance
+    command[22] = str(0.947)  # OH link distance
+    command[23] = str(1.008)  # NH link distance
+    command[24] = str(1.526)  # CC equillibrium distance
+    command[25] = str(1.410)  # CO equillibrium distance
+    command[26] = str(1.475)  # CN equillibrium distance
+    command[40] = str(0)  # frequency below which the normal modes are used to construct the sub-space the project the gradient; 
+    command[41] = str(999) #cut off value for MM calculations
+    #used for Wigner sampling through QM/MM dynamics for low frequency modes 
+    command[51] = str(1)  # QM calculation type: 0=none, 1=Gaussian, 2=orca,3=DFTB, 4=DFTB+, 5=TURBOMOLE, 6=molcas,
+    # 7=molpro, 8=DFT-MRCI, 11=SHARC QM interfaces
+    command[53] = str('700MB')  # Memory Definition for Gaussian OPT and QM part
+    command[60] = str(100)  # number of optimization cicles (in case of IRC equal to "number of points along the
+    # reaction path" x "number of cycles required for each step"
+    command[61] = str(1)  # correct the gradient of Q1 (1 = yes)
+    command[65] = str(10)  # number of points along the reaction path for IRC computations
+    command[66] = str(10)  # step size along the reaction path; .gt 0: in units of 0.01 Bohr;
+    # .lt 0: in units of 0.01 amu1/2 Bohr (beware that the convergence threshold also depends on the stepsize:
+    # threshold == 30 x step; this can be modified with command[67])
+    command[67] = str(300)  # convergence threshold of the first derivative: RMS=1.5x, displ=4x, max disp=6x
+    command[68] = str(30)  # maximum size for an optimization step in units of 0.01 Bohr (default is 30, i.e. 0.30 Bohr)
+    command[71] = str(0)  # MM calculation type: 0=amber, no other option at the moment
+    command[80] = str(0)  # not so random number (for testing); 0: use random number, .ne 0: user defined random number
+    command[81] = str(0)  # in case of hopping scheme based on NACs, highest state to include in amplitude propagation for dynamics; 0: include all states in propagation, .ne 0: states above this number are spectators (may be needed for stability reasons but they do not participate in pop.dynamics, numbering: S1 = 2, etc.))
+    command[83] = str(1.0)  # first time step in the MD
+    command[84] = str(0.25)  # second timestep
+    command[85] = str(0)  # activate surface hopping 0= no, 1=Tully surface hopping with Persico decoherence, 2=hop based on energy difference
+    command[86] = str(1000.0)  # energy treshold to activate the surface hopping
+    command[87] = str(1)  # active the back surface hopping 0= no 1= yes
+    command[88] = str(0)  # activate surface hopping 0= no 1= charge amount
+    command[89] = str(15.0)  # tresh. for the S0/S1 energy gap to deactivate the charge surface hopping
+    command[90] = str(0)  # type of ES-GS hop with TDDFT (0 = no hop, 1 = use GS-ES tdc, 2 = hop when deltaE<threshold)
+    command[91] = str(2.0)  # threshold for ES->GS hop when command[90]=="2" in kcal/mol
+    command[92] = str(0)  # OW switch off weighting smoothly.  n=0: off, n>0 start to switch off at dE=n kcal/mol
+    command[93] = str(0)  # OW switch off weighting abruptly.  n=0: off, n>0 switch off at dE=n kcal/mol
+    command[94] = str(0)  # OW intruder state detection  n=0: off, n>0 mix intruder
+    # state from dE=40kcal/mol using sigmoid function, scaled by n
+    command[95] = ''  # OW scale sigmoid exponent by n (defaul=-0.4)
+    command[96] = ''  # OW scale half height position of sigmoid (kcal/mol, default=18)
+    command[97] = str(0)  # type of TD coupling for TD-DFT: Izmaylov (0) Hammes-Schiffer Tully (1) or MO unitary transformation (2)  
+    command[98] = str(1.0) # threshold for truncating WF expansion in WF overlap calculation in HST 
+    command[99] = str(1)  # save log file every X steps for all the QM calculation types
+    command[100] = str(-1)  # save wavefunction files every X steps for all the QM calculation types
+    command[101] = str(0)  # 0: switch off internal Molcas numerics (CASSCF, CASPT2);
+    # 1: switch on internal Molcas numerics (CASSCF, CASPT2)
+    command[102] = str(0)  # 0: allow only down-hop in CI vector rotation protocol (85 = 1);
+    command[103] = str(1)  # 0: compute only GS after hopping to the GS (DFT); 1: always compute TDDFT after hopping to the GS
+    # ne. 0: forbid back hopping for n steps
+    command[110] = ''  # name of the QM code used through the SHARC interface
+    command[120] = str(0)  # OW Use molcas GHOST atoms instead of XField when "1" (Use this for molcas RI!)
+    command[122] = str('0')  # criterion stopping trajectory computation, when the system is in the GS for X fs
+    command[130] = str(0)  # whether to compute gradient of HighLayer: 0 yes (normal run), 1 freeze HighLayer (compute only MediumLayer gradient based on electric field)
+    command[190] = str(0)  # OW select excited state gradient (egrad) for Turbomole (default '0', use grad)
+    command[191] = str(0)  # Use RI and rigrad for Turbomole if '1', or ricc2 if '2' (default '0', use grad and dscf)
+    command[192] = str(0)  # Disable NOSYM warning and continue
+    command[193] = str(0)  # scale initial vel for isotopes to match initial moment of normal atom (only for isotopes!)
+    command[194] = str(0)  # OW Use Cartesian functions in molcas if '1', default is Spherical ('0')
+    command[195] = str('1.0E-4')  # OW Threshold for RICD in molcas (CDTH) Defaults to 1.0E-4
+    command[196] = str(0)  # OW use RI approximation in molcas when '1'
+    command[197] = str('6-31Gp')  # OW Basis set used for molcas
+    command[198] = str(1)  # OW 0: Do not bomb the job when molpro WF does not converge (Be careful!);
+    # 1: bomb the job when molpro WF does not converge
+    command[199] = str(0)  # 0: do nothing; .ne 0: use !molcasSS in the GS when the 0-1 gap is above threshold
+    command[200] = str(0)  # use single point on top of a SS traj every n steps only for molpro/molcas
+    command[201] = str(0)  # 0=Massey, Tully or Tully corrected with NAC scheme 1,
+    # 1=Massey, Tully or Tully corrected with NAC scheme 2
+    command[203] = str(0)  # 0: do nothing; .ne 0: switch to MP2 in GS when the 0-1 gap is above threshold
+    command[204] = str(2.5)  # threshold (kcal/mol) for including states beyond the photoactive state during
+    # the computation of the numerical gradients at SS-PT2 and PM-CASPT2 level to account for possible state swapping
+    command[205] = str(0)  # 0: fixed number of states in computation of the numerical gradients at
+    # SS-PT2 and PM-CASPT2 level; 1: include only state below threshold 204
+    command[206] = str(0)  # correct velocity after hop: (0) along the DC (NAC, default for all types of dyn);
+    # (1) rescale velocity; (2) along GD vector
+    command[207] = str(0) # threshold for ES->ES hop when command[85]=="2" in kcal/mol
+    command.pop(0)
+    return command
+
+
+def ReadCobramCommand(cobcom, getpart, filename2):
+    # check the input files presence in the working directory
+    # if not take it from cobram.commnd
+    if os.path.isfile(filename2):
+        # get file from working directory
+        filein = open(filename2)
+        x = filein.readlines()
+        filein.close()
+    else:
+        # read a part of the cobram.command file
+        # get only the part defined in the variable getpart
+        x = []
+        start, end = 0, 0
+        for i in range(len(cobcom)):
+            row = cobcom[i].strip()
+            if (row == '!' + getpart) or (row == '!' + getpart + 'p'):
+                start = i
+            if (row == '?' + getpart) or (row == '?' + getpart + 'p'):
+                end = i
+        try:
+            for i in range(start + 1, end):
+                x.append(cobcom[i].strip())
+        except:
+            pass
+    return x
+
+
+def key2hard(key_soft, commandhard):
+    # parse the !keywords section and then merge it with
+    # the command_hard (the default keyword in of the code)
+    # beware that !commands will always overwrite !keywords
+    #
+    # first create a dictionary of keywords and IOPs
+    key_dict = {'type': 1, 'verbose': 2, 'freeze': 3, 'border': 4, 'geomem': 5, 'nproc': 7, 'numproc': 9, 'distype': 10, 
+                'cicopt': 11, 'displace': 12, 'numrlx': 13, 'DC': 14, 'savnum': 15, 'difflink': 16, 'skipQM' : 18, 'BranchPlane': 19,'amber': 20, 'cutoff': 41, 
+                'savchk': 50, 'qm-type': 51,
+                'qmem': 53, 'nsteps': 60, 'q1cor': 61, 'ircpoints': 65, 'ircstepsize': 66, 'conver': 67, 'stepsize': 68,
+                'mm-type': 71, 'rand': 80, 'dynroots': 81, 'tstep': 83, 'tsshort': 84, 'surhop': 85, 'ediff': 86, 'backhop': 87,
+                'hoptogs': 90, 'gsesth': 91,
+                'smooth': 92, 'brute': 93, 'intruder': 94, 'sigm': 95, 'height': 96, 'tdctype': 97, 'thresOv': 98, 'savQMlog': 99,
+                'savwfu': 100, 'molcasnum': 101,
+                'cirotbackhop': 102, 'tdafterhop': 103, 'sharc-qm': 110, 'ghost': 120, 'enefail': 121, 'stop': 122, 'egrad': 190,
+                'rigrad': 191, 'scale-iso': 193,
+                'basisfunc': 194, 'cdth': 195, 'ricd': 196, 'basis': 197, 'bomb': 198, 'single': 199, 'sstep': 200,
+                'velafterhop': 206,
+                'delta_en': 207, 'ta' : 208
+                }
+
+    # now special dict's for key-options
+    key_freeze = {'no': 0, 'medium': 1, 'high': 2, 'active': 3}
+    key_distype = {'plus': 0, 'both': 1, 'phop': 2}
+    key_cicopt = {'ci': 0, 'cimo': 1}
+    key_DC = {'nac': 0, 'tdc': 1}
+    key_qmtype = {'none': 0, 'gauss': 1, 'orca': 2, 'dftb': 3, 'dftb+': 4, 'turbo': 5, 'molcas': 6, 'molpro': 7,
+                  'dft-mrci': 8, 'dalton': 9,
+                  'sharc': 11,
+                  'mndo':10086, 'bagel':10087} #
+    key_surhop = {'none': 0, 'tully': 1, 'deltaE': 2}
+    key_amber = {'serial': 0, 'cuda': 1, 'mpi': 2, 'velo': 3}
+    key_mmtype = {'amber': 0, 'gromac':1, 'openmm':2, 'lammps':3} #
+    key_basisfunc = {'spher': 0, 'cart': 1}
+    key_BranchPlane = {'nac': 0, 'gmean': 1}
+    key_velafterhop = {'nac': 0, 'uniform': 1, 'GD': 2}
+    key_other = {'yes': 1, 'true': 1, 'on': 1, 'active': 1, 'no': 0, 'false': 0, 'off': 0, 'inactive': 0}
+    row = []
+    comm = []
+    key = []
+    value = []
+    for i in range(len(key_soft)):
+        tmp = key_soft[i].split()
+        for j in range(len(tmp)):
+            tmp2 = tmp[j].split('=')
+            # print tmp2
+            key.append(tmp2[0])
+            # print "appending key:",tmp2[0]
+            value.append(tmp2[1])
+            # print "with value",tmp2[1]
+    # now resolve the keywords into iops
+    for i in range(len(key)):
+        try:
+            row.append(key_dict[key[i]])
+        except:
+            logwrt.fatalerror("Key {} not recognized\n".format(key[i]))
+
+        if key[i] == 'freeze':
+            comm.append(str(key_freeze[value[i]]))
+        elif key[i] == 'distype':
+            comm.append(str(key_distype[value[i]]))
+        elif key[i] == 'cicopt':
+            comm.append(str(key_cicopt[value[i]]))
+        elif key[i] == 'DC':
+            comm.append(str(key_DC[value[i]]))
+        elif key[i] == 'qm-type':
+            comm.append(str(key_qmtype[value[i]]))
+        elif key[i] == 'surhop':
+            comm.append(str(key_surhop[value[i]]))
+        elif key[i] == 'amber':
+            comm.append(str(key_amber[value[i]]))
+        elif key[i] == 'mm-type':
+            comm.append(str(key_mmtype[value[i]]))
+        elif key[i] == 'basisfunc':
+            comm.append(str(key_basisfunc[value[i]]))
+        elif key[i] == 'BranchPlane':
+            comm.append(str(key_BranchPlane[value[i]]))
+        elif key[i] == 'velafterhop':
+            comm.append(str(key_velafterhop[value[i]]))
+        elif value[i] in key_other:
+            comm.append(str(key_other[value[i]]))
+        else:
+            comm.append(str(value[i]))
+    command_soft = [row, comm]
+    # print "command_soft=",command_soft
+    # lists[6].insert(0,'0')
+    for i in range(1, len(commandhard)):
+        # print "checking element", lists[6][i]
+        # compare and substitute hard and soft keywords
+        for j in range(len(command_soft[0])):
+            if i == command_soft[0][j]:
+                # if (lists[6][i].strip()!=command_soft[1][j].strip()):
+                #    x.append('default command value:\t'+str(i)+' '+lists[6][i].strip()+
+                #             '\t new value:\t'+str(i)+' '+command_soft[1][j]+'\n')
+                commandhard[i] = command_soft[1][j]
+    return commandhard
+
+
+def soft2hard(command_soft, commandhard):
+    # merge the commad_soft(users cobram keywords) and
+    # the commad_hard (the default keyword in of the code)
+    # initialization of the lists
+    row = []
+    comm = []
+    for i in range(len(command_soft)):
+        # clean up the cobram_soft from user comments
+        element = command_soft[i].split()
+        row.append(int(element[0]))
+        comm.append(element[1])
+    command_soft = [row, comm]
+    # print "command_soft in soft2hard",command_soft
+    # lists[6].insert(0,'0')
+    for i in range(1, len(commandhard)):
+        # compare and substitute hard and soft keywords
+        for j in range(len(command_soft[0])):
+            if i == command_soft[0][j]:
+                # if (lists[6][i].strip()!=command_soft[1][j].strip()):
+                #    x.append('default command value:\t'+str(i)+' '+lists[6][i].strip()+
+                #             '\t new value:\t'+str(i)+' '+command_soft[1][j]+'\n')
+                commandhard[i] = command_soft[1][j]
+    return commandhard
+
+
+#####################################################################################################
+#            OLD INTERFACES TO QM AND MM
+#####################################################################################################
+
+# "par_num" controls the behavior of Cobram in the QM routine
+# 0: sequential computation
+# 1: computation at the reference geometry during parallel numerics (behaves like a sequential computation)
+# 2: collecting data for computing FREQs, GRADs and NACs during parallel numerics
+# 3: perform surface hopping
+def QM(command, cobcom, charges, geometry, step, par_num):
+    # inizialize QM_results with zeros
+    QM_results = 0.0, [], [], 0.0, [0.0, 0.0, 0.0, 0.0]
+
+    if geometry.calculationType in ['M', 'ML']:
+        logwrt.writelog('No QM calculation will be done, it is a ' + geometry.calculationType + ' calculation\n')
+        return QM_results
+
+    if par_num == 0 or step == 0: logwrt.writelog('Starting QM calculation ')
+
+    if step != 0 or int(command[211]) > 0:
+        sef = shelve.open("cobram-sef", 'r')
+        calc_coupl = sef['calc_coupl']
+        sef.close()
+    else:
+        calc_coupl = []
+
+    # ---------------------------------
+    if command[51] == '6':  # QM calculation by MOLCAS
+
+        if par_num == 0 or par_num == 1:
+            molcas.prepare(command, step)
+            molcas.makeinp(charges, geometry, command, step, cobcom, par_num)
+
+        # if par_num == 1 for a freq calc, and this is not the first step, only prepare input but do not run Molcas
+        # parallel Molcas instances will be run later in the routine QM2
+        if command[1] == 'freqxg' and par_num == 1 and step != 0:
+            QM_results = []
+
+        # if par_num == 1 for another type of parallel calc, only prepare input but do not run Molcas
+        # parallel Molcas instances will be run later in the routine QM2
+        elif command[1] in ['optxgp', 'mdvp', 'ircp', 'cip', 'tsp'] and par_num == 1:
+            QM_results = []
+
+        # if par_num == 2 and this is a frequency calc, collect all the information necessary to
+        # compute numerical frequencies (via Gaussian): ENERGY, DIPOLE and GRAD
+        elif command[1] == 'freqxg' and par_num == 2:
+            # extract results from calculations
+            QM_results = molcas.molcasEneGradCrg(command, geometry, charges, step, par_num)
+
+        # if par_num == 2 and this is another type of calculationa,
+        # collect all the information necessary to compute numerical GRADs: ENERGY
+        elif command[1] in ['optxg', 'mdv', 'irc', 'ci', 'ts'] and par_num == 2:
+            # compute gradient
+            molcasGradient = molcas.molcasEne(command, geometry)
+            # compute NAC when needed
+            molcasNAC = []
+            if (command[1] == 'mdv' and command[85] > '3' and calc_coupl != [] and command[14] == '0') or \
+                    command[1] == 'ci':
+                molcasNAC = molcas.molcasNAC(command, geometry)
+            # QM_Results returned at this point is not complete as it contains only GRAD (and NACs), while all the
+            # remaining data has already been collected at the reference geometry... therefore, the QM_Results is
+            # returned to parallel_numerics.run as a temporary tmp_Results, serving to update the GRAD and NACs
+            QM_results = [molcasGradient, molcasNAC]
+
+        # the molcas.molcasMDV routine is called once the GRADs and NACs have been computed
+        elif command[1] == 'mdv' and par_num == 3:
+            with Timer("molcasMDV1"):
+                molcasResults = molcas.molcasMDV(command, geometry, charges, cobcom, step, par_num)
+            # the QM_Results is returned to parallel_numerics.run as a temporary tmp_Results
+            # in case of a hop the QM_Results are updated with data for the new state (done in molcas.molcasMDV)
+            # if there is no hop the returned QM_results is empty and QM_Results is not overwritten
+            QM_results = molcasResults
+
+        else:
+            if os.path.exists(os.getcwd() + '/molcas.log') and step == 0 and command[1] in ['freqxgp', 'freqxg']:
+                pass
+            else:
+                # launch MOLCAS calculation
+                molcas.launch(command, step)
+            # extract results
+            molcasResults = molcas.molcasEneGradCrg(command, geometry, charges, step, par_num)
+            molcas.singlepoint(command, step, cobcom)
+            sef = shelve.open("cobram-sef", 'r')
+            state = sef['state']
+            newstate = sef['newstate']
+            sef.close()
+            # if MCLR fails we skip reading all infomation from this step and go directly to Vverlet
+            # in case of a HOP molcasMDV will be repeated only when couplings are to be computed with Molpro (14 2)
+            if command[1] == 'mdv' and par_num == 0 and (
+                    newstate == state or (newstate != state and command[14] == '2')):
+                with Timer("molcasMDV1"):
+                    tmp_Results = molcas.molcasMDV(command, geometry, charges, cobcom, step, par_num)
+                # the QM_Results is returned as a temporary tmp_Results
+                # in case of a hop the QM_Results are updated with data for the new state (done in molcas.molcasMDV)
+                # if there is no hop the returned QM_results is empty and QM_Results is not overwritten
+                if tmp_Results != 0:
+                    molcasResults = tmp_Results
+            QM_results = molcasResults
+
+    # ---------------------------------
+    elif command[51] == '7':  # QM calculation by MOLPRO
+
+        molpro.prepare(command, step)
+        chMED = molpro.makeinp(command, geometry, charges.CRG_emb, step)
+        molpro.launch(command, step)
+        QM_results = molpro.molproEneGradCrg(command, geometry, charges.CRG_emb, step, chMED, cobcom)
+
+    if par_num == 0 or par_num == 2 or step == 0: logwrt.writelog("\n")
+
+    return QM_results
+
+
+# =============================================================================================================
+
+
+def save_step_temp(step, geometry, command, copyLog, copyOrb):
+    """ at the end of each iteration in the main loop, collect and save files of the MM and QM calculations """
+
+    # the calculation has a QM part, collect files with orbitals
+    if "H" in geometry.calculationType:
+
+        if command[51] == '6':  # QM calulation by Molcas
+            molcas.save_QM_molcas_step(step, command, copyLog, copyOrb)
+        if command[51] == '7':  # QM calulation by MOLPRO
+            molpro.save_QM_molpro_step(step, command, copyLog, copyOrb)
+
+
+# =============================================================================================================
+
+
+def MM(step, geometry, command, cobcom):
+    """ wrapper function for the MM part """
+
+    # initialize MMresults with a series of dummy arguments
+    MMresults = [], 0.0, 0.0, [], [], 0.0
+
+    # when the scheme actually contains a MM part
+    if "M" in geometry.calculationType or "L" in geometry.calculationType:
+
+        logwrt.writelog('Starting MM calculation ')
+
+        # AMBER calculation (only option implemented now)
+        if command[71] == '0':
+            logwrt.writelog('using AMBER ... \n')
+            MMresults = amber.MMcalculations(step, geometry, command, cobcom)
+        else:
+            logwrt.fatalerror("MM software (command 71) '{0}' is not defined. ".format(command[71]))
+        logwrt.writelog('\n')
+
+    return MMresults
