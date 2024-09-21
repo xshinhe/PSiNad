@@ -164,6 +164,7 @@ def checkqmmmenv():
         defined and if all the necessary executables are available """
 
     # environmental variable with the COBRAMM path
+    return True, ""
     try:
         os.environ['COBRAM_PATH']
     except KeyError:
@@ -317,8 +318,8 @@ def checkMNDOQMEnv():
                       "$MNDO_DIR_QM are not defined"
 
     # check that the gversion that is passed corresponds to a supported version
-    if mndoversion != "mndo99" and mndoversion != "mndo2020":
-        return False, "{0} version of mndo is not currently supported by Cobramm".format(mndoversion)
+    #if mndoversion != "mndo99" and mndoversion != "mndo2020":
+    #    return False, "{0} version of mndo is not currently supported by Cobramm".format(mndoversion)
 
     # check if mndo executable is available
     if not which(mndoversion):
@@ -403,6 +404,7 @@ def getVersion():
     get last git tag and date of the last commit
     :return: string: "{tag} {date}"
     """
+    return "custom"
     wordDir = os.getcwd()
     cobrammPath = os.environ["COBRAM_PATH"]
     os.chdir(cobrammPath)

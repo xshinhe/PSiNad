@@ -27,6 +27,7 @@ import CBF
 import logwrt
 import qmmmenv
 import math
+import time
 
 def prepare(geometry, cobcom, command):
     """ prepare the input files for MM amber calculations"""
@@ -75,6 +76,7 @@ def prepare(geometry, cobcom, command):
     if (geometry.calculationType in ['HML' ,'HL' ,'HM']):
         ## set to 0 the charges of the model part
         chargezeromodel("real.top","real-modelnoc.top",geometry)
+        chargezero("real.top", "real-totalnoc.top")
         chargezero("model-H.top","model-H-noc.top")
 
     ## create the real second input
@@ -98,6 +100,9 @@ def MMcalculations(step, geometry, command, cobcom):
     #####################
     # amber modelnoc MM single point on real w ZERO charges on model-H
     E_modelnoc, Fxyz_modelnoc = sandermodelnoc(command)
+    #####################
+    # amber modelnoc MM single point on totally zero charges 
+    #E_totalnoc, Fxyz_totalnoc = sandertotalnoc(command)
     #####################
     # run model-H MM single point with ZERO charges
     E_modelH, Fxyz_modelH = sandermodelH(geometry,command)
@@ -388,6 +393,7 @@ def sanderfirst(command):
     else:
         _command = shlex.split( 'sander -O -i real-sander-first.inp -o real-sander-first.out -p real.top -c real.crd -r real.rst' )
     subprocess.call( _command )
+    time.sleep(0.01)
 
     # check the correct end of sander
     checksanderdone("real-sander-first.out",'real-sander-first')
@@ -414,7 +420,16 @@ def sandersecond(geometry,command):
         _command = shlex.split(para_exe+' '+str(command[7])+' sander.MPI -O -i real-sander-second.inp -o real-sander-second.out -p real.top -c real.rst -r real-second.rst')
     else:
         _command = shlex.split('sander -O -i real-sander-second.inp -o real-sander-second.out -p real.top -c real.rst -r real-second.rst')
+    
+    if os.path.exists('box.info'):
+        boxline = open('box.info', 'r').readlines()
+        os.system('echo "" >> real.rst')
+        os.system('tail -n1 box.info >> real.rst')
+    
+    current_dir = os.path.abspath(os.getcwd())
+    print("current dir is:", current_dir)
     subprocess.call( _command )
+    time.sleep(0.01)
 
     # check the correct end of sander
     checksanderdone("real-sander-second.out",'real-sander-second')
@@ -469,6 +484,42 @@ def sandermodelnoc(command):
 
     return [E_modelnoc,Fxyz_modelnoc]
 
+def sandertotalnoc(command):
+    """ Run AMBER calculation, with the full model, for the optional optimization of the system with with HIGH and MEDIUM fixed"""
+
+    # get the command for sander parallel execution
+    para_exe = os.getenv('PARA_EXE')
+    if para_exe == None:
+       para_exe='mpirun -np'
+
+    logwrt.writelog("\nPerform a single point calc. of the entire system with ZERO charge on the total layer, and collect energy and gradient ...")
+
+    # run sander
+    if command[20]=='1':
+        _command = shlex.split('pmemd.cuda -O -i real-sander-second.inp -o real-sander-totalnoc.out -p real-totalnoc.top -c real.rst -r real-totalnoc.rst')
+    elif command[20]=='2':
+        _command = shlex.split(para_exe+' '+str(command[7])+' sander.MPI -O -i real-sander-second.inp -o real-sander-totalnoc.out -p real-totalnoc.top -c real.rst -r real-totalnoc.rst')
+    else:
+        _command = shlex.split('sander -O -i real-sander-second.inp -o real-sander-totalnoc.out -p real-totalnoc.top -c real.rst -r real-totalnoc.rst')
+    subprocess.call( _command )
+
+    # get energy and gradient from real modelnoc sander
+    checksanderdone("real-sander-totalnoc.out",'real-sander-totalnoc')
+
+    if command[20]!='0':
+         Fxyz_totalnoc=read_forcesA_pmemd('real-totalnoc')
+         E_totalnoc=read_energyMM_out('real-sander-totalnoc.out')
+    else:
+         Fxyz_totalnoc=read_forcesA('forcedump.dat')
+         E_totalnoc=read_energyMM()
+
+    logwrt.writelog(' done!\n')
+    logwrt.writelog('MM energy is {0} Hartree\n'.format(E_totalnoc))
+#    logwrt.writelog(logwrt.matrix_prettystring(np.array(Fxyz_modelnoc), ".6f"), 2)
+
+    return [E_totalnoc,Fxyz_totalnoc]
+
+
 def sandermodelH(geometry,command):
 
     logwrt.writelog("\nPerform a single point calc. of the High layer, with H-saturated bonds and \nZERO charge, and collect energy and gradient ...")
@@ -484,6 +535,11 @@ def sandermodelH(geometry,command):
       _command = shlex.split('sander -O -i model-H-sander.inp -o model-H.out -p model-H-noc.top -c model-H.crd -r model-H.rst')
     else:
       _command = shlex.split('sander -O -i model-H-sander.inp -o model-H.out -p model-H-noc.top -c model-H.crd -r model-H.rst')
+
+    if os.path.exists('box.info'):
+        boxline = open('box.info', 'r').readlines()
+        os.system('tail -n1 box.info >> model-H.crd')
+
     subprocess.call( _command )
 
     ## get energy and gradient from model-H sander

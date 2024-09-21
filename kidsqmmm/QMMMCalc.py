@@ -62,6 +62,8 @@ class QMMM:
             doCorrect = True
         else:
             doCorrect = False
+        # we treat H as virtual atom, so always set doCorrect true
+        doCorrect = True
 
         # =======================================
         # compute the QMMM energies and gradients
@@ -81,6 +83,7 @@ class QMMM:
             self.gradient = QM_Results.gradientdict
 
         else:  # real QMMM calculation, build energy and gradient for each electronic state with subtractive scheme
+            # here E_MM_real_nocharge contains coulumb interaction between M&L, so should be subtracted with QM's selfenergy
             self.energies = {nstate: eqm + E_MM_real_nocharge - E_MM_modelH - QM_Results.selfenergy
                              for nstate, eqm in QM_Results.energydict.items()}
             self.gradient = {}
@@ -328,6 +331,7 @@ def subtractiveScheme(command, geometry, gradQM_modelH, gradMM_modelH, gradMM_re
 
             # gradient of the QM part
             if command[130] == '0': 
+                print('XXXXXX')
                 grad = [gradMM_real_nocharge[ix][i] + grad_correct_modelH[ix][jHigh] for ix in range(3)]
 
                 # when requested, correct the gradient of the link atoms by distributing the H atom gradient

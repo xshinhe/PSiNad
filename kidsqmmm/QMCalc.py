@@ -190,6 +190,7 @@ class QM:
                 optdict["nstate"] = int(setState)
                 optdict["forcestate"] = False
 
+            #print(modelHgeom)
             # save instance of GaussianInput as the input file for the QM calculation
             self.inputData = MNDOInput(keys, mndoadd, modelHgeom,
                                            geometry.getAtomLabels("modelH"), optdict)
@@ -1003,7 +1004,7 @@ class QM:
                               "For further details please check QM log file. "
                     logwrt.fatalerror(errmsg)
 
-            # 如果量化程序自己已经计算了embeded电荷上的受力, 应该优先使用这个
+            # 如果量化程序自己已经计算了embeded电荷上的受力, 应该优先使用这个 (note: doesn't include MM coulumb interaction)
             # when the gradient of the whole set of point charges is available, process the data
             # to extract the gradient on the mobile charges alone
             if qm.outputData.get("fullgradcharge") is not None and qm.outputData.get("gradcharges") is None:

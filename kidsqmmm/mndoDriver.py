@@ -201,6 +201,7 @@ class MNDOOutput(QMOutput):
         self.dataDict["psioverlap"] = None # array of the WF overlaps between consecutive steps
         
         self.dataDict["eigenvectors"] = None
+        self.dataDict["selfenergy"] = 0.0
         #self.dataDict["SS_root_order"] = None
         self.calctype = calctype # --> can be "OMx-MRCI"
 
@@ -279,17 +280,20 @@ class MNDOOutput(QMOutput):
                 skline = 0
                 gradient = [[],[],[]]
                 gradientcharge = [[],[],[]]
+                # note: for gradient, the unit is kcal_1mea_per_ang
+                #       for nacv, the unit is 1_per_ang
                 while output[k].strip() != '':
                     element = output[k].split()[5:]
-                    gradient[0].append(float(element[0]) / au_2_kcal_1mea_per_ang )
-                    gradient[1].append(float(element[1]) / au_2_kcal_1mea_per_ang)
-                    gradient[2].append(float(element[2]) / au_2_kcal_1mea_per_ang)
-
+                    gradient[0].append(float(element[0]))
+                    gradient[1].append(float(element[1]))
+                    gradient[2].append(float(element[2]))
                     k += 1
 
                 for _ in range(10):
                     if 'EXTERNAL POINT CHARGES' in output[k]:
-                        self.dataDict["gradcharges_extraterm"] = True
+                        # note: mndo doesn't count the interaction of external charged (only H+H & H+L)
+                        self.dataDict["gradcharges_extraterm"] = False
+                        full_grad = True # include MM Atoms
                         while "GRADIENTS (KCAL/(MOL*ANGSTROM))" not in output[k]: k += 1
                         k += 4
                         while output[k].strip() != '':
@@ -302,10 +306,21 @@ class MNDOOutput(QMOutput):
                     k += 1
 
                 if readtimes_for_grad == ci_currect_state:
+                    # convert unit for gradient
+                    for i in range(len(gradient[0])): gradient[0][i] /= au_2_kcal_1mea_per_ang
+                    for i in range(len(gradient[1])): gradient[1][i] /= au_2_kcal_1mea_per_ang
+                    for i in range(len(gradient[2])): gradient[2][i] /= au_2_kcal_1mea_per_ang
                     self.dataDict["gradient"][ci_currect_state] = gradient      
-                    if self.dataDict["gradcharges_extraterm"]:
+                    if full_grad:
+                        for i in range(len(gradientcharge[0])): gradientcharge[0][i] /= au_2_kcal_1mea_per_ang
+                        for i in range(len(gradientcharge[1])): gradientcharge[1][i] /= au_2_kcal_1mea_per_ang
+                        for i in range(len(gradientcharge[2])): gradientcharge[2][i] /= au_2_kcal_1mea_per_ang
                         self.dataDict["fullgradcharge"][ci_currect_state] = gradientcharge       
                 else:
+                    # convert unit for nacv
+                    for i in range(len(gradient[0])): gradient[0][i] *= au_2_ang
+                    for i in range(len(gradient[1])): gradient[1][i] *= au_2_ang
+                    for i in range(len(gradient[2])): gradient[2][i] *= au_2_ang
                     try:
                         self.dataDict["nac"][states_for_NAC[0]][states_for_NAC[1]] = gradient
                     except KeyError:
@@ -316,7 +331,10 @@ class MNDOOutput(QMOutput):
                     except KeyError:
                         self.dataDict["nac"][states_for_NAC[1]] = {}
                         self.dataDict["nac"][states_for_NAC[1]][states_for_NAC[0]] = [[-x for x in y] for y in gradient]
-                    if self.dataDict["gradcharges_extraterm"]:          
+                    if full_grad:          
+                        for i in range(len(gradientcharge[0])): gradientcharge[0][i] *= au_2_ang
+                        for i in range(len(gradientcharge[1])): gradientcharge[1][i] *= au_2_ang
+                        for i in range(len(gradientcharge[2])): gradientcharge[2][i] *= au_2_ang
                         try:
                             self.dataDict["fullnaccharge"][states_for_NAC[0]][states_for_NAC[1]] = gradientcharge
                         except KeyError:

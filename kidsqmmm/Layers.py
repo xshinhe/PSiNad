@@ -21,6 +21,7 @@
 
 # standard library
 import sys  # operating system utilities
+import os
 # import os                       # system-specific parameters and functions
 import copy  # shallow and deep copy operations
 
@@ -286,6 +287,7 @@ class Layers:
             for i in range(self.atomNum):
                 crd.write('{0:12.7f}{1:12.7f}{2:12.7f}{3}'.format(
                     self.cartesian[0][i], self.cartesian[1][i], self.cartesian[2][i], '\n' if i % 2 else ''))
+
         with open(filename2, 'w') as crd:
             crd.write('{0}\n\n'.format(self.NatomHM))
             for i in range(self.atomNum):        

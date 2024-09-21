@@ -72,7 +72,9 @@ class Charge:
 
         # first define CRG_real, after redistribution and scaling
         CRG_real_notscaled = self.embeddingCharges(geometry, CRG_real, CRG_model_H)
+
         self.CRG_real = np.array(self.scaledCharges(geometry, CRG_real_notscaled))
+        print('1|:', self.TotCRG_real)
 
         # store initial modelH charges
         self.CRG_model_H = np.array(CRG_model_H)
@@ -262,7 +264,7 @@ class Charge:
          """
 
         # Parameters defining the redistribution strategy
-        whichemb = 23
+        whichemb = 25
         min_shell = 0.2
         max_shell = 1.6
         debug = True
@@ -317,10 +319,11 @@ class Charge:
             logwrt.writelog(' (1)    (2)        (3)               (4)              (3)-(4)  [(3)-(4)]*100   \n')
             logwrt.writelog('Number Atom   model(from real)  model(from model-H)    Delta        %          \n')
             for i in range(len(geometry.list_QM)):
+                idx = geometry.list_QM[i]
                 diff = CRG_model[i] - CRG_model_H[i]
                 perc = str(round((CRG_model[i] - CRG_model_H[i]) / ((CRG_model[i]) + 1.E-6) * 100.))
                 logwrt.writelog('{0:6d} {1:2s}     {2:10f}        {3:10f}         {4:10f}    {5:5s}%\n'.format(
-                    i + 1, geometry.atomLabel[i], CRG_model[i], CRG_model_H[i], diff, perc))
+                    idx, geometry.atomLabel[idx-1], CRG_model[i], CRG_model_H[i], diff, perc))
             logwrt.writelog('                                                  _____________\n')
             logwrt.writelog('                                         Delta_tot = ' + str(Delta_CRG_model) + "\n")
             logwrt.writelog('=' * 80 + '\n\n')
@@ -521,11 +524,6 @@ class Charge:
 
     def rallyCharges(self, CRG_model_H):
 
-        f = open('laststep.charge', 'w')
-        for i in range(len(CRG_model_H)):
-            f.write('{: 12.8e}  '.format(CRG_model_H[i]))
-        f.flush()
-        f.close()
 
         whichemb = 23
         debug = True

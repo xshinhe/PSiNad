@@ -69,51 +69,46 @@ parser.add_argument('-t', '--task', dest='task', nargs='?', default='0', type=st
     help='task type')
 parser.add_argument('-o', '--output', dest='output', nargs='?', default='QMMM.log', type=str,
     help='output file')
-# args = parser.parse_args()
-
 
 if __name__ == "__main__":
-    # lines = readfile(filename)
-    # try:
-    #     natom = int(lines[0])
-    # except ValueError:
-    #     print('First line must be the number of atoms!', format_exc())
-    #     sys.exit(-1)
-    # if len(lines) < natom + 4:
-    #     print("too few lines")
-    #     sys.exit(-1)
-
-    # geom_xyz = []
-    # velocity = [] # or momentum be better?
-    # znumber  = [] 
-    # has_velocity = True
-    # for i in range(2, natom + 2):
-    #     fields = lines[i].split()
-    #     fields[0] = fields[0].title()
-    #     for j in range(1, 4):
-    #         fields[j] = float(fields[j])
-    #     if len(fields) >= 7 and has_velocity:
-    #         for j in range(4, 7):
-    #             fields[j] = float(fields[j])
-    #     else:
-    #         has_velocity = False
-    #     try:
-    #         znumber += [ element_list[fields[0]][1] ]
-    #     except ValueError:
-    #         print("Unknown element {field[0]}")
-    #     geom_xyz +=  [fields[0:4]]
-    #     if has_velocity: 
-    #         velocity +=  [fields[4:7]]
+    args = parser.parse_args()
     
-    # toml_string = ''.join(lines[natom + 2:])
-    # qm_config = toml.loads(toml_string)
-
-
     # source COBRAMM configuration file (if available)
     confFile = qmmmenv.setCobrammProfile()
+
+    # store starting dir
+    startdir = os.path.abspath(os.getcwd())
+    print('####')
+    print("startdir is ", startdir)
+    print('rundir is ', args.directory)
+
+
+    rundir = args.directory
+    if rundir != '.':
+        shutil.copy("real_layers.xyz", rundir)
+        shutil.copy("real.top", rundir)
+        shutil.copy("model-H.top", rundir)
+        shutil.copy(args.input, rundir)
+        if os.path.exists('box.info'):
+            shutil.copy('box.info', rundir)
+
+    layerfile_rel = os.path.relpath(startdir+'/real_layers.xyz', rundir)
+    realtop_rel = os.path.relpath(startdir+'/real.top', rundir)
+    modelHtop_rel = os.path.relpath(startdir+'/model-H.top', rundir)
+    command_rel = os.path.relpath(args.input, rundir)
+    realcrd_rel = os.path.relpath(args.coord, rundir)
+    os.chdir(rundir)
+    print('switch to rundir and list')
+    print('the layer file is: ', layerfile_rel)
+    print('the realtop is: ', realtop_rel)
+    print('the modelHtop is: ', modelHtop_rel)
+    print('the command is: ', command_rel)
+    print('the realcrd is: ', realcrd_rel)
+
     # start COBRAMM with message to log, and start timer for total calculation time
     totalTimer = Timer("total")
     totalTimer.start()
+    if os.path.exists('cobramm.xml'): os.remove('cobramm.xml')
     # logwrt.cobramstart()
 
     # check that COBRAMM environment is properly defined
@@ -126,11 +121,12 @@ if __name__ == "__main__":
     logwrt.startSection("FILE CONTROL")
 
     # define starting input file
-    fileinp_1 = "real_layers.xyz"
-    fileinp_2 = args.input
+    fileinp_1 = layerfile_rel
+    fileinp_2 = command_rel
+    #fileinp_1 = layerfile_rel
     # check  for the presence of the two mandatory input files
-    for fname in [fileinp_1, fileinp_2]:
-        if not os.path.isfile(fname): logwrt.fatalerror('mandatory input file {0} not found!'.format(fname))
+    #for fname in [fileinp_1, fileinp_2]:
+    #    if not os.path.isfile(fname): logwrt.fatalerror('mandatory input file {0} not found!'.format(fname))
 
     # make a cpy of the input files
     CBF.saveinputs()
@@ -154,7 +150,8 @@ if __name__ == "__main__":
     # read the list of the layers
     with open(fileinp_1, "r") as f:
         geometry = Layers.from_real_layers_xyz(f.read())
-    geometry.updatereal(args.coord)
+    geometry.updatereal(realcrd_rel)
+    geometryfile = realcrd_rel
     geometry.makerealcrd() #?
 
     command[60] = 1
@@ -222,6 +219,12 @@ if __name__ == "__main__":
 
     CRG_real = amber.prepare(geometry, cobcom, command)
     CRG_model_H = amber.read_crgA()
+    print('inital real charges:', CRG_real)
+    print('inital model charges:', CRG_model_H)
+    if os.path.exists('laststep.charge'):
+        lines = open('laststep.charge', 'r').readlines()
+        CRG_model_H = [float(l) for l in lines]
+        os.remove('laststep.charge')
     # create object Charge to store model and embedding charges
     charges = Charge(geometry, CRG_real, CRG_model_H)
     charges.checkConsistency()
@@ -300,9 +303,15 @@ if __name__ == "__main__":
         ############################################################
 
         with Timer("MM section"):
+            # E_second is real system
+            # E_modelnoc is real system with no charge on modelH (==? E_second)
+            # E_modelH is model H system with no charge
             Fxyz_second, E_second, E_modelnoc, Fxyz_modelnoc, Fxyz_modelH, E_modelH = CBF.MM(
                 step, geometry, command, cobcom)
             MM_Results = [Fxyz_second, E_second, E_modelnoc, Fxyz_modelnoc, Fxyz_modelH, E_modelH]
+            print("MM Force Norm (real):", np.sum(np.abs(np.array(Fxyz_second))))
+            print("MM Force Norm (real noc model):", np.sum(np.abs(np.array(Fxyz_modelnoc))))
+            print("MM Force Norm (modelH):", np.sum(np.abs(np.array(Fxyz_modelH))))
 
         sef = shelve.open("cobram-sef")
         sef['Fxyz_modelH'] = Fxyz_modelH
@@ -418,6 +427,11 @@ if __name__ == "__main__":
             logwrt.writewarning("QM charges are not available: their value will not be updated!\n")
         else:
             charges.rallyCharges(QMCalc.charges)
+            f = open('laststep.charge', 'w')
+            for i in range(len(QMCalc.charges)):
+                f.write('{: 12.8e}\n'.format(QMCalc.charges[i]))
+            f.flush()
+            f.close()
 
         ##########################################################
         #         COMPUTING QMMM RESULTS
@@ -633,3 +647,6 @@ if __name__ == "__main__":
     # stop the timer for the main program, and print the report of the timings
     totalTimer.stop()
     logwrt.cobramend()
+
+    os.chdir(startdir)
+

@@ -82,6 +82,7 @@ def writelog(message, level=0):
             # write a string in the cobram.log file
             with open('cobramm.log', 'a') as log:
                 log.write(message)
+                log.flush()
     return
 
 
