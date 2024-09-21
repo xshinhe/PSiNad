@@ -292,6 +292,8 @@ def qm_job(qm_data, args):
         job_str += '"nact": %d,\n'%(qm_config['QM']['BAGEL']['nact'])
         # job_str += '"nopen": %d,\n'%(qm_config['QM']['BAGEL']['nopen'])
         job_str += '"nclosed": %d,\n'%(qm_config['QM']['BAGEL']['nclosed'])
+        if 'maxiter' in qm_config['QM']['BAGEL']:
+            job_str += '"maxiter": %d,\n'%qm_config['QM']['BAGEL']['maxiter']
         if 'active' in qm_config['QM']['BAGEL']:
             job_str += '"active" :'
             job_str += '['
