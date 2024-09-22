@@ -20,6 +20,7 @@ std::size_t PN;
 std::size_t PNN;
 std::size_t PF;
 std::size_t PFF;
+std::size_t PNF;
 std::size_t PNFF;
 std::size_t NF;
 std::size_t NN;
@@ -51,6 +52,7 @@ Shape shape_PN(sh_ref{&P, &N});
 Shape shape_PNN(sh_ref{&P, &N, &N});
 Shape shape_PF(sh_ref{&P, &F});
 Shape shape_PFF(sh_ref{&P, &F, &F});
+Shape shape_PNF(sh_ref{&P, &N, &F});
 Shape shape_PNFF(sh_ref{&P, &N, &F, &F});
 Shape shape_PN4N4(sh_ref{&P, &N4, &N4});
 Shape shape_NF(sh_ref{&N, &F});
@@ -74,6 +76,7 @@ void static_build_shapes() {
     PNN   = P * NN;
     PF    = P * F;
     PFF   = P * FF;
+    PNF   = P * NF;
     PNFF  = P * NFF;
     MP    = M * P;
     Fadd1 = F + 1;
@@ -237,6 +240,21 @@ VARIABLE<kids_complex> NAME_WRAPPER(integrator::tmp::invexpidiagdt, &shape_F, ""
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::ve, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::tmp::vedE, &shape_FF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::tmp::wrho, &shape_FF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::relwgt, &shape_PN, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::gf_x, &shape_PP, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::gf_p, &shape_PP, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::gf_c, &shape_PP, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::avgx, &shape_N, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::varx, &shape_N, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::avgxf, &shape_NF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::varxf, &shape_NF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::xintercept, &shape_PN, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::xinterceptf, &shape_NFF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::xslope, &shape_PN, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::term_1, &shape_PF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::term_2, &shape_PN, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::fadiat, &shape_PNF, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::pb, &shape_PN, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::veF, &shape_PFF, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::w, &shape_P, "");
 VARIABLE<kids_complex> NAME_WRAPPER(integrator::w_AA, &shape_P, "");
@@ -286,8 +304,8 @@ VARIABLE<kids_real>    NAME_WRAPPER(model::Kmat, &shape_NN, "nuclear oscillation
 VARIABLE<kids_real>    NAME_WRAPPER(model::Qmat, &shape_NFF, "coupling matrix");
 VARIABLE<kids_real>    NAME_WRAPPER(model::Tmod, &shape_NN, "normalmode transformation");
 VARIABLE<kids_real>    NAME_WRAPPER(model::V, &shape_PFF, "diabatic potential of energy matrix");
-VARIABLE<kids_int>     NAME_WRAPPER(model::atoms, &shape_N, "atom indices"); // only N//3 size
-VARIABLE<kids_int>     NAME_WRAPPER(model::layer_type, &shape_N, "atom layer type"); // only N//3 size
+VARIABLE<kids_int>     NAME_WRAPPER(model::atoms, &shape_N, "atom indices");          // only N//3 size
+VARIABLE<kids_int>     NAME_WRAPPER(model::layer_type, &shape_N, "atom layer type");  // only N//3 size
 VARIABLE<kids_real>    NAME_WRAPPER(model::bath::coeffs, &shape_Nb, "discretized coefficients for a bath");
 VARIABLE<kids_real>    NAME_WRAPPER(model::bath::omegas, &shape_Nb, "discretized frequencies for a bath");
 VARIABLE<kids_real>    NAME_WRAPPER(model::coupling::CL, &shape_LNb, "");

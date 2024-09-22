@@ -36,7 +36,7 @@ std::shared_ptr<Solver> NAD_Coup_Kernel(std::shared_ptr<Model> kmodel, std::stri
     std::shared_ptr<Kernel_Update_U> ku_U(new Kernel_Update_U(1.0));
 
     // std::shared_ptr<Kernel_Update_Coup> ku_coup(new Kernel_Update_Coup(1.0));
-    std::shared_ptr<Kernel_Update_Coup> ku_coup(new Kernel_Update_Coup(kmodel, krepr, knaf));
+    std::shared_ptr<Kernel_Update_Coup> ku_coup(new Kernel_Update_Coup(1.0));
 
     /// Result & Sampling & TCF
     std::shared_ptr<Kernel_Recorder> krecd(new Kernel_Recorder());

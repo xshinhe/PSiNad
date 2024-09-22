@@ -78,6 +78,7 @@ extern Shape shape_PP;     ///< Shape for the product of P and P (P * P).
 extern Shape shape_PN;     ///< Shape for the product of P and N (P * N).
 extern Shape shape_PNN;    ///< Shape for the product of P, N, and N (P * N * N).
 extern Shape shape_PF;     ///< Shape for the product of P and F (P * F).
+extern Shape shape_PNF;    ///< Shape for the product of P, N and F (P * N * F).
 extern Shape shape_PFF;    ///< Shape for the product of P, F, and F (P * F * F).
 extern Shape shape_PNFF;   ///< Shape for the product of P, N, F, and F (P * N * F * F).
 extern Shape shape_NF;     ///< Shape for the product of N and F (N * F).
@@ -238,6 +239,24 @@ namespace forceeval {
 extern VARIABLE<kids_complex> mask;
 extern VARIABLE<kids_complex> dmask;
 };  // namespace forceeval
+
+namespace COUP {
+extern VARIABLE<kids_real> relwgt;
+extern VARIABLE<kids_real> gf_x;
+extern VARIABLE<kids_real> gf_p;
+extern VARIABLE<kids_real> gf_c;
+extern VARIABLE<kids_real> avgx;
+extern VARIABLE<kids_real> varx;
+extern VARIABLE<kids_real> avgxf;
+extern VARIABLE<kids_real> varxf;
+extern VARIABLE<kids_real> xintercept;
+extern VARIABLE<kids_real> xinterceptf;
+extern VARIABLE<kids_real> xslope;
+extern VARIABLE<kids_real> term_1;
+extern VARIABLE<kids_real> term_2;
+extern VARIABLE<kids_real> fadiat;
+extern VARIABLE<kids_real> pb;
+};  // namespace COUP
 
 namespace tmp {
 extern VARIABLE<kids_complex> I_PP;
