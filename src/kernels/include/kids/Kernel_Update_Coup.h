@@ -24,11 +24,11 @@ class Kernel_Update_Coup final : public Kernel {
     kids_real scale;
     kids_real dt;
 
-    span<kids_real> relwgt, gf_x, gf_p, gf_c, avgx, varx, avgxf, varxf;
+    span<kids_real> relwgt, gf_x, gf_p, gf_c, avgx, varx, avgp, varp, avgxf, varxf;
     span<kids_real> xintercept, xinterceptf, xslope;
     span<kids_real> term_1, term_2, fadiat, pb;
 
-    span<kids_real>    x, p, m;
+    span<kids_real>    x, p, m, f;
     span<kids_real>    dV, dE, T, T_init;
     span<kids_complex> c, rho_ele, U, Udt;
     span<kids_complex> K1, K2, rhored;

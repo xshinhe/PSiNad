@@ -19,8 +19,8 @@ int Kernel_Update_Coup::getType() const { return utils::hash(FUNCTION_NAME); }
 void Kernel_Update_Coup::setInputParam_impl(std::shared_ptr<Param> PM) {
     swarm_type = SwarmCoupPolicy::_from(_param->get_string({"solver.swarm_flag"}, LOC(), "ccps"));
     dt         = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);  //
-    sigma_nuc  = _param->get_real({"solver.sigma_nuc"}, LOC(), 0.1f);
-    sigma_ele  = _param->get_real({"solver.sigma_ele"}, LOC(), 0.1f);
+    sigma_nuc  = _param->get_real({"solver.sigma_nuc"}, LOC(), 0.5e0);
+    sigma_ele  = _param->get_real({"solver.sigma_ele"}, LOC(), 0.2e0);
 }
 
 void Kernel_Update_Coup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -30,6 +30,8 @@ void Kernel_Update_Coup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     gf_c        = DS->def(DATA::integrator::COUP::gf_c);
     avgx        = DS->def(DATA::integrator::COUP::avgx);
     varx        = DS->def(DATA::integrator::COUP::varx);
+    avgp        = DS->def(DATA::integrator::COUP::avgp);
+    varp        = DS->def(DATA::integrator::COUP::varp);
     avgxf       = DS->def(DATA::integrator::COUP::avgxf);
     varxf       = DS->def(DATA::integrator::COUP::varxf);
     xintercept  = DS->def(DATA::integrator::COUP::xintercept);
@@ -48,6 +50,7 @@ void Kernel_Update_Coup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     x       = DS->def(DATA::integrator::x);
     p       = DS->def(DATA::integrator::p);
     m       = DS->def(DATA::integrator::m);
+    f       = DS->def(DATA::integrator::f);
     c       = DS->def(DATA::integrator::c);
     rho_ele = DS->def(DATA::integrator::rho_ele);
     K1      = DS->def(DATA::integrator::K1);
@@ -85,7 +88,7 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
             avgx[j] /= Dimension::P;
             varx[j] = 0.0e0;
             for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-                varxf[jk] += (x[iP1 * Dimension::N + j] - avgx[j]) * (x[iP1 * Dimension::N + j] - avgx[j]);
+                varx[j] += (x[iP1 * Dimension::N + j] - avgx[j]) * (x[iP1 * Dimension::N + j] - avgx[j]);
             }
             varx[j] /= Dimension::P;
             // state-specific position average & variance
@@ -200,6 +203,29 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
             }
         }
     } else if (swarm_type == SwarmCoupPolicy::ccps) {
+        // PRINT_ARRAY(x, Dimension::P, Dimension::N);
+        for (int j = 0, jk = 0; j < Dimension::N; ++j) {
+            // for total average & variance
+            avgx[j] = 0.0e0;
+            avgp[j] = 0.0e0;
+            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {  //
+                avgx[j] += x[iP1 * Dimension::N + j];
+                avgp[j] += p[iP1 * Dimension::N + j];
+            }
+            avgx[j] /= Dimension::P;
+            avgp[j] /= Dimension::P;
+            varx[j] = 0.0e0;
+            varp[j] = 0.0e0;
+            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
+                varx[j] += (x[iP1 * Dimension::N + j] - avgx[j]) * (x[iP1 * Dimension::N + j] - avgx[j]);
+                varp[j] += (p[iP1 * Dimension::N + j] - avgp[j]) * (p[iP1 * Dimension::N + j] - avgp[j]);
+            }
+            varx[j] /= Dimension::P;
+            varp[j] /= Dimension::P;
+        }
+        // PRINT_ARRAY(avgx, 1, Dimension::N);
+        // PRINT_ARRAY(varx, 1, Dimension::N);
+        // PRINT_ARRAY(varp, 1, Dimension::N);
         // constant width
         double norm_nuc = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_nuc;
         double norm_ele = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_ele;
@@ -211,36 +237,58 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
             for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
                 span<kids_real>    x2 = this->x.subspan(iP2 * Dimension::N, Dimension::N);
                 span<kids_real>    p2 = this->p.subspan(iP2 * Dimension::N, Dimension::N);
-                span<kids_complex> c2 = this->c.subspan(iP1 * Dimension::F, Dimension::F);
+                span<kids_complex> c2 = this->c.subspan(iP2 * Dimension::F, Dimension::F);
 
                 std::size_t P1P2 = iP1 * Dimension::P + iP2;
                 gf_x[P1P2]       = 1.0e0;
                 gf_p[P1P2]       = 1.0e0;
                 gf_c[P1P2]       = 1.0e0;
                 for (int j = 0; j < Dimension::N; ++j) {
-                    gf_x[P1P2] *=
-                        norm_nuc * std::exp(-0.5e0 * (x1[j] - x2[j]) * (x1[j] - x2[j]) / (sigma_nuc * sigma_nuc));
-                    gf_p[P1P2] *=
-                        norm_nuc * std::exp(-0.5e0 * (p1[j] - p2[j]) * (p1[j] - p2[j]) / (sigma_nuc * sigma_nuc));
+                    gf_x[P1P2] *= std::exp(-0.5e0 * (x1[j] - x2[j]) * (x1[j] - x2[j]) / varx[j]);
+                    gf_p[P1P2] *= std::exp(-0.5e0 * (p1[j] - p2[j]) * (p1[j] - p2[j]) / varp[j]);
                 }
                 for (int k = 0; k < Dimension::F; ++k) {
-                    gf_c[P1P2] *= norm_ele *                                                             //
-                                  std::exp(-0.5e0 * std::abs(c1[k] - c2[k]) * std::abs(c1[k] - c2[k]) /  //
-                                           (sigma_ele * sigma_ele));
+                    gf_c[P1P2] *=                                                              //
+                        std::exp(-0.5e0 * std::abs(c1[k] - c2[k]) * std::abs(c1[k] - c2[k]) /  //
+                                 (sigma_ele * sigma_ele));
                 }
             }
         }
+        // PRINT_ARRAY(gf_x, Dimension::P, Dimension::P);
+        // PRINT_ARRAY(gf_p, Dimension::P, Dimension::P);
+        // PRINT_ARRAY(gf_c, Dimension::P, Dimension::P);
+        // PRINT_ARRAY(p, Dimension::P, Dimension::N);
+
         // calc relative weight
         for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-            for (int j0 = 0, P1j = iP1 * Dimension::N; j0 < Dimension::N; ++j0, ++P1j) {
-                relwgt[P1j] = 0.0e0;
-                for (int iP2 = 0, P2j = Dimension::P * j0; iP2 < Dimension::P; ++iP2, P2j += Dimension::N) {
-                    relwgt[P1j] += (p[P1j] - p[P2j]) * gf_x[iP1 * Dimension::P + iP2] *  //
-                                   gf_p[iP1 * Dimension::P + iP2] * gf_c[iP1 * Dimension::P + iP2];
+            for (int j = 0; j < Dimension::N; ++j) {
+                relwgt[iP1 * Dimension::N + j] = 0.0e0;
+                for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
+                    relwgt[iP1 * Dimension::N + j] += (p[iP1 * Dimension::N + j] - p[iP2 * Dimension::N + j]) *
+                                                      gf_x[iP1 * Dimension::P + iP2] *
+                                                      gf_p[iP1 * Dimension::P + iP2] *  //
+                                                      gf_c[iP1 * Dimension::P + iP2];
                 }
             }
         }
-        // CCPS EOM
+        // PRINT_ARRAY(relwgt, Dimension::P, Dimension::N);
+        // PRINT_ARRAY(K1.data(), Dimension::P, Dimension::FF);
+        // PRINT_ARRAY(K2.data(), Dimension::P, Dimension::FF);
+        for (int iP = 0; iP < Dimension::P; ++iP) {
+            auto K1 = this->K1.subspan(iP * Dimension::FF, Dimension::FF);
+            auto K2 = this->K2.subspan(iP * Dimension::FF, Dimension::FF);
+            auto T  = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+            Kernel_Representation::transform(K1.data(), T.data(), Dimension::F,     //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             RepresentationPolicy::Adiabatic,       //
+                                             SpacePolicy::L);
+            Kernel_Representation::transform(K2.data(), T.data(), Dimension::F,     //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             RepresentationPolicy::Adiabatic,       //
+                                             SpacePolicy::L);
+        }
+
+        // CCPS EOM (evaluated in adiabatic!)
         for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
             span<kids_real>    Force1 = this->dE.subspan(iP1 * Dimension::NFF, Dimension::NFF);
             span<kids_complex> K11    = this->K1.subspan(iP1 * Dimension::FF, Dimension::FF);
@@ -259,9 +307,27 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
                              (relwgt[iP2 * Dimension::N + j1] / relwgt[iP1 * Dimension::N + j1] - 1.0e0) * f1j1;
                 }
                 fcoup *= Dimension::F / norm;
-                this->p[iP1 * Dimension::P + j1] -= fcoup * dt;  // because gradient
+                if (std::abs(f[iP1 * Dimension::N + j1]) < std::abs(fcoup)) {
+                    std::cout << f[iP1 * Dimension::N + j1] << " ? " << fcoup << std::endl;
+                }
+                this->p[iP1 * Dimension::N + j1] -= fcoup * dt;  // because gradient
             }
         }
+
+        for (int iP = 0; iP < Dimension::P; ++iP) {
+            auto K1 = this->K1.subspan(iP * Dimension::FF, Dimension::FF);
+            auto K2 = this->K2.subspan(iP * Dimension::FF, Dimension::FF);
+            auto T  = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+            Kernel_Representation::transform(K1.data(), T.data(), Dimension::F,     //
+                                             RepresentationPolicy::Adiabatic,       //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             SpacePolicy::L);
+            Kernel_Representation::transform(K2.data(), T.data(), Dimension::F,     //
+                                             RepresentationPolicy::Adiabatic,       //
+                                             Kernel_Representation::inp_repr_type,  //
+                                             SpacePolicy::L);
+        }
+        // exit(0);
     }
     return stat;
 }

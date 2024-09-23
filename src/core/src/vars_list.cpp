@@ -246,6 +246,8 @@ VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::gf_p, &shape_PP, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::gf_c, &shape_PP, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::avgx, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::varx, &shape_N, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::avgp, &shape_N, "");
+VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::varp, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::avgxf, &shape_NF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::varxf, &shape_NF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(integrator::COUP::xintercept, &shape_PN, "");

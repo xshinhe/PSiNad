@@ -247,6 +247,8 @@ extern VARIABLE<kids_real> gf_p;
 extern VARIABLE<kids_real> gf_c;
 extern VARIABLE<kids_real> avgx;
 extern VARIABLE<kids_real> varx;
+extern VARIABLE<kids_real> avgp;
+extern VARIABLE<kids_real> varp;
 extern VARIABLE<kids_real> avgxf;
 extern VARIABLE<kids_real> varxf;
 extern VARIABLE<kids_real> xintercept;
