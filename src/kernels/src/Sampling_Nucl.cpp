@@ -147,8 +147,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                     }
                     E_sampled_NMA += w[j] * (x[j]*x[j] + p[j]*p[j]);
 
-                    x_sigma[j]       = std::sqrt(Qoverbeta / (w[j] * w[j]));
-                    p_sigma[j]       = std::sqrt(Qoverbeta);
+                    x_sigma[j]       = w[j] <= 0.0e0 ? 0.0e0 : std::sqrt(Qoverbeta / (w[j] * w[j]));
+                    p_sigma[j]       = w[j] <= 0.0e0 ? 0.0e0 : std::sqrt(Qoverbeta);
 
                     std::cout << j << "-th sigma for x is " << x_sigma[j] << std::endl;
 
@@ -200,9 +200,6 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                         for (int i = 0; i < Dimension::N; ++i) ifs >> p[i];
                     }
                 }
-		//PRINT_ARRAY(x, 1, Dimension::N);
-		//PRINT_ARRAY(p, 1, Dimension::N);
-                //exit(0);
                 break;
             }
             case NuclearSamplingPolicy::ReadAmberRST: {

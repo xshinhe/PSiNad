@@ -53,6 +53,7 @@ class Kernel_Recorder final : public Kernel {
    private:
     // friend class Kernel_Report;
     int occ0;
+	bool record_tmp;
 
     span<kids_int>           istep_ptr;
     span<kids_int>           sstep_ptr;
