@@ -429,6 +429,8 @@ class GaussianOutput(QMOutput):
         # define options of the base class
         QMOutput.__init__(self)
 
+        nmain = 0
+
         # Add additional gaussian-specific attributes to the data dictionary
         # FILE NAMES, DIRECTORIES, INPUT/OUTPUT
         self.dataDict["name"] = name  # name of the calc, it is the base name of the I/O files (.com, .chk, .log)
@@ -443,6 +445,7 @@ class GaussianOutput(QMOutput):
         self.dataDict["signs"] = [] # list of WF signs from previous step to apply in phase correction
         self.dataDict["psioverlap"] = None # array of the WF overlaps between consecutive steps
         self.dataDict["nroots"] = 1 # number of states (GS + ESs): initialized to 1 and then increased in case of TDDFT
+        self.dataDict["osc_strength"] = {}   # osc_strength to each electric state
 
         # store the gaussian log removing AO and MO definitons, CI expansions, etc.
         if SPcalc == False and verbose == False:
@@ -818,14 +821,14 @@ class GaussianOutput(QMOutput):
         can be safely removed... """
 
         # permanently remove directory and gaussian files
-        try:
-            if not logwrt.DEBUG_COBRAMM_RUN:
-                if self.dataDict["termination"] == 1:
-                    source=self.dataDict["dir"]+"/gaussian-QM.log"
-                    shutil.move(source,"gaussian-QM_err.log")
-                shutil.rmtree(self.dataDict["dir"])
-        except FileNotFoundError:
-            pass
+        #try:
+        #    if not logwrt.DEBUG_COBRAMM_RUN:
+        #        if self.dataDict["termination"] == 1:
+        #            source=self.dataDict["dir"]+"/gaussian-QM.log"
+        #            shutil.move(source,"gaussian-QM_err.log")
+        #        shutil.rmtree(self.dataDict["dir"])
+        #except FileNotFoundError:
+        #    pass
         # clean up the log
         del self.log
         # destroy the dictionary that contains the output data
