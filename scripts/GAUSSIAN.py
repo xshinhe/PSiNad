@@ -32,13 +32,289 @@ def qm_job(qm_data, args):
     natom = qm_data["natom"]
     znumber = qm_data["znumber"]
     xyz = qm_data["geom_xyz"]
-    
     try:
         F = int(qm_config['QM']['GAUSSIAN']['F'])
         N = int(qm_config['QM']['GAUSSIAN']['N'])
-        nciref = F # int(qm_config['QM']['MNDO']['keywords']['nciref'])
     except KeyError:
         print(format_exc())
+
+
+        def fileText(self, inpFileName, memory="500MB", nproc=1, gversion="g16"):
+        """Prepare the text of gaussian input file named after the inpFileName variable (input file
+        should be named <inpFileName>.com, so inpFileName should not include the extension!), using the
+        input data defined in the instance of gaussianInput. The memory (var memory) and
+        the number of cores (var nproc) to use in the execution and the version of Gaussian (gversion)
+         are given as input because they are decided when running the Gaussian calculation and are not
+         considered parameters of the QM calculation"""
+
+    nproc = 1
+    try:
+        nproc = int(qm_config['QM']['nproc'])
+    except KeyError:
+        pass
+    memory = '500MB'
+    try:
+        memory = int(qm_config['QM']['memory'])
+    except KeyError:
+        pass
+    
+
+    # initialize the text of the input file
+    job_str = ""
+
+    # add the section with the names of the auxiliary files
+    job_str += '%chk={0}\n%rwf={0}\n%int={0}\n%d2e={0}\n'.format(inpFileName)
+    # add the number of cores to use and the memory of the calculation
+    job_str += '%Nproc={0}\n%Mem={1}\n'.format(nproc, memory)
+
+    # add the gaussian keys using the variable self.keys up to the first empty line
+    for line in self.keys:
+        job_str += line.lower()
+        if line.strip() == '':
+            break
+        else:
+            job_str += "\n"
+
+    # if forces are required in the output
+    if self.otheropt["forces"]: job_str += " force"
+    # if the calculation has background charges
+    if self.otheropt["charges"]: job_str += " charge"
+    # if computing electric field is required
+    if self.otheropt["field"]: job_str += " prop=(field,read)"
+    # check if a command for producing charges is there, otherwise add the option POP=(FULL,CHELPG)
+    if not _optionInRoute(self.keys, ['CHELP', 'MK']): job_str += " pop=(full,chelpg)"
+    # if a chk file is provided for restarting the orbitals
+    if self.otheropt["restart"]: job_str += " guess=(read)"
+    # options that are always needed
+    if not _optionInRoute(self.keys, ['gfinput']): job_str += " gfinput"
+    job_str += " scf=tight"
+
+    # when it is requested to compute td couplings, require tamm-damkov and force printing of all excitations
+    if self.otheropt["tdcouplings"]:
+        if _optionInRoute(self.keys, ['td']):  # when the TD option is active, substitute it with TDA (Tamm-Damkov)
+            logwrt.writewarning("Calculation of time derivative couplings is only possible with TDA...replacing TD keyword in Gaussian input\n")
+            job_str = job_str.replace(" td ", " tda ")  # without subsequent options
+            job_str = job_str.replace(" td(", " tda(")  # with subsequent options (syntax 1)
+            job_str = job_str.replace(" td=(", " tda(")  # with subsequent options (syntax 2)
+        else:
+            job_str += " tda"
+        job_str += " IOp(9/40=16)"  # add option to print the whole set of excitation coefficients
+    job_str += "\n"
+
+    # when it is requested to change the electronic state number
+    addTDSection = None
+    if self.otheropt["nstate"] is not None:
+        if _optionInRoute(self.keys, ['td', 'tda']):  # when the calculation is TD or TDA
+            if self.otheropt["nstate"] == 0:
+                findtdgroup = re.findall("(tda?\(.*?\))", job_str)
+                if findtdgroup:
+                    addTDSection = findtdgroup[0]
+                    job_str = job_str.replace(findtdgroup[0], "")
+                else:  # in this case there is an isolated td / tda keyword
+                    addTDSection = "tda"
+                    job_str = job_str.replace(" td ", " ")
+                    job_str = job_str.replace(" tda ", " ")
+            else:
+                findroot = re.findall("(root *= *[0-9]*)", job_str)  # look for an expression of type "root = N"
+                if findroot:
+                    if self.otheropt["nstate"] != int(findroot[0].split("=")[1]) and \
+                            not self.otheropt["forcestate"]:
+                        logwrt.fatalerror("Mismatch of the electronic state between command file and QM input")
+                    job_str = job_str.replace(findroot[0], "root={0}".format(self.otheropt["nstate"]))
+                else:
+                    findtdgroup = re.findall("(tda?=?\(.*?\))", job_str)  # look for a group tda( ) or td( )
+                    if findtdgroup:
+                        job_str = job_str.replace(findtdgroup[0], findtdgroup[0][:-1] +
+                                                      ",root={0})".format(self.otheropt["nstate"]))
+                    else:  # in this case there is an isolated td / tda keyword
+                        job_str = job_str.replace(" td ", " td(root={0}) ".format(self.otheropt["nstate"]))
+                        job_str = job_str.replace(" tda ", " tda(root={0}) ".format(self.otheropt["nstate"]))
+        else:  # this means that this is not a td/tda calculation, the "nstate" option is not implemented
+            logwrt.fatalerror("cannot change the electronic state number for these Gaussian options")
+
+    # add a blank line, the title, another blank line and then charge and multeplicity
+    job_str += "\nQM single-point calculation for COBRAMM\n\n"
+    job_str += self.keys[-1] + "\n"
+
+    # write molecular structure
+    for atom in zip(self.symbols, *self.coords):
+        job_str += "{0} {1:16.8f} {2:16.8f} {3:16.8f}\n".format(*atom)
+    job_str += "\n"
+
+    # inserting charges
+    if self.otheropt["charges"]:
+        coords = self.otheropt["charges"][0]
+        chrg = self.otheropt["charges"][1]
+        for atom in zip(chrg, *coords):
+            job_str += "{1:14.8f} {2:14.8f} {3:14.8f} {0:16.8f}\n".format(*atom)
+        job_str += "\n"
+
+    # insert basis set information only when the GEN keyword is found in the given route options
+    if _optionInRoute(self.keys, ['GEN']):
+        for line in self.gen:
+            job_str += line + "\n"
+        job_str += "\n"
+
+    # in g16 the gaussweights section (weights of the CASSCF) should be before the EF
+    if gversion == 'g16' and len(self.gaussweights) != 0:
+        for line in self.gaussweights:
+            job_str += line + '\n'
+        job_str += '\n'
+
+    # inserting EF for gradient computation
+    if self.otheropt["field"]:
+        for coords in zip(*self.otheropt["field"][0]):
+            job_str += "{0:14.8f} {1:14.8f} {2:14.8f}\n".format(*coords)
+        job_str += '\n'
+
+    # in g16 the gaussweights section (weights of the CASSCF) should be after the EF
+    if gversion != 'g16' and len(self.gaussadd) != 0:
+        for line in self.gaussweights:
+            job_str += line + '\n'
+        job_str += '\n'
+
+    # add the remaining part of the input, stored in the gaussadd variable
+    for line in self.gaussadd:
+        job_str += line + '\n'
+    job_str += '\n'
+
+    # in case of a TD calculation with ground state gradient, append a second input at the end
+    if not self.otheropt["suppress_TDDFT"] and addTDSection is not None:
+        # add the "link" separation
+        job_str += "--Link1--\n"
+        # add the section with the names of the auxiliary files
+        job_str += '%chk={0}\n%rwf={0}\n%int={0}\n%d2e={0}\n'.format(inpFileName)
+        # add the number of cores to use and the memory of the calculation
+        job_str += '%Nproc={0}\n%Mem={1}\n'.format(nproc, memory)
+        # add the route line
+        job_str2 = "" 
+        for line in self.keys:
+            job_str2 += line.lower()
+            if line.strip() == '':
+                break
+            else:
+                job_str2 += "\n"
+        job_str2 = job_str2.replace(" td ", " tda ")  # without subsequent options
+        job_str2 = job_str2.replace(" td(", " tda(")  # with subsequent options
+        job_str2 = job_str2.replace(" force ", " ")   # remove force  
+        job_str2 = job_str2.replace(",eqsolv", "")   # ES not in equilibrium when dynamics in GS
+        job_str2 = job_str2.replace("eqsolv,", "")   # ES not in equilibrium when dynamics in GS
+        job_str2 = job_str2.replace("eqsolv", "")   # ES not in equilibrium when dynamics in GS
+        # if the calculation has background charges
+        if self.otheropt["charges"]: job_str2 += " charge"
+        job_str2 += " gfinput"
+        job_str2 += " scf=tight"
+        job_str += job_str2
+        # add restart options
+        #job_str += " guess=(read) geom=(check) " + addTDSection + " IOp(9/40=16) \n"
+        job_str += " guess=(read) geom=(check) IOp(9/40=16) \n"
+        # add a blank line, the title, another blank line and then charge and multeplicity
+        job_str += "\nQM single-point calculation for COBRAMM\n\n"
+        job_str += self.keys[-1] + "\n\n"
+
+        # inserting charges also for second calculation
+        if self.otheropt["charges"]:
+            coords = self.otheropt["charges"][0]
+            chrg = self.otheropt["charges"][1]
+            for atom in zip(chrg, *coords):
+                job_str += "{1:14.8f} {2:14.8f} {3:14.8f} {0:16.8f}\n".format(*atom)
+            job_str += "\n"
+
+    # in case of a CI optimization (with gmean branching plane) we also need gradient of lower state
+    if self.otheropt["CIopt"]:
+        # set lower state and determine if it is GS (DFT only) or not (TD required)
+        lower_state = self.otheropt["upper_state"] - 1
+        if lower_state == 1:
+            GS = True
+        else:
+            GS = False
+        # add the "link" separation
+        job_str += "--Link1--\n"
+        # add the section with the names of the auxiliary files
+        job_str += '%chk={0}\n%rwf={0}\n%int={0}\n%d2e={0}\n'.format(inpFileName)
+        # add the number of cores to use and the memory of the calculation
+        job_str += '%Nproc={0}\n%Mem={1}\n'.format(nproc, memory)
+        # add the route line
+        job_str2 = "" 
+        for line in self.keys:
+            job_str2 += line.lower()
+            if line.strip() == '':
+                break
+            else:
+                job_str2 += "\n"
+        if GS:
+            findtdgroup = re.findall("(tda?=?\(.*?\))", job_str2)
+            if findtdgroup:
+                job_str2 = job_str2.replace(findtdgroup[0], "")
+            else:  # in this case there is an isolated td / tda keyword
+                job_str2 = job_str2.replace(" td ", " ")
+                job_str2 = job_str2.replace(" tda ", " ")  
+        else:
+            findroot = re.findall("(root *= *[0-9]*)", job_str2)  # look for an expression of type "root = N"
+            if findroot:
+                job_str2 = job_str2.replace(findroot[0], "root={0}".format(lower_state - 1))
+            else:
+                findtdgroup = re.findall("(tda?\(.*?\))", job_str2)  # look for a group tda( ) or td( )
+                if findtdgroup:
+                    job_str2 = job_str2.replace(findtdgroup[0], findtdgroup[0][:-1] +
+                                                  ",root={0})".format(lower_state - 1))
+                else:  # in this case there is an isolated td / tda keyword
+                    job_str2 = job_str2.replace(" td ", " td(root={0}) ".format(lower_state - 1))
+                    job_str2 = job_str2.replace(" tda ", " tda(root={0}) ".format(lower_state - 1))
+        if self.otheropt["forces"]: job_str2 += " force"
+        # if the calculation has background charges
+        if self.otheropt["charges"]: job_str2 += " charge"
+        # if computing electric field is required
+        if self.otheropt["field"]: job_str2 += " prop=(field,read)"
+        # check if a command for producing charges is there, otherwise add the option POP=(FULL,CHELPG)
+        if not _optionInRoute(self.keys, ['CHELP', 'MK']): job_str2 += " pop=(full,chelpg)"
+        job_str2 += " gfinput"
+        job_str2 += " scf=tight"
+        job_str += job_str2
+        # add restart options
+        job_str += " guess=(read) geom=(check)\n"
+        # add a blank line, the title, another blank line and then charge and multeplicity
+        job_str += "\nQM single-point calculation for COBRAMM\n\n"
+        job_str += self.keys[-1] + "\n\n"
+
+        # inserting charges also for second calculation
+        if self.otheropt["charges"]:
+            coords = self.otheropt["charges"][0]
+            chrg = self.otheropt["charges"][1]
+            for atom in zip(chrg, *coords):
+                job_str += "{1:14.8f} {2:14.8f} {3:14.8f} {0:16.8f}\n".format(*atom)
+            job_str += "\n"
+
+        # insert basis set information only when the GEN keyword is found in the given route options
+        if _optionInRoute(self.keys, ['GEN']):
+            for line in self.gen:
+                job_str += line + "\n"
+            job_str += "\n"
+
+        # in g16 the gaussweights section (weights of the CASSCF) should be before the EF
+        if gversion == 'g16' and len(self.gaussweights) != 0:
+            for line in self.gaussweights:
+                job_str += line + '\n'
+            job_str += '\n'
+
+        # inserting EF for gradient computation
+        if self.otheropt["field"]:
+            for coords in zip(*self.otheropt["field"][0]):
+                job_str += "{0:14.8f} {1:14.8f} {2:14.8f}\n".format(*coords)
+            job_str += '\n'
+
+        # in g16 the gaussweights section (weights of the CASSCF) should be after the EF
+        if gversion != 'g16' and len(self.gaussadd) != 0:
+            for line in self.gaussweights:
+                job_str += line + '\n'
+            job_str += '\n'
+
+        # add the remaining part of the input, stored in the gaussadd variable
+        for line in self.gaussadd:
+            job_str += line + '\n'
+        job_str += '\n'
+
+
 
     job_str = '{"bagel": [\n'
 
