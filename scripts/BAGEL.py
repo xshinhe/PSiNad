@@ -294,6 +294,8 @@ def qm_job(qm_data, args):
         job_str += '"nclosed": %d,\n'%(qm_config['QM']['BAGEL']['nclosed'])
         if 'maxiter' in qm_config['QM']['BAGEL']:
             job_str += '"maxiter": %d,\n'%qm_config['QM']['BAGEL']['maxiter']
+        if 'conv_ignore' in qm_config['QM']['BAGEL']:
+            job_str += '"conv_ignore": %d,\n'%qm_config['QM']['BAGEL']['conv_ignore']
         if 'active' in qm_config['QM']['BAGEL']:
             job_str += '"active" :'
             job_str += '['
