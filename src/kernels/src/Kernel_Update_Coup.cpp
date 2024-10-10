@@ -18,9 +18,16 @@ int Kernel_Update_Coup::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Update_Coup::setInputParam_impl(std::shared_ptr<Param> PM) {
     swarm_type = SwarmCoupPolicy::_from(_param->get_string({"solver.swarm_flag"}, LOC(), "ccps"));
-    dt         = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);  //
-    sigma_nuc  = _param->get_real({"solver.sigma_nuc"}, LOC(), 0.5e0);
+    dt         = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);
+    sigma_nuc  = _param->get_real({"solver.sigma_nuc"}, LOC(), -1.0e0);  // negative means use variance
     sigma_ele  = _param->get_real({"solver.sigma_ele"}, LOC(), 0.2e0);
+
+    gamma1 = _param->get_real({"solver.gamma"}, LOC(), elec_utils::gamma_wigner(Dimension::F));
+    if (gamma1 < -1.5) gamma1 = elec_utils::gamma_opt(Dimension::F);
+    if (gamma1 < -0.5) gamma1 = elec_utils::gamma_wigner(Dimension::F);
+    gamma2 = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
+    xi1    = (1 + Dimension::F * gamma1);
+    xi2    = (1 + Dimension::F * gamma2);
 }
 
 void Kernel_Update_Coup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -28,6 +35,7 @@ void Kernel_Update_Coup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     gf_x        = DS->def(DATA::integrator::COUP::gf_x);
     gf_p        = DS->def(DATA::integrator::COUP::gf_p);
     gf_c        = DS->def(DATA::integrator::COUP::gf_c);
+    gf_all      = DS->def(DATA::integrator::COUP::gf_all);
     avgx        = DS->def(DATA::integrator::COUP::avgx);
     varx        = DS->def(DATA::integrator::COUP::varx);
     avgp        = DS->def(DATA::integrator::COUP::avgp);
@@ -43,8 +51,9 @@ void Kernel_Update_Coup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     pb          = DS->def(DATA::integrator::COUP::pb);  // quantum momentum
 
     // pf_cross      = DS->def<kids_bool>(DATA::integrator::pf_cross);
-    U       = DS->def(DATA::integrator::U);
-    Udt     = DS->def(DATA::integrator::Udt);
+    U = DS->def(DATA::integrator::U);
+    // Udt     = DS->def(DATA::integrator::Udt);
+    Ucdt    = DS->def(DATA::integrator::Ucdt);
     dV      = DS->def(DATA::model::dV);
     dE      = DS->def(DATA::model::rep::dE);
     x       = DS->def(DATA::integrator::x);
@@ -67,59 +76,127 @@ Status& Kernel_Update_Coup::initializeKernel_impl(Status& stat) {
 }
 
 Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
-    if (swarm_type == SwarmCoupPolicy::hcps) {
-        // for hcps approach, the ele_repr_type must be Adiabatic! U & Udt are also adiabatic!
+    for (int iP = 0; iP < Dimension::P; ++iP) {  // transform ele_repr_type into
+        auto c       = this->c.subspan(iP * Dimension::F, Dimension::F);
+        auto rho_ele = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
+        auto T       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        Kernel_Representation::transform(c.data(), T.data(), Dimension::F,      //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         Kernel_Representation::nuc_repr_type,  //
+                                         SpacePolicy::H);
+        Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::inp_repr_type,    //
+                                         Kernel_Representation::nuc_repr_type,    //
+                                         SpacePolicy::L);
+    }
 
-        // 1) integrate fadia with time
+    // common block (overlap property)
+    // 2) calculate some position average & variance
+    for (int j = 0, jk = 0; j < Dimension::N; ++j) {
+        // for total average & variance
+        avgx[j] = 0.0e0;
+        avgp[j] = 0.0e0;
+        for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {  //
+            avgx[j] += this->x[iP1 * Dimension::N + j];
+            avgp[j] += this->p[iP1 * Dimension::N + j];
+        }
+        avgx[j] /= Dimension::P;
+        avgp[j] /= Dimension::P;
+        varx[j] = 0.0e0;
+        varp[j] = 0.0e0;
+        for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
+            varx[j] += (this->x[iP1 * Dimension::N + j] - avgx[j]) * (this->x[iP1 * Dimension::N + j] - avgx[j]);
+            varp[j] += (this->p[iP1 * Dimension::N + j] - avgp[j]) * (this->p[iP1 * Dimension::N + j] - avgp[j]);
+        }
+        varx[j] /= Dimension::P;
+        varp[j] /= Dimension::P;
+        continue;
+        // state-specific position average & variance (not used now, but in Gross's JCTC)
+        // remember that here always tr[rho_ele]=1 so it is just physical density, rho_ele should be in adiabatic rep.
+        for (int k = 0; k < Dimension::F; ++k, ++jk) {
+            avgxf[jk]   = 0.0e0;
+            double norm = 0.0e0;
+            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
+                double wgthere = std::real(rho_ele[iP1 * Dimension::FF + k * Dimension::Fadd1]);
+                avgxf[jk] += this->x[iP1 * Dimension::N + j];
+                norm += wgthere;
+            }
+            avgxf[jk] /= norm;
+            varxf[jk] = 0.0e0;
+            norm      = 0.0e0;
+            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
+                double wgthere = std::real(rho_ele[iP1 * Dimension::FF + k * Dimension::Fadd1]);
+                varxf[jk] += (x[iP1 * Dimension::N + j] - avgxf[jk]) *  //
+                             (x[iP1 * Dimension::N + j] - avgxf[jk]) * wgthere;
+                norm += wgthere;
+            }
+            varxf[jk] /= norm;
+        }
+    }
+    // PRINT_ARRAY(avgx, 1, Dimension::N);
+    // PRINT_ARRAY(avgp, 1, Dimension::N);
+    // PRINT_ARRAY(varx, 1, Dimension::N);
+    // PRINT_ARRAY(varp, 1, Dimension::N);
+    // PRINT_ARRAY(varx, Dimension::N, 1);
+    // PRINT_ARRAY(varxf, Dimension::N, Dimension::F);
+
+    // // overlap with width
+    // 1)) constant scheme read from Param
+    // 2)) proportional to variance
+    // double norm_nuc = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_nuc;
+    // double norm_ele = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_ele;
+    for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
+        span<kids_real>    x1 = this->x.subspan(iP1 * Dimension::N, Dimension::N);
+        span<kids_real>    p1 = this->p.subspan(iP1 * Dimension::N, Dimension::N);
+        span<kids_complex> c1 = this->c.subspan(iP1 * Dimension::F, Dimension::F);
+
+        for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
+            span<kids_real>    x2 = this->x.subspan(iP2 * Dimension::N, Dimension::N);
+            span<kids_real>    p2 = this->p.subspan(iP2 * Dimension::N, Dimension::N);
+            span<kids_complex> c2 = this->c.subspan(iP2 * Dimension::F, Dimension::F);
+
+            std::size_t P1P2 = iP1 * Dimension::P + iP2;
+            gf_x[P1P2]       = 1.0e0;
+            gf_p[P1P2]       = 1.0e0;
+            gf_c[P1P2]       = 1.0e0;
+            for (int j = 0; j < Dimension::N; ++j) {
+                double vareff;
+                vareff = (sigma_nuc < 0.0) ? varx[j] * Dimension::N : sigma_nuc * sigma_nuc;
+                gf_x[P1P2] *= std::exp(-0.5e0 * (x1[j] - x2[j]) * (x1[j] - x2[j]) / vareff);
+                vareff = (sigma_nuc < 0.0) ? varp[j] * Dimension::N : 0.25e0 / (sigma_nuc * sigma_nuc);
+                gf_p[P1P2] *= std::exp(-0.5e0 * (p1[j] - p2[j]) * (p1[j] - p2[j]) / vareff);
+            }
+            for (int k = 0; k < Dimension::F; ++k) {
+                gf_c[P1P2] *=                                                              //
+                    std::exp(-0.5e0 * std::abs(c1[k] - c2[k]) * std::abs(c1[k] - c2[k]) /  //
+                             (sigma_ele * sigma_ele) / (double) Dimension::F);
+            }
+        }
+    }
+    for (int i = 0; i < Dimension::P * Dimension::P; ++i) gf_all[i] = gf_x[i] * gf_p[i] * gf_c[i];
+
+    // force matrix in nuc_repr_type
+    auto& Force = (Kernel_Representation::nuc_repr_type == RepresentationPolicy::Adiabatic) ? this->dE : this->dV;
+
+    // different procedure for hcps & ccps
+    if (swarm_type == SwarmCoupPolicy::hcps) {
+        // 1) the gradient integrated with time (the adiabatic representation must be aviable!)
         for (int iP1 = 0, P1jk = 0; iP1 < Dimension::P; ++iP1) {
             for (int j = 0; j < Dimension::N; ++j) {
                 for (int k = 0; k < Dimension::F; ++k, ++P1jk) {
-                    fadiat[P1jk] += dE[iP1 * Dimension::NFF + j * Dimension::FF + k * Dimension::Fadd1] * dt;
+                    fadiat[P1jk] += Force[iP1 * Dimension::NFF + j * Dimension::FF + k * Dimension::Fadd1] * dt;
                 }
             }
         }
-        // 2) calculate some position average & variance
-        for (int j = 0, jk = 0; j < Dimension::N; ++j) {
-            // for total average & variance
-            avgx[j] = 0.0e0;
-            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {  //
-                avgx[j] += this->x[iP1 * Dimension::N + j];
-            }
-            avgx[j] /= Dimension::P;
-            varx[j] = 0.0e0;
-            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-                varx[j] += (x[iP1 * Dimension::N + j] - avgx[j]) * (x[iP1 * Dimension::N + j] - avgx[j]);
-            }
-            varx[j] /= Dimension::P;
-            // state-specific position average & variance
-            // remember that here always tr[rho_ele]=1 and it is just physical density
-            for (int k = 0; k < Dimension::F; ++k, ++jk) {
-                avgxf[jk]   = 0.0e0;
-                double norm = 0.0e0;
-                for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-                    double wgthere = std::real(rho_ele[iP1 * Dimension::FF + k * Dimension::Fadd1]);
-                    avgxf[jk] += x[iP1 * Dimension::N + j];
-                    norm += wgthere;
-                }
-                avgxf[jk] /= norm;
+        // PRINT_ARRAY(fadiat, Dimension::P, Dimension::N);
 
-                varxf[jk] = 0.0e0;
-                norm      = 0.0e0;
-                for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-                    double wgthere = std::real(rho_ele[iP1 * Dimension::FF + k * Dimension::Fadd1]);
-                    varxf[jk] += (x[iP1 * Dimension::N + j] - avgxf[jk]) *  //
-                                 (x[iP1 * Dimension::N + j] - avgxf[jk]) * wgthere;
-                    norm += wgthere;
-                }
-                varxf[jk] /= norm;
-            }
-        }
-        // state-specific intercept (not the swarm specific)
+        // the quantum momentum: 1. state-specific intercept (not the swarm specific)
         for (int j = 0, jik = 0; j < Dimension::N; ++j) {
             for (int i = 0; i < Dimension::F; ++i) {
                 for (int k = 0; k < Dimension::F; ++k, ++jik) {
                     xinterceptf[jik] = 0.0e0;
-                    double norm;
+                    if (i == k) continue;
+                    double norm = 0.0e0;
                     for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
                         double w1 = std::abs(c[iP1 * Dimension::F + i] * c[iP1 * Dimension::F + i]);
                         double w2 = std::abs(c[iP1 * Dimension::F + k] * c[iP1 * Dimension::F + k]);
@@ -132,20 +209,9 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
                 }
             }
         }
-        // slope type 1: sum over all state (cannot understand!): JCTC
-        // slope type 2: sum over all traj: JPCL
-        for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-            span<kids_real> x1 = this->x.subspan(iP1 * Dimension::N, Dimension::N);
-            for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
-                span<kids_real> x2   = this->x.subspan(iP2 * Dimension::N, Dimension::N);
-                std::size_t     P1P2 = iP1 * Dimension::P + iP2;
-                gf_x[P1P2]           = 1.0e0;
-                for (int j = 0; j < Dimension::N; ++j) {
-                    double norm_nuc = 1.0e0 / std::sqrt(phys::math::twopi * varx[j]);
-                    gf_x[P1P2] *= norm_nuc * std::exp(-0.5e0 * (x1[j] - x2[j]) * (x1[j] - x2[j]) / varx[j]);
-                }
-            }
-        }
+        // PRINT_ARRAY(xinterceptf, Dimension::N, Dimension::FF);  // should be small
+        // the quantum momentum: 2. slope type is state dependent in JCTC
+        // the quantum momentum: 2. slope type is traj dependent in JPCL
         for (int iP1 = 0, P1j = 0; iP1 < Dimension::P; ++iP1) {
             for (int j = 0; j < Dimension::N; ++j, ++P1j) {
                 xslope[P1j] = 0.0;
@@ -157,15 +223,18 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
                 xslope[P1j] /= norm;
             }
         }
+        // PRINT_ARRAY(xslope, Dimension::P, Dimension::N);  // should be small
+        // continue;
+        // return stat;
+
         // HCPS EOM
         for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
             for (int i = 0; i < Dimension::F; ++i) {
                 for (int k = 0; k < Dimension::F; ++k) {
                     double val = 0.0e0;
                     for (int j = 0; j < Dimension::N; ++j) {
-                        val += 2.0e0 / m[j] *
-                               (xslope[iP1 * Dimension::N + j] * x[iP1 * Dimension::N + j] -
-                                xinterceptf[j * Dimension::FF + i * Dimension::F + k]) *
+                        val += 2.0e0 / m[j] * xslope[iP1 * Dimension::N + j] *
+                               (x[iP1 * Dimension::N + j] - xinterceptf[j * Dimension::FF + i * Dimension::F + k]) *
                                fadiat[iP1 * Dimension::NF + j * Dimension::F + i];
                     }
                     val *= std::abs(c[iP1 * Dimension::F + i] * c[iP1 * Dimension::F + i]);
@@ -173,161 +242,119 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
                     term_1[iP1 * Dimension::FF + i * Dimension::F + k] = val;
                 }
             }
-            // HCPS (step 1: momentum)
+            // HCPS (step 1: update momentum)
             for (int j = 0; j < Dimension::N; ++j) {
                 double fcoup = 0.0e0;
                 for (int i = 0; i < Dimension::F; ++i) {
                     for (int k = 0; k < Dimension::F; ++k) {
+                        if (i == k) continue;
                         fcoup += term_1[iP1 * Dimension::FF + i * Dimension::F + k] *
                                  (fadiat[iP1 * Dimension::NF + j * Dimension::F + k] -
                                   fadiat[iP1 * Dimension::NF + j * Dimension::F + i]);
                     }
                 }
-                p[iP1 * Dimension::N + j] += fcoup * dt;  // because fadiat is gradient than force
+                p[iP1 * Dimension::N + j] += fcoup * dt;  // note fadiat is gradient than force
             }
-            // HCPS (step 1: decoherence)
+
+            // HCPS (step 1: decoherence in adiabatic)
+            auto Ucdt1 = Ucdt.subspan(iP1 * Dimension::FF, Dimension::FF);  // [adia]
+            auto c1    = c.subspan(iP1 * Dimension::F, Dimension::F);       // [adia]
+            for (int ik = 0; ik < Dimension::FF; ++ik) Ucdt1[ik] = 0.0e0;
+            double norm = 0.0e0;
             for (int i = 0; i < Dimension::F; ++i) {
                 double ucoup = 0.0;
                 for (int k = 0; k < Dimension::F; ++k) {
+                    if (i == k) continue;
                     for (int j = 0; j < Dimension::N; ++j) {
-                        ucoup += 1.0e0 / m[j] *
-                                 (xslope[iP1 * Dimension::N + j] * x[iP1 * Dimension::N + j] -
-                                  xinterceptf[j * Dimension::FF + i * Dimension::F + k]) *
+                        ucoup += 1.0e0 / m[j] * xslope[iP1 * Dimension::N + j] *
+                                 (x[iP1 * Dimension::N + j] - xinterceptf[j * Dimension::FF + i * Dimension::F + k]) *
                                  std::abs(c[iP1 * Dimension::F + k] * c[iP1 * Dimension::F + k]) *
                                  (fadiat[iP1 * Dimension::NF + j * Dimension::F + k] -
                                   fadiat[iP1 * Dimension::NF + j * Dimension::F + i]);
                     }
                 }
-                ucoup = std::exp(ucoup * dt);  // cause fadiat is gradient
-                U[iP1 * Dimension::FF + i * Dimension::Fadd1] *= ucoup;
+                // c = c + ucoup * c * dt = exp(x*dt) * c ==> x = ln(1+ucoup*dt) / dt
+                Ucdt1[i * Dimension::Fadd1] = 1.0e0 + ucoup * dt;
+                norm += (1.0e0 + ucoup * dt) * (1.0e0 + ucoup * dt) * std::abs(c1[i] * c1[i]);
             }
+            norm = std::sqrt(norm);
+            for (int ik = 0; ik < Dimension::FF; ++ik) Ucdt1[ik] /= norm;
+
+            // convert Ucdt from nuc_repr_type to ele_repr_type & merge in U in ele_repr_type
+            auto T1 = T.subspan(iP1 * Dimension::FF, Dimension::FF);
+            Kernel_Representation::transform(Ucdt1.data(), T1.data(), Dimension::F,  //
+                                             Kernel_Representation::nuc_repr_type,   //
+                                             Kernel_Representation::ele_repr_type,   //
+                                             SpacePolicy::L);
+            auto U1 = U.subspan(iP1 * Dimension::FF, Dimension::FF);
+            ARRAY_MATMUL(U1.data(), Ucdt1.data(), U1.data(), Dimension::F, Dimension::F, Dimension::F);
         }
+        // PRINT_ARRAY(U, Dimension::P, Dimension::FF);
+        // exit(0);
     } else if (swarm_type == SwarmCoupPolicy::ccps) {
-        // PRINT_ARRAY(x, Dimension::P, Dimension::N);
-        for (int j = 0, jk = 0; j < Dimension::N; ++j) {
-            // for total average & variance
-            avgx[j] = 0.0e0;
-            avgp[j] = 0.0e0;
-            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {  //
-                avgx[j] += x[iP1 * Dimension::N + j];
-                avgp[j] += p[iP1 * Dimension::N + j];
-            }
-            avgx[j] /= Dimension::P;
-            avgp[j] /= Dimension::P;
-            varx[j] = 0.0e0;
-            varp[j] = 0.0e0;
-            for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-                varx[j] += (x[iP1 * Dimension::N + j] - avgx[j]) * (x[iP1 * Dimension::N + j] - avgx[j]);
-                varp[j] += (p[iP1 * Dimension::N + j] - avgp[j]) * (p[iP1 * Dimension::N + j] - avgp[j]);
-            }
-            varx[j] /= Dimension::P;
-            varp[j] /= Dimension::P;
-        }
-        // PRINT_ARRAY(avgx, 1, Dimension::N);
-        // PRINT_ARRAY(varx, 1, Dimension::N);
-        // PRINT_ARRAY(varp, 1, Dimension::N);
-        // constant width
-        double norm_nuc = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_nuc;
-        double norm_ele = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_ele;
-        for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-            span<kids_real>    x1 = this->x.subspan(iP1 * Dimension::N, Dimension::N);
-            span<kids_real>    p1 = this->p.subspan(iP1 * Dimension::N, Dimension::N);
-            span<kids_complex> c1 = this->c.subspan(iP1 * Dimension::F, Dimension::F);
-
-            for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
-                span<kids_real>    x2 = this->x.subspan(iP2 * Dimension::N, Dimension::N);
-                span<kids_real>    p2 = this->p.subspan(iP2 * Dimension::N, Dimension::N);
-                span<kids_complex> c2 = this->c.subspan(iP2 * Dimension::F, Dimension::F);
-
-                std::size_t P1P2 = iP1 * Dimension::P + iP2;
-                gf_x[P1P2]       = 1.0e0;
-                gf_p[P1P2]       = 1.0e0;
-                gf_c[P1P2]       = 1.0e0;
-                for (int j = 0; j < Dimension::N; ++j) {
-                    gf_x[P1P2] *= std::exp(-0.5e0 * (x1[j] - x2[j]) * (x1[j] - x2[j]) / varx[j]);
-                    gf_p[P1P2] *= std::exp(-0.5e0 * (p1[j] - p2[j]) * (p1[j] - p2[j]) / varp[j]);
-                }
-                for (int k = 0; k < Dimension::F; ++k) {
-                    gf_c[P1P2] *=                                                              //
-                        std::exp(-0.5e0 * std::abs(c1[k] - c2[k]) * std::abs(c1[k] - c2[k]) /  //
-                                 (sigma_ele * sigma_ele));
-                }
-            }
-        }
-        // PRINT_ARRAY(gf_x, Dimension::P, Dimension::P);
-        // PRINT_ARRAY(gf_p, Dimension::P, Dimension::P);
-        // PRINT_ARRAY(gf_c, Dimension::P, Dimension::P);
-        // PRINT_ARRAY(p, Dimension::P, Dimension::N);
-
         // calc relative weight
         for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
             for (int j = 0; j < Dimension::N; ++j) {
                 relwgt[iP1 * Dimension::N + j] = 0.0e0;
                 for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
-                    relwgt[iP1 * Dimension::N + j] += (p[iP1 * Dimension::N + j] - p[iP2 * Dimension::N + j]) *
-                                                      gf_x[iP1 * Dimension::P + iP2] *
-                                                      gf_p[iP1 * Dimension::P + iP2] *  //
-                                                      gf_c[iP1 * Dimension::P + iP2];
+                    relwgt[iP1 * Dimension::N + j] +=
+                        (p[iP1 * Dimension::N + j] - p[iP2 * Dimension::N + j]) * gf_all[iP1 * Dimension::P + iP2];
                 }
             }
         }
-        // PRINT_ARRAY(relwgt, Dimension::P, Dimension::N);
-        // PRINT_ARRAY(K1.data(), Dimension::P, Dimension::FF);
-        // PRINT_ARRAY(K2.data(), Dimension::P, Dimension::FF);
-        for (int iP = 0; iP < Dimension::P; ++iP) {
-            auto K1 = this->K1.subspan(iP * Dimension::FF, Dimension::FF);
-            auto K2 = this->K2.subspan(iP * Dimension::FF, Dimension::FF);
-            auto T  = this->T.subspan(iP * Dimension::FF, Dimension::FF);
-            Kernel_Representation::transform(K1.data(), T.data(), Dimension::F,     //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             RepresentationPolicy::Adiabatic,       //
-                                             SpacePolicy::L);
-            Kernel_Representation::transform(K2.data(), T.data(), Dimension::F,     //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             RepresentationPolicy::Adiabatic,       //
-                                             SpacePolicy::L);
-        }
-
-        // CCPS EOM (evaluated in adiabatic!)
+        // CCPS EOM (better evaluated in adiabatic!)
         for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-            span<kids_real>    Force1 = this->dE.subspan(iP1 * Dimension::NFF, Dimension::NFF);
+            span<kids_real>    Force1 = Force.subspan(iP1 * Dimension::NFF, Dimension::NFF);
             span<kids_complex> K11    = this->K1.subspan(iP1 * Dimension::FF, Dimension::FF);
+            span<kids_complex> rhoe1  = this->rho_ele.subspan(iP1 * Dimension::FF, Dimension::FF);
+            elec_utils::ker_from_rho(K1.data(), rhoe1.data(), xi1, gamma1, Dimension::F);
             for (int j1 = 0; j1 < Dimension::N; ++j1) {
                 double fcoup = 0.0e0;
                 double norm  = 0.0e0;
                 for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
                     double wgthere = gf_x[iP1 * Dimension::P + iP2] * gf_p[iP1 * Dimension::P + iP2];
                     norm += wgthere;
-                    span<kids_complex> K22 = this->K2.subspan(iP2 * Dimension::FF, Dimension::FF);  // inverse kernel
-                    ARRAY_MATMUL(rhored.data(), K11.data(), K22.data(), Dimension::F, Dimension::F, Dimension::F);
+                    span<kids_real>    Force2 = Force.subspan(iP2 * Dimension::NFF, Dimension::NFF);
+                    span<kids_complex> K22    = this->K2.subspan(iP2 * Dimension::FF, Dimension::FF);
+                    span<kids_complex> rhoe2  = this->rho_ele.subspan(iP2 * Dimension::FF, Dimension::FF);
+                    elec_utils::ker_from_rho(K2.data(), rhoe2.data(), xi2, gamma2, Dimension::F);
 
-                    double* ftmp = Force1.data() + j1 * Dimension::FF;
-                    double  f1j1 = std::real(ARRAY_TRACE2(ftmp, rhored.data(), Dimension::F, Dimension::F));
-                    fcoup += wgthere *  //
-                             (relwgt[iP2 * Dimension::N + j1] / relwgt[iP1 * Dimension::N + j1] - 1.0e0) * f1j1;
+                    ARRAY_MATMUL(rhored.data(), K11.data(), K22.data(),  //
+                                 Dimension::F, Dimension::F, Dimension::F);
+
+                    double* ftmp1 = Force1.data() + j1 * Dimension::FF;
+                    double* ftmp2 = Force2.data() + j1 * Dimension::FF;
+                    double  f1j1  = std::real(ARRAY_TRACE2(ftmp1, rhored.data(), Dimension::F, Dimension::F));
+                    // don't use averaged force!! bad result!!
+                    // f1j1 = 0.5e0 * f1j1 + std::real(ARRAY_TRACE2(ftmp2, rhored.data(), Dimension::F, Dimension::F));
+                    double sign21 =
+                        std::copysign(1.0, relwgt[iP2 * Dimension::N + j1] * relwgt[iP1 * Dimension::N + j1]);
+                    fcoup += wgthere * sign21 *  //
+                             std::log(std::abs(relwgt[iP2 * Dimension::N + j1] / relwgt[iP1 * Dimension::N + j1])) *
+                             f1j1;
                 }
                 fcoup *= Dimension::F / norm;
-                if (std::abs(f[iP1 * Dimension::N + j1]) < std::abs(fcoup)) {
-                    std::cout << f[iP1 * Dimension::N + j1] << " ? " << fcoup << std::endl;
-                }
+                // if (std::abs(f[iP1 * Dimension::N + j1]) < std::abs(fcoup)) {
+                //     std::cout << f[iP1 * Dimension::N + j1] << " ? " << fcoup << std::endl;
+                // }
                 this->p[iP1 * Dimension::N + j1] -= fcoup * dt;  // because gradient
             }
         }
-
-        for (int iP = 0; iP < Dimension::P; ++iP) {
-            auto K1 = this->K1.subspan(iP * Dimension::FF, Dimension::FF);
-            auto K2 = this->K2.subspan(iP * Dimension::FF, Dimension::FF);
-            auto T  = this->T.subspan(iP * Dimension::FF, Dimension::FF);
-            Kernel_Representation::transform(K1.data(), T.data(), Dimension::F,     //
-                                             RepresentationPolicy::Adiabatic,       //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             SpacePolicy::L);
-            Kernel_Representation::transform(K2.data(), T.data(), Dimension::F,     //
-                                             RepresentationPolicy::Adiabatic,       //
-                                             Kernel_Representation::inp_repr_type,  //
-                                             SpacePolicy::L);
-        }
         // exit(0);
+    }
+
+    for (int iP = 0; iP < Dimension::P; ++iP) {  // transform ele_repr_type into
+        auto c       = this->c.subspan(iP * Dimension::F, Dimension::F);
+        auto rho_ele = this->rho_ele.subspan(iP * Dimension::FF, Dimension::FF);
+        auto T       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        Kernel_Representation::transform(c.data(), T.data(), Dimension::F,      //
+                                         Kernel_Representation::nuc_repr_type,  //
+                                         Kernel_Representation::inp_repr_type,  //
+                                         SpacePolicy::H);
+        Kernel_Representation::transform(rho_ele.data(), T.data(), Dimension::F,  //
+                                         Kernel_Representation::nuc_repr_type,    //
+                                         Kernel_Representation::inp_repr_type,    //
+                                         SpacePolicy::L);
     }
     return stat;
 }
