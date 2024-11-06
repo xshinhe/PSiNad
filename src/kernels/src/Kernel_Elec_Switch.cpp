@@ -119,6 +119,31 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
                 to = elec_utils::pop_neg_choose(rho_nuc.data());
                 break;
             }
+            case 12: {  // adiabatic Landau-Zener
+                for (int i = 0; i < Dimension::F; ++i) {
+                    for (int k = 0; k < Dimension::F; ++k)
+                        DeltaE[ik] = EMat[i * Dimension::Fadd1] - EMat[k * Dimension::Fadd1];
+                }
+
+                for (int to = 0, to_occ = occ_nuc[0]; to < Dimension::F; ++to, to_occ += Dimension::F) {
+                    if (std::abs(DeltaE_last[to_occ]) < std::abs(DeltaE_llast[to_occ]) &&
+                        std::abs(DeltaE_last[to_occ]) < std::abs(DeltaE_llast[to_occ])) {
+                        double DE3 = DeltaE_last[to_occ] * DeltaE_last[to_occ] * DeltaE_last[to_occ];
+                        double DDE = (DeltaE[to_occ] - 2 * DeltaE_last[to_occ] + DeltaE_llast[to_occ])  //
+                                     / (dt_ptr[0] * dt_ptr[0]);
+                        if (DE3 / DDE >= 0.0e0) {  //
+                            double prob = std::exp(-phys::math::halfpi * std::sqrt(DE3 / DDE));
+                            double randu;
+                            Kernel_Random::rand_uniform(&randu);
+                            if (randu < prob) occ_nuc[0] = to;
+                            break;
+                        }
+                    }
+                }
+                for (int ik = 0; ik < Dimension::FF; ++ik) DeltaE_llast[ik] = DeltaE_last[ik];
+                for (int ik = 0; ik < Dimension::FF; ++ik) DeltaE_last[ik] = DeltaE[ik];
+                break;
+            }
         }
         Eto = elec_utils::calc_ElectricalEnergy(EMat.data(), rho_nuc.data(), to);
 

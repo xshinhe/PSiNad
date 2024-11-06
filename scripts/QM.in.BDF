@@ -1,0 +1,107 @@
+7
+Comment: MNDO Template
+C       -5.0291406963        0.0114323887       -0.0210652459
+H       -4.4848455696       -0.7481350436       -0.5706724092
+H       -6.0372344327       -0.2721423562        0.2590138634
+C       -4.2936585589        0.9610768921        0.8100467811
+H       -3.2081967662        0.9301122768        0.8220727617
+H       -4.7858450220        1.4136213833        1.6658308210
+O       -4.8724314053        1.3129853127       -0.4743194879
+
+[QM]
+exec = "BDF"
+ncpu = 4 # if necessary
+use_mpi = false # if nenessary
+scratchdir="..."
+savedir="..."
+
+[QM.BDF]
+path = "$BDFHOME/sbin/bdfdrv.py"
+N = 21
+F = 3
+
+level0 = """
+$compass
+title
+ PhCOMe
+basis
+ def2-SVP
+geometry
+$COORD_TPL
+end geometry
+nosymm
+$end
+
+$XUANYUAN
+$END
+
+$SCF
+rks         # Restricted Kohn-Sham calculation
+dft         # ask for bhhlyp functional
+ bhhlyp
+spinmulti
+ 1
+$END
+
+$tddft
+itda
+ 1
+isf         # request for triplets (spin flip up)
+ 0
+iroot       #每一个不可约表示计算4个激发态
+ -4
+crit_vec    #指定TDDFT计算波函数收敛阈值
+ 1.d-6
+crit_e      #指定TDDFT计算能量收敛阈值
+ 1.d-8
+istore      # 指定波函数存储，save TDDFT wave function in 1st scratch file
+ 1
+iprt        #指定输出信息的详略程度
+ 2
+$end
+
+$resp
+geom
+method         #指定TD-DFT激发态计算
+ 2
+iroot          #指定计算$tddft模块计算的能量最低的态（即第1个态）的梯度（在本算例里为1B2态）
+1
+nfiles         #此处的值（1）需要和以上$TDDFT模块设置的istore值一致
+1
+$end
+
+$resp
+geom
+method         #指定TD-DFT激发态计算
+ 2
+iroot          #指定计算$tddft模块计算的能量最低的态（即第1个态）的梯度（在本算例里为1B2态）
+2
+nfiles         #此处的值（1）需要和以上$TDDFT模块设置的istore值一致
+1
+$end
+
+# EX-EX NAC
+$resp
+iprt
+ 1
+QUAD        #指定resp进行二阶响应计算
+FNAC        #指定resp计算一阶非绝热耦合向量
+double      #double为激发态-激发态非绝热耦合向量
+method      #指定TD-DFT激发态计算
+ 2
+nfiles
+ 1
+pairs       #指定计算哪两组激发态之间的非绝热耦合向量
+ 1
+ 1 1 1 1 1 2
+noresp      #指定在Double和FNAC计算中忽略跃迁密度矩阵的响应项
+$end
+"""
+
+[QM.MM]
+# QMMM parameters
+
+[MM]
+# MM parameters 
+
+
