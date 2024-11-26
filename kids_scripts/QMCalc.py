@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-#   Coding=utf-8
+# -*- coding: utf-8 -*-
 
-#   KIDS SCRIPTS
-#   Author: xshinhe
-#   
-#   Copyright (c) 2024 PeKing Univ. - GNUv3 License
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#####################################################################################################
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
 # import statements of module from python standard library
 
@@ -35,31 +36,29 @@ import numpy as np  # numpy library for scientific computation
 
 # imports of local objects
 
-from kids_log import Timing  # keep timings of the different sections of the code
-from QMOutput import QMOutput  # template class for the output of a QM calculation
-from adfDriver import AdfInput, AdfOutput
-from bagelDriver import BagelInput, BagelOutput
-from bdfDriver import BdfInput, BdfOutput
-from columbusDriver import ColumbusInput, ColumbusOutput
-from DFTbabyDriver import DFTbabyInput, DFTbabyOutput
-from gamessDriver import GamessInput, GamessOutput  # objects to handle Gaussian Input and Output
-from gaussianDriver import GaussianInput, GaussianOutput  # objects to handle Gaussian Input and Output
-from mndoDriver import MNDOInput, MNDOOutput
-from molcasDriver import MolcasInput, MolcasOutput
-from molproDriver import MolproInput, MolproOutput
-from orcaDriver import OrcaInput, OrcaOutput
-from pyscfDriver import PyscfInput, PyscfOutput
-from qchemDriver import QchemInput, QchemOutput
-from sharcQMDriver import SharcQMInput, SharcQMOutput  # objects to handle QM with SHARC QM Interfaces
-from turbomoleDriver import TurbomoleInput, TurbomoleOutput
+import kids_env  # functions to handle third-party software environment
+import constants  # values of physical constants and conversion factors
+from kids_log import Timing, Log  # keep timings of the different sections of the code
+from QMOutput import QMOutput     # template class for the output of a QM calculation
+from drivers.adfDriver import AdfInput, AdfOutput
+from drivers.bagelDriver import BagelInput, BagelOutput
+from drivers.bdfDriver import BdfInput, BdfOutput
+from drivers.columbusDriver import ColumbusInput, ColumbusOutput
+from drivers.DFTbabyDriver import DFTbabyInput, DFTbabyOutput
+from drivers.gamessDriver import GamessInput, GamessOutput  # objects to handle Gaussian Input and Output
+from drivers.gaussianDriver import GaussianInput, GaussianOutput  # objects to handle Gaussian Input and Output
+from drivers.mndoDriver import MNDOInput, MNDOOutput
+from drivers.molcasDriver import MolcasInput, MolcasOutput
+from drivers.molproDriver import MolproInput, MolproOutput
+from drivers.orcaDriver import OrcaInput, OrcaOutput
+from drivers.pyscfDriver import PyscfInput, PyscfOutput
+from drivers.qchemDriver import QchemInput, QchemOutput
+from drivers.sharcQMDriver import SharcQMInput, SharcQMOutput  # objects to handle QM with SHARC QM Interfaces
+from drivers.turbomoleDriver import TurbomoleInput, TurbomoleOutput
 from orbitals import Orbitals  # object to parse and store orbital information from QM output files
 
 # imports of local modules
 
-import kids_log  # manages log file output + start/end procedures
-# import CBF
-import softenv  # functions to handle third-party software environment
-import constants  # values of physical constants and conversion factors
 
 ###################################################################################################################
 
@@ -179,7 +178,7 @@ class QM:
 
         elif ks_config.args.qmsolver == 'bdf':
             keys = ks_config.get_nested('QM.BDF.level%d'%level, '')
-            self.inputData = bdfInput(keys, modelHgeom,
+            self.inputData = BdfInput(keys, modelHgeom,
                                            geometry.getAtomLabels("modelH"), optdict)
 
         elif ks_config.args.qmsolver == 'columbus':
@@ -194,7 +193,7 @@ class QM:
         elif ks_config.args.qmsolver == 'gaussian':  # QM calculation by Gaussian
 
             # extract sections of the ks_config file that are related to the QM code
-            keys =  ks_config.get_nested('QM.GAUSSIAN.level0', '')
+            keys =  ks_config.get_nested('QM.GAUSSIAN.level%d'%level, '')
             gen  =  ks_config.get_nested('QM.GAUSSIAN.gen', '') # gaussian basis set
             gaussadd =  ks_config.get_nested('QM.GAUSSIAN.add', '') # gaussian additional parts
             gaussweights =  ks_config.get_nested('QM.GAUSSIAN.weights', '') # gaussian weights of the CASSCF
@@ -241,7 +240,7 @@ class QM:
 
             # save instance of MolcasInput as the input file for the QM calculation
             self.inputData = MolcasInput(keys, basisset, sewardkey, modelHgeom,
-                            geometry.getAtomLabels("modelH"), optdict, step)
+                            geometry.getAtomLabels("modelH"), optdict)
             # set an attributes to remember if a second PT2 run is needed
             # (in case of QM/MM calculations different from SP a second run is needed to retrieve electric field)
             if (self.inputData.calctype in ['MSPT2', 'XMSPT2', 'RMSPT2']) and not optdict["SP"] and (geometry.NatomMM > 0) and not MS_second_run:
@@ -260,8 +259,9 @@ class QM:
             self.inputData = None
 
         elif ks_config.args.qmsolver == 'orca':
-            Log.fatalError(f"{ks_config.args.qmsolver} is not yet supported")
-
+            keys = ks_config.get_nested('QM.ORCA.level%d'%level, '')
+            self.inputData = OrcaInput(keys, modelHgeom,
+                                           geometry.getAtomLabels("modelH"), optdict)
         elif ks_config.args.qmsolver == 'pyscf':
             Log.fatalError(f"{ks_config.args.qmsolver} is not yet supported")
 
@@ -558,7 +558,6 @@ class QM:
     def _availablePathForQM():
         """Returns a path corresponding to an empty directory where the QM calculation
         can be run by the runQM function. The directory is created by this function."""
-
         qmID = 0
         while True:
             # increment an ID variable that labels the qm directory
@@ -636,12 +635,12 @@ class QM:
         for qm in QMcalculations:
             qmsolver = qm.qmsolver
 
-            checkResults = softenv.checkQMEnv(qmsolver)
+            checkResults = qm.inputData.checkEnv()
             if not checkResults[0]: Log.fatalError(checkResults[1])
 
             qmexe = qm.qmexe 
             if qmexe == '':
-                qmexe = softenv.checkQMExec(qmsolver)
+                qmexe = kids_env.checkQMExec(qmsolver)
             
             fninp = f"{qmsolver}-QM.inp"
             fnlog = f"{qmsolver}-QM.log"
@@ -685,7 +684,7 @@ class QM:
                     shutil.move("Prev.JobIph", rundir)
 
             else:
-                if qm.inputData.otheropt["restart"] is not None:
+                if 'restart' in qm.inputData.otheropt and qm.inputData.otheropt["restart"] is not None:
                     shutil.copy(qm.inputData.otheropt["restart"], rundir)
   
             fninpList.append(fninp)
@@ -773,7 +772,7 @@ class QM:
                 qm.outputData = MolproOutput(fnlog, rundir, qm.inputData.calctype, qm.inputData.otheropt["SP"])
 
             elif isinstance(qm.inputData, OrcaInput):
-                qm.outputData = OrcaOutput(fnlog, rundir, qm.inputData.calctype, qm.inputData.otheropt["SP"])
+                qm.outputData = OrcaOutput(fnlog, rundir, qm.inputData.otheropt["SP"])
 
             elif isinstance(qm.inputData, PyscfInput):
                 qm.outputData = PyscfOutput(fnlog, rundir, qm.inputData.calctype)

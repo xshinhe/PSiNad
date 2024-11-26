@@ -1,27 +1,81 @@
 #!/usr/bin/env python3
-# coding=utf-8
+# -*- coding: utf-8 -*-
 
-#    COBRAMM
-#    Copyright (c) 2019 ALMA MATER STUDIORUM - Università di Bologna
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
+from dataclasses import dataclass, field
+from typing import Dict, List, Any, Tuple
 
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+@dataclass
+class MMOutput:
+    charge_real: List[float]
+    charge_modelH: List[float]
 
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    energy_real: float
+    energy_real_nocharge: float
+    energy_modelH: float
 
-#####################################################################################################
+    grad_real: List[Any]
+    grad_real_nocharge: List[Any]
+    grad_modelH: List[Any]
 
+
+@dataclass
+class QMOutput0:
+    inpfile: str = None
+    calcdir: str = None
+    outfile: str = None
+
+    status: int = None
+    errormsg: List[str] = field(default_factory=list)
+    
+    natoms: int = None
+    nroots: int = None
+
+    iroot0: int = None
+    iroot1: int = None
+
+    charges: List[float] = field(default_factory=list)
+    elfield: Dict[int, Any] = field(default_factory=dict)
+    
+    dipole: List[float] = field(default_factory=list)
+    osc_strength: Dict[str, Any] = field(default_factory=dict)
+    
+    energy: Dict[int, float] = field(default_factory=dict)
+    gradient: Dict[int, Any] = field(default_factory=dict)
+    hess: Dict[int, Any] = field(default_factory=dict)
+    nac: Dict[Tuple[int, int], Any] = field(default_factory=dict)
+    selfenergy: float = None
+    
+    gradcharges_extraterm: bool = False
+    fullgradcharge: Dict[int, Any] = field(default_factory=dict)
+    fullnaccharge: Dict[Tuple[int, int], Any] = field(default_factory=dict)
+    
+    signs: List[Any] = field(default_factory=list)
+    scf_mo_maps: Any = None
+    psioverlap: Any = None
+    eigenvectors: Any = None
 
 class QMOutput:
-
     def __init__(self):
 
         # Setup a string to store the log of the QM output processing

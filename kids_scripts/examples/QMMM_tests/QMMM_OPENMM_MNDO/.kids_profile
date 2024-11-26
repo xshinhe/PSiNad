@@ -1,0 +1,83 @@
+#!/bin/bash
+
+
+# initialization script for COBRAMM, edit and copy to your ~home 
+# or alternatively source the file before running COBRAMM
+
+# variables that need to be modified, according to your work environemnt:
+
+# COBRAM_PATH        specify the directory of COBRAMM
+# --------------------------------------------------------------------------------------------
+# PYTHONPATH         add the position of python libraries which are not available system-wide
+# --------------------------------------------------------------------------------------------
+# PARA_EXE           executable for parallel runs
+# --------------------------------------------------------------------------------------------
+# AMBERHOME          specify the directory of AMBER
+# --------------------------------------------------------------------------------------------
+# GAUSSIAN_EXE_QM    define which Gaussian executables are used for the QM 
+# GAUSSIAN_DIR_QM    the name of the Gaussian version and path where to find the Gaussian directory
+# --------------------------------------------------------------------------------------------
+# GAUSSIAN_EXE       define which Gaussian executables are used for the geometry optimization 
+# GAUSSIAN_DIR       the name of the Gaussian version and path where to find the Gaussian directory
+# --------------------------------------------------------------------------------------------
+# MOLCAS             define the variables for Molcas: its directory and the
+# MOLCAS_SCRIPT      filename of the Molcas launch script, including its path
+# --------------------------------------------------------------------------------------------
+# MOLPRO_EXE         filename of the Molpro executable, including its path
+
+## COBRAMM variables
+
+export KIDS_SCRIPTS_PATH=/home/shin/share/KIDS/kids_scripts
+export PATH=$KIDS_SCRIPTS_PATH:$KIDS_SCRIPTS_PATH/util:$PATH
+
+## Python extension
+
+export PYTHONPATH=$PYTHONPATH
+
+## Parallel execution
+
+export PARA_EXE='mpirun -np'
+#export PARA_EXE='srun -n'
+
+## AMBER
+
+export AMBERHOME=/opt/anaconda3/
+export PATH=$PATH:$AMBERHOME/bin   # for Amber versions < Amber12 use exe instead
+
+## GAUSSIAN
+
+export GAUSSIAN_EXE_QM=g16
+export GAUSSIAN_DIR_QM=/home/shin/soft
+export GAUSSIAN_EXE=g16
+export GAUSSIAN_DIR=/home/shin/soft
+export GAUSS_SCRDIR=/tmp/${USER}_tmp_gaussian
+
+## MNDO
+
+export MNDO_EXE_QM=mndo2020
+export MNDO_DIR_QM=/home/shin/soft/mndo
+
+## BAGEL
+
+export BAGEL_EXE_QM=BAGEL
+export BAGEL_DIR_QM=/usr/bin
+
+## MOLCAS
+
+export MOLCAS=/path/to/molcas
+export MOLCAS_SCRIPT=/usr/bin/molcas
+
+## MOLPRO
+
+export MOLPRO_EXE=/path/to/molpro/executable
+
+## BDF
+
+export BDFHOME=/home/shin/soft/bdf-pkg-full/build/bdf-pkg-full/
+export BDF_SCRIPT=/home/shin/soft/bdf-pkg-full/build/bdf-pkg-full/sbin/bdfdrv.py
+
+## ORCA
+
+export ORCA_EXE_QM=/home/shin/soft/orca_6_0_0/orca
+export ORCA_DIR_QM=/home/shin/soft/orca_6_0_0
+

@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-#   Coding=utf-8
+# -*- coding: utf-8 -*-
 
-#   KIDS SCRIPTS
-#   Author: xshinhe
-#   
-#   Copyright (c) 2024 PeKing Univ. - GNUv3 License
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#####################################################################################################
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
 # import statements of module from python standard library
 
@@ -31,15 +32,13 @@ from contextlib import ContextDecorator
 from pprint import pprint
 from traceback import format_exc
 
-# imports of local objects
-import softenv
-
 # math libraries
 import numpy as np  # numpy library for scientific computation
 
-#####################################################################################################
-# global module: Timing, Log
-#####################################################################################################
+# imports of local objects
+import kids_env
+
+
 
 # Define a ContextDecorator class for timing code sections
 class Timing(ContextDecorator):
@@ -117,7 +116,7 @@ class Timing(ContextDecorator):
 
 class Log:
     # Class variables
-    DEBUG_COBRAMM_RUN = False
+    DEBUG_RUN = False
     VERBOSITY_LEVEL: int = 0
     writeLogToStdOut: bool = True
 
@@ -267,32 +266,31 @@ class Log:
         return string
 
     @staticmethod
-    def printEnergies(modelH_QM, modelH_MM, real_MM, only_MM, chargeInt, full_QMMM, modelLabel):
+    def printEnergies(qmcalc, mmcalc, qmmm_results, modelLabel):
         """
         Print energy information to the log.
-
-        :param modelH_QM: List of QM energies.
-        :param modelH_MM: List of MM energies.
-        :param real_MM: Real MM energy.
-        :param only_MM: Only MM energy.
-        :param chargeInt: Charge interaction energy.
-        :param full_QMMM: Full QM/MM energy.
-        :param modelLabel: Label of the model.
         """
         if modelLabel == "M" or modelLabel == "ML":
             Log.writeLog(' ' * 20 + 'Energies (Hartrees)\n')
-            Log.writeLog('   MM energy:  ' + '%18.8f\n' % only_MM)
+            Log.writeLog('   MM energy:  ' + '%18.8f\n' % mmcalc.energy_real)
+        elif modelLabel == 'H':
+            for i, E_QM in zip(range(len(qmcalc.energy())), qmcalc.energy()):
+                Log.writeLog('-' * 80 + "\n")
+                Log.writeLog(' ' * 20 + 'STATE %3d' % (i + 1) + "\n")
+                Log.writeLog('-' * 80 + "\n")
+                Log.writeLog(' ' * 20 + 'Energies (Hartrees)\n')
+                Log.writeLog('   QM Energy:   {0:18.8f}\n\n'.format(E_QM - qmcalc.selfenergy) + '\n\n')
         else:
-            for i, E_QM, E_QMMM in zip(range(len(modelH_QM)), modelH_QM, full_QMMM):
+            for i, E_QM, E_QMMM in zip(range(len(qmcalc.energy())), qmcalc.energy(), qmmm_results.getenergy()):
                 Log.writeLog('-' * 80 + "\n")
                 Log.writeLog(' ' * 20 + 'STATE %3d' % (i + 1) + "\n")
                 Log.writeLog('-' * 80 + "\n")
                 Log.writeLog(' ' * 20 + 'Energies (Hartrees)\n')
                 Log.writeLog('   Model-H QM:  {0:18.8f}\n'.format(E_QM) +
-                             '   Real MM:     {0:18.8f}\n'.format(real_MM) +
-                             '   Model-H MM:  {0:18.8f}\n'.format(modelH_MM) +
-                             '   Emb-emb crg: {0:18.8f}\n'.format(chargeInt) +
-                             '   QM Energy:   {0:18.8f}\n\n'.format(E_QM - chargeInt) + '\n' +
+                             '   Real MM:     {0:18.8f}\n'.format(mmcalc.energy_real_modelnoc) +
+                             '   Model-H MM:  {0:18.8f}\n'.format(mmcalc.energy_modelH) +
+                             '   Emb-emb crg: {0:18.8f}\n'.format(qmcalc.selfenergy) +
+                             '   QM Energy:   {0:18.8f}\n\n'.format(E_QM - qmcalc.selfenergy) + '\n' +
                              'E(tot)=E(Model-H QM)+(Real MM)-(Model-H MM)-(Emb-emb)= {0:18.8f}\n\n'.format(E_QMMM))
 
         return
@@ -398,9 +396,9 @@ class Log:
         # Log the error message
         Log.writeLog('FATAL:  {0}\n\n'.format(message) +
                      '=' * 80 + '\n' +
-                     'Ending time: {0} Hostname {1}\n'.format(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()), softenv.getHostname()) +
+                     'Ending time: {0} Hostname {1}\n'.format(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()), kids_env.getHostname()) +
                      '=' * 80 + '\n\n' +
-                     '--- COBRAM calculation ABORTED!!! ---\n')
+                     '--- calculation ABORTED!!! ---\n')
 
         # Exit with status 3
         sys.exit(3)
@@ -449,7 +447,7 @@ class Log:
         # print final message to log
         Log.writeLog('\n' +
              '=' * 80 + '\n' +
-             'Ending time: {0} Hostname {1}\n'.format(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()), softenv.getHostname()) +
+             'Ending time: {0} Hostname {1}\n'.format(time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime()), kids_env.getHostname()) +
              '=' * 80 + '\n\n' +
              '--- calculation terminated normally ---\n')
         # exit with status 0

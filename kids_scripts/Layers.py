@@ -31,7 +31,7 @@ import numpy as np  # numpy library for scientific computation
 # cobramm local modules
 import kids_log  # manages log file output + start/end procedures
 import constants  # values of physical constants and conversion factors
-
+import xml.etree.ElementTree as ET
 
 class Layers:
     """
@@ -289,7 +289,7 @@ class Layers:
             else:
                 self.cartesian = [np.array(x), np.array(y), np.array(z)]
 
-        else:  # read the input in the AMBER style
+        elif os.path.splitext(filename)[1] == '.crd':  # read the input in the AMBER style
             # check that the number of coordinates is the same of the actual geometry
             N_atoms = int(crd[1].strip().split()[0])
             if N_atoms != self.atomNum:
@@ -306,6 +306,27 @@ class Layers:
                 except IndexError:
                     pass
             self.cartesian = [np.array(x), np.array(y), np.array(z)]
+
+        elif os.path.splitext(filename)[1] == '.xml':  # read the input in the OpenMM XML style
+            try:
+                tree = ET.parse(filename)
+                root = tree.getroot()
+                positions = root.findall('Positions')[0]
+                position_all = positions.findall('Position')
+
+                x, y, z = [], [], []
+                for line in position_all:
+                    try:
+                        x.append(float(line.get('x')) * 10)
+                        y.append(float(line.get('y')) * 10)
+                        z.append(float(line.get('z')) * 10)
+                    except IndexError:
+                        pass
+                self.cartesian = [np.array(x), np.array(y), np.array(z)]
+
+            except ET.ParseError as e:
+                print(f"解析 XML 文件时出错: {e}")
+                return 0
 
     # =============================================================================================================
 

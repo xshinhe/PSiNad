@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-#   Coding=utf-8
+# -*- coding: utf-8 -*-
 
-#   KIDS SCRIPTS
-#   Author: xshinhe
-#   
-#   Copyright (c) 2024 PeKing Univ. - GNUv3 License
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#####################################################################################################
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
 import os
 import toml
@@ -118,13 +119,15 @@ class Config(Dict[str, Any]):
 
         geom: Dict[str, Any] = {}
         if os.path.exists(args.coord) and os.path.exists(args.layer):
-            Log.writeLog(f'Update GEOM from [args.layer]={args.layer} & [args.coord]={args.coord}\n')    
-            with open(args.layer, "r") as f:
-                geometry = Layers.from_real_layers_xyz(f.read())
-            geometry.updatereal(args.coord)
-            geometry.makerealcrd()
-            geom = geometry
-            self.geom_in_toml = False
+            suffix = os.path.splitext(args.coord)[1]
+            if suffix == '.crd' or suffix == '.xml':
+                Log.writeLog(f'Update GEOM from [args.layer]={args.layer} & [args.coord]={args.coord}\n')            
+                with open(args.layer, "r") as f:
+                    geometry = Layers.from_real_layers_xyz(f.read())
+                geometry.updatereal(args.coord)
+                geometry.makerealcrd()
+                geom = geometry
+                self.geom_in_toml = False
         elif 'GEOM' in self:
             Log.writeLog(f'Read GEOM from [args.input]={args.input}\n')
             lines = ''

@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-#   Coding=utf-8
+# -*- coding: utf-8 -*-
 
-#   KIDS SCRIPTS
-#   Author: xshinhe
-#   
-#   Copyright (c) 2024 PeKing Univ. - GNUv3 License
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#####################################################################################################
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
 # import statements of module from python standard library
 import os
@@ -33,9 +34,9 @@ from pprint import pprint
 # imports of local modules
 from Layers import Layers
 from constants import element_list
-import amberDriver
-import molcasDriver
-import molproDriver
+from drivers import amberDriver
+from drivers import molcasDriver
+from drivers import molproDriver
 
 from kids_log import Timing, Log
 from kids_config import Config

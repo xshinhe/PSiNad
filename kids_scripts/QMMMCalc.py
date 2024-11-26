@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
-# coding=utf-8
+# -*- coding: utf-8 -*-
 
-#    COBRAMM
-#    Copyright (c) 2019 ALMA MATER STUDIORUM - Università di Bologna
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#####################################################################################################
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
 # import statements of module from python standard library
 import shelve
@@ -25,12 +28,11 @@ import os           # filesystem utilities
 import numpy as np  # numpy library for scientific computation
 import kids_log       # manages log file output + start/end procedures
 from Layers import Layers  # object to store information on the geometry and the layers definition
-from harmonicSampling import HarmonicSampling  # class to handle Wigner sampling
-# from cobrammDriver import CobrammOutput  # class to parse the output of a previously run COBRAMM calculation
+# from harmonicSampling import HarmonicSampling  # class to handle Wigner sampling
+# from cobrammDriver import CobrammOutput  
 import constants
 from pprint import pprint
 
-###################################################################################################################
 
 
 class QMMM:
@@ -52,7 +54,7 @@ class QMMM:
         self.x2 = None
 
         # extract the different parts of the MM_Results
-        Fxyz_second, E_MM_real, E_MM_real_nocharge, Fxyz_modelnoc, Fxyz_modelH, E_MM_modelH = MM_Results
+        # Fxyz_second, E_MM_real, E_MM_real_nocharge, Fxyz_modelnoc, Fxyz_modelH, E_MM_modelH = MM_Results
         
         # decide whether to use the correction scheme for the H atom gradient from the QM calculation
         if ks_config.get_nested('QMMM.do_correct', True):
@@ -67,12 +69,11 @@ class QMMM:
         # =======================================
 
         if "H" not in geometry.calculationType:  # MM only calculation: extract MM results
-            gradMM_modelH = -np.array(Fxyz_modelH)
-            gradMM_real_nocharge = - np.array(Fxyz_modelnoc)
-            gradMM_real = - np.array(Fxyz_second)
+            gradMM_modelH = MM_Results.grad_modelH
+            gradMM_real_nocharge = MM_Results.grad_real_modelnoc
+            gradMM_real = MM_Results.grad_real 
 
-            self.energies = {1: E_MM_real}
-            # extract part of the gradient that refers to the MEDIUM layer
+            self.energies = {0: MM_Results.energy_real}
             G = [], [], []
             for i, gx, gy, gz in zip(range(len(gradMM_real)), *gradMM_real):
                 if i + 1 in geometry.list_MEDIUM_HIGH:
@@ -86,11 +87,11 @@ class QMMM:
 
         else:  # real QMMM calculation, build energy and gradient for each electronic state with subtractive scheme
             # here E_MM_real_nocharge contains coulumb interaction between M&L, so should be subtracted with QM's selfenergy
-            gradMM_modelH = -np.array(Fxyz_modelH)
-            gradMM_real_nocharge = - np.array(Fxyz_modelnoc)
-            gradMM_real = - np.array(Fxyz_second)
+            gradMM_modelH = MM_Results.grad_modelH
+            gradMM_real_nocharge = MM_Results.grad_real_modelnoc
+            gradMM_real = MM_Results.grad_real 
 
-            self.energies = {nstate: eqm + E_MM_real_nocharge - E_MM_modelH - QM_Results.selfenergy
+            self.energies = {nstate: eqm + MM_Results.energy_real_modelnoc - MM_Results.energy_modelH - QM_Results.selfenergy
                              for nstate, eqm in QM_Results.energydict.items()}
             self.gradient = {}
             for nstate in QM_Results.gradientdict:
@@ -591,7 +592,7 @@ def GradientProjectionOnNormalModes(geometry, ks_config, gradient):
         cart2intmat.append(randvec)
 
     # define harmonic sampling of the molecular oscillations
-    mol_oscillator = HarmonicSampling(geometry, geomvector_1D, freqresults.coord_masses, freqresults.force_matrix, cart2intmat, 0, -1)
+    mol_oscillator = None # HarmonicSampling(geometry, geomvector_1D, freqresults.coord_masses, freqresults.force_matrix, cart2intmat, 0, -1)
 
     projGradient = np.zeros(3*geometry.NatomHM) 
     # QMMM gradient is 3xN matrix where x = gradient[0], y = gradient[1], z = gradient[2]

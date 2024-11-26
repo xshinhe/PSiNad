@@ -1,0 +1,250 @@
+Setting the LD random seed to -366308465
+
+Generated 10 of the 10 non-bonded parameter combinations
+
+Generated 10 of the 10 1-4 parameter combinations
+
+Excluding 3 bonded neighbours molecule type 'UNL'
+
+Excluding 3 bonded neighbours molecule type 'WAT'
+Analysing residue names:
+There are:     1      Other residues
+There are:   303      Water residues
+Analysing residues not classified as Protein/DNA/RNA/Water and splitting into groups...
+
+This run will generate roughly 0 Mb of data
+Setting the LD random seed to -1225531537
+
+Generated 10 of the 10 non-bonded parameter combinations
+
+Generated 10 of the 10 1-4 parameter combinations
+
+Excluding 3 bonded neighbours molecule type 'UNL'
+
+Excluding 3 bonded neighbours molecule type 'WAT'
+Analysing residue names:
+There are:     1      Other residues
+There are:   303      Water residues
+Analysing residues not classified as Protein/DNA/RNA/Water and splitting into groups...
+
+This run will generate roughly 0 Mb of data
+Setting the LD random seed to -268969221
+
+Generated 3 of the 3 non-bonded parameter combinations
+
+Generated 3 of the 3 1-4 parameter combinations
+
+Excluding 3 bonded neighbours molecule type 'UNL'
+Analysing residue names:
+There are:     1      Other residues
+Analysing residues not classified as Protein/DNA/RNA/Water and splitting into groups...
+
+This run will generate roughly 0 Mb of data
+================================================================================
+                        EXECUTE KIDS SCRIPTS CALCULATION
+--------------------------------------------------------------------------------
+
+
++------------------------------------------------------------------------------+
+|             .,;;                                                             |
+|               ;.                                                             |
+|    .XX          dXd                                                          |
+|   :''.,,       lx0kll, .lxl                                                  |
+|     ''.         kKk               mm   mmm    mmmmmm    mmmmm        mmmm    |
+|        ..     :                   ##  ##"     ""##""    ##"""##    m#""""#   |
+|        ';ddddo;           oOx     ##m##         ##      ##    ##   ##m       |
+|:kxko   ,kkkkkkl;  .kxxk dd.c'     #####         ##      ##    ##    "####m   |
+|'OOO;   .kkkkkkd   .dxxl.          ##  ##m       ##      ##    ##        "##  |
+|          .dd:         .           ##   ##m    mm##mm    ##mmm##    #mmmmm#"  |
+|             .          lX         Kernel   Integrated   Dynamics   Simulator |
+|              ,        .,:.                                                   |
+|            l:,:c.                          KIDS SCRIPTS PART                 |
+|             ;::.                           Copyright    2024                 |
+|                                                                              |
++------------------------------------------------------------------------------+
+    Author:         Prof. Jian Liu
+    Contributors:   Xin He, Haocheng Lu, Bingqi Li, Baihua Wu,
+                    Xiangsong Cheng, Youhao Shang.
+================================================================================
+                                  ENV CONTROL
+--------------------------------------------------------------------------------
+
+The file /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/.kids_profile is present
+It will be read to set the paths of third-party software
+
+Start directory is /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO
+Running directory is .
+================================================================================
+                          INPUT MOLECULAR DESCRIPTION
+--------------------------------------------------------------------------------
+
+Update GEOM from [args.layer]=layer.info & [args.coord]=real.crd
+
+An interface for level0 is requested, with HIGH and MEDIUM layers.
+QM third party software : mndo
+MM third party software : gromacs
+
+ *     12 HIGH   layer atom(s):  1-12
+ *    909 MEDIUM layer atom(s):  13-921
+ *     no LOW    layer atom 
+
+Calculation type is HM, A QM/MM calculation is then requested
+
+Changing from /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO to .
+Current directory: /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO
+================================================================================
+                            QM or QM/MM SINGLE POINT
+--------------------------------------------------------------------------------
+
+
+Info files:
+the layer file is: layer.info
+the realtop is: real.top
+the modelHtop is: model-H.top
+the ks_config is: QMMM.in.GROMACS_MNDO
+the realcrd is: real.crd
+Using 'embeddingCharges' to create the charge embedding used in QM calculation
+There are no atom-links, so the embedding charges will not be modified
+
+================================================================================
+Comparison between charges of "model" (as a part of "real")    
+                          and "model" (as a part of "model-H") 
+ (1)    (2)        (3)               (4)              (3)-(4)  [(3)-(4)]*100   
+Number Atom   model(from real)  model(from model-H)    Delta        %          
+     1 C       -0.130000         -0.130000           0.000000    0    %
+     2 C       -0.130000         -0.130000           0.000000    0    %
+     3 C       -0.130000         -0.130000           0.000000    0    %
+     4 C       -0.130000         -0.130000           0.000000    0    %
+     5 C       -0.130000         -0.130000           0.000000    0    %
+     6 C       -0.130000         -0.130000           0.000000    0    %
+     7 H        0.130000          0.130000           0.000000    0    %
+     8 H        0.130000          0.130000           0.000000    0    %
+     9 H        0.130000          0.130000           0.000000    0    %
+    10 H        0.130000          0.130000           0.000000    0    %
+    11 H        0.130000          0.130000           0.000000    0    %
+    12 H        0.130000          0.130000           0.000000    0    %
+                                                  _____________
+                                         Delta_tot = 0.0
+================================================================================
+
+Delta_tot will not be distributed
+
+
+  (1) TotCRG_real            =     0.000000  
+
+  (2) TotCRG_model           =     0.000000  
+  (3) TotCRG_pod             =     0.000000  
+(ck1)       {(1)-[(2)+(3)]}  =     0.000000 ok: should be zero 
+                             it differs from zero less than 1.000000e-06 
+
+  (7) TotCRG_emb             =     0.000000  
+(ck3)       {[(3)-(7)]}      =     0.000000 ok: should be zero 
+                             it differs from zero less than 1.000000e-06 
+
+  (8) TotCRG_HIGH            =     0.000000  
+  (9) TotCRG_MEDIUM          =     0.000000  
+ (10) TotCRG_LOW             =     0.000000  
+(ck4)  {(1)-[(8)+(9)+(10)]}  =     0.000000 ok: should be zero 
+                             it differs from zero less than 1.000000e-06 
+
+
+Perform a single point calc. of the entire system with ZERO charge on the 
+High layer, and collect energy and gradient ... done!
+MM energy is -4.080910497024142 Hartree
+
+Perform a single point calc. of the High layer, with H-saturated bonds and 
+ZERO charge, and collect energy and gradient ... done!
+MM energy is 0.005463261101278464 Hartree
+
+MM Force Norm (real): 9.601658887530135
+MM Force Norm (real noc model): 9.630537067975546
+MM Force Norm (modelH): 0.05695733161667948
+
+Update of charges for the H layer with the QM calculated ones.
+The requested scheme is nr. 23: 
+There are not atom-links, so the QM charges will not be modified.
+                              ********************
+                              QM or QM/MM ENERGIES
+                              ********************
+
+--------------------------------------------------------------------------------
+                    STATE   1
+--------------------------------------------------------------------------------
+                    Energies (Hartrees)
+   Model-H QM:         -0.00899944
+   Real MM:            -4.08091050
+   Model-H MM:          0.00546326
+   Emb-emb crg:         0.00000000
+   QM Energy:          -0.00899944
+
+
+E(tot)=E(Model-H QM)+(Real MM)-(Model-H MM)-(Emb-emb)=        -4.09537320
+
+--------------------------------------------------------------------------------
+                    STATE   2
+--------------------------------------------------------------------------------
+                    Energies (Hartrees)
+   Model-H QM:          0.17212536
+   Real MM:            -4.08091050
+   Model-H MM:          0.00546326
+   Emb-emb crg:         0.00000000
+   QM Energy:           0.17212536
+
+
+E(tot)=E(Model-H QM)+(Real MM)-(Model-H MM)-(Emb-emb)=        -3.91424840
+
+                            ************************
+                            ELECTROSTATIC PROPERTIES
+                            ************************
+
+ ----------------------------------------------
+    Atom     Atomic       Model+H Charges
+      ID      Label           (a.u.)
+ ----------------------------------------------
+       1          C        -0.240030
+       2          C        -0.350870
+       3          C        -0.281440
+       4          C        -0.289670
+       5          C        -0.314600
+       6          C        -0.233280
+       7          H         0.260160
+       8          H         0.299960
+       9          H         0.332750
+      10          H         0.292230
+      11          H         0.255670
+      12          H         0.269130
+ ----------------------------------------------
+              TOTAL         0.000010
+ ----------------------------------------------
+
+ ----------------------------------------------
+                         Dipole Moment
+                     (a.u.)         (Debye)
+ ----------------------------------------------
+           X        0.156936       0.398900
+           Y       -0.059930      -0.152330
+           Z       -0.024801      -0.063040
+ ----------------------------------------------
+   magnitude        0.169813       0.431630
+ ----------------------------------------------
+
+================================================================================
+                               CALCULATION TIMES
+--------------------------------------------------------------------------------
+
+================================================================================
+ Code section      | total WallTime/ s   | total CPUTime/ s    | No. calls      
+--------------------------------------------------------------------------------
+ QM section        |            2.13     |            0.02     |        1       
+ QM run            |            2.12     |            0.01     |        1       
+ MM section        |            0.26     |            0.02     |        1       
+ QMMM section      |            0.03     |            0.03     |        1       
+ QM input          |            0.00     |            0.00     |        1       
+================================================================================
+
+
+================================================================================
+Ending time: Tue, 26 Nov 2024 22:43:27 Hostname LAPTOP-CU27QJTR
+================================================================================
+
+--- calculation terminated normally ---

@@ -1,0 +1,53 @@
+#! /usr/bin/env python3
+# coding=utf-8
+
+# cobramext.py is used as Gau_External script and is invoked by Gaussian
+# with the following command line arguments:
+# $ Gau_External layer InputFile OutputFile MsgFile FChkFile MatElFile
+# cf. https://gaussian.com/external/
+
+# TODO: devise a mechanism to let cobramext dies when COBRAMM has died
+# unexpectedly, otherwise in such situations cobramext hangs indefinitely
+# and a zombie gaussian job remains running (possibly interfering with
+# subsequent COBRAMM run)
+
+#####################################################################################################
+
+# import statments of module from python standard library
+
+import os                       # operating system utilities
+import shutil                   # high level file operations
+import sys                      # system-specific parameters and functions
+
+# imports of user-defined classes
+
+from extSignal import *
+
+#####################################################################################################
+
+# set the niceness level of the current process to low priority
+# to avoid unexpected death of the the job
+os.nice(10)
+
+print( 'The pseudo-script started' )
+
+# store command line arguments
+layer          = "R"
+inputFileName  = sys.argv[2]
+outputFileName = sys.argv[3]
+msgFileName    = sys.argv[4]
+
+# write the names to the geometry.dat file (where COBRAMM will read the names)
+with open("geometry.dat","w") as f:
+    f.write( "R {0} {1} {2}".format(inputFileName, outputFileName, msgFileName) )
+
+# define object for communicating with COBRAM
+comm = extSignal()
+
+# now wait till get signal from COBRAMM on the channel 0
+comm.waitTillSignal(0)
+# when signal is received, send signal to COBRAMM on the channel 1
+comm.sendSignal(1)
+
+print( 'The pseudo-script ended' )
+

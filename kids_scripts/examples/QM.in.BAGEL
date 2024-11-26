@@ -1,0 +1,80 @@
+[GEOM]
+xyz = """
+7
+time = 50.0 fs
+C -5.44851568e+00 -1.24406571e-01 -5.79738164e-01
+H -5.19913464e+00 -4.34461462e-01 -1.59876577e+00
+H -6.24844335e+00 -5.30002707e-01  2.65240947e-02
+C -3.98834930e+00  1.69123017e+00  5.06136807e-01
+H -2.89957532e+00  1.79648060e+00  3.66672729e-01
+H -1.08365742e+01  2.28442656e+00  5.42108089e+00
+O -4.56471008e+00  6.80448250e-01 -1.01265094e-01
+"""
+
+## or read from file by setting: 
+# read_xyz = geom.xyz
+
+[QM]
+exec = "BAGEL"
+ncpu = 4        # if necessary
+use_mpi = false # if nenessary
+N = 9
+F = 2
+
+[QM.BAGEL]
+path = "/usr/bin/BAGEL"
+
+level0 = """
+{"bagel": [
+{
+"title": "molecule",
+"basis": "/home/shin/soft/bagel/src/basis/cc-pvdz.json",
+"df_basis": "/home/shin/soft/bagel/src/basis/cc-pvdz-jkfit.json",
+"angstrom": true,
+"geometry": [
+$COORD_XYZ
+]
+},
+{
+"title": "load_ref",
+"file": "laststep",
+"continue_geom": false
+},
+{
+"title": "forces",
+"dipole": true,
+"export": true,
+"grads": [
+{"title": "force", "target": 0},
+{"title": "force", "target": 1},
+{"title": "force", "target": 2},
+{"title": "nacme", "target": 0, "target2": 1, "nacmtype": "full"},
+{"title": "nacme", "target": 0, "target2": 2, "nacmtype": "full"},
+{"title": "nacme", "target": 1, "target2": 2, "nacmtype": "full"}
+],
+"method": [{
+"title": "casscf",
+"nstate": 3,
+"nact": 6,
+"nclosed": 9,
+"maxiter": 50,
+"conv_ignore": 1,
+"charge": 0,
+"nspin": 0
+}
+]
+},
+{
+"title": "save_ref",
+"file": "laststep"
+}
+]}
+"""
+
+[QM.MM]
+# QMMM parameters
+
+[MM]
+# MM parameters 
+
+

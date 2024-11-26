@@ -1,30 +1,29 @@
 #!/usr/bin/env python3
-#   Coding=utf-8
+# -*- coding: utf-8 -*-
 
-#   KIDS SCRIPTS
-#   Author: xshinhe
-#   
-#   Copyright (c) 2024 PeKing Univ. - GNUv3 License
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#####################################################################################################
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 from enum import Enum, unique
-# from pprint import pprint
-# from traceback import format_exc
 
 @unique
 class CalculationType(Enum):
@@ -212,6 +211,18 @@ parser.add_argument('-top', '--topology', dest='topology', nargs='?',
     default='real.top,model-H.top',     # support format: crd, xyz, etc.
     type=str,
     help='topology files for MM (seperated by comma). (default: real.top,model-H.top)')
+parser.add_argument('-pdb', '--pdbfile', dest='pdbfile', nargs='?', 
+    default='real.pdb,model-H.pdb',     # support format: crd, xyz, etc.
+    type=str,
+    help='pdb file for real system')
+parser.add_argument('-gro', '--grofile', dest='grofile', nargs='?', 
+    default='real.gro,model-H.gro',
+    type=str,
+    help='gro files')
+parser.add_argument('-xmlff', '--xmlforcefile', dest='xmlff', nargs='?', 
+    default='real.xml,model-H.xml',   # support format: crd, xyz, etc.
+    type=str,
+    help='xml forcefield file for real system')
 parser.add_argument('-c', '--coord', dest='coord', nargs='?', 
     default='',
     type=str,

@@ -1,0 +1,14 @@
+ MD
+ &cntrl
+  maxcyc = 0,
+   ntb    = 1,
+   ntr    = 0,
+   cut    = 6,
+   ntxo   = 1,
+  ntxo=1,
+ /
+ DUMP FORCES
+ &debugf
+ do_debugf=1,
+ dumpfrc=1,
+ /

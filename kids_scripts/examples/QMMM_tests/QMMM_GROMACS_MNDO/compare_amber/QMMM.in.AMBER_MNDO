@@ -1,0 +1,49 @@
+[GEOM]
+read_crd = "real.crd"
+
+[QM]
+exec = "MNDO"
+ncpu = 4 # if necessary
+use_mpi = false # if nenessary
+scratchdir="..."
+savedir="..."
+
+[QM.MNDO]
+path = "/usr/bin/mndo2020"
+N = 36
+F = 2
+
+level0 = """JOP=-2 IOP=-6 IGEOM=1 IFORM=1 ICUTS=-1 ICUTG=-1 NSAV7=4 NSAV13=2 +
+ISCF=9 IPLSCF=9 DPREC=1D-8 IPRINT=1 +
+NCIGRD=2 IEF=1 IPREC=100 MMINP=2 MMCOUP=3 MPRINT=5 NPRINT=2 +
+IMULT=1 KHARGE=0 IMOMAP=1 NUMATM=? +
+KCI=5 IOUTCI=0 IUVCD=2 ICROSS=7 +
+MOVO=0 ICI1=7 ICI2=5 NCIREF=3 MCIREF=0 LEVEXC=2 IROOT=3 KITSCF=400
+
+COMMENT
+$COORD_XYZ
+0   0.00000000 0   0.00000000 0   0.00000000 0
+1   2
+$EMBED_XYZ
+"""
+
+[MM]
+
+exec = "SANDER"
+
+[MM.AMBER]
+
+level0 = """MD
+&cntrl
+  imin   = 1,
+  maxcyc = 0,
+  ntb    = 1,
+  ntr    = 0,
+  ibelly = 1,
+  cut    = 6,
+  ntxo   = 1,
+/"""
+
+[QMMM]
+
+

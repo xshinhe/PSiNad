@@ -1,25 +1,26 @@
 #!/usr/bin/env python3
-#   Coding=utf-8
+# -*- coding: utf-8 -*-
 
-#   KIDS SCRIPTS
-#   Author: xshinhe
-#   
-#   Copyright (c) 2024 PeKing Univ. - GNUv3 License
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-#####################################################################################################
+################################################################################
+# KIDS SCRIPTS (adapted from COMBRAMM)
+# Author: xshinhe
+#
+# Copyright (c) 2024 Peking Univ. - GNUv3 License
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+################################################################################
 
 # import statements of module from python standard library
 
@@ -33,7 +34,7 @@ from traceback import format_exc
 if sys.version_info < (3, 0): raise RuntimeError("Python 3 is required")
 
 # imports of local modules (utilities)
-import softenv  # environmental variable for COBRAMM and 3rd-party software
+import kids_env  # environmental variable for COBRAMM and 3rd-party software
 import constants  # physical constants and conversion factors
 import kids_arg
 import kids_log
@@ -46,7 +47,7 @@ from kids_log import Timing, Log
 from Layers import Layers  # Layers class to manage geometries
 from Charge import Charge  # Charge class that stores real and modelH charges
 from Output import Output  # Output and Step classes to read/write old.xml file
-from MMCalc import MM  # QM class controls the QM calculation, define its input and stores the output
+from MMCalc import MM2  # QM class controls the QM calculation, define its input and stores the output
 import MMCalc  # QM class controls the QM calculation, define its input and stores the output
 from QMCalc import QM  # QM class controls the QM calculation, define its input and stores the output
 from QMMMCalc import QMMM  # join QM and MM data to construct QMMM results
@@ -70,10 +71,10 @@ if __name__ == "__main__":
 
     # check environment
     Log.startSection("ENV CONTROL")
-    profile_file = softenv.setKIDSProfile()
-    envDefined, errorMsg = softenv.checkKIDSEnv()
+    profile_file = kids_env.findKIDSProfile()
+    Log.writeLog(kids_env.checkKIDSProfile(profile_file))
+    envDefined, errorMsg = kids_env.checkKIDSEnv()
     if not envDefined: Log.fatalError(errorMsg)
-    Log.writeLog(softenv.checkKIDSProfile(profile_file))
 
     # store directory information
     startdir = os.path.abspath(os.getcwd())
@@ -113,32 +114,6 @@ if __name__ == "__main__":
     Log.printGeom(geometry)
 
     ############################################################
-    #          Define QM restart file
-    ############################################################
-
-    # set the name of the orbital restart file depending on the type of QM
-    if ks_config.args.qmsolver == 'gaussian':
-        #Gaussian
-        restartFileName = ["gaussian-QM.chk", "gaussian.chk"]
-    elif ks_config.args.qmsolver == 'molcas':
-        #Molcas
-        #files are in order of increasing precedence (molcas.JobIph has higher priority)
-        restartFileName = ["molcas.RasOrb", "INPORB", "molcas.JobIph"]
-    elif ks_config.args.qmsolver == 'mndo':
-        # MNDO
-        restartFileName = ['fort.7']
-    elif ks_config.args.qmsolver == 'bagel':
-        # BAGEL
-        restartFileName = ['laststep.archive']
-    else:
-        restartFileName = ""
-
-    # when the file is present in the main dir, set the variable QMRestart for later use
-    QMRestart = None
-    for nm in restartFileName:
-        if os.path.exists(nm): QMRestart = nm
-
-    ############################################################
     #          Starting optimization/MD
     ############################################################
 
@@ -153,6 +128,7 @@ if __name__ == "__main__":
     E_modelH = 0
              
     qmcalc     = None
+    mmcalc     = None
     QMPrevious = None
     prevx1, prevx2 = None, None
 
@@ -165,7 +141,8 @@ if __name__ == "__main__":
     #                  MM calculations
     ############################################################
     if 'M' in geometry.calculationType or 'L' in geometry.calculationType:        
-        with Timing("MM section"):            
+        with Timing("MM section"):
+
             # check files
             if not ks_config.geom_in_toml:
                 if not os.path.exists(os.path.join(startdir, ks_config.topo1)):
@@ -202,38 +179,70 @@ if __name__ == "__main__":
             Log.writeLog(f'the realcrd is: {realcrd_rel}\n')
             kids_io.saveinputs() # make a cpy of the input files
 
-            Log.startSection('ATOMIC CHARGES')
-            CRG_real, CRG_model_H = MMCalc.prepareCRG(geometry, ks_config)
-            if os.path.exists('laststep.charge'):
-                lines = open('laststep.charge', 'r').readlines()
-                CRG_model_H = [float(l) for l in lines]
-                os.remove('laststep.charge')
-            # create object Charge to store model and embedding charges
-            charges = Charge(geometry, CRG_real, CRG_model_H)
-            charges.checkConsistency()
+            mmcalc = MM2(geometry, ks_config)
+            charges = mmcalc.charges
 
-            mm_results = MMCalc.MM(geometry, ks_config)
-            Fxyz_real, E_real, E_modelnoc, Fxyz_modelnoc, Fxyz_modelH, E_modelH = mm_results
+            mmcalc.runMM()
+
+            # Log.startSection('ATOMIC CHARGES')
+            # CRG_real, CRG_model_H = MMCalc.prepareCRG(geometry, ks_config)
+            # if os.path.exists('laststep.charge'):
+            #     lines = open('laststep.charge', 'r').readlines()
+            #     CRG_model_H = [float(l) for l in lines]
+            #     os.remove('laststep.charge')
+            # # create object Charge to store model and embedding charges
+            # charges = Charge(geometry, CRG_real, CRG_model_H)
+            # charges.checkConsistency()
+
+            # mm_results = MMCalc.MM(geometry, ks_config)
+            # Fxyz_real, E_real, E_modelnoc, Fxyz_modelnoc, Fxyz_modelH, E_modelH = mm_results
+
             # E_real is real system
             # E_modelnoc is real system with no charge on modelH (==? E_real)
             # E_modelH is model H system with no charge
 
-            print("MM Force Norm (real):", np.sum(np.abs(np.array(Fxyz_real))))
-            print("MM Force Norm (real noc model):", np.sum(np.abs(np.array(Fxyz_modelnoc))))
-            print("MM Force Norm (modelH):", np.sum(np.abs(np.array(Fxyz_modelH))))
+            print("MM Force Norm (real):", np.sum(np.abs(np.array(mmcalc.grad_real))))
+            print("MM Force Norm (real noc model):", np.sum(np.abs(np.array(mmcalc.grad_real_modelnoc))))
+            print("MM Force Norm (modelH):", np.sum(np.abs(np.array(mmcalc.grad_modelH))))
 
     ##########################################################
     #                 QM calculations
     ##########################################################
     if 'H' in geometry.calculationType:
         with Timing("QM section"):
-    
+
+            ############################################################
+            #          Define QM restart file
+            ############################################################
+
+            # set the name of the orbital restart file depending on the type of QM
+            # if ks_config.args.qmsolver == 'gaussian':
+            #     #Gaussian
+            #     restartFileName = ["gaussian-QM.chk", "gaussian.chk"]
+            # elif ks_config.args.qmsolver == 'molcas':
+            #     #Molcas
+            #     #files are in order of increasing precedence (molcas.JobIph has higher priority)
+            #     restartFileName = ["molcas.RasOrb", "INPORB", "molcas.JobIph"]
+            # elif ks_config.args.qmsolver == 'mndo':
+            #     # MNDO
+            #     restartFileName = ['fort.7']
+            # elif ks_config.args.qmsolver == 'bagel':
+            #     # BAGEL
+            #     restartFileName = ['laststep.archive']
+            # else:
+            #     restartFileName = ""
+
+            # # when the file is present in the main dir, set the variable QMRestart for later use
+            # QMRestart = None
+            # for nm in restartFileName:
+            #     if os.path.exists(nm): QMRestart = nm
+
             #for normal run (no DEBUG run), clean QM directories to avoid mess:
-            # if not Log.DEBUG_COBRAMM_RUN:
-            #     QM_DIRECTORIES = [item for item in os.listdir() if os.path.isdir(item) and item.startswith('qmCalc')]
-            #     if QM_DIRECTORIES:
-            #         for qm_dir in QM_DIRECTORIES:
-            #             shutil.rmtree(qm_dir)
+            if not Log.DEBUG_RUN:
+                QM_DIRECTORIES = [item for item in os.listdir() if os.path.isdir(item) and item.startswith('qmCalc')]
+                if QM_DIRECTORIES:
+                    for qm_dir in QM_DIRECTORIES:
+                        shutil.rmtree(qm_dir)
 
             # for a SH calculation, we need to select the initial state and force-set the elect state in step > 0
             stateargs = {}
@@ -253,27 +262,7 @@ if __name__ == "__main__":
             QM.runQM(qmcalc, 
                 memory=ks_config.get_nested('QM.mem', '500MB'), 
                 nprocQM=int(ks_config.get_nested('QM.ncore', 1)))
-            Log.writeLog(qmcalc.log)
-
-            Log.writeLog('%d\n'%sys._getframe().f_lineno, 2)
-
-            #print overlap matrix (in case of mdv with time-derivatice couplings)
-            # if (ks_config[1] == 'mdv') and (ks_config.get_nested('_dyn.actstate', 0) == '1') and (ks_config[14] == '1') and ks_config.args.qmsolver == '6' and step != 0:
-            #     Log.writeLog("Overlap matrix with states at previous time step:\n",1)
-            #     OvMat = QMCalc.outputData.dataDict["psioverlap"]
-            #     Log.writeLog(Log.matrix_prettystring(OvMat, ".8f"), 1)
-            #     Log.writeLog("\n", 1)
-
-            # when this is the first step, initialize the number of the electronic state
-            # if step == 0:
-            #     sef = shelve.open('cobram-sef')
-            #     sef['state'] = QMCalc.outputData.get("optstate")
-            #     sef['newstate'] = QMCalc.outputData.get("optstate")
-            #     sef.close()
-
-            # copy and save path of the orbital restart file for the next step
-            QMRestart = qmcalc.saveRestartFile()
-
+            # Log.writeLog(qmcalc.log)
 
         ##########################################################
         #         Rebuilding the the charges of the system
@@ -295,7 +284,7 @@ if __name__ == "__main__":
     if True:
         with Timing("QMMM section"):
             global qmmm_results
-            qmmm_results = QMMM(ks_config, geometry, qmcalc, mm_results, step, prevx1, prevx2)
+            qmmm_results = QMMM(ks_config, geometry, qmcalc, mmcalc, step, prevx1, prevx2)
 
             #save QMMM branching plane vectors of previous step in case of ci search with new branching plane
             # if ks_config[19] == '1' and ks_config[1] == 'ci':
@@ -407,9 +396,8 @@ if __name__ == "__main__":
         ##############################################
 
         # print formatted output on QM/MM energy/energies
-        Log.startSubSection("QM/MM ENERGIES")
-        Log.printEnergies(qmcalc.energy(), E_modelH, E_modelnoc, E_real, qmcalc.selfenergy,
-                             qmmm_results.getenergy(), geometry.calculationType)
+        Log.startSubSection("QM or QM/MM ENERGIES")
+        Log.printEnergies(qmcalc, mmcalc, qmmm_results, geometry.calculationType)
 
         # print formatted output on electrostatic properties (dipole moment and modelH charges)
         if list(qmcalc.charges) and list(qmcalc.dipole):
@@ -431,7 +419,7 @@ if __name__ == "__main__":
         with open("QMMM.out", "w") as outf:
             outf.write(filetext)
 
-    if not Log.DEBUG_COBRAMM_RUN: kids_io.garbager(geometry, ks_config)
+    if not Log.DEBUG_RUN: kids_io.garbager(geometry, ks_config)
     # stop the timer for the main program, and print the report of the timings
     Log.end()
 

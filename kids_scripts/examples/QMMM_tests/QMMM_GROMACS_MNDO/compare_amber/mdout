@@ -1,0 +1,36 @@
+
+          -------------------------------------------------------
+          Amber 16 SANDER                              2016
+          -------------------------------------------------------
+
+| Run on 11/26/2024 at 21:38:15
+
+|   Executable path: sander
+| Working directory: /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: real-sander-second.inp                                                
+| MDOUT: mdout                                                                 
+|INPCRD: real.crd                                                              
+|  PARM: real.top                                                              
+|RESTRT: restrt                                                                
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+
+ Here is the input file:
+
+                                                                               
+  Error opening unit    5: File "mdin" is missing or unreadable                
+ Could not find cntrl namelist
+

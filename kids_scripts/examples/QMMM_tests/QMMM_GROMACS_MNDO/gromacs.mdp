@@ -1,0 +1,19 @@
+integrator  = steep
+nsteps      = 0
+
+nstxout     = 1
+nstvout     = 0
+nstfout     = 1
+
+pbc = xyz
+cutoff-scheme = Verlet
+
+nstlist     = 10
+rlist       = 0.8
+coulombtype = Cut-off
+rcoulomb    = 0.6
+vdwtype     = Cut-off
+rvdw        = 0.6
+DispCorr    = EnerPres
+
+nstenergy    = 1

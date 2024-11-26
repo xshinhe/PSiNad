@@ -1,0 +1,136 @@
+
+          -------------------------------------------------------
+          Amber 16 SANDER                              2016
+          -------------------------------------------------------
+
+| Run on 11/25/2024 at 18:19:29
+
+|   Executable path: sander
+| Working directory: /home/shin/share/KIDS/kids_scripts/examples/QMMM_AMBER_MNDO
+|          Hostname: Unknown
+  [-O]verwriting output
+
+File Assignments:
+|  MDIN: real-sander-second.inp                                                
+| MDOUT: real-sander-modelnoc.out                                              
+|INPCRD: real.rst                                                              
+|  PARM: real-modelnoc.top                                                     
+|RESTRT: real-modelnoc.rst                                                     
+|  REFC: refc                                                                  
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: mdinfo                                                                
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
+
+
+ Here is the input file:
+
+ MD                                                                            
+                                                                               
+    &cntrl                                                                     
+                                                                               
+  maxcyc = 0,                                                                  
+    ntb    = 0,                                                                
+                                                                               
+    igb    = 6,                                                                
+                                                                               
+    ntr    = 0,                                                                
+                                                                               
+    ntxo   = 1,                                                                
+                                                                               
+  cut = 999,                                                                   
+  ntxo=1,                                                                      
+ /                                                                             
+ DUMP FORCES                                                                   
+ &debugf                                                                       
+ do_debugf=1,                                                                  
+ dumpfrc=1,                                                                    
+ /                                                                             
+
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
+
+| Flags:                                                                        
+| New format PARM file being parsed.
+| Version =    1.000 Date = 02/29/16 Time = 12:43:26
+ NATOM  =    2589 NTYPES =      14 NBONH =    1469 MBONA  =    1143
+ NTHETH =    2486 MTHETA =    1542 NPHIH =    4570 MPHIA  =    3568
+ NHPARM =       0 NPARM  =       0 NNB   =   12693 NRES   =     258
+ NBONA  =    1143 NTHETA =    1542 NPHIA =    3568 NUMBND =      52
+ NUMANG =     108 NPTRA  =      42 NATYP =      33 NPHB   =       1
+ IFBOX  =       0 NMXRS  =      68 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+ Implicit solvent radii are modified Bondi radii (mbondi)                                                   
+
+|     Memory Use     Allocated
+|     Real              192274
+|     Hollerith           8027
+|     Integer           141855
+|     Max Pairs              1
+|     nblistReal             0
+|     nblist Int             0
+|       Total             2087 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+                                                                                
+
+General flags:
+     imin    =       0, nmropt  =       0
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       1, ntpr    =      50, ntrx    =       1, ntwr    =       1
+     iwrap   =       0, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       1, ntb     =       0, igb     =       6, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     = 999.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       0
+
+Molecular dynamics:
+     nstlim  =         1, nscm    =      1000, nrespa  =         1
+     t       =   0.00000, dt      =   0.00100, vlimit  =  20.00000
+|  INFO: Old style inpcrd file read
+
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =     0.000 ps
+
+ Number of triangulated 3-point waters found:      125
+ DEBUG FORCE!; calling force routine
+ DEBUG FORCE!; back from force routine
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =     0.00  PRESS =     0.0
+ Etot   =     -4478.8508  EKtot   =         0.0000  EPtot      =     -4478.8508
+ BOND   =       747.9198  ANGLE   =      1088.2111  DIHED      =      1383.6580
+ 1-4 NB =       553.6071  1-4 EEL =      5679.3668  VDWAALS    =      -750.8067
+ EELEC  =    -13180.8070  EGB     =         0.0000  RESTRAINT  =         0.0000
+ ------------------------------------------------------------------------------
+
+ --------------------------------------------

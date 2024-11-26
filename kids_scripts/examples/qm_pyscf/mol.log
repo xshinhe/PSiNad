@@ -1,0 +1,26 @@
+converged SCF energy = -7.86335762153512
+CASSCF energy = -7.78902183056302
+CASCI E = -7.78902183056302  E(CI) = -1.00654507225790  S^2 = 0.0000000
+CASCI state-averaged energy = -7.78902183056302
+CASCI energy for each state
+  State 0 weight 0.5  E = -7.85629117602972 S^2 = 0.0000000
+  State 1 weight 0.5  E = -7.72175248509632 S^2 = 0.0000000
+Overwritten attributes  converged  of <class 'pyscf.grad.sacasscf.Gradients'>
+<class 'pyscf.grad.sacasscf.Gradients'> does not have attributes  e_tot ci conv_tol
+--------------- StateAverageCASSCF gradients ---------------
+         x                y                z
+0 Li    -0.0000000000     0.0000000000     0.0023250608
+1 H     0.0000000000    -0.0000000000    -0.0023250608
+----------------------------------------------
+--------------- StateAverageCASSCF gradients ---------------
+         x                y                z
+0 Li    -0.0000000000     0.0000000000     0.0298957456
+1 H     0.0000000000    -0.0000000000    -0.0298957456
+----------------------------------------------
+Overwritten attributes  converged  of <class 'pyscf.nac.sacasscf.NonAdiabaticCouplings'>
+<class 'pyscf.nac.sacasscf.NonAdiabaticCouplings'> does not have attributes  e_tot ci conv_tol mult_ediff use_etfs
+--------------- StateAverageCASSCF gradients ---------------
+         x                y                z
+0 Li    -0.0000000000     0.0000000000    -0.0123081719
+1 H     0.0000000000    -0.0000000000     0.0123081719
+----------------------------------------------

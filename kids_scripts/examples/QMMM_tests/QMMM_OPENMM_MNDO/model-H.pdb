@@ -1,0 +1,46 @@
+HEADER 
+TITLE     Built with Packmol                                             
+REMARK   Packmol generated pdb file 
+REMARK   Home-Page: http://m3g.iqm.unicamp.br/packmol
+REMARK
+ATOM      1  C00 MOL     1      20.673  20.000  19.983                          
+ATOM      2  C01 MOL     1      19.329  20.000  19.983                          
+ATOM      3  C02 MOL     1      21.448  18.754  19.992                          
+ATOM      4  C03 MOL     1      22.658  18.714  20.702                          
+ATOM      5  C04 MOL     1      23.406  17.539  20.723                          
+ATOM      6  C05 MOL     1      22.952  16.409  20.041                          
+ATOM      7  C06 MOL     1      21.750  16.453  19.337                          
+ATOM      8  C07 MOL     1      20.994  17.619  19.305                          
+ATOM      9  H08 MOL     1      23.008  19.604  21.237                          
+ATOM     10  H09 MOL     1      24.351  17.503  21.277                          
+ATOM     11  H0A MOL     1      23.544  15.487  20.058                          
+ATOM     12  H0B MOL     1      21.396  15.563  18.803                          
+ATOM     13  H0C MOL     1      20.053  17.652  18.746                          
+ATOM     14  C0D MOL     1      18.553  21.246  19.976                          
+ATOM     15  C0E MOL     1      17.344  21.297  20.685                          
+ATOM     16  C0F MOL     1      16.594  22.471  20.691                          
+ATOM     17  C0G MOL     1      17.047  23.592  19.993                          
+ATOM     18  C0H MOL     1      18.250  23.539  19.289                          
+ATOM     19  C0I MOL     1      19.007  22.372  19.272                          
+ATOM     20  H0J MOL     1      16.993  20.415  21.232                          
+ATOM     21  H0K MOL     1      15.649  22.513  21.242                          
+ATOM     22  H0M MOL     1      16.455  24.513  19.999                          
+ATOM     23  H0N MOL     1      18.602  24.422  18.743                          
+ATOM     24  H0O MOL     1      19.948  22.331  18.714                          
+ATOM     25  H0P MOL     1      21.247  20.935  19.977                          
+ATOM     26  H0Q MOL     1      18.754  19.065  19.990                          
+CONECT    1    2    3   25
+CONECT    2   14   26
+CONECT    3    4    8
+CONECT    4    5    9
+CONECT    5    6   10
+CONECT    6    7   11
+CONECT    7    8   12
+CONECT    8   13
+CONECT   14   15   19
+CONECT   15   16   20
+CONECT   16   17   21
+CONECT   17   18   22
+CONECT   18   19   23
+CONECT   19   24
+END
