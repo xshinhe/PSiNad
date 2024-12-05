@@ -11,6 +11,8 @@ DEFINE_POLICY(NAD1DPolicy,
               SAC,       // Tully's Single Avoid Crossing Model
               SAC2,      // Tully's Single Avoid Crossing Model (with slight revision)
               SAC3,      // asymmertical Tully's Single Avoid Crossing Model
+              SACX,      // another Single Avoid Crossing Model
+              SACP,      // another Single Avoid Crossing Model
               DAC,       // Tully's Doubly Avoid Crossing Model
               ECR,       // Tully's Extend Coupling Region Model
               DBG,       // (double)

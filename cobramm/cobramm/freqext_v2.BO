@@ -1,0 +1,182 @@
+#!/bin/bash
+#read an arbitrary number of arguments
+args=("$@")
+#assign and remove from "args" the first three arguments
+NUM_PROC=${args[0]}
+#BASEDIR is the parent directory with the Cobram computation
+BASEDIR=${args[1]}
+SOFTWARE=${args[2]}
+MEMORY=${args[3]}
+#SUBDIR is the geomXXX directory where the submitter file "run" will be stored
+SUB_DIR="geom${args[4]}"
+#GEOMS is an array of jobs to run sequentially
+GEOMS=("${args[@]:5}")
+#FREQDIR is a temporary directory in each user's storage space for parallel numerics junk
+FREQDIR="/storage/$USER/FREQ_TMP"
+#STOR is the parent directory inside FREQDIR which is used for the communication between the nodes as the nodes are not connected
+#it uses the $JOB_ID as a name
+STOR="$FREQDIR/cobram_${JOB_ID}"
+#for each set of SP jobs a temporary directory STOR_N inside STOR is created
+#it is going to host the sub-set of folders geomXXX wich will computed sequentially
+#to prevent overwritting STOR_N contains a random number in it's name
+#a submitter script "run" is written to the first geomXXX directory of the submitted list 
+echo "#!/bin/bash" > $BASEDIR/$SUB_DIR/run
+echo "if [[ ! -d $FREQDIR ]]; then mkdir $FREQDIR; fi
+if [[ ! -d $STOR ]]; then mkdir $STOR; fi " >> $BASEDIR/$SUB_DIR/run
+#an empty auxiliary directory in $STOR is selected
+NUM_DIR=$(find $STOR/* -maxdepth 0 -type d | wc -l)
+echo $NUM_DIR >> $BASEDIR/auxiliary_output
+while true 
+do
+  if [[ $NUM_DIR -eq $NUM_PROC ]]
+  then
+    echo "Match!" >> $BASEDIR/auxiliary_output
+    break
+  else 
+    echo "$NUM_DIR $NUM_PROC do not match. Waiting!" >> $BASEDIR/auxiliary_output
+    sleep 1
+    NUM_DIR=$(find $STOR/* -maxdepth 0 -type d | wc -l)
+  fi
+done
+for dir in $STOR/*
+do
+  if [ "$(ls -A $dir)" ]
+  then
+    continue
+  else
+    echo "STOR_N=$dir" >> $BASEDIR/$SUB_DIR/run
+    echo "echo \"#!/bin/sh
+    #$ -S /bin/sh\" > \$STOR_N/sp.sub" >> $BASEDIR/$SUB_DIR/run
+    echo "echo \"export ParentDir=\\\${PWD}\" >> \$STOR_N/sp.sub" >> $BASEDIR/$SUB_DIR/run
+    #the "run" file copies for each geometry, depending on the software, the necessary data from the parent directory BASEDIR to the storage to STOR_N inside STOR
+    #it also creates a submitter script sp.sub in STOR
+    echo "for N in ${GEOMS[@]}
+    do
+      mkdir \$STOR_N/geom\$N
+      echo \"export HomeDir=\\\$ParentDir/geom\$N
+      mkdir \\\$HomeDir
+      export WorkDir=\\\$HomeDir/tmp
+      mkdir \\\$WorkDir
+      export CurrDir=\\\$HomeDir\" >> \$STOR_N/sp.sub" >> $BASEDIR/$SUB_DIR/run
+
+      if [[ $SOFTWARE == 'molcas' ]]
+      then
+        echo "        cp $BASEDIR/geom\$N/seward.input \$STOR_N/geom\$N
+        if [[ -e $BASEDIR/INPORB ]]; then cp $BASEDIR/INPORB \$STOR_N/geom\$N; fi
+        if [[ -e $BASEDIR/MOLCAS/molcas_tmp.JobIph ]]; then cp $BASEDIR/MOLCAS/molcas.JobIph \$STOR_N/geom\$N; 
+        elif [[ -e $BASEDIR/MOLCAS/molcas.JobIph ]]; then cp $BASEDIR/MOLCAS/molcas.JobIph \$STOR_N/geom\$N; fi
+        if [[ -e $BASEDIR/MOLCAS/molcas_rr.JobMix ]]; then cp $BASEDIR/MOLCAS/molcas_rr.JobMix \$STOR_N/geom\$N/molcas_rr.JobMix; fi
+        if [[ -e $BASEDIR/MOLCAS/molcas_r.JobIph ]]; then cp $BASEDIR/MOLCAS/molcas_r.JobIph \$STOR_N/geom\$N 
+        elif [[ -e $BASEDIR/MOLCAS/molcas_r.JobMix ]]; then cp $BASEDIR/MOLCAS/molcas_r.JobMix \$STOR_N/geom\$N; fi " >> $BASEDIR/$SUB_DIR/run
+        echo -n " echo \" " >> $BASEDIR/$SUB_DIR/run
+        cat $BASEDIR/.molcas_profile >> $BASEDIR/$SUB_DIR/run
+        echo "        cp \$STOR_N/geom\$N/seward.input \\\$HomeDir/.
+        if [[ -e \$STOR_N/INPORB ]]; then cp \$STOR_N/geom\$N/INPORB \\\$WorkDir/molcas.RasOrb; fi
+        if [[ -e \$STOR_N/geom\$N/molcas.JobIph ]]; then cp \$STOR_N/geom\$N/molcas.JobIph \\\$WorkDir/molcas.JobIph; fi
+        if [[ -e \$STOR_N/geom\$N/molcas_rr.JobMix ]]; then cp \$STOR_N/geom\$N/molcas_rr.JobMix \\\$WorkDir/molcas_rr.JobMix; fi
+        if [[ -e \$STOR_N/geom\$N/molcas_r.JobIph ]]; then cp \$STOR_N/geom\$N/molcas_r.JobIph \\\$WorkDir/molcas_r.JobIph 
+        elif [[ -e \$STOR_N/geom\$N/molcas_r.JobMix ]]; then cp \$STOR_N/geom\$N/molcas_r.JobMix \\\$WorkDir/molcas_r.JobMix; fi
+        cd \\\$HomeDir
+        export MOLCAS_CPUS=1
+        export Project=molcas
+        export MOLCAS_MEM=$MEMORY
+        \\\$MOLCAS_SCRIPT/molcas \\\$HomeDir/seward.input > \\\$HomeDir/molcas.log 2>\\\$HomeDir/molcas.err
+        output=molcas.log
+        if grep 'Happy landing!' --quiet \\\$HomeDir/molcas.log; then touch \\\$HomeDir/SUCCESS; cp \\\$HomeDir/SUCCESS \$STOR_N/geom\$N;
+        elif tac \\\$HomeDir/molcas.log | grep -q 'Non-zero return code' ; then touch \\\$HomeDir/FAIL; cp \\\$HomeDir/FAIL \$STOR_N/geom\$N;
+        elif tac \\\$HomeDir/molcas.log | grep -q 'Aborting..' ; then touch \\\$HomeDir/FAIL; cp \\\$HomeDir/FAIL \$STOR_N/geom\$N;
+        elif [[ \\\$(tail -n 2 \\\$HomeDir/molcas.log) =~ 'ERROR' ]] ; then touch \\\$HomeDir/FAIL; cp \\\$HomeDir/FAIL \$STOR_N/geom\$N;
+        #elif [[ \\\$(tail -n 3 \\\$HomeDir/molcas.log | head -n 1) =~ 'Non-zero return code' ]] ; then touch \\\$HomeDir/FAIL; cp \\\$HomeDir/FAIL \$STOR_N/geom\$N;
+        else touch \\\$HomeDir/SUCCESS; cp \\\$HomeDir/SUCCESS \$STOR_N/geom\$N; fi 
+        cp \\\$HomeDir/molcas.log \$STOR_N/geom\$N" >> $BASEDIR/$SUB_DIR/run
+
+      elif [[ $SOFTWARE == 'gaussian' ]]
+      then
+        echo "        cp $BASEDIR/geom\$N/gaussian-QM.com \$STOR_N/geom\$N
+        if [[ -e $BASEDIR/gaussian-QM.chk ]]; then cp $BASEDIR/gaussian-QM.chk \$STOR_N/geom\$N; fi " >> $BASEDIR/$SUB_DIR/run
+        echo -n " echo \" " >> $BASEDIR/$SUB_DIR/run
+        cat $BASEDIR/.gaussian_profile >> $BASEDIR/$SUB_DIR/run
+        echo "        export GAUSS_SCRDIR=\\\$WorkDir
+        cp \$STOR_N/geom\$N/gaussian-QM.com \\\$HomeDir/.
+        if [[ -e \$STOR_N/geom\$N/gaussian-QM.chk ]]; then cp \$STOR_N/geom\$N/gaussian-QM.chk \\\$HomeDir/.; fi
+        cd \\\$HomeDir
+        nice -1 \\\$GAUSSIAN_EXE < \\\$HomeDir/gaussian-QM.com > \\\$HomeDir/gaussian-QM.log 2>\\\$HomeDir/gaussian-QM.err
+        output=gaussian-QM.log
+        if grep 'Normal termination' --quiet \\\$HomeDir/gaussian-QM.log; then touch \\\$HomeDir/SUCCESS; cp \\\$HomeDir/SUCCESS \$STOR_N/geom\$N; else touch \\\$HomeDir/FAIL; cp \\\$HomeDir/FAIL \$STOR_N/geom\$N; fi 
+        cp \\\$HomeDir/gaussian-QM.log \$STOR_N/geom\$N" >> $BASEDIR/$SUB_DIR/run
+
+      elif [[ $SOFTWARE == 'molpro' ]]
+      then
+        echo "        cp $BASEDIR/geom\$N/molpro.input \$STOR_N/geom\$N
+        if [[ -e $BASEDIR/work.wfu ]]; then cp $BASEDIR/work.wfu \$STOR_N/geom\$N; fi " >> $BASEDIR/$SUB_DIR/run
+        echo -n " echo \" " >> $BASEDIR/$SUB_DIR/run
+        cat $BASEDIR/.molpro_profile >> $BASEDIR/$SUB_DIR/run
+        echo "        if [[ -e \$STOR_N/geom\$N/work.wfu ]]; then cp \$STOR_N/geom\$N/work.wfu \\\$HomeDir/.; fi
+        cd \\\$HomeDir
+        \\\$MOLPRO_EXE -d\\\$HomeDir -I\\\$WorkDir -W\\\$HomeDir < \\\$HomeDir/molpro.input > \\\$HomeDir/molpro.log 2>\\\$HomeDir/molpro.err
+        output=molpro.log
+        if grep 'Variable memory released' --quiet \\\$HomeDir/molpro.log; then touch \\\$HomeDir/SUCCESS; cp \\\$HomeDir/SUCCESS \$STOR_N/geom\$N; else touch \\\$HomeDir/FAIL; cp \\\$HomeDir/FAIL \$STOR_N/geom\$N; fi 
+        cp \\\$HomeDir/molpro.log \$STOR_N/geom\$N" >> $BASEDIR/$SUB_DIR/run
+      fi
+      ##check if the size of the copied .log file matches the orignal (if the nfs stales the .log file might not be copied competely)
+      echo "      while [ 1 ] 
+                  do
+                    ref_size=\\\$(stat -c%s \\\$HomeDir/\\\$output)
+                    size=\\\$(stat -c%s \$STOR_N/geom\$N/\\\$output)
+                    if [[ \\\$size -eq \\\$ref_size ]]
+                    then
+                        rm -rf \\\$HomeDir
+                        break
+                    else
+                        sleep 1
+                    fi
+                  done\" >> \$STOR_N/sp.sub
+    done" >> $BASEDIR/$SUB_DIR/run
+    #when all computations have been performed and the results are copied back to storage sp.sub write DONE in STOR_N ...
+    echo "echo \"touch \$STOR_N/DONE\" >> \$STOR_N/sp.sub" >> $BASEDIR/$SUB_DIR/run
+    #when all files have been copied to STOR_N the "run" submitter writes READY to STOR_N
+    #this is recognized by the auxiliary scripts running on the reserved cores and they copy sp.sub and execute it
+    echo "touch \$STOR_N/READY" >> $BASEDIR/$SUB_DIR/run
+    #... and once the "run" submitter findes DONE, it copies the necessary data back to the storage
+    #and from there back to the parent directory BASEDIR
+    echo "while [ 1 ]
+    do
+      if [ -e \$STOR_N/DONE ]
+      then 
+        for N in ${GEOMS[@]}
+        do
+          if [[ -e \$STOR_N/geom\$N/SUCCESS ]]
+          then 
+            cp \$STOR_N/geom\$N/SUCCESS $BASEDIR/geom\$N/.
+          elif [[ -e \$STOR_N/geom\$N/FAIL ]]
+          then 
+            cp \$STOR_N/geom\$N/FAIL $BASEDIR/geom\$N/.
+          fi
+          cp \$STOR_N/geom\$N/*.log $BASEDIR/geom\$N/.
+          ##check if the size of the copied .log file matches the orignal (if the nfs stales the .log file might not be copied competely)
+          while [ 1 ] 
+          do
+            ref_size=\$(stat -c%s \$STOR_N/geom\$N/*.log)
+            size=\$(stat -c%s $BASEDIR/geom\$N/*.log)
+            if [[ \$size -eq \$ref_size ]]
+            then
+                rm -rf \$STOR_N/geom\$N
+                break
+            else
+                sleep 1
+            fi
+          done
+        done
+        #need to empty \$STOR_N
+        rm \$STOR_N/DONE
+        rm \$STOR_N/sp.sub
+        break
+      else
+        sleep 1
+      fi
+    done" >> $BASEDIR/$SUB_DIR/run
+    ###at the end all temporary data on the nodes and on the storage is deleted, leaving only an empty STOR (no longer true)
+    #echo "rm -rf \$STOR_N" >> $BASEDIR/$SUB_DIR/run
+    break
+  fi
+done

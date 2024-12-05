@@ -1,4 +1,4 @@
-from pyscf import gto, scf, mcscf
+from pyscf import gto, scf, mcscf, nac
 '''
 mol = gto.M(
         atom = atoms_string,
@@ -10,13 +10,10 @@ mf = scf.ROHF()
 mf.kernel()
 '''
 
-mol = gto.M(atom='N 0 0 0; N 0 0 1.1', verbose=0)
-mc_grad_scanner1 = mcscf.CASSCF(scf.RHF(mol), 4, 4).nuc_grad_method().as_scanner(1)
-mc_grad_scanner2 = mcscf.CASSCF(scf.RHF(mol), 4, 4).nuc_grad_method().as_scanner(2)
-etot, grad = mc_grad_scanner1(gto.M(atom='N 0 0 0; N 0 0 1.1'))
-print(etot, grad)
-etot, grad = mc_grad_scanner2(gto.M(atom='N 0 0 0; N 0 0 1.1'))
-print(etot, grad)
-#etot, grad = mc_grad_scanner(gto.M(atom='N 0 0 0; N 0 0 1.5'))
-#print(etot, grad)
+mol = gto.M(atom='N 0 0 0; N 0 0 1', basis='ccpvdz')
+mf = scf.RHF(mol).run()
+mc = mcscf.CASSCF(mf, 2, 2).state_average([0.5, 0.5]).run()
+mc_nac = nac.sacasscf.NonAdiabaticCouplings(mc)
+# mc_nac = mc.nac_method() # Also valid
+mc_nac.kernel(state=(0,1), use_etfs=False)
 

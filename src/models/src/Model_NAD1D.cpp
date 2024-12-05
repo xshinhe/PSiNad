@@ -71,6 +71,65 @@ int mspes_SAC2(double* V, double* dV, double* ddV, double* R, int flag, int rdim
 }
 
 /**
+ * @brief      modified-X SAC (simple avoided crossing) model, doi:10.1021/acsomega.2c04843
+ */
+int mspes_SACX(double* V, double* dV, double* ddV, double* R, int flag, int rdim, int fdim) {
+    const double V0 = 0.01e0, V1 = -0.01e0, Vc = 0.005e0, a = 1.6e0, b = 1.0e0;
+
+    double tanhaR = tanh(a * R[0]);
+    double sechaR = 1.0e0 / cosh(a * R[0]);
+
+    V[0] = V0 * tanhaR;
+    V[3] = V1 * tanhaR;
+    V[1] = Vc * exp(-b * R[0] * R[0]);
+    V[2] = V[1];
+    if (flag < 1) return 0;
+
+    dV[0] = V0 * a * sechaR * sechaR;
+    dV[3] = V1 * a * sechaR * sechaR;
+    dV[1] = -2 * b * R[0] * V[1];
+    dV[2] = dV[1];
+    if (flag < 2) return 0;
+
+    // ddV
+    ddV[0] = -2 * V0 * a * a * sechaR * sechaR * tanhaR;
+    ddV[3] = -2 * V1 * a * a * sechaR * sechaR * tanhaR;
+    ddV[1] = (-2 * b * V[1] - 2 * b * R[0] * dV[1]);
+    ddV[2] = ddV[1];
+    return 0;
+}
+
+/**
+ * @brief      modified-X SAC (simple avoided crossing) model, doi:10.1021/acsomega.2c04843
+ */
+int mspes_SACP(double* V, double* dV, double* ddV, double* R, int flag, int rdim, int fdim) {
+    const double V0 = 0.01e0, V1 = 0.005e0, Vc = 0.005e0, a = 1.6e0, b = 1.0e0;
+
+    double tanhaR = tanh(a * R[0]);
+    double sechaR = 1.0e0 / cosh(a * R[0]);
+
+    V[0] = V0 * tanhaR;
+    V[3] = V1 * tanhaR;
+    V[1] = Vc * exp(-b * R[0] * R[0]);
+    V[2] = V[1];
+    if (flag < 1) return 0;
+
+    dV[0] = V0 * a * sechaR * sechaR;
+    dV[3] = V1 * a * sechaR * sechaR;
+    dV[1] = -2 * b * R[0] * V[1];
+    dV[2] = dV[1];
+    if (flag < 2) return 0;
+
+    // ddV
+    ddV[0] = -2 * V0 * a * a * sechaR * sechaR * tanhaR;
+    ddV[3] = -2 * V1 * a * a * sechaR * sechaR * tanhaR;
+    ddV[1] = (-2 * b * V[1] - 2 * b * R[0] * dV[1]);
+    ddV[2] = ddV[1];
+    return 0;
+}
+
+
+/**
  * @brief      asymmetrical SAC (simple avoided crossing) model, doi:10.1063/1.2759932
  */
 int mspes_SAC3(double* V, double* dV, double* ddV, double* R, int flag, int rdim, int fdim) {
@@ -1060,6 +1119,12 @@ Status& Model_NAD1D::executeKernel_impl(Status& stat) {
             break;
         case NAD1DPolicy::SAC3:
             mspes_SAC3(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
+            break;
+        case NAD1DPolicy::SACX:
+            mspes_SACX(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
+            break;
+        case NAD1DPolicy::SACP:
+            mspes_SACP(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
             break;
         case NAD1DPolicy::DAC:
             mspes_DAC(V.data(), dV.data(), ddV.data(), x.data(), 1, Dimension::N, Dimension::F);
