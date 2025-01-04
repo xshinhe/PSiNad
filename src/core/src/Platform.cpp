@@ -1,6 +1,6 @@
 #include "kids/Platform.h"
 
-#include "kids/version.h"
+#include "version.h"
 
 namespace PROJECT_NS {
 
