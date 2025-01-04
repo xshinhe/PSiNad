@@ -13,7 +13,7 @@
 
 ## Basic Usage
 
-This (cpp-)KIDS project comprises three standalone files: `kids`, `libcppkids.so`, and `libpykids.so`. Detailed documentation for the backend functionality provided by `libcppkids.so` can be found in the [C++ APIs](api/cpp.md), while information regarding the frontend functionality of `libpykids.so` is available in the [Python APIs](api/python.md). This manual primarily focuses on the C++ executable `kids`.
+This (cpp-)PSiNad project comprises three standalone files: `kids`, `libcppkids.so`, and `libpykids.so`. Detailed documentation for the backend functionality provided by `libcppkids.so` can be found in the [C++ APIs](api/cpp.md), while information regarding the frontend functionality of `libpykids.so` is available in the [Python APIs](api/python.md). This manual primarily focuses on the C++ executable `kids`.
 
 The kids C++ frontend leverages MPI for parallel processing, a feature not available in Python. Consequently, the Python APIs are implemented natively in Python to provide similar functionality. The simulation is controlled by two primary sources of parameters. The first source is command-line arguments, parsed using gflags (more details at https://github.com/gflags/gflags), which are specific to the C++ frontend. The second source is user-defined custom JSON configuration files, commonly utilized in both the C++ and Python frontends.
 

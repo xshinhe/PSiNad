@@ -14,12 +14,12 @@
 First you should clone this project with all submodules:
 
 ```bash
-git clone --recurse-submodules http://path_to_this_repository/KIDS.git 
-cd KIDS
+git clone --recurse-submodules http://path_to_this_repository/PSiNad.git 
+cd PSiNad
 
 # if you forget the `--recurse-submodules` when you clone the repository, you can do as follows:
-git clone http://path_to_this_repository/KIDS.git
-cd KIDS
+git clone http://path_to_this_repository/PSiNad.git
+cd PSiNad
 git submodule update --init
 ```
 
@@ -57,9 +57,9 @@ You can modify `cmake/FindMKLMod.cmake` and `cmake/FindMKLMod.cmake` to suit you
 ## Benchmark Test
 
 
-## PyKIDS
+## PyPSiNad
 
-## rust-KIDS
+## rust-PSiNad
 
 
 <div class="section_buttons">

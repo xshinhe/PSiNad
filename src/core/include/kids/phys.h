@@ -179,11 +179,11 @@ enum dimension7_type {
     _J,  // luminous intensity dimension7
 };
 
-inline constexpr real_precision reduce_l_nonzero(const dimension7 dim) {
+inline const real_precision reduce_l_nonzero(const dimension7 dim) {
     return (int{dim._data[0] != 0L} + int{dim._data[1] != 0L} + int{dim._data[2] != 0L} + int{dim._data[3] != 0L} +
             int{dim._data[4] != 0L} + int{dim._data[5] != 0L} + int{dim._data[6] != 0L});
 }
-inline constexpr real_precision reduce_l_energy(const dimension7 dim) {
+inline const real_precision reduce_l_energy(const dimension7 dim) {
     return -dim._data[_L] - dim._data[_T] + dim._data[_M] + dim._data[_Q];
 }
 

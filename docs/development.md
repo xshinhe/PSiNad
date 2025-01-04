@@ -21,7 +21,7 @@ Developers' Responsibilities:
 The basic types in kids are `kids_bool`, `kids_int`, `kids_real`, `kids_complex`, `kids_str`, `kids_param` and `kids_dataset`.
 
 
-The KIDS framework is divided into the following four basic components: Paramizer, Dataizer, Algorithmizer, Taskizer.
+The PSiNad framework is divided into the following four basic components: Paramizer, Dataizer, Algorithmizer, Taskizer.
 
 1. **Paramizer**: The Paramizer can be implemented using JSON.
 

@@ -2,7 +2,7 @@
 
 // #include <string>
 
-#define kids kids
+#define PSiNad kids
 
-constexpr char repo_name[] = "kids";
-constexpr char repo_version[] = "main-(2024-12-06)-8116ab5cd7b3403dca96ee0944a8a174017a3fe3";
+constexpr char repo_name[] = "PSiNad";
+constexpr char repo_version[] = "main-(2024-12-30)-7aa74d7122709b31abb739d8ab9a7bc4b5b28955";

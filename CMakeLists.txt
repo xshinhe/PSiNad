@@ -1,37 +1,46 @@
 cmake_minimum_required(VERSION 3.17)
 
-# Set necessary policies (if any). Uncomment and set policies only if required.
-# cmake_policy(SET CMP0042 NEW)
-cmake_policy(SET CMP0003 NEW)
-cmake_policy(SET CMP0005 NEW)
-cmake_policy(SET CMP0011 NEW)
+cmake_policy(SET CMP0003 NEW)  # Libraries linked via full path no longer produce linker search paths.
+cmake_policy(SET CMP0005 NEW)  # Preprocessor definition values are now escaped automatically.
+cmake_policy(SET CMP0011 NEW)  # Included scripts do automatic cmake_policy PUSH and POP.
+
+# Define library name & version
+set(PSINAD_LIBRARY_NAME PSiNad)
+if(NOT PROJECT_NAME)
+    project(${PSINAD_LIBRARY_NAME} LANGUAGES C CXX)
+endif()
+set(PSINAD_MAJOR_VERSION 0)
+set(PSINAD_MINOR_VERSION 1)
+set(PSINAD_BUILD_VERSION 1)
+set(PSINAD_VERSION "${PSINAD_MAJOR_VERSION}.${PSINAD_MINOR_VERSION}.${PSINAD_BUILD_VERSION}"
+     CACHE STRING "This is the version of PSiNad which will be built." FORCE)
+mark_as_advanced(PSINAD_VERSION)
+add_definitions(-DPSINAD_LIBRARY_NAME=${PSINAD_LIBRARY_NAME}
+                -DPSINAD_MAJOR_VERSION=${PSINAD_MAJOR_VERSION}
+                -DPSINAD_MINOR_VERSION=${PSINAD_MINOR_VERSION}
+                -DPSINAD_BUILD_VERSION=${PSINAD_BUILD_VERSION})
+
+# Set the C++ standard to 17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find Python interpreter
+find_package(PythonInterp REQUIRED)
+mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
 
 # Prevent in-source builds
 if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
     message(FATAL_ERROR "In-source builds are not allowed. Please use a separate build directory.")
 endif()
 
-# Option to enable verbose makefile
+# Option to enable verbose
 option(ENABLE_VERBOSE_MAKEFILE "Enable verbose output during build" OFF)
 if(ENABLE_VERBOSE_MAKEFILE)
     set(CMAKE_VERBOSE_MAKEFILE ON)
 endif()
 
-# Don't create a new project name if this is part of the parent directory
-if(NOT PROJECT_NAME)
-    project(kids LANGUAGES C CXX Fortran)
-endif()
-
-# Find Python interpreter
-find_package(PythonInterp REQUIRED)
-mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
-
-# Optimize and measure the compilation time
-
 # Option to enable ccache
 option(CCACHE_ENABLE "Enable ccache for faster compilation" OFF)
-
-# Find and set up ccache if available and enabled
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_ENABLE AND CCACHE_PROGRAM)
     message(STATUS "ccache is enabled and found at: ${CCACHE_PROGRAM}. Setting up ccache for compilation and linking...")
@@ -52,25 +61,17 @@ else()
     message(STATUS "compile-time-perf not found. Skipping compile-time performance measurements.")
 endif()
 
-# Set the C++ standard to 11 (@TODO BETTER as 17)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Append additional module paths
+# Append additional module paths & include some customized modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/thirdpart/catch2/contrib")
-
-# Include custom modules
 include(printings)
 include(TargetArch)
-
-# Options to determine what type of libraries to build
-option(KIDS_BUILD_SHARED_LIB "Build shared KIDS libraries" ON)
-option(KIDS_BUILD_STATIC_LIB "Build static KIDS libraries" ON)
-
-# Processing modular configuration (solver / model)
 # include(module)
 # module_config()
+
+# Options to determine what type of libraries to build
+option(PSINAD_BUILD_SHARED_LIB "Build shared PSiNad libraries" ON)
+option(PSINAD_BUILD_STATIC_LIB "Build static PSiNad libraries" ON)
 
 # Add include directories
 include_directories(
@@ -88,6 +89,10 @@ include_directories(
 ## Please -DCMAKE_BUILD_TYPE=<Config> : Debug, Release, RelWithDebInfo, MinsizeRel
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -march=native")
 
+if(APPLE) # disable some warnings
+    add_compile_options(-Wno-switch -Wno-braced-scalar-init -Wno-\#pragma-messages -Wno-enum-compare-switch -Wno-uninitialized)
+endif()
+
 # ################################################################################
 # # configure libraries
 # ################################################################################
@@ -98,48 +103,42 @@ include_directories(
 #find_package(MKLMod)
 
 # find_package(CINTMod) # optional
-# # find_package(pybind11 REQUIRED)
 
 # #set(AMBERHOME /home/zhf/work/amberfold/amber20/) # @blame DON'T WRITE YOUR LOCAL DIR HERE!
-
 # include_directories(${AMBERHOME}/include/)
 # link_directories(${AMBERHOME}/lib/)
 
 # ################################################################################
 # # compilation of different parts
 # ################################################################################
-####################################
 
 # Set default installation prefix if not provided
-if(NOT DEFINED KIDS_INSTALL_PREFIX)
+if(NOT DEFINED PSINAD_INSTALL_PREFIX)
     if(WIN32)
-        set(KIDS_INSTALL_PREFIX "$ENV{ProgramFiles}/KIDS")
+        set(PSINAD_INSTALL_PREFIX "$ENV{ProgramFiles}/PSINAD")
     else()
-        set(KIDS_INSTALL_PREFIX "/usr/local/kids")
+        set(PSINAD_INSTALL_PREFIX "/usr/local/psinad")
     endif()
 endif()
 
 # Set CMAKE_INSTALL_PREFIX if it has not been initialized by the user
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${KIDS_INSTALL_PREFIX} CACHE PATH "Where to install KIDS" FORCE)
+    set(CMAKE_INSTALL_PREFIX ${PSINAD_INSTALL_PREFIX} CACHE PATH "Where to install PSiNad" FORCE)
 endif()
-
 # Set default build type to Release for UNIX systems if not specified
 if(UNIX AND NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build: Debug or Release" FORCE)
 endif()
-
 # Set C++ compiler flags for Debug build type if not already set
 if(NOT CMAKE_CXX_FLAGS_DEBUG)
     set(CMAKE_CXX_FLAGS_DEBUG "-g" CACHE STRING "Flags for Debug build" FORCE)
 endif()
-
 # Set C++ compiler flags for Release build type if not already set
 if(NOT CMAKE_CXX_FLAGS_RELEASE)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Flags for Release build" FORCE)
 endif()
 
-# Collect up information about the version of the KIDS library we're building
+# Collect up information about the version of the PSINAD library we're building
 # and make it available to the code so it can be built into the binaries.
 
 # Processing repository fingerprint
@@ -150,26 +149,12 @@ configure_file(
   ${CMAKE_SOURCE_DIR}/src/core/include/kids/version.h
   @ONLY
 )
-set(KIDS_GIT_VERSION ${GIT_HASH})
-
-# Define KIDS library version
-set(KIDS_LIBRARY_NAME KIDS)
-set(KIDS_MAJOR_VERSION 0)
-set(KIDS_MINOR_VERSION 1)
-set(KIDS_BUILD_VERSION 1)
-set(KIDS_VERSION "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}.${KIDS_BUILD_VERSION}"
-     CACHE STRING "This is the version of KIDS which will be built." FORCE)
-mark_as_advanced(KIDS_VERSION)
-
-# Define preprocessor definitions for version information
-add_definitions(-DKIDS_LIBRARY_NAME=${KIDS_LIBRARY_NAME}
-                -DKIDS_MAJOR_VERSION=${KIDS_MAJOR_VERSION}
-                -DKIDS_MINOR_VERSION=${KIDS_MINOR_VERSION}
-                -DKIDS_BUILD_VERSION=${KIDS_BUILD_VERSION})
+set(PSINAD_GIT_VERSION ${GIT_HASH})
 
 # Define library targets
-set(SHARED_TARGET ${KIDS_LIBRARY_NAME})
-set(STATIC_TARGET ${KIDS_LIBRARY_NAME}_static)
+#set(SHARED_TARGET ${PSINAD_LIBRARY_NAME}) # revise to the following line
+set(SHARED_TARGET ${PSINAD_LIBRARY_NAME}_shared)
+set(STATIC_TARGET ${PSINAD_LIBRARY_NAME}_static)
 
 # If no custom executable output path is specified, set it to the binary directory
 if(NOT EXECUTABLE_OUTPUT_PATH)
@@ -190,7 +175,7 @@ set(${PROJECT_NAME}_LIBRARY_DIR    ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
 
 # The source is organized into subdirectories, but we handle them all together
 # rather than visit them as SUBDIRS.
-set(KIDS_SOURCE_SUBDIRS
+set(PSINAD_SOURCE_SUBDIRS
     src/core
     src/kernels
     src/models
@@ -200,7 +185,7 @@ file(GLOB third_src_files  ${CMAKE_SOURCE_DIR}/thirdpart/fparser/*.cpp)
 
 # Set up API include directories
 set(API_INCLUDE_DIRS) # start empty
-foreach(subdir ${KIDS_SOURCE_SUBDIRS})
+foreach(subdir ${PSINAD_SOURCE_SUBDIRS})
     list(APPEND API_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/kids
@@ -222,7 +207,7 @@ endforeach()
 # Collect source files
 set(SOURCE_FILES)
 set(SOURCE_INCLUDE_FILES)
-foreach(subdir ${KIDS_SOURCE_SUBDIRS})
+foreach(subdir ${PSINAD_SOURCE_SUBDIRS})
     file(GLOB_RECURSE src_files  ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src/*.cpp)
     file(GLOB_RECURSE incl_files ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/src/*.h)
     list(APPEND SOURCE_FILES ${src_files})
@@ -249,38 +234,19 @@ endif()
 
 set(SOURCE_FILES ${SOURCE_FILES} ${third_src_files})
 
-if(KIDS_BUILD_SHARED_LIB)
+if(PSINAD_BUILD_SHARED_LIB)
     add_library(${SHARED_TARGET} SHARED ${SOURCE_FILES} ${SOURCE_INCLUDE_FILES} ${API_ABS_INCLUDE_FILES})
     set_target_properties(${SHARED_TARGET} PROPERTIES 
         LINK_FLAGS "${EXTRA_LINK_FLAGS}" 
-        COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DKIDS_BUILDING_SHARED_LIBRARY -DPTHREAD_BUILDING_SHARED_LIBRARY" 
-        SOVERSION "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}")
-
-    # target_compile_definitions(${SHARED_TARGET} PRIVATE 
-    #     KIDS_BUILDING_SHARED_LIBRARY
-    # )
-    # target_link_libraries(${SHARED_TARGET} ${EXTRA_LINK_FLAGS})
-    # set_target_properties(${SHARED_TARGET} PROPERTIES
-    #     SOVERSION "${KIDS_MAJOR_VERSION}.${KIDS_MINOR_VERSION}"
-    #     COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS}"
-    #     LINK_FLAGS "${EXTRA_LINK_FLAGS}"
-    # )
+        COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DPSINAD_BUILDING_SHARED_LIBRARY -DPTHREAD_BUILDING_SHARED_LIBRARY" 
+        SOVERSION "${PSINAD_MAJOR_VERSION}.${PSINAD_MINOR_VERSION}")
 endif()
 
-if(KIDS_BUILD_STATIC_LIB)
+if(PSINAD_BUILD_STATIC_LIB)
     add_library(${STATIC_TARGET} STATIC ${SOURCE_FILES} ${SOURCE_INCLUDE_FILES} ${API_ABS_INCLUDE_FILES})
     set_target_properties(${STATIC_TARGET} PROPERTIES 
         LINK_FLAGS "${EXTRA_LINK_FLAGS}" 
-        COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DKIDS_BUILDING_STATIC_LIBRARY -DPTHREAD_BUILDING_STATIC_LIBRARY")
-
-    # target_compile_definitions(${STATIC_TARGET} PRIVATE 
-    #     KIDS_USE_STATIC_LIBRARIES 
-    # )
-    # target_link_libraries(${STATIC_TARGET} ${EXTRA_LINK_FLAGS})
-    # set_target_properties(${STATIC_TARGET} PROPERTIES
-    #     COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS}"
-    #     LINK_FLAGS "${EXTRA_LINK_FLAGS}"
-    # )
+        COMPILE_FLAGS "${EXTRA_COMPILE_FLAGS} -DPSINAD_BUILDING_STATIC_LIBRARY -DPTHREAD_BUILDING_STATIC_LIBRARY")
 endif()
 
 if(NOT APPLE AND NOT MSVC)
@@ -290,16 +256,16 @@ if(NOT APPLE AND NOT MSVC)
         target_link_libraries(${STATIC_TARGET} PRIVATE ${DL_LIBRARY} ${PTHREADS_LIB})
         mark_as_advanced(DL_LIBRARY)
     else()
-        if (ANDROID AND KIDS_BUILD_SHARED_LIB)
+        if (ANDROID AND PSINAD_BUILD_SHARED_LIB)
             target_link_libraries(${SHARED_TARGET} PRIVATE ${PTHREADS_LIB} cpufeatures)
         endif()
     endif()
 endif()
 
-if(KIDS_BUILD_SHARED_LIB)
+if(PSINAD_BUILD_SHARED_LIB)
     install(TARGETS ${SHARED_TARGET} RUNTIME DESTINATION lib)
 endif()
-if(KIDS_BUILD_STATIC_LIB)
+if(PSINAD_BUILD_STATIC_LIB)
     install(TARGETS ${STATIC_TARGET} ARCHIVE DESTINATION lib)
 endif()
 file(GLOB_RECURSE CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
@@ -308,8 +274,8 @@ install(FILES ${CORE_HEADERS} DESTINATION include)
 install(FILES ${TOP_HEADERS} DESTINATION include/kids)
 
 # C++ backends
-option(KIDS_BUILD_CXX_BACKENDS "Build backend for C++" ON)
-if(KIDS_BUILD_CXX_BACKENDS)
+option(PSINAD_BUILD_CXX_BACKENDS "Build backend for C++" ON)
+if(PSINAD_BUILD_CXX_BACKENDS)
     find_package(MPIMod REQUIRED)
     # find_package(MKLMod REQUIRED)
 
@@ -329,75 +295,75 @@ if(KIDS_BUILD_CXX_BACKENDS)
     set(BUILD_TESTING ON CACHE INTERNAL "Restore unit testing")
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "Disable shared library")
 
-    if(MPIMod_FOUND)
-        add_executable(kids_mpi 
-            src/kidsrun/kids_mpi.cpp src/kidsrun/mpi_guard.cpp src/kidsrun/defined_gflags.cpp)
+    if(MPIMod_FOUND AND FALSE)
+        add_executable(psinad_mpi 
+            src/cpprun/psinad_mpi.cpp src/cpprun/mpi_guard.cpp src/cpprun/defined_gflags.cpp)
         target_link_libraries(kids_mpi PRIVATE
             ${SHARED_TARGET}
             gflags::gflags
             glog::glog
             MPIMod::MPI
         )
-        install(TARGETS kids_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        install(TARGETS psinad_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
         
-        add_executable(kdyn_mpi 
-            src/kidsrun/kdyn_mpi.cpp src/kidsrun/mpi_guard.cpp src/kidsrun/defined_gflags.cpp)
-        target_link_libraries(kdyn_mpi PRIVATE
+        add_executable(psidyn_mpi 
+            src/cpprun/psidyn_mpi.cpp src/cpprun/mpi_guard.cpp src/cpprun/defined_gflags.cpp)
+        target_link_libraries(psidyn_mpi PRIVATE
             ${SHARED_TARGET}
             gflags::gflags
             glog::glog
             MPIMod::MPI
         )
-        install(TARGETS kdyn_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        install(TARGETS psidyn_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
         
-        add_executable(ksamp_mpi 
-            src/kidsrun/ksamp_mpi.cpp src/kidsrun/mpi_guard.cpp src/kidsrun/defined_gflags.cpp)
-        target_link_libraries(ksamp_mpi PRIVATE
+        add_executable(psisamp_mpi 
+            src/cpprun/psisamp_mpi.cpp src/cpprun/mpi_guard.cpp src/cpprun/defined_gflags.cpp)
+        target_link_libraries(psisamp_mpi PRIVATE
             ${SHARED_TARGET}
             gflags::gflags
             glog::glog
             MPIMod::MPI
         )
-        install(TARGETS ksamp_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+        install(TARGETS psisamp_mpi RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
     endif()
-    add_executable(kids 
-        src/kidsrun/kids.cpp src/kidsrun/simple_guard.cpp src/kidsrun/defined_gflags.cpp)
-    target_link_libraries(kids PRIVATE
+    add_executable(psinad
+        src/cpprun/psinad.cpp src/cpprun/simple_guard.cpp src/cpprun/defined_gflags.cpp)
+    target_link_libraries(psinad PRIVATE
         ${SHARED_TARGET}
         gflags::gflags
         glog::glog
     )
-    install(TARGETS kids RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    install(TARGETS psinad RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
     
-    add_executable(kdyn 
-        src/kidsrun/kdyn.cpp src/kidsrun/simple_guard.cpp src/kidsrun/defined_gflags.cpp)
-    target_link_libraries(kdyn PRIVATE
+    add_executable(psidyn 
+        src/cpprun/psidyn.cpp src/cpprun/simple_guard.cpp src/cpprun/defined_gflags.cpp)
+    target_link_libraries(psidyn PRIVATE
         ${SHARED_TARGET}
         gflags::gflags
         glog::glog
     )
-    install(TARGETS kdyn RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    install(TARGETS psidyn RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 
-    add_executable(ksamp 
-        src/kidsrun/ksamp.cpp src/kidsrun/simple_guard.cpp src/kidsrun/defined_gflags.cpp)
-    target_link_libraries(ksamp PRIVATE
+    add_executable(psisamp 
+        src/cpprun/psisamp.cpp src/cpprun/simple_guard.cpp src/cpprun/defined_gflags.cpp)
+    target_link_libraries(psisamp PRIVATE
         ${SHARED_TARGET}
         gflags::gflags
         glog::glog
     )
-    install(TARGETS ksamp RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+    install(TARGETS psisamp RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 endif()
 
 # Python wrappers
-option(KIDS_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
-if(KIDS_BUILD_PYTHON_WRAPPERS)
+option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
+if(PSINAD_BUILD_PYTHON_WRAPPERS)
     add_subdirectory(thirdpart/pybind11)
     add_subdirectory(wrappers/python)
 endif()
 
 # Tests
-option(KIDS_BUILD_TESTS "Build tests" OFF)
-if(KIDS_BUILD_TESTS)
+option(PSINAD_BUILD_TESTS "Build tests" OFF)
+if(PSINAD_BUILD_TESTS)
     set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
     set(CATCH_BUILD_EXAMPLES OFF CACHE INTERNAL "")
     set(CATCH_BUILD_EXTRA_TESTS OFF CACHE INTERNAL "")
@@ -408,7 +374,7 @@ if(KIDS_BUILD_TESTS)
 endif()
 
 # Examples
-option(KIDS_BUILD_EXAMPLES "Build example executables" OFF)
-if(KIDS_BUILD_EXAMPLES)
+option(PSINAD_BUILD_EXAMPLES "Build example executables" OFF)
+if(PSINAD_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
