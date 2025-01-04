@@ -28,17 +28,17 @@ int MPI_Guard::reduce(const std::vector<std::tuple<kids_dtype, void*, void*, std
         switch (dtype) {
             case kids_int_type: {
                 MPI_Reduce((kids_int*) from_data, (kids_int*) to_data,  //
-                           ndata, MPI::INT, MPI_SUM, 0, MPI_COMM_WORLD);
+                           ndata, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
                 break;
             }
             case kids_real_type: {
                 MPI_Reduce((kids_real*) from_data, (kids_real*) to_data,  //
-                           ndata, MPI::DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD);
+                           ndata, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD);
                 break;
             }
             case kids_complex_type: {
                 MPI_Reduce((kids_complex*) from_data, (kids_complex*) to_data,  //
-                           ndata, MPI::DOUBLE_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
+                           ndata, MPI_DOUBLE_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
                 break;
             }
         }
@@ -55,19 +55,19 @@ int MPI_Guard::reduce(const std::tuple<kids_dtype, void*, void*, std::size_t>& i
     switch (dtype) {
         case kids_int_type: {
             MPI_Reduce((kids_int*) from_data, (kids_int*) to_data,  //
-                       ndata, MPI::INT, MPI_SUM, 0, MPI_COMM_WORLD);
+                       ndata, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
             for (int i = 0; i < ndata; ++i) ((kids_int*) to_data)[i] /= MPI_Guard::nprocs;
             break;
         }
         case kids_real_type: {
             MPI_Reduce((kids_real*) from_data, (kids_real*) to_data,  //
-                       ndata, MPI::DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD);
+                       ndata, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD);
             for (int i = 0; i < ndata; ++i) ((kids_real*) to_data)[i] /= MPI_Guard::nprocs;
             break;
         }
         case kids_complex_type: {
             MPI_Reduce((kids_complex*) from_data, (kids_complex*) to_data,  //
-                       ndata, MPI::DOUBLE_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
+                       ndata, MPI_DOUBLE_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
             for (int i = 0; i < ndata; ++i) ((kids_complex*) to_data)[i] /= MPI_Guard::nprocs;
             break;
         }

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "kids/Types.h"
+
 #include "mpi.h"
 
 namespace PROJECT_NS {

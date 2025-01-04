@@ -295,10 +295,10 @@ if(PSINAD_BUILD_CXX_BACKENDS)
     set(BUILD_TESTING ON CACHE INTERNAL "Restore unit testing")
     set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "Disable shared library")
 
-    if(MPIMod_FOUND AND FALSE)
+    if(MPIMod_FOUND)
         add_executable(psinad_mpi 
             src/cpprun/psinad_mpi.cpp src/cpprun/mpi_guard.cpp src/cpprun/defined_gflags.cpp)
-        target_link_libraries(kids_mpi PRIVATE
+        target_link_libraries(psinad_mpi PRIVATE
             ${SHARED_TARGET}
             gflags::gflags
             glog::glog
