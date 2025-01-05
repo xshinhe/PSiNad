@@ -29,14 +29,29 @@ class CPU_Platform final : public Platform {
     CPU_Platform() : Platform("CPU"){};
 };
 
+class MPI_Platform final : public Platform {
+   public:
+    MPI_Platform() : Platform("CPU-MPI"){};
+};
+
 class GPU_Platform final : public Platform {
    public:
     GPU_Platform() : Platform("GPU"){};
 };
 
-class MPI_Platform final : public Platform {
+class CUDA_Platform final : public Platform {
    public:
-    MPI_Platform() : Platform("CPU-MPI"){};
+    CUDA_Platform() : Platform("CUDA"){};
+};
+
+class OPENCL_Platform final : public Platform {
+   public:
+    OPENCL_Platform() : Platform("OPENCL"){};
+};
+
+class FPGA_Platform final : public Platform {
+   public:
+    FPGA_Platform() : Platform("FPGA"){};
 };
 
 class SW9_Platform final : public Platform {

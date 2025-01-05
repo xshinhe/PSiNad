@@ -1,4 +1,4 @@
-%module(directors="1") kids
+%module(directors="1") psinad
 %include "factory.i"
 
 %include "std_string.i"

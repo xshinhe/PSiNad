@@ -1,8 +1,8 @@
 import pyPSiNad
 
-class Kernel_Example_Test(pyPSiNad.lib.Kernel):
+class Kernel_Example_Test(pyPSiNad.Kernel):
     def __init__(self, name: str):
-        pyPSiNad.lib.Kernel.__init__(self, name)
+        pyPSiNad.Kernel.__init__(self, name)
         self._name = name
         print(self.getName())
         

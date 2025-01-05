@@ -11,9 +11,15 @@
 #include "kids/Sampling_Nucl.h"
 #include "kids/Solver.h"
 
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT __attribute__((visibility("default")))
+#endif
+
 namespace PROJECT_NS {
 
-std::shared_ptr<Solver> Sampling_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name) {
+EXPORT std::shared_ptr<Solver> Sampling_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name) {
     // Root Kernel
     std::shared_ptr<Kernel> ker(new Kernel(Kernel_name));
 

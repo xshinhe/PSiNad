@@ -4,6 +4,14 @@ cmake_policy(SET CMP0003 NEW)  # Libraries linked via full path no longer produc
 cmake_policy(SET CMP0005 NEW)  # Preprocessor definition values are now escaped automatically.
 cmake_policy(SET CMP0011 NEW)  # Included scripts do automatic cmake_policy PUSH and POP.
 
+# Prevent in-source builds
+if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+    message(FATAL_ERROR "In-source builds are not allowed. Please use a separate build directory.")
+endif()
+
+########################################################################################################################
+## Program Information
+
 # Define library name & version
 set(PSINAD_LIBRARY_NAME PSiNad)
 if(NOT PROJECT_NAME)
@@ -19,111 +27,41 @@ add_definitions(-DPSINAD_LIBRARY_NAME=${PSINAD_LIBRARY_NAME}
                 -DPSINAD_MAJOR_VERSION=${PSINAD_MAJOR_VERSION}
                 -DPSINAD_MINOR_VERSION=${PSINAD_MINOR_VERSION}
                 -DPSINAD_BUILD_VERSION=${PSINAD_BUILD_VERSION})
+message(STATUS "======== Configuring PROGRAM: ${PSINAD_LIBRARY_NAME} ver-${PSINAD_VERSION} ========")
+
+########################################################################################################################
+## Configure C++ & Python
 
 # Set the C++ standard to 17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS "Current C++ compiler g++")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(STATUS "Current C++ compiler clang++")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message(STATUS "Current C++ compiler MSVC")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message(STATUS "Current C++ compiler Intel C++")
+else()
+    message(STATUS "Other C++ compiler type (without test!): ${CMAKE_CXX_COMPILER_ID}")
+endif()
 
-# Find Python interpreter
+# Find/set Python interpreter
 find_package(PythonInterp REQUIRED)
 mark_as_advanced(CLEAR PYTHON_EXECUTABLE)
 
-# Prevent in-source builds
-if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-    message(FATAL_ERROR "In-source builds are not allowed. Please use a separate build directory.")
-endif()
 
-# Option to enable verbose
-option(ENABLE_VERBOSE_MAKEFILE "Enable verbose output during build" OFF)
-if(ENABLE_VERBOSE_MAKEFILE)
-    set(CMAKE_VERBOSE_MAKEFILE ON)
-endif()
+########################################################################################################################
+## Configure Platform: compiler flags & install dir
 
-# Option to enable ccache
-option(CCACHE_ENABLE "Enable ccache for faster compilation" OFF)
-find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_ENABLE AND CCACHE_PROGRAM)
-    message(STATUS "ccache is enabled and found at: ${CCACHE_PROGRAM}. Setting up ccache for compilation and linking...")
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
-elseif(CCACHE_ENABLE)
-    message(WARNING "ccache is enabled but not found. Skipping ccache setup.")
-else()
-    message(STATUS "ccache is disabled. Skipping ccache setup.")
-endif()
-
-# Find and enable compile-time-perf if available
-find_package(compile-time-perf QUIET)
-if(compile-time-perf_FOUND)
-    message(STATUS "compile-time-perf found. Enabling compile-time performance measurements...")
-    enable_compile_time_perf(kids-ctp)
-else()
-    message(STATUS "compile-time-perf not found. Skipping compile-time performance measurements.")
-endif()
-
-# Append additional module paths & include some customized modules
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/thirdpart/catch2/contrib")
-include(printings)
-include(TargetArch)
-# include(module)
-# module_config()
-
-# Options to determine what type of libraries to build
-option(PSINAD_BUILD_SHARED_LIB "Build shared PSiNad libraries" ON)
-option(PSINAD_BUILD_STATIC_LIB "Build static PSiNad libraries" ON)
-
-# Add include directories
-include_directories(
-    ${CMAKE_SOURCE_DIR}/generate
-    ${CMAKE_SOURCE_DIR}/thirdpart
-    ${CMAKE_SOURCE_DIR}/thirdpart/Eigen
-    ${CMAKE_SOURCE_DIR}/thirdpart/filesystem/include
-)
-
-################################################################################
-# set esssential variables
-################################################################################
-
-# set(CMAKE_BUILD_TYPE <Config>)
-## Please -DCMAKE_BUILD_TYPE=<Config> : Debug, Release, RelWithDebInfo, MinsizeRel
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fopenmp -march=native")
-
 if(APPLE) # disable some warnings
     add_compile_options(-Wno-switch -Wno-braced-scalar-init -Wno-\#pragma-messages -Wno-enum-compare-switch -Wno-uninitialized)
-endif()
-
-# ################################################################################
-# # configure libraries
-# ################################################################################
-# set(CUSTOMIZED_MKL_DIR "/opt/intel/oneapi/mkl/latest/")
-# set(CUSTOMIZED_MPI_DIR "/opt/intel/oneapi/mpi/latest/")
-# set(CUSTOMIZED_HDF5_DIR "/usr/local/HDF_Group/HDF5/1.13.2")
-
-#find_package(MKLMod)
-
-# find_package(CINTMod) # optional
-
-# #set(AMBERHOME /home/zhf/work/amberfold/amber20/) # @blame DON'T WRITE YOUR LOCAL DIR HERE!
-# include_directories(${AMBERHOME}/include/)
-# link_directories(${AMBERHOME}/lib/)
-
-# ################################################################################
-# # compilation of different parts
-# ################################################################################
-
-# Set default installation prefix if not provided
-if(NOT DEFINED PSINAD_INSTALL_PREFIX)
-    if(WIN32)
-        set(PSINAD_INSTALL_PREFIX "$ENV{ProgramFiles}/PSINAD")
-    else()
-        set(PSINAD_INSTALL_PREFIX "/usr/local/psinad")
-    endif()
-endif()
-
-# Set CMAKE_INSTALL_PREFIX if it has not been initialized by the user
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${PSINAD_INSTALL_PREFIX} CACHE PATH "Where to install PSiNad" FORCE)
+elseif(LINUX)
+    add_compile_options(-Wno-unused-result)
+else()
+    add_compile_options(-Wno-switch -Wno-braced-scalar-init -Wno-\#pragma-messages -Wno-enum-compare-switch -Wno-uninitialized)
 endif()
 # Set default build type to Release for UNIX systems if not specified
 if(UNIX AND NOT CMAKE_BUILD_TYPE)
@@ -138,6 +76,58 @@ if(NOT CMAKE_CXX_FLAGS_RELEASE)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "Flags for Release build" FORCE)
 endif()
 
+# Set default installation prefix if not provided
+if(NOT DEFINED PSINAD_INSTALL_PREFIX)
+    if(WIN32)
+        set(PSINAD_INSTALL_PREFIX "$ENV{ProgramFiles}/PSINAD")
+    else()
+        set(PSINAD_INSTALL_PREFIX "/usr/local/psinad")
+    endif()
+endif()
+# Set CMAKE_INSTALL_PREFIX if it has not been initialized by the user
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX ${PSINAD_INSTALL_PREFIX} CACHE PATH "Where to install PSiNad" FORCE)
+endif()
+
+
+########################################################################################################################
+## Configure cmake modules & some compile-time packages
+
+# Option to enable verbose
+option(ENABLE_VERBOSE_MAKEFILE "Enable verbose output during build" OFF)
+if(ENABLE_VERBOSE_MAKEFILE)
+    set(CMAKE_VERBOSE_MAKEFILE ON)
+endif()
+# Append additional module paths & include some customized modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/thirdpart/catch2/contrib")
+include(printings)
+include(TargetArch)
+## include(module)
+## module_config()
+# Option to enable ccache
+option(CCACHE_ENABLE "Enable ccache for faster compilation" OFF)
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_ENABLE AND CCACHE_PROGRAM)
+    message(STATUS "ccache is enabled and found at: ${CCACHE_PROGRAM}. Setting up ccache for compilation and linking...")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CCACHE_PROGRAM})
+elseif(CCACHE_ENABLE)
+    message(WARNING "ccache is enabled but not found. Skipping ccache setup.")
+else()
+    message(STATUS "ccache is disabled. Skipping ccache setup.")
+endif()
+# Find and enable compile-time-perf if available
+find_package(compile-time-perf QUIET)
+if(compile-time-perf_FOUND)
+    message(STATUS "compile-time-perf found. Enabling compile-time performance measurements...")
+    enable_compile_time_perf(kids-ctp)
+else()
+    message(STATUS "compile-time-perf not found. Skipping compile-time performance measurements.")
+endif()
+
+########################################################################################################################
+## Configure git metadata information
 # Collect up information about the version of the PSINAD library we're building
 # and make it available to the code so it can be built into the binaries.
 
@@ -151,10 +141,28 @@ configure_file(
 )
 set(PSINAD_GIT_VERSION ${GIT_HASH})
 
+########################################################################################################################
+## Options for the program
+
+# Options to determine what type of libraries to build
+option(PSINAD_BUILD_SHARED_LIB "Build shared PSiNad libraries" ON)
+option(PSINAD_BUILD_STATIC_LIB "Build static PSiNad libraries" ON)
+
 # Define library targets
 #set(SHARED_TARGET ${PSINAD_LIBRARY_NAME}) # revise to the following line
 set(SHARED_TARGET ${PSINAD_LIBRARY_NAME}_shared)
 set(STATIC_TARGET ${PSINAD_LIBRARY_NAME}_static)
+
+# Add include directories
+include_directories(
+    ${CMAKE_SOURCE_DIR}/generate
+    ${CMAKE_SOURCE_DIR}/thirdpart
+    ${CMAKE_SOURCE_DIR}/thirdpart/Eigen
+    ${CMAKE_SOURCE_DIR}/thirdpart/filesystem/include
+)
+
+########################################################################################################################
+## Set output dir for libraries; Collect source files
 
 # If no custom executable output path is specified, set it to the binary directory
 if(NOT EXECUTABLE_OUTPUT_PATH)
@@ -171,7 +179,6 @@ endif()
 # Define variables for executable and library directories
 set(${PROJECT_NAME}_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
 set(${PROJECT_NAME}_LIBRARY_DIR    ${LIBRARY_OUTPUT_PATH}/${CMAKE_CFG_INTDIR})
-
 
 # The source is organized into subdirectories, but we handle them all together
 # rather than visit them as SUBDIRS.
@@ -215,7 +222,7 @@ foreach(subdir ${PSINAD_SOURCE_SUBDIRS})
     include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include)
 endforeach()
 
-# Set compile flags for specific source files
+# Set compile flags for specific source files for Eigen
 set_source_files_properties(
     ${CMAKE_SOURCE_DIR}/src/core/src/linalg.cpp
     ${CMAKE_SOURCE_DIR}/src/core/src/linalg_1.cpp
@@ -272,6 +279,9 @@ file(GLOB_RECURSE CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 file(GLOB_RECURSE TOP_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/kids/*.h)
 install(FILES ${CORE_HEADERS} DESTINATION include)
 install(FILES ${TOP_HEADERS} DESTINATION include/kids)
+
+########################################################################################################################
+## Build C++ backend
 
 # C++ backends
 option(PSINAD_BUILD_CXX_BACKENDS "Build backend for C++" ON)
@@ -354,12 +364,18 @@ if(PSINAD_BUILD_CXX_BACKENDS)
     install(TARGETS psisamp RUNTIME DESTINATION bin LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 endif()
 
+########################################################################################################################
+## Build python wrapper
+
 # Python wrappers
 option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
 if(PSINAD_BUILD_PYTHON_WRAPPERS)
     add_subdirectory(thirdpart/pybind11)
     add_subdirectory(wrappers/python)
 endif()
+
+########################################################################################################################
+## Perform Unit tests
 
 # Tests
 option(PSINAD_BUILD_TESTS "Build tests" OFF)
@@ -372,6 +388,9 @@ if(PSINAD_BUILD_TESTS)
     include_directories(${CMAKE_SOURCE_DIR}/tests)
     add_subdirectory(tests)
 endif()
+
+########################################################################################################################
+## Run some example tests
 
 # Examples
 option(PSINAD_BUILD_EXAMPLES "Build example executables" OFF)

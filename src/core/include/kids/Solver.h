@@ -42,6 +42,14 @@ class Solver {
 
     std::shared_ptr<Kernel> getSolverKernel() { return _solver_kernel; }
 
+    inline void setInputParam(std::shared_ptr<Param> PM){
+        _solver_kernel->setInputParam(PM);
+    }    
+
+    inline void setInputDataSet(std::shared_ptr<DataSet> DS){
+        _solver_kernel->setInputDataSet(DS);
+    }    
+
    private:
     std::shared_ptr<System> _system;
     std::shared_ptr<Kernel> _solver_kernel;

@@ -100,17 +100,17 @@ def build_setup_kwargs():
 
     libraries = ['PSiNad_shared'] #, 'PSINADPlugin']
 
-    # extension_args = {
-    #     "name": "pyPSiNad._psinad",
-    #     "sources": ["swig/PSINADSwig.cxx"],
-    #     "include_dirs": include_dirs,
-    #     "define_macros": define_macros,
-    #     "library_dirs": library_dirs,
-    #     "libraries": libraries,
-    #     "extra_compile_args": ['-std=c++17', '-Wno-c++11-extensions'],
-    #     "extra_link_args": ['-std=c++17'],
-    #     "runtime_library_dirs":library_dirs,
-    # }
+    extension_args = {
+        "name": "pyPSiNad._psinad",
+        "sources": ["swig/PSINADSwig.cxx"],
+        "include_dirs": include_dirs,
+        "define_macros": define_macros,
+        "library_dirs": library_dirs,
+        "libraries": libraries,
+        "extra_compile_args": ['-std=c++17', '-Wno-c++11-extensions'],
+        "extra_link_args": ['-std=c++17'],
+        "runtime_library_dirs":library_dirs,
+    }
 
     setup_kwargs = {
         "name": "pyPSINAD",
@@ -132,7 +132,7 @@ def build_setup_kwargs():
         nonadiabatic dynamics based quantum phase space and advanced trajectory-based approximations.
         """,
         "ext_modules" : [
-            # Extension(**extension_args),
+            Extension(**extension_args),
             Pybind11Extension(
                 "pyPSiNad.libpyPSiNad_v2",
                 sorted(glob("pybind11/libpyPSiNad_v2.cpp")),
