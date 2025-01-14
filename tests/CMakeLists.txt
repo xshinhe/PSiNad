@@ -1,7 +1,7 @@
 include(CTest)
 include(Catch)
 
-file(GLOB test_list *.cpp)
+file(GLOB test_list unittest/*.cpp)
 
 ## Base tests
 foreach(test_file ${test_list})
