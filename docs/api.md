@@ -2,7 +2,6 @@
 
 @subpage apis_cpp
 @subpage apis_python
-@subpage apis_rust
 
 [TOC]
 

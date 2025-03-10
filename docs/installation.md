@@ -57,11 +57,6 @@ You can modify `cmake/FindMKLMod.cmake` and `cmake/FindMKLMod.cmake` to suit you
 ## Benchmark Test
 
 
-## PyPSiNad
-
-## rust-PSiNad
-
-
 <div class="section_buttons">
 
 | Previous          |                              Next |

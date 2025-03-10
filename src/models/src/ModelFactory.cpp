@@ -7,6 +7,7 @@
 #include "kids/Model_QMInterface.h"
 #include "kids/Model_QMMMInterface.h"
 #include "kids/Model_SystemBath.h"
+#include "kids/Model_TDSystemBath.h"
 
 namespace PROJECT_NS {
 
@@ -14,6 +15,8 @@ std::shared_ptr<Model> defaultModelFactory(const std::string& name) {
     if (false) {
     } else if (name == "SystemBath") {
         return std::shared_ptr<Model_SystemBath>(new Model_SystemBath());
+    } else if (name == "TDSB") {
+        return std::shared_ptr<Model_TDSystemBath>(new Model_TDSystemBath());
     } else if (name == "ET") {
         return std::shared_ptr<Model_ElectronTransfer>(new Model_ElectronTransfer());
     } else if (name == "LVCM") {

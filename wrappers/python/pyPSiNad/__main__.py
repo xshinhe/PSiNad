@@ -8,7 +8,7 @@ model = pyPSiNad.testmodels.PyModel_SBtest('TEST 1')
 # pyPSiNad.modelfactory('systembath')
 
 # eqv. model = pyPSiNad.SpinbosonModel()
-system = pyPSiNad.System(model, PM, DS)
+# system = pyPSiNad.System(model, PM, DS)
 solver1 = pyPSiNad.onlySampling(model) # / from system
 solver2 = pyPSiNad.defaultSolverFactory('NAD', model)
 

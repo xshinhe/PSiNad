@@ -134,11 +134,11 @@ endif()
 # Processing repository fingerprint
 include(repo)
 get_repo_info(GIT_BRANCH GIT_DATE GIT_HASH GIT_STATUS)
-configure_file(
-  ${CMAKE_SOURCE_DIR}/version/version.h.in
-  ${CMAKE_SOURCE_DIR}/generate/version.h
-  @ONLY
-)
+# configure_file(
+#   ${CMAKE_SOURCE_DIR}/version/version.h.in
+#   ${CMAKE_SOURCE_DIR}/generate/version.h
+#   @ONLY
+# )
 set(PSINAD_GIT_VERSION ${GIT_HASH})
 
 ########################################################################################################################

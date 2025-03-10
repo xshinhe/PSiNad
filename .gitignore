@@ -1,5 +1,6 @@
 generate
 build
+build*
 wrappers/rustkids/target
 docs/html
 __pycache__

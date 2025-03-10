@@ -17,15 +17,17 @@ Continual development efforts focus on expanding the library of models and solve
 
 ### License
 
-~~The PSiNad framework is free of use and integration, while some algorithms may be used with proper guarantee.~~
+Peking University @ Copyright.
+
+The project is maintained under Jian Liu Group, CCME, PeKing University. Email <xxx@pku.edu.cn>.
+
+~~The PSiNad framework is free of use and integration, however some algorithms may be used with proper guarantee.~~
 
 ### Support
 
-Author: Xin He(<xshinhe@pku.edu.cn>)
-
 Contributors: 
 
-The project is maintained under Jian Liu group, CCME, PeKing University.
+Xin He(<xshinhe@pku.edu.cn>), XXX (<xxx@pku.edu.cn>) etc.
 
 ## Features
 
@@ -55,7 +57,7 @@ The project is maintained under Jian Liu group, CCME, PeKing University.
 
 - [x] Linux (Ubuntu 20.04 LTS + Intel oneAPI) 
 - [x] macOS (Sequoia + Cellar Open-mpi 5.0.6) 
-- [x] Windows (Win10 + Intel oneAPI 20)
+- [ ] Windows (Win10 + Intel oneAPI 20)
 
 <div class="section_buttons">
 
