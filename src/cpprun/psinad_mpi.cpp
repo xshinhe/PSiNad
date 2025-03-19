@@ -96,6 +96,10 @@ int main(int argc, char* argv[]) {
                                  (guard.iend - guard.istart)  //
                           << std::endl;
             }
+
+            int flevel = -1;
+            if(icalc == guard.istart) flevel = -2;
+            RuleSet::flush_all(solver2_kernel->directory, utils::concat(".mpi", MPI_Guard::rank), flevel);
         }
         MPI_Barrier(MPI_COMM_WORLD);
 

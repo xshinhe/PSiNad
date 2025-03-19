@@ -34,6 +34,7 @@ void RuleSet::registerRules(std::shared_ptr<RuleEvaluator>& exprRule) {
 RuleSet::RuleSet(std::shared_ptr<RuleEvaluator>& expr_rule) {
     unique_name      = expr_rule->save;
     header           = "";
+    header_fstat     = "";
     totalFrameNumber = expr_rule->totalFrameNumber;
     rules.push_back(expr_rule);
     appendHeader(expr_rule);
@@ -45,11 +46,27 @@ void RuleSet::flush_all(const std::string& path, const std::string& suff, int le
 }
 
 void RuleSet::flush(const std::string& path, const std::string& suff, int level) {
-    std::ofstream ofs(utils::concat(path, "/", unique_name, suff));
-    ofs << header << "\n";
+    std::ofstream ofs;
+    if(level >=0) {
+        ofs.open(utils::concat(path, "/", unique_name, suff));
+        ofs << header << "\n";
+    }else if(level==-2){
+        ofs.open(utils::concat(path, "/fstat-", unique_name, suff));
+        ofs << header_fstat << "\n";
+    }else if(level==-1){
+        ofs.open(utils::concat(path, "/", unique_name, suff), std::ios::app);
+    }else{
+        throw std::runtime_error("bad level");
+    }
     for (int iframe = 0; iframe < totalFrameNumber; ++iframe) {
         for (auto& r : rules) {
             switch (level) {
+                case -2: 
+                case -1: 
+                {
+                    r->writeTo(ofs, r->result->dataPointerRes0, totalFrameNumber-1);
+                    break;
+                }
                 case 0: {
                     r->writeTo(ofs, r->result->dataPointerRes0, iframe);
                     break;
@@ -98,6 +115,8 @@ void RuleSet::appendHeader(std::shared_ptr<RuleEvaluator>& expr_rule) {
             break;
         }
     }
+
+    if(expr_rule->mode == "fstat") header_fstat += ss.str();
     header += ss.str();
 }
 

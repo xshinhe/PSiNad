@@ -88,6 +88,7 @@ class RuleSet final {
     friend class Kernel_Recorder;
     std::string                                 unique_name;
     std::string                                 header;            ///< The header of set
+    std::string                                 header_fstat;
     size_t                                      totalFrameNumber;  ///< The number of frames.
     std::vector<std::shared_ptr<RuleEvaluator>> rules;             ///< List of RuleEvaluator
     bool                                        writeable = true;
