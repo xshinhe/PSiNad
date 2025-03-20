@@ -9,14 +9,14 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is a product of Xin's PhD research conducted by Professor Liu's
- *  Group at the College of Chemistry and Molecular Engineering, Peking University.
- *  All rights are reserved by Peking University.
- *  You should have received a copy of the GNU Lesser General Public License along
- *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ *  This software is a product of Xin's PhD research conducted by Professor
+ *Liu's Group at the College of Chemistry and Molecular Engineering, Peking
+ *University. All rights are reserved by Peking University. You should have
+ *received a copy of the GNU Lesser General Public License along with this
+ *software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
  **********************************************************************************
- * @warning    Do not include this file to any header. You'd better include it only
- *  in source files!
+ * @warning    Do not include this file to any header. You'd better include it
+ *only in source files!
  * @par [logs]:
  * <table>
  * <tr><th> Date        <th> Description
@@ -40,13 +40,16 @@
 namespace PROJECT_NS {
 
 /**
- * @brief Represents a handler for input/output operations related to expressions.
+ * @brief Represents a handler for input/output operations related to
+ * expressions.
  *
- * This class manages the input/output operations for expressions. It allows registration of rules
- * and flushing the data to files. Each rule is associated with specific input/output file names.
+ * This class manages the input/output operations for expressions. It allows
+ * registration of rules and flushing the data to files. Each rule is associated
+ * with specific input/output file names.
  */
-class RuleSet final {
-   public:
+class RuleSet final
+{
+public:
     /**
      * @brief Get the list of RuleSet instances.
      *
@@ -57,12 +60,13 @@ class RuleSet final {
     /**
      * @brief Register rules in the RuleSet for a specific input/output file.
      *
-     * If the RuleSet instance for the given file name already exists, the rule is added to it.
-     * Otherwise, a new RuleSet instance is created.
+     * If the RuleSet instance for the given file name already exists, the rule
+     * is added to it. Otherwise, a new RuleSet instance is created.
      *
      * @param expr_rule Pointer to the RuleEvaluator to be registered.
      */
-    static void registerRulesInRuleSet(std::shared_ptr<RuleEvaluator>& exprRule);
+    static void registerRulesInRuleSet(
+        std::shared_ptr<RuleEvaluator>& exprRule);
 
     /**
      * @brief Destructor.
@@ -74,7 +78,8 @@ class RuleSet final {
     /**
      * @brief Flush data to all output files.
      */
-    static void flush_all(const std::string& path, const std::string& suff, int level);
+    static void flush_all(const std::string& path, const std::string& suff,
+                          int level);
 
     std::vector<std::shared_ptr<RuleEvaluator>>& getRules();
 
@@ -84,24 +89,24 @@ class RuleSet final {
 
     Result getReduced();
 
-   private:
+private:
     friend class Kernel_Recorder;
-    std::string                                 unique_name;
-    std::string                                 header;            ///< The header of set
-    std::string                                 header_fstat;
-    size_t                                      totalFrameNumber;  ///< The number of frames.
-    std::vector<std::shared_ptr<RuleEvaluator>> rules;             ///< List of RuleEvaluator
-    bool                                        writeable = true;
+    std::string unique_name;
+    std::string header;
+    size_t totalFrameNumber; ///< The number of frames.
+    std::vector<std::shared_ptr<RuleEvaluator>>
+        rules; ///< List of RuleEvaluator
+    bool writeable = true;
 
-    RuleSet() : writeable{false} {};  // @not registered
+    RuleSet() : writeable{false} {}; // @not registered
 
     void registerRules(std::shared_ptr<RuleEvaluator>& exprRule);
 
     /**
      * @brief Constructor.
      *
-     * Initializes the RuleSet instance with the given RuleEvaluator and file name.
-     * Opens the output file stream.
+     * Initializes the RuleSet instance with the given RuleEvaluator and file
+     * name. Opens the output file stream.
      *
      * @param expr_rule Pointer to the RuleEvaluator.
      */
@@ -111,7 +116,8 @@ class RuleSet final {
      * @brief Flush data to the output file.
      *
      * @param path Path for writing the file
-     * Writes the file header followed by data for each frame according to registered rules.
+     * Writes the file header followed by data for each frame according to
+     * registered rules.
      */
     void flush(const std::string& path, const std::string& suff, int level);
 
@@ -122,6 +128,6 @@ class RuleSet final {
      */
     void appendHeader(std::shared_ptr<RuleEvaluator>& expr_rule);
 };
-};  // namespace PROJECT_NS
+}; // namespace PROJECT_NS
 
-#endif  // KIDS_RULESET_H
+#endif // KIDS_RULESET_H

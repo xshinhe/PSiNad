@@ -55,7 +55,7 @@ class Context {
     Result      result(Status& stat);
 
    private:
-    std::size_t                                       currentSolverGroupId;
+    std::shared_ptr<Status>                           _stat;
     std::shared_ptr<Param>                            _param;
     std::shared_ptr<DataSet>                          _dataset;
     std::shared_ptr<RuleSet>                          _ruleset;

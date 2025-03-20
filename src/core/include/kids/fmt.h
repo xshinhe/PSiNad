@@ -43,10 +43,22 @@ constexpr inline int FMT_WIDTH(int X) { return X + 7; }
         << std::right                             /*alignment*/           \
         << std::setw(FMT_WIDTH(X))                /*width of text*/
 
+
+/**
+ * @brief return the base of filename
+ */
+inline const char *basename(const char *filepath) {
+    const char *base = strrchr(filepath, '/');
+#ifdef _WIN32  // windows system
+    if (!base) base = strrchr(filepath, '\\');
+#endif
+    return base ? (base + 1) : filepath;
+}
+
 /**
  * show the location information for debug
  */
-#define LOC() (std::string(basename(__FILE__)) + ":" + std::to_string(__LINE__))
+#define LOC() (std::string(basename(__FILE__)) + ":" + std::to_string(__LINE__) + " | ")
 
 };  // namespace PROJECT_NS
 
