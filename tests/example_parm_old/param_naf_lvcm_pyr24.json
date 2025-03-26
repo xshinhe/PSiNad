@@ -1,0 +1,40 @@
+{
+    "model": {
+        "name": "LVCM",
+        "lvcm_flag": "PYR24",
+        "N": 24,
+        "F": 2,
+        "occ": 1,
+        "dt": "0.05 fs",
+        "tend":"500.0 fs"
+	},
+	"solver": {
+    	"name": "NAD-coup",
+		"sampling_ele_flag": "Constraint",
+		"sampling_nuc_flag": "Gaussian",
+        "M": 1,
+        "P": 100,
+        "msize": 4,
+        "sstep": 200,
+    	"dump": "null",
+        "gamma": -1.0, // wigner
+        "representation_flag": "Adiabatic",
+        "inp_repr_flag": "Diabatic",
+        "ele_repr_flag": "Diabatic",
+        "nuc_repr_flag": "Adiabatic",
+    	"naforce": "EHR",
+    	"hopping_choose_type": 1,
+    	"hopping_direction_type": 2,
+    	"reflect": false,
+    	"use_cv": true,
+    	"offd_projected": true,
+    	"conserve_scale": true,
+    	"basis_switch": false,
+        "time_unit": "1.0 fs"
+	},
+    "record": [
+        {"rule": "CPSpop<mi>:R(w, K1{@0}<m[occ][occ]>, K2<mii>)", "save": "CPSpop.dat"},
+		{"rule": "TWFpop<mi>:R(w, KTWD{@0}<m[occ][occ]>, KTWD<mii>)", "save": "TWFpop.dat"}
+	]
+}
+

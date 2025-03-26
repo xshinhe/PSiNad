@@ -1,0 +1,37 @@
+{
+    "model": {
+        "name": "LVCM",
+        "lvcm_flag": "CED2",
+        "N": 200,
+        "F": 2,
+        "occ": 1,
+        "dt": 0.01,
+        "tend": 2200.0
+    },
+    "solver": {
+        "name": "NAD",
+        "sampling_ele_flag": "SQCtri",
+        "sampling_nuc_flag": "Gaussian",
+        "M": 96000,
+        "msize": 4,
+        "sstep": 20,
+        "dump": "null",
+        "gamma": 0.333,
+        "representation_flag": "Adiabatic",
+        "inp_repr_flag": "Diabatic",
+        "ele_repr_flag": "Diabatic",
+        "nuc_repr_flag": "Adiabatic",
+        "naforce": "NAF",
+        "hopping_choose_type": 1,
+        "hopping_direction_type": 2,
+        "reflect": false,
+        "use_cv": true,
+        "use_fssh": false,
+        "offd_projected": true,
+        "conserve_scale": true,
+        "basis_switch": false
+    },
+    "record": [
+        {"rule": "TWpop<mi>:R(w, KTWD{@0}<m[occ][occ]>, KTWD<mii>)", "save": "CED2_NAFTW2.dat"},
+    ]
+}

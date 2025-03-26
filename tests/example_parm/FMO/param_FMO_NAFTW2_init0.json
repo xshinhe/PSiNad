@@ -1,0 +1,47 @@
+{
+    "model": {
+        "name": "SystemBath",
+        "system_flag": "FMO",
+        "coupling_flag": "SE",
+        "strength_flag": "Lambda",
+        "bath_flag": "Debye",
+        "bath_omegac": "106.14 wn",
+        "bath_strength": "35.0 wn",
+        "bath_temperature": "300 K",
+        "bath_classic": false,
+        "nbath": 7,
+        "Nb": 50,
+        "N": 350,
+        "F": 7,
+        "occ": 0,
+        "dt": "0.1 fs",
+        "tend": "1000.0 fs"
+    },
+    "solver": {
+        "name": "NAD",
+        "sampling_ele_flag": "SQCtri",
+        "sampling_nuc_flag": "Gaussian",
+        "M": 96000,
+        "msize": 4,
+        "sstep": 20,
+        "dump": "null",
+        "gamma": 0.333,
+        "representation_flag": "Adiabatic",
+        "inp_repr_flag": "Diabatic",
+        "ele_repr_flag": "Diabatic",
+        "nuc_repr_flag": "Adiabatic",
+        "naforce": "NAF",
+        "hopping_choose_type": 1,
+        "hopping_direction_type": 2,
+        "reflect": false,
+        "use_cv": true,
+        "use_fssh": false,
+        "offd_projected": true,
+        "conserve_scale": true,
+        "basis_switch": false,
+        "time_unit": "1.0 fs"
+    },
+    "record": [
+        {"rule": "TWrho<mij>:C(w, KTWD{@0}<m[occ][occ]>, KTWD<mij>)", "save": "FMO_NAFTW2.dat"},
+    ]
+}

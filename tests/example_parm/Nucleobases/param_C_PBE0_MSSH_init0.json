@@ -1,0 +1,39 @@
+{
+    "model": {
+        "name": "LVCM",
+        "lvcm_flag": "Read",
+        "lvcm_file": "C_PBE0_lvcm.dat",
+        "N": 33,
+        "F": 7,
+        "occ": 0,
+        "dt": "0.05 fs",
+        "tend":"300.0 fs"
+    },
+    "solver": {
+        "name": "NAD",
+        "sampling_ele_flag": "Constraint",
+        "sampling_nuc_flag": "Gaussian",
+        "M": 96000,
+        "msize": 4,
+        "sstep": 20,
+        "dump": "null",
+        "gamma": -2.0,
+        "representation_flag": "Adiabatic",
+        "inp_repr_flag": "Diabatic",
+        "ele_repr_flag": "Diabatic",
+        "nuc_repr_flag": "Adiabatic",
+        "naforce": "BO",
+        "hopping_choose_type": 0,
+        "hopping_direction_type": 0,
+        "reflect": true,
+        "use_cv": false,
+        "use_fssh": false,
+        "offd_projected": true,
+        "conserve_scale": true,
+        "basis_switch": false,
+        "time_unit": "1.0 fs"
+    },
+    "record": [
+        {"rule": "MSSHpop<mi>:R(w, K1QD{@0}<m[occ][occ]>, K1<mii>)", "save": "C_PBE0_MSSH.dat"},
+    ]
+}

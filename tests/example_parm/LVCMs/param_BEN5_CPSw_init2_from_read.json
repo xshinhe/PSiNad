@@ -1,0 +1,39 @@
+{
+    "model": {
+        "name": "LVCM",
+        "lvcm_flag": "Read",
+        "lvcm_file": "BEN5_lvcm.dat",
+        "N": 5,
+        "F": 3,
+        "occ": 2,
+        "dt": "0.05 fs",
+        "tend": "300.0 fs"
+    },
+    "solver": {
+        "name": "NAD",
+        "sampling_ele_flag": "Constraint",
+        "sampling_nuc_flag": "Gaussian",
+        "M": 96000,
+        "msize": 4,
+        "sstep": 20,
+        "dump": "null",
+        "gamma": -1.0,
+        "representation_flag": "Adiabatic",
+        "inp_repr_flag": "Diabatic",
+        "ele_repr_flag": "Diabatic",
+        "nuc_repr_flag": "Adiabatic",
+        "naforce": "EHR",
+        "hopping_choose_type": 1,
+        "hopping_direction_type": 2,
+        "reflect": false,
+        "use_cv": true,
+        "use_fssh": false,
+        "offd_projected": true,
+        "conserve_scale": true,
+        "basis_switch": false,
+        "time_unit": "1.0 fs"
+    },
+    "record": [
+        {"rule": "CPSpop<mi>:R(w, K1{@0}<m[occ][occ]>, K2<mii>)", "save": "BEN5_CPSw.dat"},
+    ]
+}

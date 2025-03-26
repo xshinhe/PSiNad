@@ -1,0 +1,48 @@
+{
+    "model": {
+        "name": "SystemBath",
+        "system_flag": "SB",
+        "coupling_flag": "SB",
+        "strength_flag": "Alpha",
+        "bath_flag": "Ohmic",
+        "bath_omegac": 1.0,
+        "bath_strength": 0.4,
+        "bath_temperature": "5.0 auK^-1",
+        "bath_classic": false,
+        "nbath": 1,
+        "Nb": 100,
+        "N": 100,
+        "F": 2,
+        "bias": 1.0,
+        "delta": 1.0,
+        "occ": 0,
+        "dt": 0.01,
+        "tend": 15.0
+    },
+    "solver": {
+        "name": "NAD",
+        "sampling_ele_flag": "Constraint",
+        "sampling_nuc_flag": "Gaussian",
+        "M": 96000,
+        "msize": 4,
+        "sstep": 20,
+        "dump": "null",
+        "gamma": -1.0,
+        "representation_flag": "Adiabatic",
+        "inp_repr_flag": "Diabatic",
+        "ele_repr_flag": "Diabatic",
+        "nuc_repr_flag": "Adiabatic",
+        "naforce": "NAF",
+        "hopping_choose_type": 1,
+        "hopping_direction_type": 2,
+        "reflect": false,
+        "use_cv": true,
+        "use_fssh": false,
+        "offd_projected": true,
+        "conserve_scale": true,
+        "basis_switch": false
+    },
+    "record": [
+        {"rule": "CPSrho<mij>:C(w, K1{@0}<m[occ][occ]>, K2<mij>)", "save": "SB6_NAFw.dat"},
+    ]
+}

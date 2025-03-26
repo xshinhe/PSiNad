@@ -1,0 +1,58 @@
+{
+    "backup_time": -1.0,
+    "directory": "default",
+    "exchange_num": 10,
+    "exchange_time": 60.0,
+    "handler": "parallel",
+    "model": {
+        "F": 7,
+        "N": 350,
+        "Nb": 50,
+        "bath_classic": false,
+        "bath_flag": "Debye",
+        "bath_omegac": "106.14 wn",
+        "bath_strength": "35.0 wn",
+        "bath_temperature": "77 K",
+        "coupling_flag": "SE",
+        "dt": "0.1 fs",
+        "name": "SystemBath",
+        "nbath": 7,
+        "occ": 0,
+        "strength_flag": "Lambda",
+        "system_flag": "FMO",
+        "tend": "1000.0 fs",
+        "unit_dt": "1.0 fs"
+    },
+    "record": [
+        {
+            "rule": "CPSpop<mi>:R(w, K1{@0}<m[occ][occ]>, K2<mii>)",
+            "save": "res.dat"
+        }
+    ],
+    "restart": false,
+    "solver": {
+        "BATH_FORCE_BILINEAR": true,
+        "M": 100,
+        "basis_switch": false,
+        "bath_et_transfrom": false,
+        "conserve_scale": true,
+        "ele_repr_flag": "Diabatic",
+        "gamma": 0.366,
+        "hopping_choose_type": 1,
+        "hopping_direction_type": 2,
+        "inp_repr_flag": "Diabatic",
+        "msize": 4,
+        "naforce": "NAF",
+        "name": "NAD",
+        "nuc_repr_flag": "Adiabatic",
+        "offd_projected": true,
+        "reflect": false,
+        "representation_flag": "Adiabatic",
+        "sampling_ele_flag": "Constraint",
+        "sampling_nuc_flag": "Gaussian",
+        "sstep": 10,
+        "use_cv": true
+    },
+    "timing": false,
+    "use_exchange": false
+}
