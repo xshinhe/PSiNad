@@ -263,6 +263,43 @@ void Param::set_string(const std::string &key, std::string val) {
     if (impl_t == TOML) set_internal(std::dynamic_pointer_cast<TomlObject>(obj)->data, key, val);
 }
 
+void Param::set_bool_ifndef(const std::string &key, bool val) {
+    if (impl_t == JSON) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val); }
+    }
+    if (impl_t == TOML) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<TomlObject>(obj)->data, key, val); }
+    }
+}
+
+void Param::set_int_ifndef(const std::string &key, int val) {
+    if (impl_t == JSON) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val); }
+    }
+    if (impl_t == TOML) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<TomlObject>(obj)->data, key, val); }
+    }
+}
+
+void Param::set_real_ifndef(const std::string &key, kids_real val) {
+    if (impl_t == JSON) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val); }
+    }
+    if (impl_t == TOML) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<TomlObject>(obj)->data, key, val); }
+    }
+}
+
+void Param::set_string_ifndef(const std::string &key, std::string val) {
+    if (impl_t == JSON) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val); }
+    }
+    if (impl_t == TOML) {
+        if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<TomlObject>(obj)->data, key, val); }
+    }
+}
+
+
 /**
  * @brief get parameter
  * @param json : DataObject object

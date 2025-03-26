@@ -2,10 +2,9 @@
 
 [TOC]
 
-![version](https://img.shields.io/badge/version-0.0.1-g)  ![language](https://img.shields.io/badge/language-c++-orange) ![wrapper](https://img.shields.io/badge/wrapper-python3-red) ![platform](https://img.shields.io/badge/platform-linux-lightgrey) ![platform](https://img.shields.io/badge/platform-macos-lightgrey) ![platform](https://img.shields.io/badge/platform-windows-lightgrey) ![cmake](https://img.shields.io/badge/cmake->3.16-yellow) ![status](https://img.shields.io/badge/status-up-blue) ![uptime](https://img.shields.io/badge/uptime-100%25-g) ![coverage](https://img.shields.io/badge/coverage-100%25-pink) ![codecy](https://img.shields.io/badge/codecy-B-g) 
-
-
 ![](docs/img/PSiNad.png)
+
+![version](https://img.shields.io/badge/version-0.0.1-g)  ![language](https://img.shields.io/badge/language-c++-orange) ![wrapper](https://img.shields.io/badge/wrapper-python3-red) ![platform](https://img.shields.io/badge/platform-linux-lightgrey) ![platform](https://img.shields.io/badge/platform-macos-lightgrey) ![platform](https://img.shields.io/badge/platform-windows-lightgrey) ![cmake](https://img.shields.io/badge/cmake->3.16-yellow) ![status](https://img.shields.io/badge/status-up-blue) ![uptime](https://img.shields.io/badge/uptime-100%25-g) ![coverage](https://img.shields.io/badge/coverage-100%25-pink) ![codecy](https://img.shields.io/badge/codecy-B-g) 
 
 ## Introduction
 
@@ -13,7 +12,7 @@
 
 PSiNad features a comprehensive array of models and solvers, including harmonic models, forcefield models, and ab initio interfaces, meeting diverse simulation needs. It supports a wide range of computational approaches, from classical dynamics based on Newtonian and Hamiltonian mechanics to sophisticated quantum dynamics incorporating quantum phase space approximations, quantum trajectories, path integral techniques, influence functional methods, and semi-classical wavepackets.
 
-Continual development efforts focus on expanding the library of models and solvers, with community contributions highly encouraged. To further extend its accessibility, PSiNad is now available as a Python package ([PyPSiNad](docs/api/python.md)) and a Rust crate ([rust-PSiNad](docs/api/rust.md)).
+Continual development efforts focus on expanding the library of models and solvers, with community contributions highly encouraged. To further extend its accessibility, PSiNad is now available as a Python package ([PyPSiNad](docs/api/python.md)). 
 
 ### License
 

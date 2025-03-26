@@ -47,8 +47,8 @@
 #include <vector>
 
 #include "kids/Types.h"
-#include "kids/phys.h"
 #include "kids/fmt.h"
+#include "kids/phys.h"
 
 namespace PROJECT_NS {
 /**
@@ -65,27 +65,20 @@ namespace PROJECT_NS {
  * - XML  (based srlzio      : https://github.com/Mazrog/srlzio)
  * - ENO or namelist (in Fortran)
  */
-class Param final
-{
-public:
-    class DataObject
-    {
-    public:
+class Param final {
+   public:
+    class DataObject {
+       public:
         virtual ~DataObject(){};
     };
 
     /** @see Param(const std::string &input, LoadOption option)
      */
-    enum LoadOption
-    {
-        fromString, ///< construct Param from string
-        fromFile    ///< construct Param from file
+    enum LoadOption {
+        fromString,  ///< construct Param from string
+        fromFile     ///< construct Param from file
     };
-    enum ImplType
-    {
-        JSON,
-        TOML
-    };
+    enum ImplType { JSON, TOML };
 
     /**
      * @param[in]  input              a Json-like string or a file path
@@ -133,34 +126,34 @@ public:
 
     void set_string(const std::string &key, std::string val);
 
-    kids_bool get_bool(const std::vector<std::string> &keys,
-                       const std::string &loc, const kids_bool &default_value);
-    kids_bool get_bool(const std::vector<std::string> &keys,
-                       const std::string &loc = "__loc__");
-    kids_int get_int(const std::vector<std::string> &keys,
-                     const std::string &loc, const kids_int &default_value);
-    kids_int get_int(const std::vector<std::string> &keys,
-                     const std::string &loc = "__loc__");
-    std::string get_string(const std::vector<std::string> &keys,
-                           const std::string &loc,
+    void set_bool_ifndef(const std::string &key, bool val);
+
+    void set_int_ifndef(const std::string &key, int val);
+
+    void set_real_ifndef(const std::string &key, kids_real val);
+
+    void set_string_ifndef(const std::string &key, std::string val);
+
+
+    kids_bool   get_bool(const std::vector<std::string> &keys, const std::string &loc, const kids_bool &default_value);
+    kids_bool   get_bool(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
+    kids_int    get_int(const std::vector<std::string> &keys, const std::string &loc, const kids_int &default_value);
+    kids_int    get_int(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
+    std::string get_string(const std::vector<std::string> &keys, const std::string &loc,
                            const std::string &default_value);
-    std::string get_string(const std::vector<std::string> &keys,
-                           const std::string &loc = "__loc__");
-    kids_real get_real(const std::vector<std::string> &keys,
-                       const std::string &loc, const phys::dimension7 &qdim,
-                       const kids_real &default_value = kids_real());
-    kids_real get_real(const std::vector<std::string> &keys,
-                       const std::string &loc, const kids_real &default_value);
-    kids_real get_real(const std::vector<std::string> &keys,
-                       const std::string &loc = "__loc__");
+    std::string get_string(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
+    kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
+                         const kids_real &default_value = kids_real());
+    kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc, const kids_real &default_value);
+    kids_real   get_real(const std::vector<std::string> &keys, const std::string &loc = "__loc__");
 
     std::string repr();
 
-private:
-    ImplType impl_t;
+   private:
+    ImplType                    impl_t;
     std::shared_ptr<DataObject> obj;
 };
 
-}; // namespace PROJECT_NS
+};  // namespace PROJECT_NS
 
-#endif // KIDS_PARAM_H
+#endif  // KIDS_PARAM_H

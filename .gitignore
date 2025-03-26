@@ -1,6 +1,7 @@
 generate
 build
 build*
+.log
 wrappers/rustkids/target
 docs/html
 __pycache__

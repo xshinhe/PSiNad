@@ -237,8 +237,12 @@ Full examples of different rules is shown as:
         "x<[0]>",   // 0-th component of the variable x
 
         // Short rules for compound variables
+        "*X: R<ikjl> (K<kl>) = _1 * _2", // Output all KK correlations
+        "B (X{result@0}<ij>, K<kl>) = _1 ^2", // Output all KK correlations
+
         "KK<ijkl>(K{@0}<ij>, K<kl>) = _1 * _2", // Output all KK correlations
         "KK<ij>  (K{@0}<ii>, K<jj>) = _1 * _2", // Output only diagonal KK correlations
+        "KK<ij>  (K{@0}<[occ][occ]>, K<jj>) = _1 * _2", // Output only diagonal KK correlations
 
         // A full rule example
         {
