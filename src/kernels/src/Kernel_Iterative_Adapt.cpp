@@ -295,13 +295,15 @@ Status& Kernel_Iterative_Adapt::exchange(Status& stat) {
 }
 
 Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
-    std::cout << "S|: "                       // Status of Adaptive Integrator
-              << std::setw(10) << "Progress"  // Progress before one step
-              << std::setw(10) << "Time"      // Time before one step
-              << std::setw(10) << "tsize"     // tsize before one step
-              << std::setw(10) << "dtsize"    // stepsize before this step
-              << std::setw(10) << "try"       // stepsize after this step
-              << std::endl;
+    if (_param->get_bool({"verbose"}, LOC(), false)) {
+        std::cout << "S|: "                       // Status of Adaptive Integrator
+                  << std::setw(10) << "Progress"  // Progress before one step
+                  << std::setw(10) << "Time"      // Time before one step
+                  << std::setw(10) << "tsize"     // tsize before one step
+                  << std::setw(10) << "dtsize"    // stepsize before this step
+                  << std::setw(10) << "try"       // stepsize after this step
+                  << std::endl;
+    }
     if (_param->get_bool({"restart"}, LOC(), false)) {
         stat.first_step = false;
     } else {
@@ -350,14 +352,14 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         if (!stat.succ && !stat.last_attempt && dtsize[0] == 1) statc = 'L';  // FAILED and TODO TRY LAST
         if (!stat.succ && stat.last_attempt) statc = 'X';                     // END HERE
         if (!stat.succ && stat.fail_type == 1) {
-            if(count_fail_type1 >=2 ){
+            if (count_fail_type1 >= 2) {
                 statc = 'X';
             } else {
-                count_fail_type1++; // don't change statc
+                count_fail_type1++;  // don't change statc
             }
         }
-        if (stat.fail_type != 1) count_fail_type1 = 0; // reset to zero
-        if (stat.frozen) statc = 'Z';                                         // FROZEN THEN
+        if (stat.fail_type != 1) count_fail_type1 = 0;  // reset to zero
+        if (stat.frozen) statc = 'Z';                   // FROZEN THEN
 
         if (std::ifstream{"X_STAT"}.good() && !stat.frozen) statc = 'X';
         if (std::ifstream{utils::concat("X_STAT_", stat.icalc)}.good() && !stat.frozen) statc = 'X';
@@ -397,10 +399,11 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                 if (at_fullstep_finally) istep[0]++;
                 tsize[0] += dtsize[0];
 
-                int extend_dtsize    = (at_fullstep_finally) ? 2 * last_tried_dtsize[0] : 2 * dtsize[0];
+                int extend_dtsize = (at_fullstep_finally) ? 2 * last_tried_dtsize[0] : 2 * dtsize[0];
 
                 // in some case, don't enlarge the time size
-                // if (statc == 'T' && stat.fail_type == -1) extend_dtsize    = (at_fullstep_finally) ? last_tried_dtsize[0] : dtsize[0];
+                // if (statc == 'T' && stat.fail_type == -1) extend_dtsize    = (at_fullstep_finally) ?
+                // last_tried_dtsize[0] : dtsize[0];
 
                 int remain_dtsize    = msize - (tsize[0] % msize);
                 int new_dtsize       = std::min({msize, extend_dtsize, remain_dtsize});

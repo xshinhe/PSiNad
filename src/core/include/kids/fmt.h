@@ -28,6 +28,7 @@
 #ifndef KIDS_FMT_H
 #define KIDS_FMT_H
 
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 
@@ -47,7 +48,7 @@ constexpr inline int FMT_WIDTH(int X) { return X + 7; }
 /**
  * @brief return the base of filename
  */
-inline const char *basename(const char *filepath) {
+inline const char *mybasename(const char *filepath) {
     const char *base = strrchr(filepath, '/');
 #ifdef _WIN32  // windows system
     if (!base) base = strrchr(filepath, '\\');
@@ -58,7 +59,7 @@ inline const char *basename(const char *filepath) {
 /**
  * show the location information for debug
  */
-#define LOC() (std::string(basename(__FILE__)) + ":" + std::to_string(__LINE__) + " | ")
+#define LOC() (std::string(mybasename(__FILE__)) + ":" + std::to_string(__LINE__) + " | ")
 
 };  // namespace PROJECT_NS
 

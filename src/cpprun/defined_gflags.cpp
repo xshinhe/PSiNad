@@ -20,6 +20,7 @@ DEFINE_double(backup_time, -1.0, "Specifies the timestep for backup (/1h)");
 DEFINE_bool(restart, false, "restart");
 DEFINE_bool(timing, false, "Enables simple profiling for time costs");
 DEFINE_bool(profiling, false, "Enables high-performance profiling for time costs");
+DEFINE_bool(verbose, false, "Enables verbose output");
 DEFINE_int32(seed, -1, "random seed");
 DEFINE_int32(BGIDX, 0, "traj idx start");
 DEFINE_bool(ex, false, "Enables exchange of threads");
@@ -31,6 +32,7 @@ void check_and_sync_from_gflags(std::shared_ptr<Param> PM) {
     PM->set_string("directory", FLAGS_d);
     PM->set_bool("timing", FLAGS_timing);
     PM->set_bool("restart", FLAGS_restart);
+    PM->set_bool("verbose", FLAGS_verbose);
     PM->set_bool("use_exchange", FLAGS_ex);
     PM->set_string("handler", FLAGS_handler);
     PM->set_real("backup_time", FLAGS_backup_time);

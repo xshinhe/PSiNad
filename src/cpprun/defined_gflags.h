@@ -18,6 +18,7 @@ DECLARE_double(backup_time);
 DECLARE_bool(restart);
 DECLARE_bool(timing);
 DECLARE_bool(profiling);
+DECLARE_bool(verbose);
 DECLARE_int32(seed);
 DECLARE_int32(BGIDX);
 DECLARE_bool(ex);
