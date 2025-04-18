@@ -17,7 +17,7 @@
 namespace PROJECT_NS {
 
 std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string NAD_Kernel_name) {
-    int split = 4;
+    int split = 1;
 
     // Root Kernel
     std::shared_ptr<Kernel> ker(new Kernel(NAD_Kernel_name));

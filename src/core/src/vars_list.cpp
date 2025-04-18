@@ -317,9 +317,9 @@ VARIABLE<kids_real>    NAME_WRAPPER(model::coupling::Q, &shape_nbathFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::coupling::QL, &shape_LnbathFF, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::dV, &shape_PNFF, "dV");
 VARIABLE<kids_real>    NAME_WRAPPER(model::ddV, &shape_PNNFF, "ddV");
-VARIABLE<kids_real>    NAME_WRAPPER(model::f_p, &shape_X, "");
-VARIABLE<kids_real>    NAME_WRAPPER(model::f_r, &shape_X, "");
-VARIABLE<kids_real>    NAME_WRAPPER(model::f_rp, &shape_X, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::f_p, &shape_F, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::f_r, &shape_F, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::f_rp, &shape_F, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::grad, &shape_PN, "grad");
 VARIABLE<kids_real>    NAME_WRAPPER(model::hess, &shape_PNN, "hess");
 VARIABLE<kids_real>    NAME_WRAPPER(model::kcoeff, &shape_X, "");
@@ -350,6 +350,10 @@ VARIABLE<kids_real>    NAME_WRAPPER(model::w, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::x0, &shape_N, "initial cencter of coordinate");
 VARIABLE<kids_real>    NAME_WRAPPER(model::x_sigma, &shape_N, "initial width of coordinate");
 VARIABLE<kids_int>     NAME_WRAPPER(random::seed, &shape_1, "");
+
+// custom variables
+
+
 };  // namespace DATA
 
 };  // namespace PROJECT_NS

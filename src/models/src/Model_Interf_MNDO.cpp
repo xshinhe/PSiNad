@@ -10,6 +10,16 @@
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
+#define ARRAY_SHOW(_A, _n1, _n2)                                                     \
+    ({                                                                               \
+        std::cout << "Show Array <" << #_A << ">\n";                                 \
+        int _idxA = 0;                                                               \
+        for (int _i = 0; _i < (_n1); ++_i) {                                         \
+            for (int _j = 0; _j < (_n2); ++_j) std::cout << FMT(4) << (_A)[_idxA++]; \
+            std::cout << std::endl;                                                  \
+        }                                                                            \
+    })
+
 inline int removeFile(const std::string& filename) { return remove(filename.c_str()); }
 
 inline void clearFile(const std::string& filename) { std::ofstream clear(filename, std::ios::trunc); }
@@ -128,6 +138,10 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                 p_sigma[j] = std::sqrt(Qoverbeta);
             }
         }
+        std::cout << LOC() << "\n";
+        ARRAY_SHOW(x_sigma, 1, Dimension::N);
+        ARRAY_SHOW(p_sigma, 1, Dimension::N);
+        ARRAY_SHOW(w, 1, Dimension::N);
     }
     if (init_nuclinp == "#hess2") {
         std::string hess_mol = _param->get_string({"model.hess_mol"}, LOC(), "hess_molden.dat");
@@ -153,18 +167,23 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
  * @bug none
  */
 Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
-    executeKernel(stat);
+    // executeKernel(stat);
     return stat;  // @todo
 
     if (init_nuclinp == "#hess" || init_nuclinp == "#hess2") {  // assuming .hess is given
         // sampling normal-mode
         Kernel_Random::rand_gaussian(x.data(), Dimension::N);
         Kernel_Random::rand_gaussian(p.data(), Dimension::N);
-        for (int i = 0; i < 6; ++i) x[i] = 0.0f, p[i] = 0.0f;
+        for (int i = 0; i < Dimension::N; ++i) x[i] = 0.0f, p[i] = 0.0f;
+        std::cout << LOC() << "TEST 1 \n";
         for (int i = 0; i < Dimension::N; ++i) {
             x[i] *= x_sigma[i];
             p[i] *= p_sigma[i];
         }
+        ARRAY_SHOW(x0, 1, Dimension::N);
+        ARRAY_SHOW(p0, 1, Dimension::N);
+        ARRAY_SHOW(x, 1, Dimension::N);
+        ARRAY_SHOW(p, 1, Dimension::N);
         // transfrom normal-mode to cartesian coordinates
         ARRAY_MATMUL(x.data(), Tmod.data(), x.data(), Dimension::N, Dimension::N, 1);  // .eval()!
         ARRAY_MATMUL(p.data(), Tmod.data(), p.data(), Dimension::N, Dimension::N, 1);  // .eval()!
@@ -172,6 +191,9 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
             x[i] = x[i] / std::sqrt(mass[i]) + x0[i];
             p[i] = p[i] * std::sqrt(mass[i]) + p0[i];
         }
+        ARRAY_SHOW(x, 1, Dimension::N);
+        ARRAY_SHOW(p, 1, Dimension::N);
+        std::cout << LOC() << "TEST 2 \n";
     } else if (init_nuclinp == "#fix") {  // for initial md
         for (int i = 0; i < Dimension::N; ++i) x[i] = x0[i], p[i] = 0.0f;
     } else {  // init_nuclinp as dataset from which we read x and p
@@ -212,14 +234,19 @@ Status& Model_Interf_MNDO::initializeKernel_impl(Status& stat) {
 Status& Model_Interf_MNDO::executeKernel_impl(Status& stat_in) {
     if (frez_ptr[0]) return stat_in;
 
+    std::cout << LOC() << "TEST 3 \n";
+    ARRAY_SHOW(x, 1, Dimension::N);
     // convert atomic unit
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;  ///< convert Bohr to Angstrom
     // ARRAY_CLEAR(E, Dimension::F); // keep the old values
     // ARRAY_CLEAR(dE, Dimension::NFF); // keep the old values
+    // ARRAY_SHOW(x, 1, Dimension::N);
 
     // prepare a mndo input file
-    std::string inpfile = utils::concat(".mndoinp.", stat_in.icalc);
-    std::string outfile = utils::concat(".mndoout.", stat_in.icalc);
+    std::cout << LOC() << " " << stat_in.icalc << " " << stat_in.istep << " " << stat_in.succ << std::endl;
+
+    std::string inpfile = utils::concat(".mndoinp.", stat_in.istep);
+    std::string outfile = utils::concat(".mndoout.", stat_in.istep);
 
     std::string control_copy = task_control;
     if (last_attempt_ptr[0] && fail_type_ptr[0] == 1) {
@@ -285,6 +312,7 @@ int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
     std::stringstream mndo_addition_sstr;
 
     int           count_atom = 0;
+    // std::cout << "parse mndo input file: " << mndoinp << std::endl;
     std::ifstream ifs(mndoinp);
     std::string   eachline;
     while (getline(ifs, eachline)) {
@@ -341,6 +369,9 @@ int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
     mndo_keyword  = mndo_keyword_sstr.str();
     mndo_comment  = mndo_comment_sstr.str();
     mndo_addition = mndo_addition_sstr.str();
+    std::cout << mndo_keyword << std::endl;
+    std::cout << mndo_comment << std::endl;
+    std::cout << mndo_addition << std::endl;
     assert(count_atom > 0);
     int data_size = mndo_data.size();
     if (7 * count_atom == data_size) std::cout << "read from cartesian format";

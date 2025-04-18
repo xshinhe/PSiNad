@@ -440,6 +440,8 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                 break;
             }
         }
+
+        if (_param->get_bool({"verbose"}, LOC(), false)){
         std::cout << statc << "|:"  //
                   << std::resetiosflags(std::ios::scientific) << std::setiosflags(std::ios::fixed)
                   << std::setprecision(2) << std::setw(10) << 100 * t[0] / tend << "%"  //
@@ -449,6 +451,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                   << std::setw(10) << last_tried_dtsize[0]                      //
                   << std::setw(10) << dtsize[0] << std::endl;                   // flush into log
         isamp[0] = istep[0] / sstep;
+        }
     }
     return stat;
 }

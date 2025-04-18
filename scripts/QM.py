@@ -47,8 +47,8 @@ from kids_log import Timing, Log
 from Layers import Layers  # Layers class to manage geometries
 from Charge import Charge  # Charge class that stores real and modelH charges
 from Output import Output  # Output and Step classes to read/write old.xml file
-from MMCalc import MM  # QM class controls the QM calculation, define its input and stores the output
-import MMCalc  # QM class controls the QM calculation, define its input and stores the output
+#from MMCalc import MM  # QM class controls the QM calculation, define its input and stores the output
+#import MMCalc  # QM class controls the QM calculation, define its input and stores the output
 from QMCalc import QM  # QM class controls the QM calculation, define its input and stores the output
 from QMMMCalc import QMMM  # join QM and MM data to construct QMMM results
 
@@ -89,9 +89,11 @@ if __name__ == "__main__":
     #          print summary of input options
     # ####################################################
     Log.startSection('INPUT MOLECULAR DESCRIPTION')
+    print('input: ', args.input)
     ks_config = Config.load(args.input, args)
 
     geometry = ks_config['_geom']
+    print('geom:    ', geometry)
     Log.writeLog("\n{0} is requested, with {1}.\n".format(kids_io.getCalcType(args.type), 
         kids_io.getLayers(geometry)))
     if "H" in geometry.calculationType:
@@ -336,33 +338,35 @@ if __name__ == "__main__":
                 f.write('{: 12.8e}\n'.format(qmmm_results.energies[i]))
             f.write('\n')
 
-            # write energy gradient
+            # write energy
             f.write('interface.dE\n')
             f.write('kids_real %d\n'%(len(qmmm_results.energies) * geometry.atomNum*3))
             jHM = 0 # count for H & M atoms
+            print(qmmm_results.gradient)
             for i in range(geometry.atomNum): # sorted order
                 if i+1 in geometry.list_MEDIUM_HIGH:
                     for ix in [0,1,2]:
-                        for k in range(len(qmmm_results.energies)):
+                        for k in range(len(qmmm_results.gradient.keys())):
                             f.write('{: 12.8e} '.format(qmmm_results.gradient[k][ix][jHM]))
                         f.write('\n')
                     jHM += 1
                 if i+1 in geometry.list_LOW:
                     for ix in [0,1,2]:
-                        for k in range(len(qmmm_results.energies)):
+                        for k in range(len(qmmm_results.gradient.keys())):
                             f.write('{: 12.8e} '.format(0))
                         f.write('\n')
             f.write('\n')
 
             # write nac
+            print("nac:  ", qmmm_results.nac)
             f.write('interface.nac\n')
-            f.write('kids_real %d\n'%(len(qmmm_results.energies)*len(qmmm_results.energies)*geometry.atomNum*3) )
+            f.write('kids_real %d\n'%(len(qmmm_results.nac)*len(qmmm_results.nac)*geometry.atomNum*3) )
             jHM = 0 # count for H & M atoms
             for i in range(geometry.atomNum): # sorted order
                 if i+1 in geometry.list_MEDIUM_HIGH:
                     for ix in [0,1,2]:
-                        for k1 in range(len(qmmm_results.energies)):
-                            for k2 in range(len(qmmm_results.energies)):
+                        for k1 in range(len(qmmm_results.nac)):
+                            for k2 in range(len(qmmm_results.nac)):
                                 if k2 == k1:
                                     f.write('{: 12.8e} '.format(0))
                                 else:
@@ -371,16 +375,16 @@ if __name__ == "__main__":
                     jHM += 1
                 if i+1 in geometry.list_LOW:
                     for ix in [0,1,2]:
-                        for k1 in range(len(qmmm_results.energies)):
-                            for k2 in range(len(qmmm_results.energies)):
+                        for k1 in range(len(qmmm_results.nac)):
+                            for k2 in range(len(qmmm_results.nac)):
                                 f.write('{: 12.8e} '.format(0))
                         f.write('\n')
             f.write('\n')
 
             # write ocillation strength
             f.write('interface.strength\n')
-            f.write('kids_real %d\n'%len(qmmm_results.energies))
-            for i in range(len(qmmm_results.energies)): # sorted order
+            f.write('kids_real %d\n'%len(qmcalc.outputData.dataDict["osc_strength"]))
+            for i in range(len(qmcalc.outputData.dataDict["osc_strength"])): # sorted order
                 if i==0:
                     f.write('{: 12.8e}\n'.format(0))
                 else:
@@ -389,6 +393,7 @@ if __name__ == "__main__":
 
             f.flush()
             f.close()
+
         '''
         # pprint(QMCalc.energy())
         # pprint(qmmm_results.getenergy())
@@ -423,6 +428,7 @@ if __name__ == "__main__":
                                 "from the QM calculation for the H part with H-saturated bonds\n\n")
             Log.printModelHCharges(geometry, qmcalc.charges, qmcalc.dipole)
         '''
+        
     ##########################################################
     # Finish
     ##########################################################
