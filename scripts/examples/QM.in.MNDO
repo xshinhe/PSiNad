@@ -4,11 +4,11 @@ read_xyz = "ether.xyz"
 
 [QM]
 exec = "MNDO"
-ncore = 4       # if necessary
+ncore = 1       # if necessary
 use_mpi = false # if nenessary
 
 [QM.MNDO]
-path = "/usr/bin/mndo2020"
+path = "/usr/local/bin/mndo2020"
 N = 21
 F = 3
 

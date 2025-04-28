@@ -60,7 +60,7 @@ export MNDO_DIR_QM=/home/shin/soft/mndo
 ## BAGEL
 
 export BAGEL_EXE_QM=BAGEL
-export BAGEL_DIR_QM=/usr/bin
+export BAGEL_DIR_QM=/usr/local/bagel/
 
 ## MOLCAS
 

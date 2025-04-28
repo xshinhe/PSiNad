@@ -22,14 +22,14 @@ N = 9
 F = 2
 
 [QM.BAGEL]
-path = "/usr/bin/BAGEL"
+path = "/usr/local/bagel/bin/BAGEL"
 
 level0 = """
 {"bagel": [
 {
 "title": "molecule",
-"basis": "/home/shin/soft/bagel/src/basis/cc-pvdz.json",
-"df_basis": "/home/shin/soft/bagel/src/basis/cc-pvdz-jkfit.json",
+"basis": "/home/lhc/bagel-master/src/basis/cc-pvdz.json",
+"df_basis": "/home/lhc/bagel-master/src/basis/cc-pvdz-jkfit.json",
 "angstrom": true,
 "geometry": [
 $COORD_XYZ
