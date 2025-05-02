@@ -84,15 +84,14 @@ Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
             remove(rmfile.c_str());
         }
 
-        t[0]  = _dataset->def_int("flowcontrol.t", 1)[0];
-        dt[0] = _dataset->def_int("flowcontrol.dt", 1)[0];
-        if (msize != _dataset->def_int("flowcontrol.msize", 1)[0]) throw kids_error("msize mismatch");
+        t[0]  = _dataset->def_real("flowcontrol.t", 1)[0];
+        dt[0] = dt0;
 
         isamp[0]             = 0;
         istep[0]             = 0;
         tsize[0]             = _dataset->def_int("flowcontrol.tsize", 1)[0];
-        dtsize[0]            = _dataset->def_int("flowcontrol.dtsize", 1)[0];
-        last_tried_dtsize[0] = _dataset->def_int("flowcontrol.last_tried_dtsize", 1)[0];
+        dtsize[0]            = msize;
+        last_tried_dtsize[0] = msize;
 
         stat.succ         = true;
         stat.last_attempt = false;
@@ -339,7 +338,8 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
 
     int count_fail_type1 = 0;
 
-    isamp[0] = istep[0] / sstep;
+    isamp[0]          = istep[0] / sstep;
+    int backup_dtsize = 0;
     while (istep[0] <= nstep) {
         stat.istep = istep[0];  // @TODO CAUTION!!!
         if (use_exchange) exchange(stat);
@@ -354,7 +354,9 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
 
         if (istep[0] == nstep) {
             at_condition[0] = true;
-            dt[0]           = 0;  // frozen dynamics
+            backup_dtsize   = dtsize[0];
+            dtsize[0]       = 0;  // frozen dynamics
+            dt[0]           = dt0 * (dtsize[0] / ((double) msize));
             stat.frozen     = true;
         }
 
@@ -476,9 +478,11 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                       << std::setw(10) << tsize_before_loop                         //
                       << std::setw(10) << last_tried_dtsize[0]                      //
                       << std::setw(10) << dtsize[0] << std::endl;                   // flush into log
-            isamp[0] = istep[0] / sstep;
         }
+        isamp[0] = istep[0] / sstep;
     }
+    dtsize[0] = backup_dtsize;  // frozen dynamics
+    dt[0]     = dt0 * (dtsize[0] / ((double) msize));
     return stat;
 }
 

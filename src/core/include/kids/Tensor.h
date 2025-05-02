@@ -58,7 +58,7 @@ class Tensor final : public Node {
         os << FMT(0) << _size;
         for (auto idim : _shape.dims()) os << " " << idim;
         os << "\n";
-        for (int i = 0; i < _size; ++i) os << FMT(8) << ptr[i];
+        for (int i = 0; i < _size; ++i) os << FMT(12) << ptr[i];
         return os.str();
     }
 

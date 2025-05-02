@@ -37,18 +37,17 @@ namespace PROJECT_NS {
 
 struct RuleEvaluator;
 
-DEFINE_POLICY(VariableDescriptorPolicy, // TODO
-              TabularOutput,            // keep n frames of its values
-              MetaOutput,               // keep only 1 frame of its values
-              Input,                    // only 1 frame by reference
-              test);                    // for test
+DEFINE_POLICY(VariableDescriptorPolicy,  // TODO
+              TabularOutput,             // keep n frames of its values
+              MetaOutput,                // keep only 1 frame of its values
+              Input,                     // only 1 frame by reference
+              test);                     // for test
 
 /**
  * @brief Represents a variable token in an expression rule.
  */
-struct VariableDescriptor
-{
-public:
+struct VariableDescriptor {
+   public:
     VariableDescriptor(const std::string& token_string, const std::string& save,
                        VariableDescriptorPolicy::_type vtype_in);
 
@@ -64,14 +63,12 @@ public:
      *
      * @param DS Shared pointer to the DataSet containing the variable's data.
      */
-    void defineIn(std::shared_ptr<DataSet> DS,
-                  kids_dtype data_type = kids_void_type,
-                  const std::vector<std::size_t>& cxxshape = {},
-                  std::size_t totalFrameNumber = 0);
+    void defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_type = kids_void_type,
+                  const std::vector<std::size_t>& cxxshape = {}, std::size_t totalFrameNumber = 0);
 
-    void checkTrace(int sampleIndex);
+    void checkTrace(int sampleIndex, bool update = true);
 
-private:
+   private:
     friend class RuleEvaluator;
     friend class RuleSet;
     friend class Kernel;
@@ -89,24 +86,24 @@ private:
     std::string type;  /**< The type of the variable. */
     std::string time;  /**< The time of the variable. */
 
-    std::string keyRaw; // pointer to normal data
-    std::string keyRec; // transfer normal data in instant data during tracing
+    std::string keyRaw;  // pointer to normal data
+    std::string keyRec;  // transfer normal data in instant data during tracing
     std::string keyRes0;
     std::string keyRes1;
     std::string keyRes2;
 
-    kids_dtype dataType;    /**< The data type of the variable. */
-    void* dataPointerRaw;   /**< Pointer to the data of the variable. */
-    void* dataPointerTrace; /**< Pointer to the data of the variable. */
-    void* dataPointerRes0;  /**< Pointer to the data of the variable. */
-    void* dataPointerRes1;  /**< Pointer to the data of the variable. */
-    void* dataPointerRes2;  /**< Pointer to the data of the variable. */
-    Shape* shape;           /**< Pointer to the shape of the variable. */
-    Shape* stackedshape;    /**< Pointer to the shape of the variable. */
+    kids_dtype dataType;         /**< The data type of the variable. */
+    void*      dataPointerRaw;   /**< Pointer to the data of the variable. */
+    void*      dataPointerTrace; /**< Pointer to the data of the variable. */
+    void*      dataPointerRes0;  /**< Pointer to the data of the variable. */
+    void*      dataPointerRes1;  /**< Pointer to the data of the variable. */
+    void*      dataPointerRes2;  /**< Pointer to the data of the variable. */
+    Shape*     shape;            /**< Pointer to the shape of the variable. */
+    Shape*     stackedshape;     /**< Pointer to the shape of the variable. */
 
     RuleEvaluator* RE;
 };
 
-}; // namespace PROJECT_NS
+};  // namespace PROJECT_NS
 
-#endif // KIDS_VariableDescriptor_H
+#endif  // KIDS_VariableDescriptor_H
