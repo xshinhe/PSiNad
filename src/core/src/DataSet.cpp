@@ -52,7 +52,7 @@ T* DataSet::def(const std::string& key, Shape S, const std::string& info) {
     auto leaf_node_ts = static_cast<Tensor<T>*>(leaf_node.get());
     if (S.size() != leaf_node_ts->size()) {  //
         std::cout << LOC() << key << "\n";
-        throw std::runtime_error("doubly conflicted definition!");
+        throw std::runtime_error(utils::concat("doubly conflicted definition!", key));
     }
     return leaf_node_ts->data();
 }
@@ -141,6 +141,22 @@ DataSet& DataSet::_def_int(const std::string& key, Shape S, const std::string& i
 kids_real* DataSet::def_real(const std::string& key, Shape S, const std::string& info) {
     return def<kids_real>(key, S, info);
 }
+kids_real* DataSet::def_real_replace(const std::string& key, Shape S, const std::string& info) {
+    if (!haskey(key)) return def<kids_real>(key, S, info);
+    return def<kids_real>(key, S, info);
+
+    auto       old_node = obtain(key);
+    int        size_min = std::min(S.size(), std::get<2>(old_node)->size());
+    kids_real* old_arr  = (kids_real*) std::get<1>(old_node);
+
+    std::string tmp_key = utils::concat("tmpr.", key);
+    kids_real*  arr     = def<kids_real>(tmp_key, S, info);
+    for (int i = 0; i < size_min; ++i) arr[i] = old_arr[i];
+    _undef(key);
+    auto res = def_real(key, tmp_key, info);
+    _undef(tmp_key);
+    return res;
+}
 kids_real* DataSet::def_real(const std::string& key, kids_real* arr_in, Shape S, const std::string& info) {
     kids_real* arr = def_real(key, S, info);
     for (int i = 0; i < S.size(); ++i) arr[i] = arr_in[i];
@@ -161,6 +177,22 @@ DataSet& DataSet::_def_real(const std::string& key, Shape S, const std::string& 
 
 kids_complex* DataSet::def_complex(const std::string& key, Shape S, const std::string& info) {
     return def<kids_complex>(key, S, info);
+}
+kids_complex* DataSet::def_complex_replace(const std::string& key, Shape S, const std::string& info) {
+    if (!haskey(key)) return def<kids_complex>(key, S, info);
+    return def<kids_complex>(key, S, info);
+    auto old_node = obtain(key);
+
+    int size_min = std::min(S.size(), std::get<2>(old_node)->size());
+
+    kids_complex* old_arr = (kids_complex*) std::get<1>(old_node);
+    std::string   tmp_key = utils::concat("tmpc.", key);
+    kids_complex* arr     = def<kids_complex>(tmp_key, S, info);
+    for (int i = 0; i < size_min; ++i) arr[i] = old_arr[i];
+    _undef(key);
+    auto res = def_complex(key, tmp_key, info);
+    _undef(tmp_key);
+    return res;
 }
 kids_complex* DataSet::def_complex(const std::string& key, kids_complex* arr_in, Shape S, const std::string& info) {
     kids_complex* arr = def_complex(key, S, info);
@@ -383,7 +415,12 @@ void DataSet::load(std::istream& is) {
 
         if (typeflag == as_str<int>()) {
             int* ptr = def<int>(key, shtmp);
-            for (int i = 0; i < size; ++i) is >> ptr[i];
+            int  tmpi;
+            if (key == "flowcontrol.nsamp") {
+                for (int i = 0; i < size; ++i) is >> tmpi;
+            } else {
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            }
         } else if (typeflag == as_str<kids_real>()) {
             kids_real* ptr = def<kids_real>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];

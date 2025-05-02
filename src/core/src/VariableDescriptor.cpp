@@ -199,14 +199,16 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                 case kids_real_type: {
                     // Define a real-valued variable with the given key and
                     // shape
-                    DS->def_real(keyRec, cxxshape, utils::concat(name, " traced in 1 frame"));
+                    DS->def_real_replace(keyRec, cxxshape, utils::concat(name, " traced in 1 frame"));
                     if (vtype == VariableDescriptorPolicy::TabularOutput) {  // save nframes of a tensor
                         // If the variable is tabular, define additional keys
                         // for results
-                        DS->def_real(keyRes0, cxxstackedshape, utils::concat(name, " collected n frame of 1 traj"));
-                        DS->def_real(keyRes1, cxxstackedshape,
-                                     utils::concat(name, " collected n frame of m traj but 1 mpi"));
-                        DS->def_real(keyRes2, cxxstackedshape, utils::concat(name, " collected n frame of k mpi"));
+                        DS->def_real_replace(keyRes0, cxxstackedshape,
+                                             utils::concat(name, " collected n frame of 1 traj"));
+                        DS->def_real_replace(keyRes1, cxxstackedshape,
+                                             utils::concat(name, " collected n frame of m traj but 1 mpi"));
+                        DS->def_real_replace(keyRes2, cxxstackedshape,
+                                             utils::concat(name, " collected n frame of k mpi"));
                     }
                     break;
                 }
@@ -214,14 +216,16 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                 case kids_complex_type: {
                     // Define a complex-valued variable with the given key and
                     // shape
-                    DS->def_complex(keyRec, cxxshape, utils::concat(name, " traced in 1 frame"));
+                    DS->def_complex_replace(keyRec, cxxshape, utils::concat(name, " traced in 1 frame"));
                     if (vtype == VariableDescriptorPolicy::TabularOutput) {  // save nframes of a tensor
                         // If the variable is tabular, define additional keys
                         // for results
-                        DS->def_complex(keyRes0, cxxstackedshape, utils::concat(name, " collected n frame of 1 traj"));
-                        DS->def_complex(keyRes1, cxxstackedshape,
-                                        utils::concat(name, " collected n frame of m traj but 1 mpi"));
-                        DS->def_complex(keyRes2, cxxstackedshape, utils::concat(name, " collected n frame of k mpi"));
+                        DS->def_complex_replace(keyRes0, cxxstackedshape,
+                                                utils::concat(name, " collected n frame of 1 traj"));
+                        DS->def_complex_replace(keyRes1, cxxstackedshape,
+                                                utils::concat(name, " collected n frame of m traj but 1 mpi"));
+                        DS->def_complex_replace(keyRes2, cxxstackedshape,
+                                                utils::concat(name, " collected n frame of k mpi"));
                     }
                     break;
                 }
@@ -266,14 +270,14 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                 case kids_real_type: {
                     // Define a real-valued trace key with the same shape as the
                     // raw data
-                    dataPointerTrace = (void*) DS->def_real(keyRec, *shape, " traced in 1 frame");
+                    dataPointerTrace = (void*) DS->def_real_replace(keyRec, *shape, " traced in 1 frame");
                     break;
                 }
 
                 case kids_complex_type: {
                     // Define a complex-valued trace key with the same shape as
                     // the raw data
-                    dataPointerTrace = (void*) DS->def_complex(keyRec, *shape, " traced in 1 frame");
+                    dataPointerTrace = (void*) DS->def_complex_replace(keyRec, *shape, " traced in 1 frame");
                     break;
                 }
 

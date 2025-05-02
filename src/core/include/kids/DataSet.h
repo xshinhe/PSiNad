@@ -147,6 +147,7 @@ class DataSet final : public Node {
      * @return Pointer to the defined variable.
      */
     kids_real* def_real(const std::string& key, Shape S = 1, const std::string& info = "");
+    kids_real* def_real_replace(const std::string& key, Shape S = 1, const std::string& info = "");
 
     /**
      * Define a real variable with a specified key, array, shape, and info.
@@ -184,6 +185,7 @@ class DataSet final : public Node {
      * @return Pointer to the defined variable.
      */
     kids_complex* def_complex(const std::string& key, Shape S = 1, const std::string& info = "");
+    kids_complex* def_complex_replace(const std::string& key, Shape S = 1, const std::string& info = "");
 
     /**
      * Define a complex variable with a specified key, array, shape, and info.

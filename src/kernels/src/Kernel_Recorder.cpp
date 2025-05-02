@@ -80,6 +80,8 @@ void Kernel_Recorder::parse() {
             throw kids_error("unknown type");
         }
 
+        std::cout << LOC() << nsamp_ptr[0] << "\n";
+
         if (std::find(opened_files.begin(), opened_files.end(), save) == opened_files.end() && mode == "average") {
             std::shared_ptr<RuleEvaluator> record_time_rule(  //
                 new RuleEvaluator("time(t{flowcontrol}:R, pertimeunit{flowcontrol}:R)", _dataset, mode, save,
