@@ -34,7 +34,6 @@ void Kernel_Iterative_Adapt::setInputParam_impl(std::shared_ptr<Param> PM) {
     exchange_time = _param->get_real({"solver.exchange_time", "exchange_time"}, LOC(), 600.0);  // in second
     nstep         = sstep * (int((tend - t0) / (sstep * dt0)));  // @bug? (try new algo for nstep)
     nsamp         = nstep / sstep + 1;
-    std::cout << LOC() << nsamp << "\n";
 }
 
 void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -52,7 +51,6 @@ void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     DS->def(VARIABLE<kids_int>("flowcontrol.nstep", &Dimension::shape_1, "@"))[0] = nstep;
     DS->def(VARIABLE<kids_int>("flowcontrol.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
     DS->def(VARIABLE<kids_int>("flowcontrol.msize", &Dimension::shape_1, "@"))[0] = msize;
-    std::cout << LOC() << nsamp << "\n";
 }
 
 Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {

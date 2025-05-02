@@ -80,8 +80,6 @@ void Kernel_Recorder::parse() {
             throw kids_error("unknown type");
         }
 
-        std::cout << LOC() << nsamp_ptr[0] << "\n";
-
         if (std::find(opened_files.begin(), opened_files.end(), save) == opened_files.end() && mode == "average") {
             std::shared_ptr<RuleEvaluator> record_time_rule(  //
                 new RuleEvaluator("time(t{flowcontrol}:R, pertimeunit{flowcontrol}:R)", _dataset, mode, save,
@@ -116,13 +114,11 @@ Status& Kernel_Recorder::initializeKernel_impl(Status& stat) {
 }
 
 Status& Kernel_Recorder::executeKernel_impl(Status& stat) {
-    std::cout << LOC() << isamp_ptr[0] << "\n";
     if (_param->get_bool({"restart"}, LOC(), false)) {
         for (auto& irule : _ruleset->getRules()) { irule->calculateResult(isamp_ptr[0], false); }
     } else {
         for (auto& irule : _ruleset->getRules()) { irule->calculateResult(isamp_ptr[0], true); }
     }
-
     if (record_tmp) RuleSet::flush_all(this->directory, ".TMP", 0);
     return stat;
 }

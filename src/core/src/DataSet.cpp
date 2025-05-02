@@ -143,18 +143,25 @@ kids_real* DataSet::def_real(const std::string& key, Shape S, const std::string&
 }
 kids_real* DataSet::def_real_replace(const std::string& key, Shape S, const std::string& info) {
     if (!haskey(key)) return def<kids_real>(key, S, info);
-    return def<kids_real>(key, S, info);
+    // return def<kids_real>(key, S, info);
+
+    std::cout << LOC() << S.to_string() << "\n";
 
     auto       old_node = obtain(key);
     int        size_min = std::min(S.size(), std::get<2>(old_node)->size());
     kids_real* old_arr  = (kids_real*) std::get<1>(old_node);
 
     std::string tmp_key = utils::concat("tmpr.", key);
-    kids_real*  arr     = def<kids_real>(tmp_key, S, info);
+    kids_real*  arr     = def_real(tmp_key, S, info);
+
+    // std::cout << LOC() << key << "\n";
+    // std::cout << LOC() << tmp_key << "\n";
+    // std::cout << LOC() << "min = " << size_min << "\n";
     for (int i = 0; i < size_min; ++i) arr[i] = old_arr[i];
     _undef(key);
     auto res = def_real(key, tmp_key, info);
     _undef(tmp_key);
+    // std::cout << LOC() << key << "\n";
     return res;
 }
 kids_real* DataSet::def_real(const std::string& key, kids_real* arr_in, Shape S, const std::string& info) {
@@ -180,18 +187,24 @@ kids_complex* DataSet::def_complex(const std::string& key, Shape S, const std::s
 }
 kids_complex* DataSet::def_complex_replace(const std::string& key, Shape S, const std::string& info) {
     if (!haskey(key)) return def<kids_complex>(key, S, info);
-    return def<kids_complex>(key, S, info);
-    auto old_node = obtain(key);
+    // return def<kids_complex>(key, S, info);
 
-    int size_min = std::min(S.size(), std::get<2>(old_node)->size());
+    auto          old_node = obtain(key);
+    int           size_min = std::min(S.size(), std::get<2>(old_node)->size());
+    kids_complex* old_arr  = (kids_complex*) std::get<1>(old_node);
 
-    kids_complex* old_arr = (kids_complex*) std::get<1>(old_node);
     std::string   tmp_key = utils::concat("tmpc.", key);
-    kids_complex* arr     = def<kids_complex>(tmp_key, S, info);
+    kids_complex* arr     = def_complex(tmp_key, S, info);
+
+    // std::cout << LOC() << key << "\n";
+    // std::cout << LOC() << tmp_key << "\n";
+    // std::cout << LOC() << "min = " << size_min << "\n";
     for (int i = 0; i < size_min; ++i) arr[i] = old_arr[i];
     _undef(key);
     auto res = def_complex(key, tmp_key, info);
     _undef(tmp_key);
+    // std::cout << LOC() << key << "\n";
+
     return res;
 }
 kids_complex* DataSet::def_complex(const std::string& key, kids_complex* arr_in, Shape S, const std::string& info) {
@@ -244,8 +257,9 @@ DataSet& DataSet::_undef(const std::string& key) {
     }
     auto it = d_ptr->find(kh.terms.back());
     if (it != d_ptr->end()) {
-        std::cout << "\n";
+        std::cout << LOC() << key << " help!!!\n";
         it->second.reset();
+        d_ptr->erase(it);  // @TODO
     }
     return *this;
 }
