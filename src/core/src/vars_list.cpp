@@ -327,6 +327,8 @@ VARIABLE<kids_real>    NAME_WRAPPER(model::lcoeff, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::mass, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::p0, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::p_sigma, &shape_N, "");
+VARIABLE<kids_real>    NAME_WRAPPER(model::dVc, &shape_PNFF, "dVc");
+VARIABLE<kids_real>    NAME_WRAPPER(model::ddVc, &shape_PNNFF, "ddVc");
 VARIABLE<kids_real>    NAME_WRAPPER(model::MB::Jpmat, &shape_PP, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::MB::Jzmat, &shape_PP, "");
 VARIABLE<kids_complex> NAME_WRAPPER(model::MB::SXred, &shape_P, "");

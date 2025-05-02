@@ -334,13 +334,14 @@ extern VARIABLE<kids_real>    x;
 
 
 namespace model {
-extern VARIABLE<kids_real> Hsys;
-extern VARIABLE<kids_real> Kmat;
-extern VARIABLE<kids_real> Qmat;
-extern VARIABLE<kids_real> Tmod;
-extern VARIABLE<kids_real> V;
-extern VARIABLE<kids_int>  atoms;
-extern VARIABLE<kids_int>  layer_type;
+extern VARIABLE<kids_real>    Hsys;
+extern VARIABLE<kids_real>    Kmat;
+extern VARIABLE<kids_real>    Qmat;
+extern VARIABLE<kids_real>    Tmod;
+extern VARIABLE<kids_real>    V;
+extern VARIABLE<kids_complex> Vc;
+extern VARIABLE<kids_int>     atoms;
+extern VARIABLE<kids_int>     layer_type;
 
 namespace bath {
 extern VARIABLE<kids_real> coeffs;
@@ -366,6 +367,9 @@ extern VARIABLE<kids_real> lcoeff;
 extern VARIABLE<kids_real> mass;
 extern VARIABLE<kids_real> p0;
 extern VARIABLE<kids_real> p_sigma;
+
+extern VARIABLE<kids_complex> dVc;
+extern VARIABLE<kids_complex> ddVc;
 
 namespace MB {
 extern VARIABLE<kids_real>    Jpmat;
