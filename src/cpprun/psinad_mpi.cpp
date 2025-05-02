@@ -66,9 +66,18 @@ int main(int argc, char* argv[])
 
     auto begin = std::chrono::steady_clock::now();
     {
+/*
+        所有kernel执行之前都要使用setInputParam和setInputDataSet
+        1. setInputParam: 设置kernel的参数，这些参数是从Param.json中读取的
+        2. setInputDataSet: 设置kernel的数据集，所有动力学中的变量（如果需要共享和输出）都要在这里定义
+
+        solver1: Sampling
+        solver2: real time dynamics
+
+*/
         solver1_kernel->setInputParam(PM);
         solver2_kernel->setInputParam(PM);
-        solver1_kernel->setInputDataSet(DS);
+        solver1_kernel->setInputDataSet(DS); 
         solver2_kernel->setInputDataSet(DS);
 
         MPI_Guard guard(BGIDX, solver1_kernel->montecarlo);

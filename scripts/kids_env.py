@@ -198,11 +198,15 @@ def checkKIDSEnv() -> Tuple[bool, str]:
         message = "Environment variable $KIDS_SCRIPTS_PATH is not defined"
         return False, message
 
+    print(kids_scripts_path)
+
     # Check if <KIDS SCRIPTS> executables are available
+    '''
     for exe in ["kidsqm.py", "kidsqmmm.py"]:
         if not which(exe):
             message = f"{exe} executable is not available"
             return False, message
+    '''
 
     # Return True if all the checks were OK
     return True, message

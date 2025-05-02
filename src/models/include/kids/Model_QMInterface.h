@@ -28,6 +28,7 @@ class Model_QMInterface final : public Model {
     QMPolicy::_type qm_type;
 
     std::string pykids_path;
+    std::string qm_string;
     std::string qm_config_in;
     std::string config_content;
     std::string exec_file;

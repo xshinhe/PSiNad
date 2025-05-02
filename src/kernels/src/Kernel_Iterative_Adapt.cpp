@@ -449,8 +449,8 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                       << std::setw(10) << tsize_before_loop                         //
                       << std::setw(10) << last_tried_dtsize[0]                      //
                       << std::setw(10) << dtsize[0] << std::endl;                   // flush into log
+            isamp[0] = istep[0] / sstep;
         }
-        isamp[0] = istep[0] / sstep;
     }
     return stat;
 }

@@ -100,6 +100,7 @@ class Config(Dict[str, Any]):
         :return: Config instance with the loaded data
         """
         # Parse the TOML string into a dictionary
+        print(toml_string)
         parsed_toml = toml.loads(toml_string)
         # Convert the parsed dictionary into a Config
         instance = Config({k: Config(v) if isinstance(v, dict) else v for k, v in parsed_toml.items()})
