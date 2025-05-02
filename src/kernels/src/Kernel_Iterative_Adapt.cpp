@@ -54,6 +54,26 @@ void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
+    if (_param->get_bool({"recover"}, LOC(), false)) {  //
+        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
+        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "recover.ds";
+
+        if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
+        if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
+            std::string rmfile = utils::concat("X_STAT", stat.icalc);
+            remove(rmfile.c_str());
+        }
+        istep[0]             = _dataset->def_int("recover.istep", 1)[0];
+        tsize[0]             = _dataset->def_int("recover.tsize", 1)[0];
+        dtsize[0]            = _dataset->def_int("recover.dtsize", 1)[0];
+        last_tried_dtsize[0] = _dataset->def_int("recover.last_tried_dtsize", 1)[0];
+
+        stat.succ         = true;
+        stat.last_attempt = false;
+        stat.frozen       = false;
+        stat.fail_type    = 0;
+        return stat;
+    }
     if (_param->get_bool({"restart"}, LOC(), false)) {  //
         std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
         if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
@@ -63,15 +83,22 @@ Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
             std::string rmfile = utils::concat("X_STAT", stat.icalc);
             remove(rmfile.c_str());
         }
-        istep[0]             = _dataset->def_int("restart.istep", 1)[0];
-        tsize[0]             = _dataset->def_int("restart.tsize", 1)[0];
-        dtsize[0]            = _dataset->def_int("restart.dtsize", 1)[0];
-        last_tried_dtsize[0] = _dataset->def_int("restart.last_tried_dtsize", 1)[0];
+
+        t[0]  = _dataset->def_int("flowcontrol.t", 1)[0];
+        dt[0] = _dataset->def_int("flowcontrol.dt", 1)[0];
+        if (msize != _dataset->def_int("flowcontrol.msize", 1)[0]) throw kids_error("msize mismatch");
+
+        isamp[0]             = 0;
+        istep[0]             = 0;
+        tsize[0]             = _dataset->def_int("flowcontrol.tsize", 1)[0];
+        dtsize[0]            = _dataset->def_int("flowcontrol.dtsize", 1)[0];
+        last_tried_dtsize[0] = _dataset->def_int("flowcontrol.last_tried_dtsize", 1)[0];
 
         stat.succ         = true;
         stat.last_attempt = false;
         stat.frozen       = false;
         stat.fail_type    = 0;
+
         return stat;
     }
     if (use_exchange) {
@@ -162,10 +189,10 @@ Status& Kernel_Iterative_Adapt::exchange(Status& stat) {
                     // dump idx2
                     std::string dump_file = utils::concat("exchange-", idx1, ".ds");
                     std::string load_file = utils::concat("exchange-", idx2, ".ds");
-                    _dataset->def_int("restart.istep", istep.data(), 1);
-                    _dataset->def_int("restart.tsize", tsize.data(), 1);
-                    _dataset->def_int("restart.dtsize", dtsize.data(), 1);
-                    _dataset->def_int("restart.last_tried_dtsize", last_tried_dtsize.data(), 1);
+                    _dataset->def_int("recover.istep", istep.data(), 1);
+                    _dataset->def_int("recover.tsize", tsize.data(), 1);
+                    _dataset->def_int("recover.dtsize", dtsize.data(), 1);
+                    _dataset->def_int("recover.last_tried_dtsize", last_tried_dtsize.data(), 1);
                     std::ofstream ofs{dump_file};
                     _dataset->dump(ofs);
                     ofs.close();
@@ -177,10 +204,10 @@ Status& Kernel_Iterative_Adapt::exchange(Status& stat) {
                     std::ifstream ifs{load_file};
                     _dataset->load(ifs);
                     ifs.close();
-                    istep[0]             = _dataset->def_int("restart.istep", 1)[0];
-                    tsize[0]             = _dataset->def_int("restart.tsize", 1)[0];
-                    dtsize[0]            = _dataset->def_int("restart.dtsize", 1)[0];
-                    last_tried_dtsize[0] = _dataset->def_int("restart.last_tried_dtsize", 1)[0];
+                    istep[0]             = _dataset->def_int("recover.istep", 1)[0];
+                    tsize[0]             = _dataset->def_int("recover.tsize", 1)[0];
+                    dtsize[0]            = _dataset->def_int("recover.dtsize", 1)[0];
+                    last_tried_dtsize[0] = _dataset->def_int("recover.last_tried_dtsize", 1)[0];
                     stat.succ            = true;
                     stat.last_attempt    = false;
                     stat.frozen          = false;
@@ -376,10 +403,10 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                     }
                 }
 
-                _dataset->def_int("restart.istep", istep.data(), 1);
-                _dataset->def_int("restart.tsize", tsize.data(), 1);
-                _dataset->def_int("restart.dtsize", dtsize.data(), 1);
-                _dataset->def_int("restart.last_tried_dtsize", last_tried_dtsize.data(), 1);
+                _dataset->def_int("recover.istep", istep.data(), 1);
+                _dataset->def_int("recover.tsize", tsize.data(), 1);
+                _dataset->def_int("recover.dtsize", dtsize.data(), 1);
+                _dataset->def_int("recover.last_tried_dtsize", last_tried_dtsize.data(), 1);
 
                 // save breakdown information
                 std::ofstream ofs{utils::concat(directory, "/frozen", stat.icalc, "-", tsize[0], ".ds")};
