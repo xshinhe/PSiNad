@@ -1,66 +1,68 @@
 #include "kids/vars_list.h"
 
+// clang-format off
+
 namespace PROJECT_NS {
 
 std::vector<VARIABLE_BASE*> VARIABLE_BASE::_LIST;
 
 namespace Dimension {
-std::size_t M;
-std::size_t P;
-std::size_t P_NOW;
-std::size_t N;
-std::size_t F;
-std::size_t N4;
-std::size_t Nb;
-std::size_t nbath;
-std::size_t L;
-std::size_t MP;
-std::size_t PP;
-std::size_t PN;
-std::size_t PNN;
-std::size_t PF;
-std::size_t PFF;
-std::size_t PNF;
-std::size_t PNFF;
-std::size_t NF;
-std::size_t NN;
-std::size_t FF;
-std::size_t NFF;
-std::size_t NNFF;
-std::size_t Fadd1;
-std::size_t sstep;
-std::size_t nstep;
-std::size_t nsamp;
-
+std::size_t M;      ///< Number of Monte Carlo calculations.
+std::size_t P;      ///< Number of parallel trajectories (swarms of trajectories) in each Monte Carlo run.
+std::size_t P_NOW;  ///< Active number of parallel trajectories (P_NOW <= P)
+std::size_t N;      ///< Number of nuclear degrees of freedom. (=3*Natom for real molecular systems)
+std::size_t F;      ///< Number of electronic degrees of freedom.
+std::size_t N4;     ///< Full number of both nuclear & electronic DOFs (for monodromy matrix)
+std::size_t Nb;     ///< Number of discretized modes for the bath
+std::size_t nbath;  ///< Number of bathes coupled with systems
+std::size_t L;      ///< Number of nonzero elements in interaction Q (intrinsic)
+std::size_t MP;     ///< Product of M and P (M * P). @deprecated
+std::size_t PP;     ///< Product of P and P (P * P). @deprecated
+std::size_t PN;     ///< Product of P and N (P * N). @deprecated
+std::size_t PNN;    ///< Product of P, N, and N (P * N * N). @deprecated
+std::size_t PF;     ///< Product of P and F (P * F). @deprecated
+std::size_t PFF;    ///< Product of P, F, and F (P * F * F). @deprecated
+std::size_t PNF;    ///< Product of P, N, and F (P * N * F). @deprecated
+std::size_t PNFF;   ///< Product of P, N, F, and F (P * N * F * F). @deprecated
+std::size_t NF;     ///< Product of N and F (N * F). @deprecated
+std::size_t NN;     ///< Product of N and N (N * N). @deprecated
+std::size_t FF;     ///< Product of F and F (F * F). @deprecated
+std::size_t NFF;    ///< Product of N, F, and F (N * F * F). @deprecated
+std::size_t NNFF;   ///< Product of N, N, F, and F (N * N * F * F). @deprecated
+std::size_t Fadd1;  ///< F plus 1 (F + 1). @deprecated
+std::size_t sstep;  ///< Number of skipped steps for each sampling.
+std::size_t nstep;  ///< Number of steps for a single simulation
+std::size_t nsamp;  ///< Number of samplings for a single simulation
+                                                    
 using sh_ref = std::vector<std::size_t*>;
-Shape shape_1(1);
-Shape shape_2(2);
-Shape shape_X(1);
-Shape shape_Nxgrid(1);
-Shape shape_Nb(sh_ref{&Nb});
-Shape shape_nbathFF(sh_ref{&nbath, &F, &F});
-Shape shape_LNb(sh_ref{&L, &Nb});
-Shape shape_LnbathFF(sh_ref{&L, &nbath, &F, &F});
-Shape shape_M(sh_ref{&M});
-Shape shape_P(sh_ref{&P});
-Shape shape_N(sh_ref{&N});
-Shape shape_F(sh_ref{&F});
-Shape shape_Fadd1(sh_ref{&Fadd1});
-Shape shape_MP(sh_ref{&M, &P});
-Shape shape_PP(sh_ref{&P, &P});
-Shape shape_PN(sh_ref{&P, &N});
-Shape shape_PNN(sh_ref{&P, &N, &N});
-Shape shape_PF(sh_ref{&P, &F});
-Shape shape_PFF(sh_ref{&P, &F, &F});
-Shape shape_PNF(sh_ref{&P, &N, &F});
-Shape shape_PNFF(sh_ref{&P, &N, &F, &F});
-Shape shape_PN4N4(sh_ref{&P, &N4, &N4});
-Shape shape_NF(sh_ref{&N, &F});
-Shape shape_NN(sh_ref{&N, &N});
-Shape shape_FF(sh_ref{&F, &F});
-Shape shape_NFF(sh_ref{&N, &F, &F});
-Shape shape_NNFF(sh_ref{&N, &N, &F, &F});
-Shape shape_PNNFF(sh_ref{&P, &N, &N, &F, &F});
+Shape shape_1(1);                                  ///< Shape corresponding to a single element (1).
+Shape shape_2(2);                                  ///< Shape corresponding to two elements (2).
+Shape shape_X(1);                                  ///< Shape for an arbitrary number of elements.
+Shape shape_Nxgrid(1);                             ///< Shape for Nxgrid. @deprecated
+Shape shape_Nb(sh_ref{&Nb});                       ///< Shape for the number of discretized modes.
+Shape shape_nbathFF(sh_ref{&nbath, &F, &F});       ///< Shape for the product of nbath, F, and F (nbath * F * F).
+Shape shape_LNb(sh_ref{&L, &Nb});                  ///< Shape for the product of L and Nb (L * Nb).
+Shape shape_LnbathFF(sh_ref{&L, &nbath, &F, &F});  ///< Shape for the product of L, nbath and F and F (L * nbath * F * F)
+Shape shape_M(sh_ref{&M});                         ///< Shape for the number of Monte Carlo calculations (M).
+Shape shape_P(sh_ref{&P});                         ///< Shape for the number of parallel trajectories (P).
+Shape shape_N(sh_ref{&N});                         ///< Shape for the number of nuclear degrees of freedom (N).
+Shape shape_F(sh_ref{&F});                         ///< Shape for the number of electronic degrees of freedom (F).
+Shape shape_Fadd1(sh_ref{&Fadd1});                 ///< Shape for F plus 1 (F + 1).
+Shape shape_MP(sh_ref{&M, &P});                    ///< Shape for the product of M and P (M * P).
+Shape shape_PP(sh_ref{&P, &P});                    ///< Shape for the product of P and P (P * P).
+Shape shape_PN(sh_ref{&P, &N});                    ///< Shape for the product of P and N (P * N).
+Shape shape_PNN(sh_ref{&P, &N, &N});               ///< Shape for the product of P, N, and N (P * N * N).
+Shape shape_PF(sh_ref{&P, &F});                    ///< Shape for the product of P and F (P * F).
+Shape shape_PFF(sh_ref{&P, &F, &F});               ///< Shape for the product of P, F, and F (P * F * F).
+Shape shape_PNF(sh_ref{&P, &N, &F});               ///< Shape for the product of P, N, and F (P * N * F).
+Shape shape_PNFF(sh_ref{&P, &N, &F, &F});          ///< Shape for the product of P, N, F, and F (P * N * F * F).
+Shape shape_PN4N4(sh_ref{&P, &N4, &N4});           ///< Shape for the product of (N + 2 * F)(N + 2 * F).
+Shape shape_NF(sh_ref{&N, &F});                    ///< Shape for the product of N and F (N * F).
+Shape shape_NN(sh_ref{&N, &N});                    ///< Shape for the product of N and N (N * N).
+Shape shape_FF(sh_ref{&F, &F});                    ///< Shape for the product of F and F (F * F).
+Shape shape_NFF(sh_ref{&N, &F, &F});               ///< Shape for the product of N, F, and F (N * F * F).
+Shape shape_NNFF(sh_ref{&N, &N, &F, &F});          ///< Shape for the product of N, N, F, and F (N * N * F * F).
+Shape shape_PNNFF(sh_ref{&P, &N, &N, &F, &F});     ///< Shape for the product of P, N, N, F, and F (P* N * N * F * F).
 
 void static_build_shapes() {
     assert(M > 0 && P > 0 && N > 0 && F > 0);  //
@@ -327,6 +329,9 @@ VARIABLE<kids_real>    NAME_WRAPPER(model::lcoeff, &shape_X, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::mass, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::p0, &shape_N, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::p_sigma, &shape_N, "");
+VARIABLE<kids_complex> NAME_WRAPPER(model::Vc, &shape_PFF, "Vc");
+VARIABLE<kids_complex> NAME_WRAPPER(model::dVc, &shape_PNFF, "dVc");
+VARIABLE<kids_complex> NAME_WRAPPER(model::ddVc, &shape_PNNFF, "ddVc");
 VARIABLE<kids_real>    NAME_WRAPPER(model::MB::Jpmat, &shape_PP, "");
 VARIABLE<kids_real>    NAME_WRAPPER(model::MB::Jzmat, &shape_PP, "");
 VARIABLE<kids_complex> NAME_WRAPPER(model::MB::SXred, &shape_P, "");
@@ -357,3 +362,5 @@ VARIABLE<kids_int>     NAME_WRAPPER(random::seed, &shape_1, "");
 };  // namespace DATA
 
 };  // namespace PROJECT_NS
+
+// clang-format on

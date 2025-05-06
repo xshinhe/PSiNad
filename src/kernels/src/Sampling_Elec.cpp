@@ -28,8 +28,8 @@ void Sampling_Elec::setInputParam_impl(std::shared_ptr<Param> PM) {
     if (occ0 >= Dimension::F) throw std::runtime_error("occ >= F");
 
     gamma1 = _param->get_real({"solver.gamma"}, LOC(), elec_utils::gamma_wigner(Dimension::F));
-    if (gamma1 < -1.5) gamma1 = elec_utils::gamma_opt(Dimension::F); // gammaR using gamma=-2
-    if (gamma1 < -0.5) gamma1 = elec_utils::gamma_wigner(Dimension::F); // gammaW using gamma=-1
+    if (gamma1 < -1.5) gamma1 = elec_utils::gamma_opt(Dimension::F);     // gammaR using gamma=-2
+    if (gamma1 < -0.5) gamma1 = elec_utils::gamma_wigner(Dimension::F);  // gammaW using gamma=-1
     xi1 = (1 + Dimension::F * gamma1);
 
     // for rho_nuc
@@ -40,10 +40,11 @@ void Sampling_Elec::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Sampling_Elec::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    c       = DS->def(DATA::integrator::c); // wave function of electrons
-    rho_ele = DS->def(DATA::integrator::rho_ele); // density matrix of electrons
-    rho_nuc = DS->def(DATA::integrator::rho_nuc); // density matrix of electrons but used for nuclear force (EX. F_EHR=-Tr[rho_nuc @ \nabla H])
-    occ_nuc = DS->def(DATA::integrator::occ_nuc); // which electron state is occupied
+    c       = DS->def(DATA::integrator::c);        // wave function of electrons
+    rho_ele = DS->def(DATA::integrator::rho_ele);  // density matrix of electrons
+    rho_nuc = DS->def(DATA::integrator::rho_nuc);  // density matrix of electrons but used for nuclear force (EX.
+                                                   // F_EHR=-Tr[rho_nuc @ \nabla H])
+    occ_nuc = DS->def(DATA::integrator::occ_nuc);  // which electron state is occupied
     w       = DS->def(DATA::integrator::w);
     T       = DS->def(DATA::model::rep::T);
 }

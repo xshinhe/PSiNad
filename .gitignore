@@ -2,7 +2,12 @@ generate
 build
 build*
 .log
+.pyc
 wrappers/rustkids/target
 docs/html
 __pycache__
+*.out
+*.err
+scripts/examples/*_tmp
 # thirdpart
+

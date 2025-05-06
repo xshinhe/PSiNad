@@ -1,0 +1,49 @@
+{
+    "backup_time": -1.0,
+    "directory": "default",
+    "exchange_num": 10,
+    "exchange_time": 60.0,
+    "handler": "parallel",
+    "model": {
+        "F": 2,
+        "N": 200,
+        "dt": 0.01,
+        "lvcm_file": "CED2_lvcm.dat",
+        "lvcm_flag": "Read",
+        "name": "LVCM",
+        "occ": 1,
+        "tend": 2200.0
+    },
+    "record": [
+        {
+            "rule": "CPSpop<mi>:R(w, K1{@0}<m[occ][occ]>, K2<mii>)",
+            "save": "CED2_NAF0.dat"
+        }
+    ],
+    "restart": false,
+    "solver": {
+        "M": 96000,
+        "basis_switch": false,
+        "conserve_scale": true,
+        "dump": "null",
+        "ele_repr_flag": "Diabatic",
+        "gamma": 0.0,
+        "hopping_choose_type": 1,
+        "hopping_direction_type": 2,
+        "inp_repr_flag": "Diabatic",
+        "msize": 4,
+        "naforce": "NAF",
+        "name": "NAD",
+        "nuc_repr_flag": "Adiabatic",
+        "offd_projected": true,
+        "reflect": false,
+        "representation_flag": "Adiabatic",
+        "sampling_ele_flag": "Constraint",
+        "sampling_nuc_flag": "Gaussian",
+        "sstep": 20,
+        "use_cv": true,
+        "use_fssh": false
+    },
+    "timing": false,
+    "use_exchange": false
+}

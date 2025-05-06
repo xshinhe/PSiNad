@@ -16,7 +16,7 @@ Kernel::Kernel(const std::string& customized_name) : kernel_name{customized_name
     Kernel::getKernels().push_back(this);
 };
 
-Kernel::~Kernel(){};
+Kernel::~Kernel() {};
 
 void Kernel::setTiming(bool is_timing_in) {
     is_timing = is_timing_in;
@@ -251,9 +251,9 @@ const std::string Kernel::generateInformationString(double total_time, int curre
     return ss.str();
 }
 
-void Kernel::setInputParam_impl(std::shared_ptr<Param> PM){};
+void Kernel::setInputParam_impl(std::shared_ptr<Param> PM) {};
 
-void Kernel::setInputDataSet_impl(std::shared_ptr<DataSet> DS){};
+void Kernel::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {};
 
 Status& Kernel::initializeKernel_impl(Status& stat) { return stat; }
 

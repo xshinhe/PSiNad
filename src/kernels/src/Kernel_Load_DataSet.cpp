@@ -14,8 +14,10 @@ void Kernel_Load_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
     load_fn = _param->get_string({"solver.load", "load"}, LOC(), "NULL");
 }
 
-Status& Kernel_Load_DataSet::executeKernel_impl(Status& stat) {
+Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
     if (load_fn == "" || load_fn == "NULL" || load_fn == "null") return stat;
+    // if (!_param->get_bool({"restart"}, false) && !_param->get_bool({"recover"}, false)) return stat;
+
     try {
         if (load_fn.find(".ds") != std::string::npos) {
             std::ifstream ifs{load_fn};

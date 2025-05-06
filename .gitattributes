@@ -1,0 +1,9 @@
+# 统一换行符
+* text=auto
+
+# 忽略文件权限变化
+* -chmod=-rw-r--r--
+
+# 指定特定文件的处理方式
+*.sh text eol=lf
+*.bat text eol=crlf

@@ -141,6 +141,18 @@ configure_file(
 )
 set(PSINAD_GIT_VERSION ${GIT_HASH})
 
+# generate some header files
+execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} 
+        "${CMAKE_SOURCE_DIR}/generate_helper/generate_varlist_header.py"
+        "${CMAKE_SOURCE_DIR}/src/core/src/vars_list.cpp"
+        "${CMAKE_SOURCE_DIR}/generate/vars_list.h"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    RESULT_VARIABLE result
+    OUTPUT_VARIABLE output
+    ERROR_VARIABLE error
+)
+
 ########################################################################################################################
 ## Options for the program
 

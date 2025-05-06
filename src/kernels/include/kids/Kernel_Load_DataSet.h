@@ -43,7 +43,7 @@ class Kernel_Load_DataSet : public Kernel {
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 
-    virtual Status& executeKernel_impl(Status& stat);
+    virtual Status& initializeKernel_impl(Status& stat);
 };
 
 };  // namespace PROJECT_NS
