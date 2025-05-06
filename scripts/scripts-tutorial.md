@@ -10,7 +10,20 @@
 
 ## 用法
 
-首先配置 `.kids_profile` 中相关电子结构的环境变量
+首先配置 `.kids_profile` 中相关电子结构的环境变量，在调用脚本前，首先加载环境变量
+```bash
+source .kids_profile   # 电子结构软件相关环境变量
+export KIDS_PYTHON=/path/to/psinad/scripts     # PsiNad需要通过这个环境变量来调用python
+export KIDS_SCRIPTS_PATH=/path/to/psinad/scripts  # Psinad/scripts中脚本运行需要通过该环境变量知道scripts的路径
+```
+在 `.kids_profile` 中配置 `QM` 相关的环境变量
+
+```bash
+export MNDO_EXE_QM=mndo2020 # MNDO可执行文件名称
+export MNDO_DIR_QM=/where/you/install/mndo # MNDO可执行文件所在目录
+```
+
+其余量子化学软件所需要的环境变量见. `.kids_profile` 中的注释
 
 然后使用如下方式调用
 
@@ -29,6 +42,7 @@ python QM.py -d <output_dir> -i <input_file> -qm <QM_type> -t <try_level>
 python QM.py -d qm_mndo -i QM.in.MNDO -qm mndo -t 0 
 ```
 
+其中分子构型可以通过指定.xyz文件来实现。level0的输入字段是QM软件的输入字段，具体的输入字段可以参考相应的QM软件的手册。其构型通过$COORD_XYZ替换为[GEOM]中指定的xyz文件。
 
 `QM.in.MNDO`
 ```
@@ -43,8 +57,8 @@ use_mpi = false # if nenessary
 
 [QM.MNDO]
 path = "/usr/local/bin/mndo2020"  #指定mndo可执行文件的path
-N = 21 
-F = 3
+N = 21 # 一共多少个自由度
+F = 3 #计算多少个态
 
 level0 = """JOP=-2 IOP=-6 IGEOM=1 IFORM=1 ICUTS=-1 ICUTG=-1  +
 ISCF=9 IPLSCF=9 DPREC=1D-8 DSTEP=1D-5 IPRINT=1 +
