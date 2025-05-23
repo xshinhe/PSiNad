@@ -89,11 +89,11 @@ if __name__ == "__main__":
     #          print summary of input options
     # ####################################################
     Log.startSection('INPUT MOLECULAR DESCRIPTION')
-    print('input: ', args.input)
+    # print('input: ', args.input)
     ks_config = Config.load(args.input, args)
 
     geometry = ks_config['_geom']
-    print('geom:    ', geometry)
+    # print('geom:    ', geometry)
     Log.writeLog("\n{0} is requested, with {1}.\n".format(kids_io.getCalcType(args.type), 
         kids_io.getLayers(geometry)))
     if "H" in geometry.calculationType:
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         Log.writeLog('A MM calculation is then requested\n\n')
     if geometry.calculationType in ['H']:
         Log.writeLog('A QM calculation is then requested\n\n')
-    Log.printGeom(geometry)
+    # Log.printGeom(geometry)
 
     ############################################################
     #          Define QM restart file
@@ -340,9 +340,9 @@ if __name__ == "__main__":
 
             # write energy
             f.write('interface.dE\n')
-            f.write('kids_real %d\n'%(len(qmmm_results.energies) * geometry.atomNum*3))
+            f.write('kids_real %d\n'%(len(qmmm_results.gradient) * geometry.atomNum*3))
             jHM = 0 # count for H & M atoms
-            print(qmmm_results.gradient)
+            # print(qmmm_results.gradient)
             for i in range(geometry.atomNum): # sorted order
                 if i+1 in geometry.list_MEDIUM_HIGH:
                     for ix in [0,1,2]:
@@ -358,7 +358,7 @@ if __name__ == "__main__":
             f.write('\n')
 
             # write nac
-            print("nac:  ", qmmm_results.nac)
+            # print("nac:  ", qmmm_results.nac)
             f.write('interface.nac\n')
             f.write('kids_real %d\n'%(len(qmmm_results.nac)*len(qmmm_results.nac)*geometry.atomNum*3) )
             jHM = 0 # count for H & M atoms
