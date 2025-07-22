@@ -158,7 +158,7 @@ execute_process(
 
 # Options to determine what type of libraries to build
 option(PSINAD_BUILD_SHARED_LIB "Build shared PSiNad libraries" ON)
-option(PSINAD_BUILD_STATIC_LIB "Build static PSiNad libraries" ON)
+option(PSINAD_BUILD_STATIC_LIB "Build static PSiNad libraries" OFF)
 
 # Define library targets
 #set(SHARED_TARGET ${PSINAD_LIBRARY_NAME}) # revise to the following line
@@ -271,8 +271,12 @@ endif()
 if(NOT APPLE AND NOT MSVC)
     find_library(DL_LIBRARY dl)
     if(DL_LIBRARY)
-        target_link_libraries(${SHARED_TARGET} PRIVATE ${DL_LIBRARY} ${PTHREADS_LIB})
-        target_link_libraries(${STATIC_TARGET} PRIVATE ${DL_LIBRARY} ${PTHREADS_LIB})
+        if(PSINAD_BUILD_SHARED_LIB)
+            target_link_libraries(${SHARED_TARGET} PRIVATE ${DL_LIBRARY} ${PTHREADS_LIB})
+        endif()
+        if(PSINAD_BUILD_STATIC_LIB)
+            target_link_libraries(${STATIC_TARGET} PRIVATE ${DL_LIBRARY} ${PTHREADS_LIB})
+        endif()
         mark_as_advanced(DL_LIBRARY)
     else()
         if (ANDROID AND PSINAD_BUILD_SHARED_LIB)
@@ -380,7 +384,7 @@ endif()
 ## Build python wrapper
 
 # Python wrappers
-option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
+option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" OFF)
 if(PSINAD_BUILD_PYTHON_WRAPPERS)
     add_subdirectory(thirdpart/pybind11)
     add_subdirectory(wrappers/python)
