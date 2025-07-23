@@ -78,10 +78,10 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dE               = DS->def(DATA::model::rep::dE);
     nac              = DS->def(DATA::model::rep::nac);
     nac_prev         = DS->def(DATA::model::rep::nac_prev);
-    succ_ptr         = DS->def(DATA::flowcontrol::succ);
-    last_attempt_ptr = DS->def(DATA::flowcontrol::last_attempt);
-    frez_ptr         = DS->def(DATA::flowcontrol::frez);
-    fail_type_ptr    = DS->def(DATA::flowcontrol::fail_type);
+    succ_ptr         = DS->def(DATA::control::succ);
+    last_attempt_ptr = DS->def(DATA::control::last_attempt);
+    frez_ptr         = DS->def(DATA::control::frez);
+    fail_type_ptr    = DS->def(DATA::control::fail_type);
 
     for (int i = 0, ik = 0; i < Dimension::F; ++i) {
         for (int k = 0; k < Dimension::F; ++k, ++ik) T[ik] = (i == k) ? 1.0e0 : 0.0e0;
@@ -311,7 +311,7 @@ int Model_Interf_MNDO::parse_mndo(const std::string& mndoinp) {
     std::stringstream mndo_comment_sstr;
     std::stringstream mndo_addition_sstr;
 
-    int           count_atom = 0;
+    int count_atom = 0;
     // std::cout << "parse mndo input file: " << mndoinp << std::endl;
     std::ifstream ifs(mndoinp);
     std::string   eachline;
@@ -601,12 +601,12 @@ Status& Model_Interf_MNDO::parse_standard(const std::string& log, Status& stat_i
         fail_type_ptr[0] = 1;
         std::cout << "fail in calling MNDO! " << ERROR_MSG << "\n";
 
-        auto        istep_ptr = _dataset->def(DATA::flowcontrol::istep);
+        auto        istep_ptr = _dataset->def(DATA::control::istep);
         std::string cmd_exe   = utils::concat("cp ", directory, "/.mndoinp.", stat_in.icalc, "  ", directory,
-                                            "/.mndoinp.", stat_in.icalc, ".err.", istep_ptr[0]);
+                                              "/.mndoinp.", stat_in.icalc, ".err.", istep_ptr[0]);
         stat_in.succ          = (system(cmd_exe.c_str()) == 0);
         cmd_exe      = utils::concat("cp ", directory, "/.mndoout.", stat_in.icalc, "  ", directory, "/.mndoout.",
-                                stat_in.icalc, ".err.", istep_ptr[0]);
+                                     stat_in.icalc, ".err.", istep_ptr[0]);
         stat_in.succ = (system(cmd_exe.c_str()) == 0);
     } else {
         succ_ptr[0] = true;

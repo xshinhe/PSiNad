@@ -3,6 +3,7 @@
 #include "kids/hash_fnv1a.h"
 #include "kids/linalg.h"
 #include "kids/macro_utils.h"
+#include "kids/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -11,22 +12,34 @@ const std::string Kernel_Load_DataSet::getName() { return "Kernel_Load_DataSet";
 int Kernel_Load_DataSet::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Load_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
-    load_fn = _param->get_string({"solver.load", "load"}, LOC(), "NULL");
+    load_fn = _param->get_string({"load", "solver.load"}, LOC(), "");
 }
 
 Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
-    if (load_fn == "" || load_fn == "NULL" || load_fn == "null") return stat;
-    // if (!_param->get_bool({"restart"}, false) && !_param->get_bool({"recover"}, false)) return stat;
-
+    if (load_fn == "") return stat;
     try {
-        if (load_fn.find(".ds") != std::string::npos) {
-            std::ifstream ifs{load_fn};
-            _dataset->load(ifs);
+        auto        ipos         = load_fn.find(":");
+        std::string load_fn_file = (ipos == std::string::npos) ? load_fn : load_fn.substr(0, ipos);
+        if (load_fn_file.find(".ds") != std::string::npos) {
+            std::ifstream ifs{load_fn_file};
+            _dataset_load = std::shared_ptr<DataSet>(new DataSet());
+            _dataset_load->load(ifs);
             ifs.close();
         } else {
-            std::ifstream ifs{utils::concat(directory, "/", load_fn, stat.icalc, ".ds")};
-            _dataset->load(ifs);
+            std::ifstream ifs{utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds")};
+            _dataset_load->load(ifs);
             ifs.close();
+        }
+        syncDataSetLoad(_dataset_load);
+        if (load_fn.find(":continue") != std::string::npos) {
+            if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+            std::istringstream iss(_dataset_load->repr());
+            _dataset->load(iss);
+        } else if (load_fn.find(":restart") != std::string::npos) {
+            if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+            std::istringstream iss(_dataset_load->repr());
+            int                nsamp = _dataset->def(VARIABLE<kids_int>("control.nsamp", &Dimension::shape_1, "@"))[0];
+            _dataset->load_reframe(iss, nsamp);
         }
     } catch (std::runtime_error& e) { throw kids_error(load_fn); }
     return stat;

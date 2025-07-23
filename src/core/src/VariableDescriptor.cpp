@@ -203,12 +203,11 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                     if (vtype == VariableDescriptorPolicy::TabularOutput) {  // save nframes of a tensor
                         // If the variable is tabular, define additional keys
                         // for results
-                        DS->def_real_replace(keyRes0, cxxstackedshape,
-                                             utils::concat(name, " collected n frame of 1 traj"));
-                        DS->def_real_replace(keyRes1, cxxstackedshape,
-                                             utils::concat(name, " collected n frame of m traj but 1 mpi"));
-                        DS->def_real_replace(keyRes2, cxxstackedshape,
-                                             utils::concat(name, " collected n frame of k mpi"));
+                        DS->def_real(keyRes0, cxxstackedshape, utils::concat(name, " collected n frame of 1 traj"));
+                        DS->def_real(keyRes1, cxxstackedshape,
+                                     utils::concat(name, " collected n frame of m traj but 1 mpi"));
+                        DS->def_real(keyRes2, cxxstackedshape, utils::concat(name, " collected n frame of k mpi"));
+                        // update pointers
                     }
                     break;
                 }
@@ -220,12 +219,10 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                     if (vtype == VariableDescriptorPolicy::TabularOutput) {  // save nframes of a tensor
                         // If the variable is tabular, define additional keys
                         // for results
-                        DS->def_complex_replace(keyRes0, cxxstackedshape,
-                                                utils::concat(name, " collected n frame of 1 traj"));
-                        DS->def_complex_replace(keyRes1, cxxstackedshape,
-                                                utils::concat(name, " collected n frame of m traj but 1 mpi"));
-                        DS->def_complex_replace(keyRes2, cxxstackedshape,
-                                                utils::concat(name, " collected n frame of k mpi"));
+                        DS->def_complex(keyRes0, cxxstackedshape, utils::concat(name, " collected n frame of 1 traj"));
+                        DS->def_complex(keyRes1, cxxstackedshape,
+                                        utils::concat(name, " collected n frame of m traj but 1 mpi"));
+                        DS->def_complex(keyRes2, cxxstackedshape, utils::concat(name, " collected n frame of k mpi"));
                     }
                     break;
                 }
@@ -385,10 +382,6 @@ void VariableDescriptor::checkTrace(int sampleIndex, bool update) {
                 if (!shape) { throw kids_error(utils::concat("Shape is null for variable '", name, "'")); }
 
                 // Copy data from fromdata to todata
-                std::cout << LOC() << todata << "\n";
-                std::cout << LOC() << fromdata << "\n";
-                std::cout << LOC() << std::abs(todata[0]) << "\n";
-                std::cout << LOC() << std::abs(fromdata[0]) << "\n";
                 for (std::size_t i = 0; i < shape->size(); ++i) { todata[i] = fromdata[i]; }
 
                 break;

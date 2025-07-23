@@ -1,5 +1,6 @@
 #include "kids/DataSet.h"
 
+#include <algorithm>
 #include <complex>
 #include <cstring>
 #include <fstream>
@@ -40,8 +41,7 @@ T* DataSet::def(const std::string& key, Shape S, const std::string& info) {
 
     std::shared_ptr<Node>& leaf_node = (*d_ptr)[kh.terms.back()];
     if (!leaf_node) {
-        // std::cout << "using size for " << info << " : " << S.size() <<
-        // std::endl;
+        // std::cout << "using size for key=" << key << " (" << info << ") : " << S.to_string() << std::endl;
         leaf_node = std::shared_ptr<Tensor<T>>(new Tensor<T>(S, info));
     }
 
@@ -52,25 +52,27 @@ T* DataSet::def(const std::string& key, Shape S, const std::string& info) {
     auto leaf_node_ts = static_cast<Tensor<T>*>(leaf_node.get());
     if (S.size() != leaf_node_ts->size()) {  //
         std::cout << LOC() << key << "\n";
+        std::cout << LOC() << S.size() << "\n";
+        std::cout << LOC() << leaf_node_ts->size() << "\n";
+        std::cout << LOC() << repr() << "\n";
         throw std::runtime_error(utils::concat("doubly conflicted definition!", key));
     }
     return leaf_node_ts->data();
 }
 
 template <typename T>
-span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, const span<T>& arr_in) {
+span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, const span<T>& arr_in, bool allow_diff) {
     span<T> arr(DS.def<T>(var.name(), var.shape(), var.doc()), var.shape().size());
     if (arr_in.size() != 0) {
-        if (arr_in.size() != arr.size()) throw kids_error("mismatched size when copy dataset data");
-        for (int i = 0; i < arr.size(); ++i) arr[i] = arr_in[i];
+        if (!allow_diff && arr_in.size() != arr.size()) throw kids_error("mismatched size when copy dataset data");
+        int min_size = std::min(arr.size(), arr_in.size());
+        for (int i = 0; i < min_size; ++i) arr[i] = arr_in[i];
     }
     return arr;
 }
-
 template <typename T>
-span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, const std::string& ds_file) {
-    span<T> arr(DS.def<T>(var.name(), var.shape(), var.doc()), var.shape().size());
-
+span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, const std::string& ds_file, bool allow_diff) {
+    span<T>       arr(DS.def<T>(var.name(), var.shape(), var.doc()), var.shape().size());
     bool          find = false;
     std::string   eachline;
     std::ifstream ifs(ds_file);
@@ -79,16 +81,31 @@ span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, const std::stri
         if (eachline == var.name()) {
             getline(ifs, eachline);
             std::string       typeflag;
-            int               vsize;
+            std::size_t       vsize;
             std::stringstream ss(eachline);
             ss >> typeflag >> vsize;
-            if (typeflag != as_str<T>()) throw kids_error("mismatched type");
-            if (vsize != arr.size()) throw kids_error("mismatched size");
-            for (int i = 0; i < arr.size(); ++i) ifs >> arr[i];
+            if (!allow_diff && typeflag != as_str<T>()) throw kids_error("mismatched type");
+            if (!allow_diff && vsize != arr.size()) throw kids_error("mismatched size");
+            int min_size = std::min(vsize, arr.size());
+            for (int i = 0; i < min_size; ++i) ifs >> arr[i];
             find = true;
         }
     }
     if (!find) throw kids_error(utils::concat("cannot fetch values in dataset file: ", ds_file));
+    return arr;
+}
+template <typename T>
+span<T> DataSet::static_def(DataSet& DS, const VARIABLE<T>& var, std::shared_ptr<DataSet> ds_ptr, bool allow_diff) {
+    span<T>    arr(DS.def<T>(var.name(), var.shape(), var.doc()), var.shape().size());
+    kids_dtype itype;
+    void*      idata;
+    Shape*     ishape;
+    std::tie(itype, idata, ishape) = ds_ptr->obtain(var.name());
+    if (idata == nullptr) throw kids_error("ds_ptr has no data");
+    if (!allow_diff && itype != as_enum<T>()) throw kids_error("ds_ptr has mismatch type");
+    if (!allow_diff && ishape->size() != var.shape().size()) kids_error("ds_ptr has mismatch size");
+    int min_size = std::min(ishape->size(), var.shape().size());
+    for (int i = 0; i < min_size; ++i) arr[i] = ((T*) idata)[i];
     return arr;
 }
 
@@ -110,6 +127,21 @@ span<kids_real> DataSet::def(const VARIABLE<kids_real>& var, const std::string& 
 span<kids_complex> DataSet::def(const VARIABLE<kids_complex>& var, const std::string& ds_file) {
     return static_def<kids_complex>(*this, var, ds_file);
 }
+span<kids_int> DataSet::def(const VARIABLE<kids_int>& var, std::shared_ptr<DataSet> ds_ptr) {
+    return static_def<kids_int>(*this, var, ds_ptr);
+}
+span<kids_real> DataSet::def(const VARIABLE<kids_real>& var, std::shared_ptr<DataSet> ds_ptr) {
+    return static_def<kids_real>(*this, var, ds_ptr);
+}
+span<kids_complex> DataSet::def(const VARIABLE<kids_complex>& var, std::shared_ptr<DataSet> ds_ptr) {
+    return static_def<kids_complex>(*this, var, ds_ptr);
+}
+void DataSet::def(std::shared_ptr<DataSet> ds_ptr) {
+    std::istringstream iss(ds_ptr->repr());
+    load(iss);
+    return;
+};
+
 
 kids_int*  DataSet::def_get_pointer(VARIABLE<kids_int>& var) { return def_int(var.name(), var.shape(), var.doc()); }
 kids_real* DataSet::def_get_pointer(VARIABLE<kids_real>& var) { return def_real(var.name(), var.shape(), var.doc()); }
@@ -154,7 +186,7 @@ kids_real* DataSet::def_real_replace(const std::string& key, Shape S, const std:
     std::string tmp_key = utils::concat("tmpr.", key);
     kids_real*  arr     = def_real(tmp_key, S, info);
 
-    // std::cout << LOC() << key << "\n";
+    std::cout << LOC() << key << "\n";
     // std::cout << LOC() << tmp_key << "\n";
     // std::cout << LOC() << "min = " << size_min << "\n";
     for (int i = 0; i < size_min; ++i) arr[i] = old_arr[i];
@@ -196,7 +228,7 @@ kids_complex* DataSet::def_complex_replace(const std::string& key, Shape S, cons
     std::string   tmp_key = utils::concat("tmpc.", key);
     kids_complex* arr     = def_complex(tmp_key, S, info);
 
-    // std::cout << LOC() << key << "\n";
+    std::cout << LOC() << key << "\n";
     // std::cout << LOC() << tmp_key << "\n";
     // std::cout << LOC() << "min = " << size_min << "\n";
     for (int i = 0; i < size_min; ++i) arr[i] = old_arr[i];
@@ -258,8 +290,8 @@ DataSet& DataSet::_undef(const std::string& key) {
     auto it = d_ptr->find(kh.terms.back());
     if (it != d_ptr->end()) {
         std::cout << LOC() << key << " help!!!\n";
-        it->second.reset();
-        d_ptr->erase(it);  // @TODO
+        // it->second.reset();
+        // d_ptr->erase(it);  // @TODO
     }
     return *this;
 }
@@ -415,7 +447,7 @@ void DataSet::dump(std::ostream& os) { os << repr(); }
 
 void DataSet::load(std::istream& is) {
     std::string key, typeflag, eachline;
-    int         size;
+    std::size_t size;
     while (is >> key) {
         getline(is, eachline);
         getline(is, eachline);
@@ -426,21 +458,50 @@ void DataSet::load(std::istream& is) {
         while (ss >> idim) dims.push_back(idim);
         Shape shtmp(dims);
         if (shtmp.size() != size) throw kids_error("load ds error");
-
         if (typeflag == as_str<int>()) {
+            // nsamp should be carefully checked with Param!!! @bug
             int* ptr = def<int>(key, shtmp);
-            int  tmpi;
-            if (key == "flowcontrol.nsamp") {
-                for (int i = 0; i < size; ++i) is >> tmpi;
-            } else {
-                for (int i = 0; i < size; ++i) is >> ptr[i];
-            }
+            for (int i = 0; i < size; ++i) is >> ptr[i];
         } else if (typeflag == as_str<kids_real>()) {
             kids_real* ptr = def<kids_real>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
         } else if (typeflag == as_str<kids_complex>()) {
             kids_complex* ptr = def<kids_complex>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
+        }
+    }
+}
+
+void DataSet::load_reframe(std::istream& is, std::size_t nsamp) {
+    std::string key, typeflag, eachline;
+    int         size;
+    while (is >> key) {
+        bool multiframe = (key[0] == '_');
+        getline(is, eachline);
+        getline(is, eachline);
+        std::stringstream ss(eachline);
+        ss >> typeflag >> size;
+        std::size_t              idim;
+        std::vector<std::size_t> dims;
+        while (ss >> idim) dims.push_back(idim);
+        if (multiframe) dims[0] = nsamp;  // update shape with nsamp
+        Shape shtmp(dims);
+
+        int min_size = std::min(size, shtmp.size());
+        if (typeflag == as_str<int>()) {
+            int* ptr = def<int>(key, shtmp);
+            int  tmpi;
+            if (key == "control.nsamp") {
+                for (int i = 0; i < size; ++i) is >> tmpi;
+            } else {
+                for (int i = 0; i < size; ++i) is >> ptr[i];
+            }
+        } else if (typeflag == as_str<kids_real>()) {
+            kids_real* ptr = def<kids_real>(key, shtmp);
+            for (int i = 0; i < min_size; ++i) is >> ptr[i];
+        } else if (typeflag == as_str<kids_complex>()) {
+            kids_complex* ptr = def<kids_complex>(key, shtmp);
+            for (int i = 0; i < min_size; ++i) is >> ptr[i];
         }
     }
 }

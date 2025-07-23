@@ -55,18 +55,18 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
     // if restart, we should get all initial values and current values!
     // not that: all values defined by Kernel_Elec_Functions will also be recoveed later.
     // not that: all values defined by Kernel_Recorder will also be recovered later.
-    if (_param->get_bool({"restart"}, LOC(), false)) {  //
-        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
-        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
-        _dataset->def(DATA::init::c, loadfile);
-        _dataset->def(DATA::init::rho_ele, loadfile);
-        _dataset->def(DATA::init::rho_nuc, loadfile);
-        _dataset->def(DATA::init::T, loadfile);
-        _dataset->def(DATA::integrator::c, loadfile);
-        _dataset->def(DATA::integrator::rho_ele, loadfile);
-        _dataset->def(DATA::integrator::rho_nuc, loadfile);
-        _dataset->def(DATA::integrator::occ_nuc, loadfile);
-        _dataset->def(DATA::integrator::w, loadfile);
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) return stat;
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        _dataset->def(DATA::init::c, _dataset_load);
+        _dataset->def(DATA::init::rho_ele, _dataset_load);
+        _dataset->def(DATA::init::rho_nuc, _dataset_load);
+        _dataset->def(DATA::init::T, _dataset_load);
+        _dataset->def(DATA::integrator::c, _dataset_load);
+        _dataset->def(DATA::integrator::rho_ele, _dataset_load);
+        _dataset->def(DATA::integrator::rho_nuc, _dataset_load);
+        _dataset->def(DATA::integrator::occ_nuc, _dataset_load);
+        _dataset->def(DATA::integrator::w, _dataset_load);
         return stat;
     }
 
@@ -188,7 +188,7 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                 w[0] = kids_complex(Dimension::F);
                 break;
             }
-            default: {
+            default: {  // @NOTE: or read from _dataset_load?
                 std::string open_file = sampling_file;
                 if (!isFileExists(sampling_file)) open_file = utils::concat(sampling_file, stat.icalc, ".ds");
                 std::string   stmp, eachline;

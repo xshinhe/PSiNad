@@ -11,7 +11,7 @@ const std::string Kernel_Dump_DataSet::getName() { return "Kernel_Dump_DataSet";
 int Kernel_Dump_DataSet::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Dump_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
-    fn             = _param->get_string({"solver.dump", "dump"}, LOC(), "final");
+    fn             = _param->get_string({"dump", "solver.dump"}, LOC(), "null");
     hdlr_str       = _param->get_string({"solver.handler", "handler"}, LOC(), "");
     dump_only_init = _param->get_bool({"solver.dump_only_init"}, LOC(), false);
 }

@@ -101,6 +101,10 @@ class DataSet final : public Node {
     span<kids_int>     def(const VARIABLE<kids_int>& var, const std::string& ds_file);
     span<kids_real>    def(const VARIABLE<kids_real>& var, const std::string& ds_file);
     span<kids_complex> def(const VARIABLE<kids_complex>& var, const std::string& ds_file);
+    span<kids_int>     def(const VARIABLE<kids_int>& var, std::shared_ptr<DataSet> ds_ptr);
+    span<kids_real>    def(const VARIABLE<kids_real>& var, std::shared_ptr<DataSet> ds_ptr);
+    span<kids_complex> def(const VARIABLE<kids_complex>& var, std::shared_ptr<DataSet> ds_ptr);
+    void               def(std::shared_ptr<DataSet> ds_ptr);
 
     /**
      * Define an integer variable with a specified key, shape, and info.
@@ -290,6 +294,12 @@ class DataSet final : public Node {
      */
     virtual void load(std::istream& is);
 
+    /**
+     * Load the DataSet from an input stream.
+     * @param is The input stream to load the DataSet from.
+     */
+    virtual void load_reframe(std::istream& is, std::size_t nsamp);
+
    private:
     /**
      * Define a variable of type T with a specified key, shape, and info.
@@ -303,10 +313,14 @@ class DataSet final : public Node {
     T* def(const std::string& key, Shape S = 1, const std::string& info = "");
 
     template <typename T>
-    static span<T> static_def(DataSet& DS, const VARIABLE<T>& var, const span<T>& arr_in);
+    static span<T> static_def(DataSet& DS, const VARIABLE<T>& var, const span<T>& arr_in, bool allow_diff = false);
 
     template <typename T>
-    static span<T> static_def(DataSet& DS, const VARIABLE<T>& var, const std::string& ds_file);
+    static span<T> static_def(DataSet& DS, const VARIABLE<T>& var, const std::string& ds_file, bool allow_diff = false);
+
+    template <typename T>
+    static span<T> static_def(DataSet& DS, const VARIABLE<T>& var, std::shared_ptr<DataSet> ds_ptr,
+                              bool allow_diff = false);
 
     /**
      * @deprecated please use span for pass the data

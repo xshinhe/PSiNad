@@ -25,8 +25,8 @@ void Model_TDSystemBath::setInputParam_impl(std::shared_ptr<Param> PM) {
     is_et_transform =  //
         _param->get_bool({"model.bath_et_transform", "model.bath.et_transform"}, LOC(), false);
 
-    perx = _param->get_real({"model.perx"}, LOC(), 1.0);
-    pery = 1.0e0 - perx;
+    perx  = _param->get_real({"model.perx"}, LOC(), 1.0);
+    pery  = 1.0e0 - perx;
     freqd = _param->get_real({"model.freqd"}, LOC(), phys::energy_d, 1.0);
 
     if (nbath <= 0) {
@@ -200,7 +200,7 @@ void Model_TDSystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     // ddV  = DS->def(DATA::model::ddV);
     x = DS->def(DATA::integrator::x);
     p = DS->def(DATA::integrator::p);
-    t = DS->def(DATA::flowcontrol::t);
+    t = DS->def(DATA::control::t);
 }
 
 Status& Model_TDSystemBath::initializeKernel_impl(Status& stat) {
@@ -254,9 +254,8 @@ Status& Model_TDSystemBath::executeKernel_impl(Status& stat) {
                 for (int idxdV = 0; idxdV < Dimension::NFF; ++idxdV) dV[idxdV] = Qmat[idxdV];
             }
         } else {
-            for (int i = 0; i < Dimension::FF; ++i) V[i] = (i%(Dimension::F+1) == 0)? 
-                Hsys[i] * (perx + pery * std::cos(freqd * t[0])) : 
-                Hsys[i];
+            for (int i = 0; i < Dimension::FF; ++i)
+                V[i] = (i % (Dimension::F + 1) == 0) ? Hsys[i] * (perx + pery * std::cos(freqd * t[0])) : Hsys[i];
 
             // std::cout << perx << ", " << pery << std::endl;
             // std::cout << FMT(4) << t[0] << std::endl;

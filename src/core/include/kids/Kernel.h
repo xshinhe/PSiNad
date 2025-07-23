@@ -299,6 +299,11 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
     std::shared_ptr<DataSet> _dataset;
 
     /**
+     * @brief Shared pointer to the DataSet object associated with this kernel loaded previously.
+     */
+    std::shared_ptr<DataSet> _dataset_load;
+
+    /**
      * @brief Recorded Rules associated with the Kernel.
      */
     std::shared_ptr<RuleSet> _ruleset;
@@ -370,6 +375,8 @@ class Kernel : public std::enable_shared_from_this<Kernel> {
      * @note The exact definition of "related kernels" may vary depending on the context and application.
      */
     void connectRelatedKernels(std::shared_ptr<Kernel>& ker);
+
+    void syncDataSetLoad(std::shared_ptr<DataSet> DS);
 
    private:
     /**
