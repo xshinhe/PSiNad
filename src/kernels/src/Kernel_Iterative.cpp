@@ -26,18 +26,41 @@ void Kernel_Iterative::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Iterative::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    t            = DS->def(DATA::flowcontrol::t);
-    dt           = DS->def(DATA::flowcontrol::dt);
-    istep        = DS->def(DATA::flowcontrol::istep);
-    isamp        = DS->def(DATA::flowcontrol::isamp);
-    at_condition = DS->def(DATA::flowcontrol::at_condition);
+    t            = DS->def(DATA::control::t);
+    dt           = DS->def(DATA::control::dt);
+    istep        = DS->def(DATA::control::istep);
+    isamp        = DS->def(DATA::control::isamp);
+    at_condition = DS->def(DATA::control::at_condition);
     // save some variables
-    DS->def(VARIABLE<kids_int>("flowcontrol.sstep", &Dimension::shape_1, "@"))[0] = sstep;
-    DS->def(VARIABLE<kids_int>("flowcontrol.nstep", &Dimension::shape_1, "@"))[0] = nstep;
-    DS->def(VARIABLE<kids_int>("flowcontrol.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
+    DS->def(VARIABLE<kids_int>("control.sstep", &Dimension::shape_1, "@"))[0] = sstep;
+    DS->def(VARIABLE<kids_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
+    DS->def(VARIABLE<kids_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
 }
 
 Status& Kernel_Iterative::initializeKernel_impl(Status& stat) {
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        // exactly copy from _dataset_load to _dataset
+        // istep[0]          = _dataset_load->def_int("recover.istep", 1)[0]; // @TODO BUG
+        // isamp[0]          = _dataset_load->def_int("recover.isamp", 1)[0]; // @TODO BUG
+        stat.succ         = true;
+        stat.last_attempt = false;
+        stat.frozen       = false;
+        stat.fail_type    = 0;
+        return stat;
+    }
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        t[0]              = _dataset_load->def_real("control.t", 1)[0];
+        dt[0]             = dt0;
+        isamp[0]          = 0;
+        istep[0]          = 0;
+        stat.succ         = true;
+        stat.last_attempt = false;
+        stat.frozen       = false;
+        stat.fail_type    = 0;
+        return stat;
+    }
     t[0]              = t0;
     dt[0]             = dt0;
     istep[0]          = 0;

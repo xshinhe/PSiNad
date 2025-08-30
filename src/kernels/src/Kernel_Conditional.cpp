@@ -10,10 +10,10 @@ const std::string Kernel_Conditional::getName() { return "Kernel_Conditional"; }
 
 int Kernel_Conditional::getType() const { return utils::hash(FUNCTION_NAME); }
 
-void Kernel_Conditional::setInputParam_impl(std::shared_ptr<Param> PM){};
+void Kernel_Conditional::setInputParam_impl(std::shared_ptr<Param> PM) {};
 
 void Kernel_Conditional::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    at_condition = DS->def(DATA::flowcontrol::at_condition);
+    at_condition = DS->def(DATA::control::at_condition);
 }
 
 Status& Kernel_Conditional::initializeKernel_impl(Status& stat) {

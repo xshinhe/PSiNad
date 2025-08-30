@@ -16,7 +16,7 @@ void Kernel_Update_T::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Update_T::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr = DS->def(DATA::flowcontrol::dt);
+    dt_ptr = DS->def(DATA::control::dt);
     m      = DS->def(DATA::integrator::m);
     p      = DS->def(DATA::integrator::p);
 

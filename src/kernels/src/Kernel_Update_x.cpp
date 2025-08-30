@@ -14,16 +14,16 @@ const std::string Kernel_Update_x::getName() { return "Kernel_Update_x"; }
 int Kernel_Update_x::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Update_x::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    x         = DS->def(DATA::integrator::x);
-    p         = DS->def(DATA::integrator::p);
-    m         = DS->def(DATA::integrator::m);
-    minv      = DS->def(DATA::integrator::minv);
-	if (Kernel_Monodromy::enable){
-    mono      = DS->def(DATA::integrator::monodromy::mono);
-    monodt    = DS->def(DATA::integrator::monodromy::monodt);
-	}
+    x    = DS->def(DATA::integrator::x);
+    p    = DS->def(DATA::integrator::p);
+    m    = DS->def(DATA::integrator::m);
+    minv = DS->def(DATA::integrator::minv);
+    if (Kernel_Monodromy::enable) {
+        mono   = DS->def(DATA::integrator::monodromy::mono);
+        monodt = DS->def(DATA::integrator::monodromy::monodt);
+    }
     auto mass = DS->def(DATA::model::mass);
-    dt        = DS->def(DATA::flowcontrol::dt);
+    dt        = DS->def(DATA::control::dt);
     for (int iP = 0; iP < Dimension::P; ++iP) {
         auto m    = this->m.subspan(iP * Dimension::N, Dimension::N);
         auto minv = this->minv.subspan(iP * Dimension::N, Dimension::N);

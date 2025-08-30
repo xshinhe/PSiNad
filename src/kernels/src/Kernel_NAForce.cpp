@@ -32,7 +32,7 @@ void Kernel_NAForce::setInputParam_impl(std::shared_ptr<Param> PM) {
 };
 
 void Kernel_NAForce::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr = DS->def(DATA::flowcontrol::dt);
+    dt_ptr = DS->def(DATA::control::dt);
     f      = DS->def(DATA::integrator::f);
     // fmat     = DS->def(DATA::integrator::fmat);
     p        = DS->def(DATA::integrator::p);
@@ -42,7 +42,7 @@ void Kernel_NAForce::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dV       = DS->def(DATA::model::dV);
     dE       = DS->def(DATA::model::rep::dE);
     T        = DS->def(DATA::model::rep::T);
-    succ_ptr = DS->def(DATA::flowcontrol::succ);
+    succ_ptr = DS->def(DATA::control::succ);
 
     Epot = DS->def(DATA::integrator::Epot);
     vpes = DS->def(DATA::model::vpes);
@@ -157,7 +157,7 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                          ++b, b0FF += JFF, b0bb += (JFF + Dimension::Fadd1)) {
                         auto   Forceb0 = ForceMat.subspan(b0FF, Dimension::FF);
                         double fb0     = std::real(ARRAY_TRACE2(rho_nuc.data(), Forceb0.data(),  //
-                                                            Dimension::F, Dimension::F));
+                                                                Dimension::F, Dimension::F));
                         for (int j = 0, bjbb = b0bb; j < J; ++j, ++bj, bjbb += Dimension::FF) {
                             f[bj] = fb0 * ForceMat[bjbb] / ForceMat[b0bb];
                         }
@@ -166,7 +166,7 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                     for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
                         auto dVj = ForceMat.subspan(jFF, Dimension::FF);
                         f[j]     = std::real(ARRAY_TRACE2(rho_nuc.data(), dVj.data(),  //
-                                                      Dimension::F, Dimension::F));
+                                                          Dimension::F, Dimension::F));
                     }
                 }
                 Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //

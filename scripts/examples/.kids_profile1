@@ -27,57 +27,57 @@
 
 ## COBRAMM variables
 
-export KIDS_SCRIPTS_PATH=/home/shin/share/KIDS/kids_scripts
-export PATH=$KIDS_SCRIPTS_PATH:$KIDS_SCRIPTS_PATH/util:$PATH
+export KIDS_SCRIPTS_PATH=/home/lhc/PSiNad/scripts
+# export PATH=$KIDS_SCRIPTS_PATH:$KIDS_SCRIPTS_PATH/util:$PATH
 
 ## Python extension
 
-export PYTHONPATH=$PYTHONPATH
+# export PYTHONPATH=$PYTHONPATH
 
 ## Parallel execution
 
-export PARA_EXE='mpirun -np'
+# export PARA_EXE='mpirun -np'
 #export PARA_EXE='srun -n'
 
 ## AMBER
 
-export AMBERHOME=/opt/anaconda3/
-export PATH=$PATH:$AMBERHOME/bin   # for Amber versions < Amber12 use exe instead
+# export AMBERHOME=/opt/anaconda3/
+# export PATH=$PATH:$AMBERHOME/bin   # for Amber versions < Amber12 use exe instead
 
 ## GAUSSIAN
 
-export GAUSSIAN_EXE_QM=g16
-export GAUSSIAN_DIR_QM=/home/shin/soft
-export GAUSSIAN_EXE=g16
-export GAUSSIAN_DIR=/home/shin/soft
-export GAUSS_SCRDIR=/tmp/${USER}_tmp_gaussian
+# export GAUSSIAN_EXE_QM=g16
+# export GAUSSIAN_DIR_QM=/home/shin/soft
+# export GAUSSIAN_EXE=g16
+# export GAUSSIAN_DIR=/home/shin/soft
+# export GAUSS_SCRDIR=/tmp/${USER}_tmp_gaussian
 
 ## MNDO
 
-export MNDO_EXE_QM=mndo2020
-export MNDO_DIR_QM=/home/shin/soft/mndo
+# export MNDO_EXE_QM=mndo2020
+# export MNDO_DIR_QM=/home/shin/soft/mndo
 
 ## BAGEL
 
 export BAGEL_EXE_QM=BAGEL
-export BAGEL_DIR_QM=/usr/local/bagel/
+export BAGEL_DIR_QM=/usr/local/bagel/bin/
 
 ## MOLCAS
 
-export MOLCAS=/path/to/molcas
-export MOLCAS_SCRIPT=/usr/bin/molcas
+# export MOLCAS=/path/to/molcas
+# export MOLCAS_SCRIPT=/usr/bin/molcas
 
 ## MOLPRO
 
-export MOLPRO_EXE=/path/to/molpro/executable
+# export MOLPRO_EXE=/path/to/molpro/executable
 
 ## BDF
 
-export BDFHOME=/home/shin/soft/bdf-pkg-full/build/bdf-pkg-full/
-export BDF_SCRIPT=/home/shin/soft/bdf-pkg-full/build/bdf-pkg-full/sbin/bdfdrv.py
+# export BDFHOME=/home/shin/soft/bdf-pkg-full/build/bdf-pkg-full/
+# export BDF_SCRIPT=/home/shin/soft/bdf-pkg-full/build/bdf-pkg-full/sbin/bdfdrv.py
 
 ## ORCA
 
-export ORCA_EXE_QM=/home/shin/soft/orca_6_0_0/orca
-export ORCA_DIR_QM=/home/shin/soft/orca_6_0_0
+# export ORCA_EXE_QM=/home/shin/soft/orca_6_0_0/orca
+# export ORCA_DIR_QM=/home/shin/soft/orca_6_0_0
 

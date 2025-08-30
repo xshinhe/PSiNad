@@ -69,7 +69,6 @@ class Kernel_Random : public Kernel {
 
    private:
     span<kids_int> seed;
-    bool           restart;
 
     virtual void setInputDataSet_impl(std::shared_ptr<DataSet> DS);
 

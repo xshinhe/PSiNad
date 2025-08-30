@@ -67,11 +67,11 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     p_sigma = DS->def(DATA::model::p_sigma);
 
     // model field
-    atoms            = DS->def(DATA::model::atoms);
-    layer_type       = DS->def(DATA::model::layer_type);
-    mass             = DS->def(DATA::model::mass);
-    vpes             = DS->def(DATA::model::vpes);
-    grad             = DS->def(DATA::model::grad);
+    atoms      = DS->def(DATA::model::atoms);
+    layer_type = DS->def(DATA::model::layer_type);
+    mass       = DS->def(DATA::model::mass);
+    vpes       = DS->def(DATA::model::vpes);
+    grad       = DS->def(DATA::model::grad);
     // hess             = DS->def(DATA::model::hess);
     // Tmod             = DS->def(DATA::model::Tmod);
     f_r              = DS->def(DATA::model::f_r);
@@ -84,45 +84,43 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dE               = DS->def(DATA::model::rep::dE);
     nac              = DS->def(DATA::model::rep::nac);
     nac_prev         = DS->def(DATA::model::rep::nac_prev);
-    succ_ptr         = DS->def(DATA::flowcontrol::succ);
-    last_attempt_ptr = DS->def(DATA::flowcontrol::last_attempt);
-    frez_ptr         = DS->def(DATA::flowcontrol::frez);
-    fail_type_ptr    = DS->def(DATA::flowcontrol::fail_type);
-    dt_ptr           = DS->def(DATA::flowcontrol::dt);
-    t_ptr            = DS->def(DATA::flowcontrol::t);
-    istep_ptr        = DS->def(DATA::flowcontrol::istep);
+    succ_ptr         = DS->def(DATA::control::succ);
+    last_attempt_ptr = DS->def(DATA::control::last_attempt);
+    frez_ptr         = DS->def(DATA::control::frez);
+    fail_type_ptr    = DS->def(DATA::control::fail_type);
+    dt_ptr           = DS->def(DATA::control::dt);
+    t_ptr            = DS->def(DATA::control::t);
+    istep_ptr        = DS->def(DATA::control::istep);
 
     ARRAY_EYE(T.data(), Dimension::F);
     // ARRAY_EYE(Tmod.data(), Dimension::N);
-	
-	if(!isFileExists(qmmm_layer_info)){
-		throw kids_error("qmm_layer_info is needed!");
-	}
+
+    if (!isFileExists(qmmm_layer_info)) { throw kids_error("qmm_layer_info is needed!"); }
 
     double        dtmp;
     int           itmp;
     std::string   stmp;
     std::ifstream ifs(qmmm_layer_info);
-    int iatom = 0;
-    while(getline(ifs, stmp, '\n')){
+    int           iatom = 0;
+    while (getline(ifs, stmp, '\n')) {
         std::stringstream ss{stmp};
-        std::string sym, type;
-        double charg;
-        ss >> sym >> charg >> x0[3*iatom] >> x0[3*iatom+1] >> x0[3*iatom+2] >> type;
+        std::string       sym, type;
+        double            charg;
+        ss >> sym >> charg >> x0[3 * iatom] >> x0[3 * iatom + 1] >> x0[3 * iatom + 2] >> type;
         atoms[iatom] = chem::getElemIndex(sym);
-		if (type == "H") layer_type[iatom] = 0;
-		if (type == "M") layer_type[iatom] = 1;
-		if (type == "L") layer_type[iatom] = 2;
+        if (type == "H") layer_type[iatom] = 0;
+        if (type == "M") layer_type[iatom] = 1;
+        if (type == "L") layer_type[iatom] = 2;
         for (int a = 0; a < 3; ++a) {
-            x0[3*iatom+a] /= phys::au_2_ang;
-            mass[3*iatom+a] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;
+            x0[3 * iatom + a] /= phys::au_2_ang;
+            mass[3 * iatom + a] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;
         }
-		iatom++;
+        iatom++;
     }
-	// PRINT_ARRAY(mass, 1, 12);
+    // PRINT_ARRAY(mass, 1, 12);
     ifs.close();
-	natom = iatom;
-	if(Dimension::N != 3*natom) throw kids_error("mismatch real_layers size with N");
+    natom = iatom;
+    if (Dimension::N != 3 * natom) throw kids_error("mismatch real_layers size with N");
     for (int j = 0; j < Dimension::N; ++j) x_sigma[j] = 0.0e0, p_sigma[j] = 0.0e0;
 }
 
@@ -169,7 +167,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     // write input
     std::ofstream ofs(crd_input);
     ofs << "\n" << natom << "\n";
-	
+
     for (int iatom = 0, idx = 0; iatom < natom; ++iatom) {
         // ofs << chem::getElemLabel(atoms[iatom]);  //
         for (int a = 0; a < 3; ++a) {
@@ -189,9 +187,10 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     }
 
     // call python executation
-    std::string qm_call_str = utils::concat("python ", kidsqmmm_path, "/kidsqmmm.py -t ", try_level,  //
-                                            " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " > ", path_str, "/log");
-    int         s           = system(qm_call_str.c_str());
+    std::string qm_call_str =
+        utils::concat("python ", kidsqmmm_path, "/kidsqmmm.py -t ", try_level,  //
+                      " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " > ", path_str, "/log");
+    int s = system(qm_call_str.c_str());
 
     // checkout the result
     if (s == 0 && isFileExists(utils::concat(path_str, "/interface.ds"))) {

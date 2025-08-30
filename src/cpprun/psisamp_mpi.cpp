@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     check_and_sync_from_gflags(PM);
     PM->set_string("dump", "samp");
     PM->set_string("solver.dump", "samp");
-    std::ofstream ofs(utils::concat(FLAGS_d, "/", "input"));
+    std::ofstream ofs(utils::concat(FLAGS_d, "/", "input.json"));
     ofs << PM->repr();
     ofs.close();
 

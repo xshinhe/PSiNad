@@ -275,6 +275,19 @@ void Kernel::connectRelatedKernels(std::shared_ptr<Kernel>& ker) {
     }
 }
 
+void Kernel::syncDataSetLoad(std::shared_ptr<DataSet> DS) {
+    this->_dataset_load = DS;
+    if (this->has_parent) {
+        if (this->_parent_kernel->_dataset_load != DS) { this->_parent_kernel->syncDataSetLoad(DS); }
+    }
+    for (auto&& pkernel : _child_kernels) {
+        if (pkernel->_dataset_load == DS) continue;
+        pkernel->syncDataSetLoad(DS);
+    }
+    return;
+}
+
+
 std::map<std::string, Kernel*>& getDictOfKernels() {
     static std::map<std::string, Kernel*> static_dict_of_kernels;
     return static_dict_of_kernels;

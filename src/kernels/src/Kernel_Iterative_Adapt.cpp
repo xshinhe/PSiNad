@@ -37,67 +37,63 @@ void Kernel_Iterative_Adapt::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    t                 = DS->def(DATA::flowcontrol::t);
-    dt                = DS->def(DATA::flowcontrol::dt);
-    istep             = DS->def(DATA::flowcontrol::istep);
-    isamp             = DS->def(DATA::flowcontrol::isamp);
-    tsize             = DS->def(DATA::flowcontrol::tsize);
-    dtsize            = DS->def(DATA::flowcontrol::dtsize);
-    last_tried_dtsize = DS->def(DATA::flowcontrol::last_tried_dtsize);
-    at_condition      = DS->def(DATA::flowcontrol::at_condition);
+    t                 = DS->def(DATA::control::t);
+    dt                = DS->def(DATA::control::dt);
+    istep             = DS->def(DATA::control::istep);
+    isamp             = DS->def(DATA::control::isamp);
+    tsize             = DS->def(DATA::control::tsize);
+    dtsize            = DS->def(DATA::control::dtsize);
+    last_tried_dtsize = DS->def(DATA::control::last_tried_dtsize);
+    at_condition      = DS->def(DATA::control::at_condition);
 
     // initializarion
-    DS->def(VARIABLE<kids_int>("flowcontrol.sstep", &Dimension::shape_1, "@"))[0] = sstep;
-    DS->def(VARIABLE<kids_int>("flowcontrol.nstep", &Dimension::shape_1, "@"))[0] = nstep;
-    DS->def(VARIABLE<kids_int>("flowcontrol.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
-    DS->def(VARIABLE<kids_int>("flowcontrol.msize", &Dimension::shape_1, "@"))[0] = msize;
+    DS->def(VARIABLE<kids_int>("control.sstep", &Dimension::shape_1, "@"))[0] = sstep;
+    DS->def(VARIABLE<kids_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
+    DS->def(VARIABLE<kids_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
+    DS->def(VARIABLE<kids_int>("control.msize", &Dimension::shape_1, "@"))[0] = msize;
 }
 
 Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
-    if (_param->get_bool({"recover"}, LOC(), false)) {  //
-        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
-        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "recover.ds";
-
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
         if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
         if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
             std::string rmfile = utils::concat("X_STAT", stat.icalc);
             remove(rmfile.c_str());
         }
-        istep[0]             = _dataset->def_int("recover.istep", 1)[0];
-        tsize[0]             = _dataset->def_int("recover.tsize", 1)[0];
-        dtsize[0]            = _dataset->def_int("recover.dtsize", 1)[0];
-        last_tried_dtsize[0] = _dataset->def_int("recover.last_tried_dtsize", 1)[0];
 
-        stat.succ         = true;
-        stat.last_attempt = false;
-        stat.frozen       = false;
-        stat.fail_type    = 0;
+        // exactly copy from _dataset_load to _dataset
+        istep[0]             = _dataset_load->def_int("recover.istep", 1)[0];
+        tsize[0]             = _dataset_load->def_int("recover.tsize", 1)[0];
+        dtsize[0]            = _dataset_load->def_int("recover.dtsize", 1)[0];
+        last_tried_dtsize[0] = _dataset_load->def_int("recover.last_tried_dtsize", 1)[0];
+        stat.succ            = true;
+        stat.last_attempt    = false;
+        stat.frozen          = false;
+        stat.fail_type       = 0;
         return stat;
     }
-    if (_param->get_bool({"restart"}, LOC(), false)) {  //
-        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
-        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
-
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
         if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
         if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
             std::string rmfile = utils::concat("X_STAT", stat.icalc);
             remove(rmfile.c_str());
         }
 
-        t[0]  = _dataset->def_real("flowcontrol.t", 1)[0];
+        // exactly copy from _dataset_load to _dataset
+        t[0]  = _dataset_load->def_real("control.t", 1)[0];
         dt[0] = dt0;
 
         isamp[0]             = 0;
         istep[0]             = 0;
-        tsize[0]             = _dataset->def_int("flowcontrol.tsize", 1)[0];
+        tsize[0]             = _dataset_load->def_int("control.tsize", 1)[0];
         dtsize[0]            = msize;
         last_tried_dtsize[0] = msize;
-
-        stat.succ         = true;
-        stat.last_attempt = false;
-        stat.frozen       = false;
-        stat.fail_type    = 0;
-
+        stat.succ            = true;
+        stat.last_attempt    = false;
+        stat.frozen          = false;
+        stat.fail_type       = 0;
         return stat;
     }
     if (use_exchange) {
@@ -330,7 +326,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                   << std::setw(10) << "try"       // stepsize after this step
                   << std::endl;
     }
-    if (_param->get_bool({"restart"}, LOC(), false)) {
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {
         stat.first_step = false;
     } else {
         stat.first_step = true;

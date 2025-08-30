@@ -28,7 +28,7 @@ void Kernel_Elec_Switch::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Elec_Switch::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    dt_ptr    = DS->def(DATA::flowcontrol::dt);
+    dt_ptr    = DS->def(DATA::control::dt);
     Epot      = DS->def(DATA::integrator::Epot);
     p         = DS->def(DATA::integrator::p);
     m         = DS->def(DATA::integrator::m);

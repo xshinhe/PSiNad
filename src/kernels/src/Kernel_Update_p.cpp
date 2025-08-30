@@ -19,23 +19,23 @@ void Kernel_Update_p::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    f       = DS->def(DATA::integrator::f);
-    fadd    = DS->def(DATA::integrator::fadd);
-    p       = DS->def(DATA::integrator::p);
-    ve      = DS->def(DATA::integrator::ve);
-    minv    = DS->def(DATA::integrator::minv);
-	if (Kernel_Monodromy::enable){
-    mono    = DS->def(DATA::integrator::monodromy::mono);
-    monodt  = DS->def(DATA::integrator::monodromy::monodt);
-    MFFtmp1 = DS->def(DATA::integrator::monodromy::MFFtmp1);
-    MFFtmp2 = DS->def(DATA::integrator::monodromy::MFFtmp2);
-    MFFtmp3 = DS->def(DATA::integrator::monodromy::MFFtmp3);
-    MFFtmp4 = DS->def(DATA::integrator::monodromy::MFFtmp4);
-    MFFtmp5 = DS->def(DATA::integrator::monodromy::MFFtmp5);
-    MFFtmp6 = DS->def(DATA::integrator::monodromy::MFFtmp6);
-    hess    = DS->def(DATA::model::hess);
-    ddV     = DS->def(DATA::model::ddV);
-	}
+    f    = DS->def(DATA::integrator::f);
+    fadd = DS->def(DATA::integrator::fadd);
+    p    = DS->def(DATA::integrator::p);
+    ve   = DS->def(DATA::integrator::ve);
+    minv = DS->def(DATA::integrator::minv);
+    if (Kernel_Monodromy::enable) {
+        mono    = DS->def(DATA::integrator::monodromy::mono);
+        monodt  = DS->def(DATA::integrator::monodromy::monodt);
+        MFFtmp1 = DS->def(DATA::integrator::monodromy::MFFtmp1);
+        MFFtmp2 = DS->def(DATA::integrator::monodromy::MFFtmp2);
+        MFFtmp3 = DS->def(DATA::integrator::monodromy::MFFtmp3);
+        MFFtmp4 = DS->def(DATA::integrator::monodromy::MFFtmp4);
+        MFFtmp5 = DS->def(DATA::integrator::monodromy::MFFtmp5);
+        MFFtmp6 = DS->def(DATA::integrator::monodromy::MFFtmp6);
+        hess    = DS->def(DATA::model::hess);
+        ddV     = DS->def(DATA::model::ddV);
+    }
     mask    = DS->def(DATA::integrator::forceeval::mask);
     dmask   = DS->def(DATA::integrator::forceeval::dmask);
     T       = DS->def(DATA::model::rep::T);
@@ -47,7 +47,7 @@ void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     rho_nuc = DS->def(DATA::integrator::rho_nuc);
     c       = DS->def(DATA::integrator::c);
     Ekin    = DS->def(DATA::integrator::Ekin);
-    dt      = DS->def(DATA::flowcontrol::dt);
+    dt      = DS->def(DATA::control::dt);
 }
 
 Status& Kernel_Update_p::initializeKernel_impl(Status& stat) {

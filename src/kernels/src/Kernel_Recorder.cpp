@@ -24,20 +24,21 @@ Kernel_Recorder::Kernel_Recorder() {
 Kernel_Recorder::~Kernel_Recorder() {};
 
 void Kernel_Recorder::setInputParam_impl(std::shared_ptr<Param> PM) {
-    dt         = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);
-    t0         = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
-    time_unit  = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
-    occ0       = _param->get_int({"model.occ", "solver.occ"}, LOC(), -1);
-    record_tmp = _param->get_bool({"solver.record_tmp"}, LOC(), false);
+    dt              = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);
+    t0              = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
+    time_unit       = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
+    occ0            = _param->get_int({"model.occ", "solver.occ"}, LOC(), -1);
+    record_dumpstep = _param->get_int({"solver.record_dumpstep"}, LOC(), 0);
+    record_tmp      = _param->get_bool({"solver.record_tmp"}, LOC(), false);
 }
 
 void Kernel_Recorder::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    istep_ptr = DS->def(DATA::flowcontrol::istep);
-    sstep_ptr = DS->def(DATA::flowcontrol::sstep);
-    isamp_ptr = DS->def(DATA::flowcontrol::isamp);
-    nsamp_ptr = DS->def(DATA::flowcontrol::nsamp);
+    istep_ptr = DS->def(DATA::control::istep);
+    sstep_ptr = DS->def(DATA::control::sstep);
+    isamp_ptr = DS->def(DATA::control::isamp);
+    nsamp_ptr = DS->def(DATA::control::nsamp);
     // set time unit in recorder
-    DS->def(DATA::flowcontrol::pertimeunit)[0] = 1.0e0 / time_unit;
+    DS->def(DATA::control::pertimeunit)[0] = 1.0e0 / time_unit;
 }
 
 void Kernel_Recorder::parse() {
@@ -82,8 +83,7 @@ void Kernel_Recorder::parse() {
 
         if (std::find(opened_files.begin(), opened_files.end(), save) == opened_files.end() && mode == "average") {
             std::shared_ptr<RuleEvaluator> record_time_rule(  //
-                new RuleEvaluator("time(t{flowcontrol}:R, pertimeunit{flowcontrol}:R)", _dataset, mode, save,
-                                  nsamp_ptr[0]));
+                new RuleEvaluator("time(t{control}:R, pertimeunit{control}:R)", _dataset, mode, save, nsamp_ptr[0]));
             _ruleset->registerRules(record_time_rule);
             opened_files.push_back(save);
         }
@@ -114,12 +114,19 @@ Status& Kernel_Recorder::initializeKernel_impl(Status& stat) {
 }
 
 Status& Kernel_Recorder::executeKernel_impl(Status& stat) {
-    if (_param->get_bool({"restart"}, LOC(), false)) {
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {
         for (auto& irule : _ruleset->getRules()) { irule->calculateResult(isamp_ptr[0], false); }
     } else {
         for (auto& irule : _ruleset->getRules()) { irule->calculateResult(isamp_ptr[0], true); }
     }
     if (record_tmp) RuleSet::flush_all(this->directory, ".TMP", 0);
+    if (record_dumpstep > 0) {
+        try {
+            std::ofstream ofs{utils::concat(directory, "/record-dump", stat.icalc, "-", istep_ptr[0], ".ds")};
+            _dataset->dump(ofs);
+            ofs.close();
+        } catch (std::runtime_error& e) { throw kids_error("bad dump in recording\n"); }
+    }
     return stat;
 }
 

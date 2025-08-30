@@ -119,34 +119,34 @@ void Kernel_Elec_Functions::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 }
 
 Status& Kernel_Elec_Functions::initializeKernel_impl(Status& stat) {
-    if (_param->get_bool({"restart"}, LOC(), false)) {  //
-        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
-        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) return stat;
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
         _dataset->def(VARIABLE<kids_real>("integrator.1", &Dimension::shape_1, "@"))[0] = 1;
         _dataset->def(VARIABLE<kids_real>("init.1", &Dimension::shape_1, "@"))[0]       = 1;
-        _dataset->def(VARIABLE<kids_complex>("init.K0", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K1", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K2", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K1QA", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K2QA", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K1DA", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K2DA", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K1QD", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K2QD", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K1DD", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.K2DD", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.KSHA", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.KTWA", &Dimension::shape_PFF, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.KTWD", &Dimension::shape_PFF, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.K0", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K1", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K2", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K1QA", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K2QA", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K1DA", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K2DA", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K1QD", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K2QD", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K1DD", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.K2DD", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.KSHA", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.KTWA", &Dimension::shape_PFF, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.KTWD", &Dimension::shape_PFF, "@"), _dataset_load);
 
-        _dataset->def(VARIABLE<kids_complex>("init.w", &Dimension::shape_P, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.wz_A", &Dimension::shape_P, "@"), loadfile);
-        _dataset->def(VARIABLE<kids_complex>("init.wz_D", &Dimension::shape_P, "@"), loadfile);
+        _dataset->def(VARIABLE<kids_complex>("init.w", &Dimension::shape_P, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.wz_A", &Dimension::shape_P, "@"), _dataset_load);
+        _dataset->def(VARIABLE<kids_complex>("init.wz_D", &Dimension::shape_P, "@"), _dataset_load);
 
         // ? check if it is used ?
-        ww_A_init = _dataset->def(VARIABLE<kids_complex>("init.ww_A", &Dimension::shape_P, "@"), loadfile);
-        ww_D_init = _dataset->def(VARIABLE<kids_complex>("init.ww_D", &Dimension::shape_P, "@"), loadfile);
-        T_init    = _dataset->def(VARIABLE<kids_real>("init.T", &Dimension::shape_PFF, "@"), loadfile);
+        ww_A_init = _dataset->def(VARIABLE<kids_complex>("init.ww_A", &Dimension::shape_P, "@"), _dataset_load);
+        ww_D_init = _dataset->def(VARIABLE<kids_complex>("init.ww_D", &Dimension::shape_P, "@"), _dataset_load);
+        T_init    = _dataset->def(VARIABLE<kids_real>("init.T", &Dimension::shape_PFF, "@"), _dataset_load);
         return stat;
     }
 

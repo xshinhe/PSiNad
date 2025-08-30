@@ -25,19 +25,19 @@ void Kernel_Update_U::setInputParam_impl(std::shared_ptr<Param> PM) {
 }
 
 void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
-    eig           = DS->def(DATA::model::rep::eig);
-    T             = DS->def(DATA::model::rep::T);
-    dE            = DS->def(DATA::model::rep::dE);
-    lam           = DS->def(DATA::model::rep::lam);
-    R             = DS->def(DATA::model::rep::R);
-    U             = DS->def(DATA::integrator::U);
-    Udt           = DS->def(DATA::integrator::Udt);
-	if (Kernel_Monodromy::enable){
-    mono          = DS->def(DATA::integrator::monodromy::mono);
-    monodt        = DS->def(DATA::integrator::monodromy::monodt);
-    MFFtmp1       = DS->def(DATA::integrator::monodromy::MFFtmp1);
-    MFFtmp2       = DS->def(DATA::integrator::monodromy::MFFtmp2);
-	}
+    eig = DS->def(DATA::model::rep::eig);
+    T   = DS->def(DATA::model::rep::T);
+    dE  = DS->def(DATA::model::rep::dE);
+    lam = DS->def(DATA::model::rep::lam);
+    R   = DS->def(DATA::model::rep::R);
+    U   = DS->def(DATA::integrator::U);
+    Udt = DS->def(DATA::integrator::Udt);
+    if (Kernel_Monodromy::enable) {
+        mono    = DS->def(DATA::integrator::monodromy::mono);
+        monodt  = DS->def(DATA::integrator::monodromy::monodt);
+        MFFtmp1 = DS->def(DATA::integrator::monodromy::MFFtmp1);
+        MFFtmp2 = DS->def(DATA::integrator::monodromy::MFFtmp2);
+    }
     invexpidiagdt = DS->def(DATA::integrator::tmp::invexpidiagdt);
     c             = DS->def(DATA::integrator::c);
     cset          = DS->def(DATA::integrator::cset);
@@ -50,17 +50,16 @@ void Kernel_Update_U::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     rho_nuc_init  = DS->def(DATA::init::rho_nuc);
     rho_dual_init = DS->def(DATA::init::rho_dual);
     T_init        = DS->def(DATA::init::T);
-    dt            = DS->def(DATA::flowcontrol::dt);
+    dt            = DS->def(DATA::control::dt);
 }
 
 Status& Kernel_Update_U::initializeKernel_impl(Status& stat) {
-    if (_param->get_bool({"restart"}, LOC(), false)) {  //
-        std::string loadfile = _param->get_string({"load"}, LOC(), "NULL");
-        if (loadfile == "NULL" || loadfile == "" || loadfile == "null") loadfile = "restart.ds";
-        _dataset->def(DATA::integrator::U, loadfile);
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) return stat;
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        _dataset->def(DATA::integrator::U, _dataset_load);
         return stat;
     }
-
     for (int iP = 0; iP < Dimension::P; ++iP) {
         auto U = this->U.subspan(iP * Dimension::FF, Dimension::FF);
         ARRAY_EYE(U.data(), Dimension::F);

@@ -9,5 +9,6 @@ __pycache__
 *.out
 *.err
 scripts/examples/*_tmp
+_scripts
 # thirdpart
 

@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.tex": "latex",
         "typeinfo": "cpp",
         "stdexcept": "cpp",
         "chrono": "cpp",
@@ -79,6 +80,12 @@
         "cfenv": "cpp",
         "typeindex": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "any": "cpp",
+        "ranges": "cpp",
+        "matrixfunctions": "cpp",
+        "openglsupport": "cpp",
+        "polynomials": "cpp",
+        "*.main": "cpp"
     }
 }

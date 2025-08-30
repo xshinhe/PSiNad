@@ -92,13 +92,14 @@ int Kernel_Random::rand_sphere(kids_real* res_arr, int N, kids_real constr) {
 
 void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     seed = DS->def(DATA::random::seed);
-    if (!restart) {
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") !=
+        std::string::npos) {  // @TODO! not exactly same!!! @bug?
         if (_param->has_key("seed")) {
             seed[0] = _param->get_int({"seed"}, LOC());
-        } else {
+        } 
+    }else{
             std::random_device source;
             seed[0] = source();
-        }
     }
     Kernel_Random::setSeed(seed.data());
 }
