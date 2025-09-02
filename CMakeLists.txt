@@ -384,8 +384,8 @@ endif()
 ## Build python wrapper
 
 # Python wrappers
-option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" OFF)
-if(PSINAD_BUILD_PYTHON_WRAPPERS)
+option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
+if(PSINAD_BUILD_PYTHON_WRAPPERS OR TRUE)
     add_subdirectory(thirdpart/pybind11)
     add_subdirectory(wrappers/python)
 endif()

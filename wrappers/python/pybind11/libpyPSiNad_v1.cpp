@@ -24,7 +24,7 @@
 namespace py = pybind11;
 using namespace PROJECT_NS;
 
-PYBIND11_MODULE(libpyPsiNad_v1, m) {
+PYBIND11_MODULE(libpyPSiNad_v1, m) {
     // clang-format off
 #include "kids_phys.cc"
 #include "kids_chem.cc"
