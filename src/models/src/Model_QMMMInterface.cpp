@@ -163,11 +163,10 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     }
 
     // prepare input run for calculation
-    std::string crd_input;
     if (save_every_step) {
-        crd_input = utils::concat(path_str, "/real", istep_ptr[0], ".crd");
+        crd_input = utils::concat("real", istep_ptr[0], ".crd");
     } else {
-        crd_input = utils::concat(path_str, "/real.crd");
+        crd_input = "real.crd";
     }
 
     // convert AU to Angstrom
