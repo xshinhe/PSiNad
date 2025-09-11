@@ -32,6 +32,10 @@ class Model_QMMMInterface final : public Model {
     std::string qmmm_layer_info;
     std::string config_content;
     std::string exec_file;
+    std::string qm_string;
+    std::string mm_string;
+    std::string qmmm_top_file;
+    std::string crd_input;
 
     kids_real   temp, beta;
     kids_real   ener_refered;

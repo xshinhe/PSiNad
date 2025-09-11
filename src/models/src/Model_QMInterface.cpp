@@ -14,7 +14,7 @@
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
 
-std::string toLower(const std::string& input) {
+static std::string toLower(const std::string& input) {
     std::string result = input;  // 创建一个副本
     std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
         return std::tolower(c);
@@ -117,7 +117,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         if (ifs >> stmp) atoms[iatom] = chem::getElemIndex(stmp);
         for (int a = 0; a < 3; ++a) {
             if (ifs >> dtmp) x0[idx] = dtmp / phys::au_2_ang;
-            mass[idx] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;
+            mass[idx] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu; // 计算原子质量  提前
             idx++;
         }
     }
@@ -127,6 +127,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     while (getline(ifs, stmp, '\n')) config_content += stmp + "\n";
     ifs.close();
 
+    // 初始化读取hessian 提前
     std::string read_hess = _param->get_string({"model.read_hess", "solver.read_hess"}, LOC(), "NULL");
     if (read_hess != "NULL") {  // used for sampling
         if (!isFileExists(read_hess)) throw kids_error("cannot open hess as .ds file");
