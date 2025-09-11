@@ -203,8 +203,8 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     //                   " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " > ", path_str, "/log");
     std::string qm_string_lower = toLower(qm_string);
     std::string qm_call_str =
-        utils::concat("python ", kidsqmmm_path, "/kidsqmmm.py -t ", try_level,  "-mm", mm_string, "-qm", qm_string_lower,
-                      " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " -l ", qmmm_layer_info, "-top", qmmm_top_file,
+        utils::concat("python ", kidsqmmm_path, "/kidsqmmm.py -t ", try_level,  " -mm ", mm_string, " -qm ", qm_string_lower,
+                      " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " -l ", qmmm_layer_info,  " -top ", qmmm_top_file,
                       " > ", path_str, "/log 2>&1");
     int s = system(qm_call_str.c_str());
 
