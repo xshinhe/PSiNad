@@ -149,7 +149,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     if (save_every_calc) {
         path_str = utils::concat(directory, "/QMMM-", stat.icalc);
     } else {
-        path_str = directory + "/QMMM";
+        path_str = utils::concat(directory, "/QMMM");
     }
     ghc::filesystem::path path(path_str);
     if (!ghc::filesystem::is_directory(path)) { ghc::filesystem::create_directory(path); }
@@ -164,10 +164,13 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
 
     // prepare input run for calculation
     if (save_every_step) {
-        crd_input = utils::concat("real", istep_ptr[0], ".crd");
+        crd_input = utils::concat(path_str, "/real", istep_ptr[0], ".crd");
     } else {
-        crd_input = "real.crd";
+        crd_input = utils::concat(path_str, "/real.crd");
     }
+    std::cout << "Current working directory: " << ghc::filesystem::current_path() << std::endl;
+    std::cout << "crd_input: " << crd_input << std::endl;
+    std::cout << "QMMM -d path_str: " << path_str << std::endl;
 
     // convert AU to Angstrom
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;

@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
     # check environment
     Log.startSection("ENV CONTROL")
-    profile_file = kids_env.findKIDSProfile()
-    Log.writeLog(kids_env.checkKIDSProfile(profile_file))
+    profile_file = kids_env.findKIDSProfile() # 查找 .kids_profile 文件
+    Log.writeLog(kids_env.checkKIDSProfile(profile_file))  # 加载环境变量
     envDefined, errorMsg = kids_env.checkKIDSEnv()
     if not envDefined: Log.fatalError(errorMsg)
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
                     shutil.copy(os.path.join(startdir, ks_config.topo1), '.')
                     shutil.copy(os.path.join(startdir, ks_config.topo2), '.')
                     shutil.copy(os.path.join(startdir, ks_config.layer), '.')
-                    shutil.copy(os.path.join(startdir, args.coord), '.')
+                    # shutil.copy(os.path.join(startdir, args.coord), '.')
 
                 shutil.copy(os.path.join(startdir, args.input), '.')
 
