@@ -4,6 +4,7 @@
 #include "kids/linalg.h"
 #include "kids/macro_utils.h"
 #include "kids/vars_list.h"
+#include <filesystem>
 
 namespace PROJECT_NS {
 
@@ -23,6 +24,10 @@ Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
         if (load_fn_file.find(".ds") != std::string::npos) {
             
             std::cout << "Loading DataSet from file: " << load_fn_file << "\n";
+            // 先确认有没有这个文件
+            if (!std::filesystem::exists(load_fn_file)) {
+                throw kids_error(utils::concat("File does not exist: ", load_fn_file));
+            }
             std::ifstream ifs{load_fn_file};
             
             if (!ifs.is_open()) {
@@ -34,6 +39,11 @@ Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
         } else {
 
             std::cout << "Loading DataSet from directory: " << utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds") << "\n";
+
+            // 先确认有没有这个文件
+            if (!std::filesystem::exists(utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds"))) {
+                throw kids_error(utils::concat("File does not exist: ", utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds")));
+            }
 
             std::ifstream ifs{utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds")};
             if (!ifs.is_open()) {
