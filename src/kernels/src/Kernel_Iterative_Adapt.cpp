@@ -101,6 +101,7 @@ Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
         exchange_fulltime = exchange_time;
     }
 
+    // 普通初始化
     t[0]                 = t0;
     dt[0]                = dt0;
     isamp[0]             = 0;
@@ -476,6 +477,32 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                       << std::setw(10) << dtsize[0] << std::endl;                   // flush into log
         }
         isamp[0] = istep[0] / sstep;
+
+               
+        // Dump dataset every successful step (or every N steps)
+        bool should_dump = false;
+        int dump_frequency = _param->get_int({"solver.dump_frequency", "dump_frequency"}, LOC(), 0);
+        std::string dump_filename = _param->get_string({"solver.dump_per_step", "dump_per_step"}, LOC(), "");
+        
+        if (dump_frequency > 0 && istep[0] % dump_frequency == 0) {
+            should_dump = true;
+        } else if (!dump_filename.empty() && (statc == 'T' || statc == 'R' || statc == 'Z')) {
+            should_dump = true;
+        }
+        
+        if (should_dump && !dump_filename.empty()) {
+            try {
+                std::ofstream ofs{utils::concat(directory, "/", dump_filename, "-step", istep[0], "-calc", stat.icalc, ".ds")};
+                _dataset->dump(ofs);
+                ofs.close();
+                if (_param->get_bool({"verbose"}, LOC(), false)) {
+                    std::cout << "Dumped step " << istep[0] << " to " << dump_filename << "-step" << istep[0] << "-calc" << stat.icalc << ".ds" << std::endl;
+                }
+            } catch (std::runtime_error& e) {
+                std::cerr << "Warning: Failed to dump at step " << istep[0] << ": " << e.what() << std::endl;
+            }
+        }
+
     }
     dtsize[0] = backup_dtsize;  // frozen dynamics
     dt[0]     = dt0 * (dtsize[0] / ((double) msize));

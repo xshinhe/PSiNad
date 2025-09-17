@@ -10,5 +10,6 @@ __pycache__
 *.err
 scripts/examples/*_tmp
 _scripts
+examples/
 # thirdpart
 

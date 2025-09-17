@@ -21,12 +21,24 @@ Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
         auto        ipos         = load_fn.find(":");
         std::string load_fn_file = (ipos == std::string::npos) ? load_fn : load_fn.substr(0, ipos);
         if (load_fn_file.find(".ds") != std::string::npos) {
+            
+            std::cout << "Loading DataSet from file: " << load_fn_file << "\n";
             std::ifstream ifs{load_fn_file};
+            
+            if (!ifs.is_open()) {
+                throw kids_error(utils::concat("Cannot open file: ", load_fn_file));
+            }
             _dataset_load = std::shared_ptr<DataSet>(new DataSet());
             _dataset_load->load(ifs);
             ifs.close();
         } else {
+
+            std::cout << "Loading DataSet from directory: " << utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds") << "\n";
+
             std::ifstream ifs{utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds")};
+            if (!ifs.is_open()) {
+                throw kids_error(utils::concat("Cannot open file: ", utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds")));
+            }
             _dataset_load->load(ifs);
             ifs.close();
         }
