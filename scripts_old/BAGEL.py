@@ -555,7 +555,7 @@ if __name__ == '__main__':
                 xt = x0 + 10 / np.sqrt(mass) * np.dot(Tmod, dx)
 
                 for ia in range(Natom):
-                    ft.write('%s %12.8f %12.8f %12.8f\n'%(sym[ia//3], xt[3*ia], xt[3*ia+1], xt[3*ia+2]))
+                    ft.write('%s %12.8f %12.8f %12.8f\n'%(sym[ia], xt[3*ia], xt[3*ia+1], xt[3*ia+2]))
             ft.close()
 
         # pprint(hess)

@@ -13,11 +13,12 @@
 #include "kids/Kernel_Update.h"
 #include "kids/Model.h"
 #include "kids/Solver.h"
+#include "kids/Kernel_ExactPropagator.h"
 
 namespace PROJECT_NS {
 
 std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string NAD_Kernel_name) {
-    int split = 1;
+    int split = 4;
 
     // Root Kernel
     std::shared_ptr<Kernel> ker(new Kernel(NAD_Kernel_name));
@@ -29,6 +30,8 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
     std::shared_ptr<Kernel_Elec_Switch>    kswitch(new Kernel_Elec_Switch());
     std::shared_ptr<Kernel_NAForce>        knaf(new Kernel_NAForce());
     std::shared_ptr<Kernel_Elec_Functions> kfuncs(new Kernel_Elec_Functions());
+
+    std::shared_ptr<Kernel_ExactPropagator> kexact(new Kernel_ExactPropagator(1.0)); // 提供默认的 scale 参数
 
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5e0 / (double) split));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5e0));

@@ -18,8 +18,8 @@ O -4.56471008e+00  6.80448250e-01 -1.01265094e-01
 exec = "BAGEL"
 ncpu = 4        # if necessary
 use_mpi = false # if nenessary
-N = 9
-F = 2
+N = 21
+F = 3
 
 [QM.BAGEL]
 path = "/usr/local/bagel/bin/BAGEL"
@@ -47,10 +47,7 @@ $COORD_XYZ
 "grads": [
 {"title": "force", "target": 0},
 {"title": "force", "target": 1},
-{"title": "force", "target": 2},
-{"title": "nacme", "target": 0, "target2": 1, "nacmtype": "full"},
-{"title": "nacme", "target": 0, "target2": 2, "nacmtype": "full"},
-{"title": "nacme", "target": 1, "target2": 2, "nacmtype": "full"}
+{"title": "nacme", "target": 0, "target2": 1, "nacmtype": "full"}
 ],
 "method": [{
 "title": "casscf",

@@ -122,9 +122,16 @@ class BagelInput:
                     self.config['bagel'][0]['geometry'] += [
                         {'atom': 'Q', "xyz": [atom[1], atom[2], atom[3]], "charge": atom[0]}
                     ]
+        # import pdb; pdb.set_trace()
+        # now the working dir is the -d directory
         if not os.path.exists('laststep.archive') and self.config['bagel'][1]['title'] == 'load_ref':
             del self.config['bagel'][1]
         inputText = json.dumps(self.config)
+
+        if os.path.exists('laststep.archive'):
+            # move the laststep.archive to the BAGEL running directory
+            os.popen('mv laststep.archive qmCalc00001/laststep.archive')
+
         # return the complete text of the input file
         return inputText
 
@@ -136,6 +143,13 @@ class BagelOutput(QMOutput):
 
         # define options of the base class
         QMOutput.__init__(self)
+
+
+        # import pdb; pdb.set_trace() 
+        #now the program is running in the -d directory
+        # copy the laststep.archive to the current directory
+        if os.path.exists('qmCalc00001/laststep.archive'):
+            os.popen('mv qmCalc00001/laststep.archive laststep.archive')
 
         # Add additional bagelian-specific attributes to the data dictionary
         # FILE NAMES, DIRECTORIES, INPUT/OUTPUT
