@@ -2,12 +2,12 @@
 #include <iostream>
 
 #include "defined_gflags.h"
-#include "kids/Kernel.h"
-#include "kids/Model.h"
-#include "kids/ModelFactory.h"
-#include "kids/Param.h"
-#include "kids/Solver.h"
-#include "kids/SolverFactory.h"
+#include "psnd/Kernel.h"
+#include "psnd/Model.h"
+#include "psnd/ModelFactory.h"
+#include "psnd/Param.h"
+#include "psnd/Solver.h"
+#include "psnd/SolverFactory.h"
 #include "simple_guard.h"
 #include "version.h"
 
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    /* KIDS simulation */
+    /* PSND simulation */
     Status stat;
 
     std::shared_ptr<Param> PM = std::shared_ptr<Param>(new Param(FLAGS_p, Param::fromFile));

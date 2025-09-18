@@ -31,9 +31,9 @@ def generate(fin, fout):
 #ifndef VARS_LIST_H
 #define VARS_LIST_H
 
-#include "kids/Shape.h"
-#include "kids/Types.h"
-#include "kids/Variable.h"
+#include "psnd/Shape.h"
+#include "psnd/Types.h"
+#include "psnd/Variable.h"
 
 namespace PROJECT_NS {\n
 ''')

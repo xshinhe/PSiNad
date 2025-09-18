@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #   Coding=utf-8
 
-#   KIDS SCRIPTS
+#   PSND SCRIPTS
 #   Author: xshinhe
 #   
 #   Copyright (c) 2024 PeKing Univ. - GNUv3 License
@@ -32,7 +32,7 @@ from copy import deepcopy
 
 # imports of local modules
 
-import kids_log  # manages log file output + start/end procedures
+import psnd_log  # manages log file output + start/end procedures
 import constants  # values of physical constants and conversion factors
 
 # import of local classes
@@ -470,7 +470,7 @@ class AdfOutput(QMOutput):
 
         # permanently remove directory and adf files
         # try:
-            # if not kids_log.DEBUG_RUN:
+            # if not psnd_log.DEBUG_RUN:
                 # if self.dataDict["termination"] == 1:
                     # source=self.dataDict["calcdir"]+"/adf-QM.log"
                     # shutil.move(source,"adf-QM_err.log")

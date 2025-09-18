@@ -1,11 +1,11 @@
-#include "kids/Kernel.h"
+#include "psnd/Kernel.h"
 
 #include <chrono>
 #include <ctime>
 
-#include "kids/Exception.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
+#include "psnd/Exception.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
 
 namespace PROJECT_NS {
 
@@ -46,7 +46,7 @@ void Kernel::setInputParam(std::shared_ptr<Param> PM) {
 
 void Kernel::setInputDataSet(std::shared_ptr<DataSet> DS) {
     if (!has_parent) setCallOnlyOnce();
-    if (!_param) throw kids_error("Param must be passed before");
+    if (!_param) throw psnd_error("Param must be passed before");
     _dataset = DS;
     if (!once_called) setInputDataSet_impl(DS);
     once_called = true;
@@ -58,7 +58,7 @@ std::shared_ptr<Param> Kernel::getParam() const { return _param; }
 std::shared_ptr<DataSet> Kernel::getDataSet() const { return _dataset; }
 
 Status& Kernel::initializeKernel(Status& stat) {
-    if (!_dataset) throw kids_error("DataSet must be passed before");
+    if (!_dataset) throw psnd_error("DataSet must be passed before");
     // std::cout << "init: " << LOC() << getName() << "\n";
     // @todo: Consider if the load option is available and ensure it is not overwritten by this function.
     // std::cout << LOC() << " init 1\n";
@@ -70,7 +70,7 @@ Status& Kernel::initializeKernel(Status& stat) {
 }
 
 Status& Kernel::executeKernel(Status& stat) {
-    if (!_dataset) throw kids_error("DataSet must be passed before");
+    if (!_dataset) throw psnd_error("DataSet must be passed before");
     // if (!_ruleset & !has_parent) std::cerr << "run without rules\n";
 
     // std::cout << "exec: " << LOC() << getName() << "\n";
@@ -129,9 +129,9 @@ Kernel& Kernel::appendChild(std::shared_ptr<Kernel> ker) {
 }
 
 Kernel& Kernel::insertAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel> ker) {
-    if (indexes.size() <= 0) throw kids_error("Bad indexes for accessing Kernel");
+    if (indexes.size() <= 0) throw psnd_error("Bad indexes for accessing Kernel");
     std::size_t idx0 = indexes[0];
-    if (idx0 > _child_kernels.size()) throw kids_error("Bad indexes for accessing Kernel");
+    if (idx0 > _child_kernels.size()) throw psnd_error("Bad indexes for accessing Kernel");
     if (indexes.size() == 1) {
         ker->_order_in_parent = idx0;
         _child_kernels.insert(_child_kernels.begin() + idx0, ker);
@@ -155,9 +155,9 @@ Kernel& Kernel::insertAt(std::vector<std::size_t> indexes, std::shared_ptr<Kerne
 }
 
 Kernel& Kernel::removeAt(std::vector<std::size_t> indexes) {
-    if (indexes.size() <= 0) throw kids_error("Bad indexes for accessing Kernel");
+    if (indexes.size() <= 0) throw psnd_error("Bad indexes for accessing Kernel");
     std::size_t idx0 = indexes[0];
-    if (idx0 >= _child_kernels.size()) throw kids_error("Bad indexes for accessing Kernel");
+    if (idx0 >= _child_kernels.size()) throw psnd_error("Bad indexes for accessing Kernel");
     if (indexes.size() == 1) {
         auto& ker           = _child_kernels[idx0];
         ker->_parent_kernel = nullptr;
@@ -174,9 +174,9 @@ Kernel& Kernel::removeAt(std::vector<std::size_t> indexes) {
  * @brief build tree structure of the kernel
  */
 Kernel& Kernel::updateAt(std::vector<std::size_t> indexes, std::shared_ptr<Kernel> ker) {
-    if (indexes.size() <= 0) throw kids_error("Bad indexes for accessing Kernel");
+    if (indexes.size() <= 0) throw psnd_error("Bad indexes for accessing Kernel");
     std::size_t idx0 = indexes[0];
-    if (idx0 >= _child_kernels.size()) throw kids_error("Bad indexes for accessing Kernel");
+    if (idx0 >= _child_kernels.size()) throw psnd_error("Bad indexes for accessing Kernel");
     if (indexes.size() == 1) {
         auto& kerold           = _child_kernels[idx0];
         kerold->_parent_kernel = nullptr;

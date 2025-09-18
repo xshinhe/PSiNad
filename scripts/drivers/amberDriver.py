@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #   Coding=utf-8
 
-#   KIDS SCRIPTS
+#   PSND SCRIPTS
 #   Author: xshinhe
 #   
 #   Copyright (c) 2024 PeKing Univ. - GNUv3 License
@@ -31,14 +31,14 @@ import subprocess
 import math
 import time
 
-import kids_env
-from kids_log import Log
+import psnd_env
+from psnd_log import Log
 
 def prepare(geometry, ks_config):
     """ prepare the input files for MM amber calculations"""
 
     # check that the environment is properly set
-    envDefined, errorMsg = kids_env.checkAmberEnv()
+    envDefined, errorMsg = psnd_env.checkAmberEnv()
     if not envDefined: Log.fatalError(errorMsg)
 
     # check their existence
@@ -495,7 +495,7 @@ def sander_real_modelnoc(ks_config):
 
     Log.writeLog(' done!\n')
     Log.writeLog('MM energy is {0} Hartree\n'.format(E_modelnoc))
-#    Log.writeLog(kids_log.matrix_prettystring(np.array(Fxyz_modelnoc), ".6f"), 2)
+#    Log.writeLog(psnd_log.matrix_prettystring(np.array(Fxyz_modelnoc), ".6f"), 2)
 
     return [E_modelnoc,Fxyz_modelnoc]
 
@@ -530,7 +530,7 @@ def sandertotalnoc(ks_config):
 
     Log.writeLog(' done!\n')
     Log.writeLog('MM energy is {0} Hartree\n'.format(E_totalnoc))
-#    Log.writeLog(kids_log.matrix_prettystring(np.array(Fxyz_modelnoc), ".6f"), 2)
+#    Log.writeLog(psnd_log.matrix_prettystring(np.array(Fxyz_modelnoc), ".6f"), 2)
 
     return [E_totalnoc,Fxyz_totalnoc]
 
@@ -569,7 +569,7 @@ def sander_modelH(geometry,ks_config):
 
     Log.writeLog(' done!\n')
     Log.writeLog('MM energy is {0} Hartree\n'.format(E_modelH))
-#    Log.writeLog(kids_log.matrix_prettystring(np.array(Fxyz_modelH), ".6f"), 2)
+#    Log.writeLog(psnd_log.matrix_prettystring(np.array(Fxyz_modelH), ".6f"), 2)
 
     return [E_modelH,Fxyz_modelH]
 

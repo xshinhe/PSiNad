@@ -13,7 +13,7 @@ endif()
 ## Program Information
 
 # Define library name & version
-set(PSINAD_LIBRARY_NAME PSiNad)
+set(PSINAD_LIBRARY_NAME PSiNaD)
 if(NOT PROJECT_NAME)
     project(${PSINAD_LIBRARY_NAME} LANGUAGES C CXX)
 endif()
@@ -21,7 +21,7 @@ set(PSINAD_MAJOR_VERSION 0)
 set(PSINAD_MINOR_VERSION 1)
 set(PSINAD_BUILD_VERSION 1)
 set(PSINAD_VERSION "${PSINAD_MAJOR_VERSION}.${PSINAD_MINOR_VERSION}.${PSINAD_BUILD_VERSION}"
-     CACHE STRING "This is the version of PSiNad which will be built." FORCE)
+     CACHE STRING "This is the version of PSiNaD which will be built." FORCE)
 mark_as_advanced(PSINAD_VERSION)
 add_definitions(-DPSINAD_LIBRARY_NAME=${PSINAD_LIBRARY_NAME}
                 -DPSINAD_MAJOR_VERSION=${PSINAD_MAJOR_VERSION}
@@ -79,14 +79,14 @@ endif()
 # Set default installation prefix if not provided
 if(NOT DEFINED PSINAD_INSTALL_PREFIX)
     if(WIN32)
-        set(PSINAD_INSTALL_PREFIX "$ENV{ProgramFiles}/PSINAD")
+        set(PSINAD_INSTALL_PREFIX "$ENV{ProgramFiles}/PSiNaD")
     else()
         set(PSINAD_INSTALL_PREFIX "/usr/local/psinad")
     endif()
 endif()
 # Set CMAKE_INSTALL_PREFIX if it has not been initialized by the user
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${PSINAD_INSTALL_PREFIX} CACHE PATH "Where to install PSiNad" FORCE)
+    set(CMAKE_INSTALL_PREFIX ${PSINAD_INSTALL_PREFIX} CACHE PATH "Where to install PSiNaD" FORCE)
 endif()
 
 
@@ -121,7 +121,7 @@ endif()
 find_package(compile-time-perf QUIET)
 if(compile-time-perf_FOUND)
     message(STATUS "compile-time-perf found. Enabling compile-time performance measurements...")
-    enable_compile_time_perf(kids-ctp)
+    enable_compile_time_perf(psnd-ctp)
 else()
     message(STATUS "compile-time-perf not found. Skipping compile-time performance measurements.")
 endif()
@@ -157,8 +157,8 @@ execute_process(
 ## Options for the program
 
 # Options to determine what type of libraries to build
-option(PSINAD_BUILD_SHARED_LIB "Build shared PSiNad libraries" ON)
-option(PSINAD_BUILD_STATIC_LIB "Build static PSiNad libraries" OFF)
+option(PSINAD_BUILD_SHARED_LIB "Build shared PSiNaD libraries" ON)
+option(PSINAD_BUILD_STATIC_LIB "Build static PSiNaD libraries" OFF)
 
 # Define library targets
 #set(SHARED_TARGET ${PSINAD_LIBRARY_NAME}) # revise to the following line
@@ -207,7 +207,7 @@ set(API_INCLUDE_DIRS) # start empty
 foreach(subdir ${PSINAD_SOURCE_SUBDIRS})
     list(APPEND API_INCLUDE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/kids
+        ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/include/psnd
     )
 endforeach()
 
@@ -292,9 +292,9 @@ if(PSINAD_BUILD_STATIC_LIB)
     install(TARGETS ${STATIC_TARGET} ARCHIVE DESTINATION lib)
 endif()
 file(GLOB_RECURSE CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
-file(GLOB_RECURSE TOP_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/kids/*.h)
+file(GLOB_RECURSE TOP_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/psnd/*.h)
 install(FILES ${CORE_HEADERS} DESTINATION include)
-install(FILES ${TOP_HEADERS} DESTINATION include/kids)
+install(FILES ${TOP_HEADERS} DESTINATION include/psnd)
 
 ########################################################################################################################
 ## Build C++ backend
@@ -384,7 +384,7 @@ endif()
 ## Build python wrapper
 
 # Python wrappers
-option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" OFF)
+option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
 if(PSINAD_BUILD_PYTHON_WRAPPERS)
     add_subdirectory(thirdpart/pybind11)
     add_subdirectory(wrappers/python)

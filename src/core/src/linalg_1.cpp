@@ -5,8 +5,8 @@
 
 #include "Eigen/Dense"
 #include "Eigen/QR"
-#include "kids/Types.h"
-#include "kids/linalg.h"
+#include "psnd/Types.h"
+#include "psnd/linalg.h"
 
 #define EigMajor Eigen::RowMajor
 
@@ -21,12 +21,12 @@ using EigMX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 template <class T>
 using EigAX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic, EigMajor>;
 
-using EigVXr = EigVX<kids_real>;
-using EigVXc = EigVX<kids_complex>;
-using EigMXr = EigMX<kids_real>;
-using EigMXc = EigMX<kids_complex>;
-using EigAXr = EigMX<kids_real>;
-using EigAXc = EigMX<kids_complex>;
+using EigVXr = EigVX<psnd_real>;
+using EigVXc = EigVX<psnd_complex>;
+using EigMXr = EigMX<psnd_real>;
+using EigMXc = EigMX<psnd_complex>;
+using EigAXr = EigMX<psnd_real>;
+using EigAXc = EigMX<psnd_complex>;
 using MapVXr = Eigen::Map<EigVXr>;
 using MapVXc = Eigen::Map<EigVXc>;
 using MapMXr = Eigen::Map<EigMXr>;
@@ -34,14 +34,14 @@ using MapMXc = Eigen::Map<EigMXc>;
 using MapAXr = Eigen::Map<EigAXr>;
 using MapAXc = Eigen::Map<EigAXc>;
 
-void LinearSolve(kids_real* x, kids_real* A, kids_real* b, size_t N) {
+void LinearSolve(psnd_real* x, psnd_real* A, psnd_real* b, size_t N) {
     MapMXr Mapx(x, N, 1);
     MapMXr MapA(A, N, N);
     MapMXr Mapb(b, N, 1);
     Mapx = MapA.householderQr().solve(Mapb);
 }
 
-void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N) {
+void EigenSolve(psnd_real* E, psnd_real* T, psnd_real* A, size_t N) {
     MapMXr                                MapE(E, N, 1);
     MapMXr                                MapT(T, N, N);
     MapMXr                                MapA(A, N, N);
@@ -50,7 +50,7 @@ void EigenSolve(kids_real* E, kids_real* T, kids_real* A, size_t N) {
     MapT = eig.eigenvectors().real();
 }
 
-void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N) {
+void EigenSolve(psnd_real* E, psnd_complex* T, psnd_complex* A, size_t N) {
     MapMXr                                MapE(E, N, 1);
     MapMXc                                MapT(T, N, N);
     MapMXc                                MapA(A, N, N);
@@ -59,7 +59,7 @@ void EigenSolve(kids_real* E, kids_complex* T, kids_complex* A, size_t N) {
     MapT = eig.eigenvectors();
 }
 
-void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N) {
+void EigenSolve(psnd_complex* E, psnd_complex* T, psnd_complex* A, size_t N) {
     MapMXc                            MapE(E, N, 1);
     MapMXc                            MapT(T, N, N);
     MapMXc                            MapA(A, N, N);
@@ -68,7 +68,7 @@ void EigenSolve(kids_complex* E, kids_complex* T, kids_complex* A, size_t N) {
     MapT = eig.eigenvectors();
 }
 
-void PseudoInverse(kids_real* A, kids_real* invA, size_t N, kids_real e) {
+void PseudoInverse(psnd_real* A, psnd_real* invA, size_t N, psnd_real e) {
     MapMXr MapA(A, N, N);
     MapMXr MapInvA(invA, N, N);
     MapInvA = MapA.completeOrthogonalDecomposition().pseudoInverse();
@@ -82,19 +82,19 @@ void PseudoInverse(kids_real* A, kids_real* invA, size_t N, kids_real e) {
     // MapInvA = svd.matrixV()*invS*svd.matrixU().transpose();
 }
 
-void ARRAY_INV_MAT(kids_real* invA, kids_real* A, size_t N) {
+void ARRAY_INV_MAT(psnd_real* invA, psnd_real* A, size_t N) {
     MapMXr Map_invA(invA, N, N);
     MapMXr Map_A(A, N, N);
     Map_invA = Map_A.lu().inverse();
 }
 
-void ARRAY_INV_MAT(kids_complex* invA, kids_complex* A, size_t N) {
+void ARRAY_INV_MAT(psnd_complex* invA, psnd_complex* A, size_t N) {
     MapMXc Map_invA(invA, N, N);
     MapMXc Map_A(A, N, N);
     Map_invA = Map_A.lu().inverse();
 }
 
-void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k, size_t N) {
+void ARRAY_EXP_MAT_GENERAL(psnd_complex* expkA, psnd_complex* A, psnd_complex k, size_t N) {
     // MapMXc Map_A(A, N, N);
     // MapMXc Map_expkA(expkA, N, N);
     // auto eigr = Eigen::ComplexEigenSolver<EigMXc>(Map_A);
@@ -106,11 +106,11 @@ void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k,
     // auto Slr  = (Vl.adjoint() * Vr).diagonal();
     // Map_expkA = Vr * ((k * Er.array()).exp() / Slr.array()).matrix().asDiagonal() * Vl.adjoint();
 
-    kids_complex* Vr_ptr   = new kids_complex[N * N];
-    kids_complex* Vl_ptr   = new kids_complex[N * N];
-    kids_complex* At_ptr   = new kids_complex[N * N];
-    kids_complex* Slr_ptr  = new kids_complex[N * N];
-    kids_complex* lamb_ptr = new kids_complex[N];
+    psnd_complex* Vr_ptr   = new psnd_complex[N * N];
+    psnd_complex* Vl_ptr   = new psnd_complex[N * N];
+    psnd_complex* At_ptr   = new psnd_complex[N * N];
+    psnd_complex* Slr_ptr  = new psnd_complex[N * N];
+    psnd_complex* lamb_ptr = new psnd_complex[N];
 
     for (int i = 0; i < N * N; ++i) At_ptr[i] = A[i];
     ARRAY_TRANSPOSE(At_ptr, N, N);
@@ -129,25 +129,25 @@ void ARRAY_EXP_MAT_GENERAL(kids_complex* expkA, kids_complex* A, kids_complex k,
     delete[] lamb_ptr;
 }
 
-void ARRAY_CORRECT_U(kids_complex* U, size_t N) {
+void ARRAY_CORRECT_U(psnd_complex* U, size_t N) {
     // MapMXc Map_U(U, N, N);
-    // auto   eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * kids_complex(0, 1) * (Map_U - Map_U.adjoint()));
+    // auto   eigr = Eigen::SelfAdjointEigenSolver<EigMXc>(-0.5e0 * psnd_complex(0, 1) * (Map_U - Map_U.adjoint()));
     // auto   Er   = eigr.eigenvalues().real();
     // auto   Vr   = eigr.eigenvectors();
-    // Map_U       = Vr * ((kids_complex(0, 1) * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
+    // Map_U       = Vr * ((psnd_complex(0, 1) * Er.array()).exp()).matrix().asDiagonal() * Vr.adjoint();
 
-    kids_complex* V_ptr     = new kids_complex[N * N];
-    kids_complex* A_ptr     = new kids_complex[N * N];
-    kids_real*    lamb_ptr  = new kids_real[N];
-    kids_complex* lamb2_ptr = new kids_complex[N];
+    psnd_complex* V_ptr     = new psnd_complex[N * N];
+    psnd_complex* A_ptr     = new psnd_complex[N * N];
+    psnd_real*    lamb_ptr  = new psnd_real[N];
+    psnd_complex* lamb2_ptr = new psnd_complex[N];
 
     for (int i = 0, ik = 0; i < N; ++i) {
         for (int k = 0, ki = i; k < N; ++k, ++ik, ki += N) {
-            A_ptr[ik] = -0.5e0 * kids_complex(0, 1) * (U[ik] - std::conj(U[ki]));
+            A_ptr[ik] = -0.5e0 * psnd_complex(0, 1) * (U[ik] - std::conj(U[ki]));
         }
     }
     EigenSolve(lamb_ptr, V_ptr, A_ptr, N);
-    for (int i = 0; i < N; ++i) lamb2_ptr[i] = std::exp(kids_complex(0, 1) * lamb_ptr[i]);
+    for (int i = 0; i < N; ++i) lamb2_ptr[i] = std::exp(psnd_complex(0, 1) * lamb_ptr[i]);
     ARRAY_MATMUL3_TRANS2(U, V_ptr, lamb2_ptr, V_ptr, N, N, 0, N);
     delete[] V_ptr;
     delete[] A_ptr;

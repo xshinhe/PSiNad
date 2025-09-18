@@ -1,13 +1,13 @@
-#include "kids/Kernel_Iterative_Adapt.h"
+#include "psnd/Kernel_Iterative_Adapt.h"
 
 #include <unistd.h>
 
 #include <algorithm>
 #include <chrono>
 
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 #define FMTF(X)                                                      \
     " " << std::setiosflags(std::ios::fixed) /*scientific notation*/ \
@@ -47,15 +47,15 @@ void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     at_condition      = DS->def(DATA::control::at_condition);
 
     // initializarion
-    DS->def(VARIABLE<kids_int>("control.sstep", &Dimension::shape_1, "@"))[0] = sstep;
-    DS->def(VARIABLE<kids_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
-    DS->def(VARIABLE<kids_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
-    DS->def(VARIABLE<kids_int>("control.msize", &Dimension::shape_1, "@"))[0] = msize;
+    DS->def(VARIABLE<psnd_int>("control.sstep", &Dimension::shape_1, "@"))[0] = sstep;
+    DS->def(VARIABLE<psnd_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
+    DS->def(VARIABLE<psnd_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
+    DS->def(VARIABLE<psnd_int>("control.msize", &Dimension::shape_1, "@"))[0] = msize;
 }
 
 Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) {  //
-        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
         if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
         if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
             std::string rmfile = utils::concat("X_STAT", stat.icalc);
@@ -74,7 +74,7 @@ Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
         return stat;
     }
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
-        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
         if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
         if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
             std::string rmfile = utils::concat("X_STAT", stat.icalc);

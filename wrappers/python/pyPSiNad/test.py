@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from pyPSiNad import Kernel, Param, DataSet, Status
+from pyPSiNaD import Kernel, Param, DataSet, Status
 import typing
 
 class PyKernel_Customized(Kernel):

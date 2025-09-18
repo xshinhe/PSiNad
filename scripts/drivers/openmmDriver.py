@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #   Coding=utf-8
 
-#   KIDS SCRIPTS
+#   PSND SCRIPTS
 #   Author: xshinhe
 #   
 #   Copyright (c) 2024 PeKing Univ. - GNUv3 License
@@ -35,8 +35,8 @@ from openmm.app import *
 from openmm import *
 from openmm.unit import *
 
-import kids_env
-from kids_log import Log
+import psnd_env
+from psnd_log import Log
 
 def modified_LJ(system):
     forces = {system.getForce(index).__class__.__name__: system.getForce(

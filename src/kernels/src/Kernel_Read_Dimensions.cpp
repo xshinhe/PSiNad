@@ -1,11 +1,11 @@
-#include "kids/Kernel_Read_Dimensions.h"
+#include "psnd/Kernel_Read_Dimensions.h"
 
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
 
 namespace PROJECT_NS {
 
-Kernel_Read_Dimensions::Kernel_Read_Dimensions() : Kernel(){};
+Kernel_Read_Dimensions::Kernel_Read_Dimensions() : Kernel() {};
 
 const std::string Kernel_Read_Dimensions::getName() { return "Kernel_Read_Dimensions"; }
 

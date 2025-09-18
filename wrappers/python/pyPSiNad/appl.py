@@ -1,4 +1,4 @@
-from pyPSiNad import Kernel, Model, Param, DataSet, Status, data
+from pyPSiNaD import Kernel, Model, Param, DataSet, Status, data
 import copy 
 
 class PopulationTransfer(Kernel):

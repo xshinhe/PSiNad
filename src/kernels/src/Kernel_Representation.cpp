@@ -1,12 +1,12 @@
-#include "kids/Kernel_Representation.h"
+#include "psnd/Kernel_Representation.h"
 
-#include "kids/Kernel_NAForce.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-// #include "kids/linalg_tpl.h"
-#include "kids/debug_utils.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_NAForce.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+// #include "psnd/linalg_tpl.h"
+#include "psnd/debug_utils.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -14,7 +14,7 @@ const std::string Kernel_Representation::getName() { return "Kernel_Representati
 
 int Kernel_Representation::getType() const { return utils::hash(FUNCTION_NAME); }
 
-int Kernel_Representation::transform(kids_complex* A, kids_real* T, int fdim,  //
+int Kernel_Representation::transform(psnd_complex* A, psnd_real* T, int fdim,  //
                                      RepresentationPolicy::_type from, RepresentationPolicy::_type to,
                                      SpacePolicy::_type Stype) {
     if (from == to) return 0;
@@ -185,7 +185,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                 }
 
                 if (phase_correction) {
-                    kids_real Ekin = 0;
+                    psnd_real Ekin = 0;
                     for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5f * p[j] * p[j] / m[j];
                     double Epes = 0.0f;
                     if (Kernel_NAForce::NAForce_type == NAForcePolicy::BO) {

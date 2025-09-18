@@ -4,7 +4,7 @@
 
 ## Basic Installation
 
-This document provides a comprehensive guide for compiling and installing the PSiNad library using CMake, covering essential configuration options, build types, and installation procedures.
+This document provides a comprehensive guide for compiling and installing the PSiNaD library using CMake, covering essential configuration options, build types, and installation procedures.
 
 ### 1. Prerequisites
 
@@ -40,9 +40,9 @@ The `CMakeLists.txt` file offers several options to customize the build process.
 
 - **Library Type**: 
     - **Shared Library**: Enabled by default (`PSINAD_BUILD_SHARED_LIB=ON`). 
-        - Generates a shared library (`libPSiNad.so` or `PSiNad.dll`).
+        - Generates a shared library (`libPSiNaD.so` or `PSiNaD.dll`).
     - **Static Library**: Enabled by default (`PSINAD_BUILD_STATIC_LIB=ON`). 
-        - Generates a static library (`libPSiNad.a` or `PSiNad.lib`).
+        - Generates a static library (`libPSiNaD.a` or `PSiNaD.lib`).
 
 - **Backend Builds**: 
     - **C++ Backend**: Enabled by default (`PSINAD_BUILD_CXX_BACKENDS=ON`). 
@@ -70,12 +70,12 @@ The `CMakeLists.txt` file offers several options to customize the build process.
 1. First you should clone this project with all submodules:
 
 ```bash
-git clone --recurse-submodules http://path_to_this_repository/PSiNad.git 
-cd PSiNad
+git clone --recurse-submodules http://path_to_this_repository/PSiNaD.git 
+cd PSiNaD
 
 # if you forget the `--recurse-submodules` when you clone the repository, you can do as follows:
-git clone http://path_to_this_repository/PSiNad.git
-cd PSiNad
+git clone http://path_to_this_repository/PSiNaD.git
+cd PSiNaD
 git submodule update --init
 ```
 
@@ -112,7 +112,7 @@ The `-j$(nproc)` flag utilizes all available CPU cores for faster compilation.
 ```bash
 make PythonInstall  # install python wrapper (optional)
 ```
-This will build python wrapper for the libPSiNad.
+This will build python wrapper for the libPSiNaD.
 
 4. **Run Tests (Optional)**: If unit tests are enabled:
 ```bash
@@ -132,7 +132,7 @@ If you prefer not to compile all components, you can specify modules in the conf
 > sudo swapoff /swapfile # don't forget to close swap file
 > ```
 
-kids requires the MKL and MPI libraries (Intel's oneAPI is recommended), which need to be manually configured in the CMakeLists.txt file.
+psnd requires the MKL and MPI libraries (Intel's oneAPI is recommended), which need to be manually configured in the CMakeLists.txt file.
 ```cmake
 # for example
 set(CUSTOMIZED_MKL_DIR "/opt/intel/oneapi/mkl/latest/")
@@ -157,7 +157,7 @@ You can modify `cmake/FindMKLMod.cmake` and `cmake/FindMKLMod.cmake` to suit you
         - Alternatively, set the `PSINAD_INSTALL_PREFIX` variable if `CMAKE_INSTALL_PREFIX` is not initialized.
 
 2. **Verify Installation**:
-    - The library files (`libPSiNad.so` or `PSiNad.dll` / `libPSiNad.a` or `PSiNad.lib`) will be located in the `lib` directory.
+    - The library files (`libPSiNaD.so` or `PSiNaD.dll` / `libPSiNaD.a` or `PSiNaD.lib`) will be located in the `lib` directory.
     - The header files will be located in the `include` directory.
     - Executables (`psinad`, `psidyn`, `psisamp`, etc.) will be located in the `bin` directory.
 
@@ -168,7 +168,7 @@ You can modify `cmake/FindMKLMod.cmake` and `cmake/FindMKLMod.cmake` to suit you
     - For Python wrappers, ensure that the Python `site-packages` directory is in your `PYTHONPATH`.
 
 - **Documentation**: 
-    - Refer to the official PSiNad documentation for detailed information on using the library and its features.
+    - Refer to the official PSiNaD documentation for detailed information on using the library and its features.
 
 ### 6. Additional Notes
 
@@ -180,7 +180,7 @@ You can modify `cmake/FindMKLMod.cmake` and `cmake/FindMKLMod.cmake` to suit you
 
 - **Customization**:  Advanced users can modify the `CMakeLists.txt` file to customize the build process further, such as adding new source directories, enabling additional features, or integrating with other tools.
 
-By following this guide, you should be able to successfully compile and install the PSiNad library with the desired configuration.
+By following this guide, you should be able to successfully compile and install the PSiNaD library with the desired configuration.
 
 ## Benchmark Test
 

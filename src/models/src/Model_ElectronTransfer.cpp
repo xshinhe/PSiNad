@@ -1,11 +1,11 @@
-#include "kids/Model_ElectronTransfer.h"
+#include "psnd/Model_ElectronTransfer.h"
 
-#include "kids/Kernel_NAForce.h"
-#include "kids/Kernel_Random.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_NAForce.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -36,7 +36,7 @@ void Model_ElectronTransfer::setInputParam_impl(std::shared_ptr<Param> PM) {
 void Model_ElectronTransfer::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     /// 1) System
     Hsys = DS->def(DATA::model::Hsys);
-    memset(Hsys.data(), 0, Dimension::FF * sizeof(kids_real));
+    memset(Hsys.data(), 0, Dimension::FF * sizeof(psnd_real));
 
     omega0             = _param->get_real({"model.omega0"}, LOC(), 3.5e-4);
     lambda0            = _param->get_real({"model.lambda0"}, LOC(), 2.39e-2);

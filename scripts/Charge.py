@@ -25,7 +25,7 @@ import math  # mathematical functions
 import copy
 # imports of local modules
 
-from kids_log import Timing, Log  # manages log file output + start/end procedures
+from psnd_log import Timing, Log  # manages log file output + start/end procedures
 
 # math libraries
 

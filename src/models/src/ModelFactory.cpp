@@ -1,13 +1,13 @@
-#include "kids/ModelFactory.h"
+#include "psnd/ModelFactory.h"
 
-#include "kids/Model_ElectronTransfer.h"
-#include "kids/Model_Interf_MNDO.h"
-#include "kids/Model_LVCM.h"
-#include "kids/Model_NAD1D.h"
-#include "kids/Model_QMInterface.h"
-#include "kids/Model_QMMMInterface.h"
-#include "kids/Model_SystemBath.h"
-#include "kids/Model_TDSystemBath.h"
+#include "psnd/Model_ElectronTransfer.h"
+#include "psnd/Model_Interf_MNDO.h"
+#include "psnd/Model_LVCM.h"
+#include "psnd/Model_NAD1D.h"
+#include "psnd/Model_QMInterface.h"
+#include "psnd/Model_QMMMInterface.h"
+#include "psnd/Model_SystemBath.h"
+#include "psnd/Model_TDSystemBath.h"
 
 namespace PROJECT_NS {
 

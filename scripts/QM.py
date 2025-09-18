@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# KIDS SCRIPTS (adapted from COMBRAMM)
+# PSND SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -34,16 +34,16 @@ from traceback import format_exc
 if sys.version_info < (3, 0): raise RuntimeError("Python 3 is required")
 
 # imports of local modules (utilities)
-import kids_env  # environmental variable for COBRAMM and 3rd-party software
+import psnd_env  # environmental variable for COBRAMM and 3rd-party software
 import constants  # physical constants and conversion factors
-import kids_arg
-import kids_log
-import kids_io
-from kids_log import Timing
-from kids_config import Config
+import psnd_arg
+import psnd_log
+import psnd_io
+from psnd_log import Timing
+from psnd_config import Config
 
 # imports of local modules (classes)
-from kids_log import Timing, Log    
+from psnd_log import Timing, Log    
 from Layers import Layers  # Layers class to manage geometries
 from Charge import Charge  # Charge class that stores real and modelH charges
 from Output import Output  # Output and Step classes to read/write old.xml file
@@ -61,7 +61,7 @@ import numpy as np  # numpy library for scientific computation
 if __name__ == "__main__":
 
     # parse ks_config from command-line arguments & configuration file
-    args = kids_arg.parser.parse_args()
+    args = psnd_arg.parser.parse_args()
 
     # setup verbosity
     Log.setVerbosityLevel(args.verbosity) # set the level of verbosity of the log file
@@ -71,9 +71,9 @@ if __name__ == "__main__":
 
     # check environment
     Log.startSection("ENV CONTROL")
-    profile_file = kids_env.findKIDSProfile()
-    Log.writeLog(kids_env.checkKIDSProfile(profile_file))
-    envDefined, errorMsg = kids_env.checkKIDSEnv()
+    profile_file = psnd_env.findPSNDProfile()
+    Log.writeLog(psnd_env.checkPSNDProfile(profile_file))
+    envDefined, errorMsg = psnd_env.checkPSNDEnv()
     if not envDefined: Log.fatalError(errorMsg)
 
     # store directory information
@@ -94,8 +94,8 @@ if __name__ == "__main__":
 
     geometry = ks_config['_geom']
     print('geom:    ', geometry)
-    Log.writeLog("\n{0} is requested, with {1}.\n".format(kids_io.getCalcType(args.type), 
-        kids_io.getLayers(geometry)))
+    Log.writeLog("\n{0} is requested, with {1}.\n".format(psnd_io.getCalcType(args.type), 
+        psnd_io.getLayers(geometry)))
     if "H" in geometry.calculationType:
         Log.writeLog("QM third party software : {0}\n".format(args.qmsolver))
     if "M" in geometry.calculationType or "L" in geometry.calculationType:
@@ -203,7 +203,7 @@ if __name__ == "__main__":
             Log.writeLog(f'the modelHtop is: {modelHtop_rel}\n')
             Log.writeLog(f'the ks_config is: {ks_config_rel}\n')
             Log.writeLog(f'the realcrd is: {realcrd_rel}\n')
-            kids_io.saveinputs() # make a cpy of the input files
+            psnd_io.saveinputs() # make a cpy of the input files
 
             Log.startSection('ATOMIC CHARGES')
             CRG_real, CRG_model_H = MMCalc.prepareCRG(geometry, ks_config)
@@ -328,19 +328,19 @@ if __name__ == "__main__":
         with open('interface.ds', 'w') as f:
             # write status 
             f.write('interface.stat\n')
-            f.write('kids_int 1\n')
+            f.write('psnd_int 1\n')
             f.write(f'{stat_number}\n\n')
 
             # write energy
             f.write('interface.eig\n')
-            f.write('kids_real %d\n'%len(qmmm_results.energies))
+            f.write('psnd_real %d\n'%len(qmmm_results.energies))
             for i in range(len(qmmm_results.energies)): # sorted order
                 f.write('{: 12.8e}\n'.format(qmmm_results.energies[i]))
             f.write('\n')
 
             # write energy
             f.write('interface.dE\n')
-            f.write('kids_real %d\n'%(len(qmmm_results.energies) * geometry.atomNum*3))
+            f.write('psnd_real %d\n'%(len(qmmm_results.energies) * geometry.atomNum*3))
             jHM = 0 # count for H & M atoms
             print(qmmm_results.gradient)
             for i in range(geometry.atomNum): # sorted order
@@ -360,7 +360,7 @@ if __name__ == "__main__":
             # write nac
             print("nac:  ", qmmm_results.nac)
             f.write('interface.nac\n')
-            f.write('kids_real %d\n'%(len(qmmm_results.nac)*len(qmmm_results.nac)*geometry.atomNum*3) )
+            f.write('psnd_real %d\n'%(len(qmmm_results.nac)*len(qmmm_results.nac)*geometry.atomNum*3) )
             jHM = 0 # count for H & M atoms
             for i in range(geometry.atomNum): # sorted order
                 if i+1 in geometry.list_MEDIUM_HIGH:
@@ -383,7 +383,7 @@ if __name__ == "__main__":
 
             # write ocillation strength
             f.write('interface.strength\n')
-            f.write('kids_real %d\n'%len(qmcalc.outputData.dataDict["osc_strength"]))
+            f.write('psnd_real %d\n'%len(qmcalc.outputData.dataDict["osc_strength"]))
             for i in range(len(qmcalc.outputData.dataDict["osc_strength"])): # sorted order
                 if i==0:
                     f.write('{: 12.8e}\n'.format(0))
@@ -438,7 +438,7 @@ if __name__ == "__main__":
         with open("QMMM.out", "w") as outf:
             outf.write(filetext)
 
-    if not Log.DEBUG_RUN: kids_io.garbager(geometry, ks_config)
+    if not Log.DEBUG_RUN: psnd_io.garbager(geometry, ks_config)
     # stop the timer for the main program, and print the report of the timings
     Log.end()
 

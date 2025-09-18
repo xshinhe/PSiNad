@@ -1,9 +1,9 @@
-#include "kids/Kernel_Load_DataSet.h"
+#include "psnd/Kernel_Load_DataSet.h"
 
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -32,16 +32,16 @@ Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
         }
         syncDataSetLoad(_dataset_load);
         if (load_fn.find(":continue") != std::string::npos) {
-            if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+            if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
             std::istringstream iss(_dataset_load->repr());
             _dataset->load(iss);
         } else if (load_fn.find(":restart") != std::string::npos) {
-            if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+            if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
             std::istringstream iss(_dataset_load->repr());
-            int                nsamp = _dataset->def(VARIABLE<kids_int>("control.nsamp", &Dimension::shape_1, "@"))[0];
+            int                nsamp = _dataset->def(VARIABLE<psnd_int>("control.nsamp", &Dimension::shape_1, "@"))[0];
             _dataset->load_reframe(iss, nsamp);
         }
-    } catch (std::runtime_error& e) { throw kids_error(load_fn); }
+    } catch (std::runtime_error& e) { throw psnd_error(load_fn); }
     return stat;
 }
 

@@ -1,16 +1,16 @@
-#include "kids/Kernel_Elec_Switch.h"
+#include "psnd/Kernel_Elec_Switch.h"
 
 #include <algorithm>
 
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_NAForce.h"
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_NAForce.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -88,8 +88,8 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
                                          SpacePolicy::L);
 
         /// step 1: generate new state
-        kids_int  from, to;
-        kids_real Efrom, Eto;
+        psnd_int  from, to;
+        psnd_real Efrom, Eto;
         Efrom = elec_utils::calc_ElectricalEnergy(EMat.data(), rho_nuc.data(),
                                                   occ_nuc[0]);  // occ_nuc defined in nuc_repr_type
 

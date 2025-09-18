@@ -27,8 +27,8 @@
 
 ## COBRAMM variables
 
-export KIDS_SCRIPTS_PATH=/home/shin/share/KIDS/kids_scripts
-export PATH=$KIDS_SCRIPTS_PATH:$KIDS_SCRIPTS_PATH/util:$PATH
+export PSND_SCRIPTS_PATH=/home/shin/share/PSND/psnd_scripts
+export PATH=$PSND_SCRIPTS_PATH:$PSND_SCRIPTS_PATH/util:$PATH
 
 ## Python extension
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# KIDS SCRIPTS (adapted from COMBRAMM)
+# PSND SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -31,7 +31,7 @@ import shelve
 import numpy as np
 
 # imports of local modules
-from kids_log import Timing, Log
+from psnd_log import Timing, Log
 from Charge import Charge
 from drivers import amberDriver
 from drivers import openmmDriver

@@ -4,7 +4,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
-#include "kids/Param.h"
+#include "psnd/Param.h"
 
 using namespace PROJECT_NS;
 

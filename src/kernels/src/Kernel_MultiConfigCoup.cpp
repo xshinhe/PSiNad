@@ -1,14 +1,14 @@
-#include "kids/Kernel_MultiConfigCoup.h"
+#include "psnd/Kernel_MultiConfigCoup.h"
 
 #include <algorithm>
 
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -16,14 +16,14 @@ const std::string Kernel_MultiConfigCoup::getName() { return "Kernel_MultiConfig
 
 int Kernel_MultiConfigCoup::getType() const { return utils::hash(FUNCTION_NAME); }
 
-int Kernel_MultiConfigCoup::calc_Ekin(span<kids_real> Ekin,  // [P]
-                                      span<kids_real> p,     // [P,N]
-                                      span<kids_real> m,     // [P,N]
+int Kernel_MultiConfigCoup::calc_Ekin(span<psnd_real> Ekin,  // [P]
+                                      span<psnd_real> p,     // [P,N]
+                                      span<psnd_real> m,     // [P,N]
                                       int P, int N) {
     for (int iP = 0; iP < P; ++iP) {
-        span<kids_real> Ekin = Ekin.subspan(iP, 1);
-        span<kids_real> p    = p.subspan(iP * N, N);
-        span<kids_real> m    = m.subspan(iP * N, N);
+        span<psnd_real> Ekin = Ekin.subspan(iP, 1);
+        span<psnd_real> p    = p.subspan(iP * N, N);
+        span<psnd_real> m    = m.subspan(iP * N, N);
         Ekin[0]              = 0;
         for (int j = 0; j < N; ++j) Ekin[0] += p[j] * p[j] / m[j];
         Ekin[0] /= 2;
@@ -34,21 +34,21 @@ int Kernel_MultiConfigCoup::calc_Ekin(span<kids_real> Ekin,  // [P]
 /**
  * the expression is exp(-0.25*a*(x1-x2)^2 -0.25*(p1-p2)/a + 0.5i*(p1+p2)(x1-x2) - i(g1-g2))
  */
-int Kernel_MultiConfigCoup::calc_Snuc(span<kids_complex> Snuc,   // [P,P]
-                                      span<kids_real>    x1,     // [P,N]
-                                      span<kids_real>    p1,     // [P,N]
-                                      span<kids_real>    m1,     // [P,N]
-                                      span<kids_real>    g1,     // [P]
-                                      span<kids_real>    x2,     // [P,N]
-                                      span<kids_real>    p2,     // [P,N]
-                                      span<kids_real>    m2,     // [P,N]
-                                      span<kids_real>    g2,     // [P]
-                                      span<kids_real>    alpha,  // [N]
+int Kernel_MultiConfigCoup::calc_Snuc(span<psnd_complex> Snuc,   // [P,P]
+                                      span<psnd_real>    x1,     // [P,N]
+                                      span<psnd_real>    p1,     // [P,N]
+                                      span<psnd_real>    m1,     // [P,N]
+                                      span<psnd_real>    g1,     // [P]
+                                      span<psnd_real>    x2,     // [P,N]
+                                      span<psnd_real>    p2,     // [P,N]
+                                      span<psnd_real>    m2,     // [P,N]
+                                      span<psnd_real>    g2,     // [P]
+                                      span<psnd_real>    alpha,  // [N]
                                       int P, int N) {
     // PRINT_ARRAY(Snuc, P, P);
     for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
         for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
-            kids_complex term = 0.0e0;
+            psnd_complex term = 0.0e0;
             for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
                 term += -0.25 * alpha[j] * (x1[aj] - x2[bj]) * (x1[aj] - x2[bj])         //
                         - 0.25 / alpha[j] * (p1[aj] - p2[bj]) * (p1[aj] - p2[bj])        //
@@ -60,18 +60,18 @@ int Kernel_MultiConfigCoup::calc_Snuc(span<kids_complex> Snuc,   // [P,P]
     return 0;
 }
 
-int Kernel_MultiConfigCoup::calc_Sele(span<kids_complex> Sele,   // [P,P]
-                                      span<kids_complex> c1,     // [P,F]
-                                      span<kids_complex> c2,     // [P,F]
-                                      kids_real          xi,     //
-                                      kids_real          gamma,  //
+int Kernel_MultiConfigCoup::calc_Sele(span<psnd_complex> Sele,   // [P,P]
+                                      span<psnd_complex> c1,     // [P,F]
+                                      span<psnd_complex> c2,     // [P,F]
+                                      psnd_real          xi,     //
+                                      psnd_real          gamma,  //
                                       int P, int F) {
     // Map_S = xi * Map_c1.conjugate() * Map_c2.transpose() - F * gamma * EigMXc::Identity(P, P);
     // @BAD!!! ? gamma should be zero
     for (int a = 0, ab = 0; a < Dimension::P; ++a) {
-        span<kids_complex> c1a = c1.subspan(a * Dimension::F, Dimension::F);
+        span<psnd_complex> c1a = c1.subspan(a * Dimension::F, Dimension::F);
         for (int b = 0; b < Dimension::P; ++b, ++ab) {
-            span<kids_complex> c2b     = c2.subspan(b * Dimension::F, Dimension::F);
+            span<psnd_complex> c2b     = c2.subspan(b * Dimension::F, Dimension::F);
             Sele[a * Dimension::P + b] = xi * ARRAY_INNER_TRANS1(c1a.data(), c2b.data(), Dimension::P) -
                                          ((a == b) ? gamma : 0.0e0);  // ? F*gamma?
         }
@@ -79,18 +79,18 @@ int Kernel_MultiConfigCoup::calc_Sele(span<kids_complex> Sele,   // [P,P]
     return 0;  // @bug FATAL
 }
 
-int Kernel_MultiConfigCoup::calc_dtlnSnuc(span<kids_complex> dtlnSnuc,  // [P,P]
-                                          span<kids_real>    x,         // [P,N]
-                                          span<kids_real>    p,         // [P,N]
-                                          span<kids_real>    m,         // [P,N]
-                                          span<kids_real>    f,         // [P,N]
-                                          span<kids_real>    alpha,     // [N]
-                                          span<kids_real>    Ekin,      // [P]
+int Kernel_MultiConfigCoup::calc_dtlnSnuc(span<psnd_complex> dtlnSnuc,  // [P,P]
+                                          span<psnd_real>    x,         // [P,N]
+                                          span<psnd_real>    p,         // [P,N]
+                                          span<psnd_real>    m,         // [P,N]
+                                          span<psnd_real>    f,         // [P,N]
+                                          span<psnd_real>    alpha,     // [N]
+                                          span<psnd_real>    Ekin,      // [P]
                                           int P, int N) {
     // PRINT_ARRAY(dtlnSnuc, P, P);
     for (int a = 0, aN = 0, ab = 0; a < P; ++a, aN += N) {
         for (int b = 0, bN = 0; b < P; ++b, ++ab, bN += N) {
-            kids_complex term = 0.0e0;
+            psnd_complex term = 0.0e0;
             for (int j = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj) {
                 term +=
                     p[bj] / m[bj] * 0.5 * alpha[j] * (x[aj] - x[bj] + (p[aj] + p[bj]) / (phys::math::im * alpha[j]));
@@ -104,40 +104,40 @@ int Kernel_MultiConfigCoup::calc_dtlnSnuc(span<kids_complex> dtlnSnuc,  // [P,P]
     return 0;
 }
 
-int Kernel_MultiConfigCoup::calc_dtSele(span<kids_complex> dtSele,  // [P,P]
-                                        span<kids_complex> Sele,    // [P,P]
-                                        span<kids_complex> c,       // [P,F]
-                                        span<kids_complex> H,       // [P,F,F]
-                                        span<kids_real>    vpes,    // [P]
+int Kernel_MultiConfigCoup::calc_dtSele(span<psnd_complex> dtSele,  // [P,P]
+                                        span<psnd_complex> Sele,    // [P,P]
+                                        span<psnd_complex> c,       // [P,F]
+                                        span<psnd_complex> H,       // [P,F,F]
+                                        span<psnd_real>    vpes,    // [P]
                                         int P, int F) {
     for (int a = 0, ab = 0, aF = 0; a < Dimension::P; ++a, aF += Dimension::F) {
-        span<kids_complex> ca = c.subspan(aF, F);
+        span<psnd_complex> ca = c.subspan(aF, F);
         for (int b = 0, bF = 0, bFF = 0; b < Dimension::P; ++b, ++ab, bF += Dimension::F, bFF += Dimension::FF) {
-            span<kids_complex> cb = c.subspan(bF, F);
-            span<kids_complex> Hb = H.subspan(bFF, F * F);
-            kids_complex term1    = ARRAY_INNER_VMV_TRANS1(ca.data(), H.data(), cb.data(), Dimension::F, Dimension::F);
-            kids_complex term2    = ARRAY_INNER_TRANS1(ca.data(), cb.data(), Dimension::F);
+            span<psnd_complex> cb = c.subspan(bF, F);
+            span<psnd_complex> Hb = H.subspan(bFF, F * F);
+            psnd_complex term1    = ARRAY_INNER_VMV_TRANS1(ca.data(), H.data(), cb.data(), Dimension::F, Dimension::F);
+            psnd_complex term2    = ARRAY_INNER_TRANS1(ca.data(), cb.data(), Dimension::F);
             dtSele[a * Dimension::P + b] = -phys::math::im * (term1 + vpes[b] * term2);
         }
     }
     return 0;
 }
 
-double Kernel_MultiConfigCoup::calc_density(span<kids_complex> rhored,   // [F,F]
-                                            span<kids_complex> Acoeff,   // [P]
-                                            span<kids_complex> Snuc,     // [P,P]
-                                            span<kids_complex> c,        // [P,F]
-                                            span<kids_complex> Mtmp,     // [P,P]
-                                            kids_real          xi,       // for kernel
-                                            kids_real          gamma,    // for kernel
+double Kernel_MultiConfigCoup::calc_density(span<psnd_complex> rhored,   // [F,F]
+                                            span<psnd_complex> Acoeff,   // [P]
+                                            span<psnd_complex> Snuc,     // [P,P]
+                                            span<psnd_complex> c,        // [P,F]
+                                            span<psnd_complex> Mtmp,     // [P,P]
+                                            psnd_real          xi,       // for kernel
+                                            psnd_real          gamma,    // for kernel
                                             int P_used, int P, int F) {  //@bug
 
     for (int a = 0, ab = 0; a < P; ++a) {
         for (int b = 0; b < P; ++b, ++ab) { Mtmp[ab] = std::conj(Acoeff[a]) * Acoeff[b] * Snuc[ab]; }
     }
-    kids_complex val = ARRAY_INNER_VMV_TRANS1(Acoeff.data(), Snuc.data(), Acoeff.data(), P, P);
+    psnd_complex val = ARRAY_INNER_VMV_TRANS1(Acoeff.data(), Snuc.data(), Acoeff.data(), P, P);
     ARRAY_MATMUL3_TRANS1(rhored.data(), c.data(), Mtmp.data(), c.data(), F, P, P, F);
-    kids_real trace = 0.0e0;
+    psnd_real trace = 0.0e0;
     for (int i = 0, ik = 0; i < F; ++i) {
         for (int k = 0; k < F; ++k, ++ik) {
             rhored[ik] = xi * rhored[ik];
@@ -150,37 +150,37 @@ double Kernel_MultiConfigCoup::calc_density(span<kids_complex> rhored,   // [F,F
     return trace;
 }
 
-int Kernel_MultiConfigCoup::calc_Hbasis(span<kids_complex> Hbasis,  // [P,P]
-                                        span<kids_real>    vpes,    // [P]
-                                        span<kids_real>    grad,    // [P,N]
-                                        span<kids_real>    V,       // [P,F,F]
-                                        span<kids_real>    dV,      // [P,N,F,F]
-                                        span<kids_real>    x,       // [P,N]
-                                        span<kids_real>    p,       // [P,N]
-                                        span<kids_real>    m,       // [P,N]
-                                        span<kids_real>    alpha,   // [N]
-                                        span<kids_complex> Sele,    // [P,P]
-                                        span<kids_complex> c,       // [P,F]
+int Kernel_MultiConfigCoup::calc_Hbasis(span<psnd_complex> Hbasis,  // [P,P]
+                                        span<psnd_real>    vpes,    // [P]
+                                        span<psnd_real>    grad,    // [P,N]
+                                        span<psnd_real>    V,       // [P,F,F]
+                                        span<psnd_real>    dV,      // [P,N,F,F]
+                                        span<psnd_real>    x,       // [P,N]
+                                        span<psnd_real>    p,       // [P,N]
+                                        span<psnd_real>    m,       // [P,N]
+                                        span<psnd_real>    alpha,   // [N]
+                                        span<psnd_complex> Sele,    // [P,P]
+                                        span<psnd_complex> c,       // [P,F]
                                         int P, int N, int F) {
     int FF  = F * F;
     int NFF = N * FF;
     for (int a = 0, aN = 0, aF = 0, ab = 0; a < Dimension::P; ++a, aN += N, aF += F) {
-        span<kids_real>    Va = V.subspan(a * FF, FF);
-        span<kids_complex> ca = c.subspan(aF, F);
+        span<psnd_real>    Va = V.subspan(a * FF, FF);
+        span<psnd_complex> ca = c.subspan(aF, F);
         for (int b = 0, bN = 0, bF = 0; b < Dimension::P; ++b, ++ab, bN += N, bF += F) {
-            span<kids_real>    Vb = V.subspan(b * FF, FF);
-            span<kids_complex> cb = c.subspan(bF, F);
+            span<psnd_real>    Vb = V.subspan(b * FF, FF);
+            span<psnd_complex> cb = c.subspan(bF, F);
 
-            kids_complex Tab = 0.0e0;
-            kids_complex Vab = 0.0e0;
+            psnd_complex Tab = 0.0e0;
+            psnd_complex Vab = 0.0e0;
 
             Vab += 0.5e0 * (vpes[a] * Sele[ab] + ARRAY_INNER_VMV_TRANS1(ca.data(), Va.data(), cb.data(), F, F));
             Vab += 0.5e0 * (vpes[b] * Sele[ab] + ARRAY_INNER_VMV_TRANS1(ca.data(), Vb.data(), cb.data(), F, F));
             for (int j = 0, jFF = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj, jFF += FF) {
-                span<kids_real> dVaj = dV.subspan(aj * FF, FF);
-                span<kids_real> dVbj = dV.subspan(bj * FF, FF);
-                kids_complex    xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
-                kids_complex    pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
+                span<psnd_real> dVaj = dV.subspan(aj * FF, FF);
+                span<psnd_real> dVbj = dV.subspan(bj * FF, FF);
+                psnd_complex    xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
+                psnd_complex    pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
                 Tab += alpha[j] / (4 * m[bj]) + pabj * pabj / (2 * m[bj]);
 
                 Vab += 0.5e0 * (xabj - x[aj]) *
@@ -194,34 +194,34 @@ int Kernel_MultiConfigCoup::calc_Hbasis(span<kids_complex> Hbasis,  // [P,P]
     return 0;
 };
 
-int Kernel_MultiConfigCoup::calc_Hbasis_adia(span<kids_complex> Hbasis,  // [P,P]
-                                             span<kids_real>    E,       // [P,F]
-                                             span<kids_real>    dE,      // [P,N,F,F]
-                                             span<kids_real>    x,       // [P,N]
-                                             span<kids_real>    p,       // [P,N]
-                                             span<kids_real>    m,       // [P,N]
-                                             span<kids_real>    alpha,   // [N]
-                                             span<kids_complex> c,       // [P,F]
+int Kernel_MultiConfigCoup::calc_Hbasis_adia(span<psnd_complex> Hbasis,  // [P,P]
+                                             span<psnd_real>    E,       // [P,F]
+                                             span<psnd_real>    dE,      // [P,N,F,F]
+                                             span<psnd_real>    x,       // [P,N]
+                                             span<psnd_real>    p,       // [P,N]
+                                             span<psnd_real>    m,       // [P,N]
+                                             span<psnd_real>    alpha,   // [N]
+                                             span<psnd_complex> c,       // [P,F]
                                              int P, int N, int F) {
     int FF  = F * F;
     int NFF = N * FF;
     for (int a = 0, aN = 0, ab = 0; a < Dimension::P; ++a, aN += N) {
         for (int b = 0, bN = 0; b < Dimension::P; ++b, ++ab, bN += N) {
-            span<kids_real>    Ea  = E.subspan(a * F, F);
-            span<kids_real>    Eb  = E.subspan(b * F, F);
-            span<kids_real>    dEa = dE.subspan(a * NFF, NFF);
-            span<kids_real>    dEb = dE.subspan(b * NFF, NFF);
-            span<kids_complex> ca  = c.subspan(a * F, F);
-            span<kids_complex> cb  = c.subspan(b * F, F);
+            span<psnd_real>    Ea  = E.subspan(a * F, F);
+            span<psnd_real>    Eb  = E.subspan(b * F, F);
+            span<psnd_real>    dEa = dE.subspan(a * NFF, NFF);
+            span<psnd_real>    dEb = dE.subspan(b * NFF, NFF);
+            span<psnd_complex> ca  = c.subspan(a * F, F);
+            span<psnd_complex> cb  = c.subspan(b * F, F);
 
-            kids_complex Tab = 0.0e0;
-            kids_complex Eab = 0.0e0;
+            psnd_complex Tab = 0.0e0;
+            psnd_complex Eab = 0.0e0;
 
             for (int j = 0, jik = 0, jFF = 0, aj = aN, bj = bN; j < N; ++j, ++aj, ++bj, jFF += Dimension::FF) {
-                span<kids_real> dEaj = dEa.subspan(jFF, FF);
-                span<kids_real> dEbj = dEb.subspan(jFF, FF);
-                kids_complex    xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
-                kids_complex    pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
+                span<psnd_real> dEaj = dEa.subspan(jFF, FF);
+                span<psnd_real> dEbj = dEb.subspan(jFF, FF);
+                psnd_complex    xabj = 0.5e0 * (x[aj] + x[bj] + (p[aj] - p[bj]) / (phys::math::im * alpha[j]));
+                psnd_complex    pabj = 0.5e0 * (p[aj] + p[bj] + (phys::math::im * alpha[j]) * (x[aj] - x[bj]));
                 Tab += alpha[j] / (4 * m[j]) + pabj * pabj / (2 * m[j]);
 
                 for (int i = 0, ik = 0; i < F; ++i) {
@@ -292,7 +292,7 @@ void Kernel_MultiConfigCoup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Ekin          = DS->def(DATA::integrator::Ekin);
     g             = DS->def(DATA::integrator::g);
     clone_account = DS->def(DATA::integrator::clone_account);
-    // pf_cross      = DS->def<kids_bool>(DATA::integrator::pf_cross);
+    // pf_cross      = DS->def<psnd_bool>(DATA::integrator::pf_cross);
 
     //
     Udt  = DS->def(DATA::integrator::Udt);
@@ -341,8 +341,8 @@ Status& Kernel_MultiConfigCoup::initializeKernel_impl(Status& stat) { return sta
 // {
 //     // @begin debug
 //     // for (int iP = 0; iP < Dimension::P; ++iP) {
-//     //     span<kids_real> x = this->x + iP * Dimension::N;
-//     //     span<kids_real> p = this->p + iP * Dimension::N;
+//     //     span<psnd_real> x = this->x + iP * Dimension::N;
+//     //     span<psnd_real> p = this->p + iP * Dimension::N;
 //     //     for (int j = 0; j < Dimension::N; ++j) {
 //     //         x[j] = iP * 0.02 * (iP % 2 - 0.5) + 0.1 * j;
 //     //         p[j] = -iP * 0.02 * (iP % 2 - 0.5) + 0.2 * j;
@@ -352,13 +352,13 @@ Status& Kernel_MultiConfigCoup::initializeKernel_impl(Status& stat) { return sta
 
 //     if (samp_type < 3) {  // overlap or neighbourhood re-sampling
 //         for (int iP = 0; iP < Dimension::P; ++iP) {
-//             span<kids_complex> w       = this->w + iP;
-//             span<kids_complex> c       = this->c + iP * Dimension::F;
-//             span<kids_complex> U       = this->U + iP * Dimension::FF;
+//             span<psnd_complex> w       = this->w + iP;
+//             span<psnd_complex> c       = this->c + iP * Dimension::F;
+//             span<psnd_complex> U       = this->U + iP * Dimension::FF;
 //             int*          occ_nuc = this->occ_nuc + iP;
 
-//             span<kids_real> x = this->x + iP * Dimension::N;
-//             span<kids_real> p = this->p + iP * Dimension::N;
+//             span<psnd_real> x = this->x + iP * Dimension::N;
+//             span<psnd_real> p = this->p + iP * Dimension::N;
 
 //             /////////////////////////////////////////////////////////////////
 //             if (samp_type == 1)
@@ -400,23 +400,23 @@ Status& Kernel_MultiConfigCoup::initializeKernel_impl(Status& stat) { return sta
 //         }
 //         ARRAY_EYE(U, Dimension::F);
 //         for (int iP = 1; iP < Dimension::P; ++iP) {
-//             span<kids_real>    x_now       = x + iP * Dimension::N;
-//             span<kids_real>    p_now       = p + iP * Dimension::N;
-//             span<kids_real>    f_now       = f + iP * Dimension::N;
-//             span<kids_complex> U_now       = this->U + iP * Dimension::FF;
-//             span<kids_complex> c_now       = this->c + iP * Dimension::F;
-//             span<kids_complex> rho_nuc_now = this->rho_nuc + iP * Dimension::FF;
+//             span<psnd_real>    x_now       = x + iP * Dimension::N;
+//             span<psnd_real>    p_now       = p + iP * Dimension::N;
+//             span<psnd_real>    f_now       = f + iP * Dimension::N;
+//             span<psnd_complex> U_now       = this->U + iP * Dimension::FF;
+//             span<psnd_complex> c_now       = this->c + iP * Dimension::F;
+//             span<psnd_complex> rho_nuc_now = this->rho_nuc + iP * Dimension::FF;
 
-//             span<kids_real>    x_prev = x + std::max({iP - 2, 0}) * Dimension::N;
-//             span<kids_real>    p_prev = p + std::max({iP - 2, 0}) * Dimension::N;
-//             span<kids_real>    f_prev = f + std::max({iP - 2, 0}) * Dimension::N;
-//             span<kids_complex> U_prev = this->U + std::max({iP - 2, 0}) * Dimension::FF;
+//             span<psnd_real>    x_prev = x + std::max({iP - 2, 0}) * Dimension::N;
+//             span<psnd_real>    p_prev = p + std::max({iP - 2, 0}) * Dimension::N;
+//             span<psnd_real>    f_prev = f + std::max({iP - 2, 0}) * Dimension::N;
+//             span<psnd_complex> U_prev = this->U + std::max({iP - 2, 0}) * Dimension::FF;
 
-//             span<kids_real>    eig_now = eig + iP * Dimension::F;
-//             span<kids_real>    T_now   = T + iP * Dimension::FF;
-//             span<kids_complex> Udt_now = Udt + iP * Dimension::FF;
+//             span<psnd_real>    eig_now = eig + iP * Dimension::F;
+//             span<psnd_real>    T_now   = T + iP * Dimension::FF;
+//             span<psnd_complex> Udt_now = Udt + iP * Dimension::FF;
 
-//             kids_real signdt = (iP % 2 == 0) ? dt : -dt;
+//             psnd_real signdt = (iP % 2 == 0) ? dt : -dt;
 
 //             for (int j = 0; j < Dimension::N; ++j) x_now[j] = x_prev[j], p_now[j] = p_prev[j], f_now[j] = f_prev[j];
 
@@ -445,9 +445,9 @@ Status& Kernel_MultiConfigCoup::initializeKernel_impl(Status& stat) { return sta
 //         }
 
 //         for (int iP = 0; iP < Dimension::P; ++iP) {
-//             span<kids_complex> w       = this->w + iP;
-//             span<kids_complex> c       = this->c + iP * Dimension::F;
-//             span<kids_complex> U       = this->U + iP * Dimension::FF;
+//             span<psnd_complex> w       = this->w + iP;
+//             span<psnd_complex> c       = this->c + iP * Dimension::F;
+//             span<psnd_complex> U       = this->U + iP * Dimension::FF;
 //             int*          occ_nuc = this->occ_nuc + iP;
 
 //             /////////////////////////////////////////////////////////////////
@@ -483,7 +483,7 @@ Status& Kernel_MultiConfigCoup::initializeKernel_impl(Status& stat) { return sta
 //     calc_Snuc(Snuc, x, p, m, g, x, p, m, g, alpha, Dimension::P, Dimension::N);
 //     calc_Sele(Sele, c, c, 1, 0, Dimension::P, Dimension::F);
 //     for (int ab = 0; ab < Dimension::PP; ++ab) { S[ab] = Snuc[ab] * Sele[ab]; }
-//     kids_complex scale;
+//     psnd_complex scale;
 //     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, S, Acoeff, 1, Dimension::P, Dimension::P, 1);
 //     for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= sqrt(abs(scale));
 //     ARRAY_MATMUL3_TRANS1(&scale, Acoeff, Snuc, Acoeff, 1, Dimension::P, Dimension::P, 1);
@@ -546,7 +546,7 @@ Status& Kernel_MultiConfigCoup::impl_0(Status& stat) {
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     ARRAY_MATMUL(Acoeff.data(), UXdt.data(), Acoeff.data(), Dimension::P, Dimension::P, 1);
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
-    kids_complex scale;
+    psnd_complex scale;
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff.data(), S.data(), Acoeff.data(), 1, Dimension::P, Dimension::P, 1);
     norm_ptr[0] *= std::abs(scale);
     for (int a = 0; a < Dimension::P; ++a) Acoeff[a] /= sqrt(abs(scale));
@@ -618,7 +618,7 @@ Status& Kernel_MultiConfigCoup::impl_1(Status& stat) {
     for (int a = P_used; a < Dimension::P; ++a) Acoeff[a] = 0.0e0;
     ARRAY_MATMUL(Xcoeff.data(), S1h.data(), Acoeff.data(), Dimension::P, Dimension::P, 1);
 
-    kids_complex cnorm;
+    psnd_complex cnorm;
     ARRAY_MATMUL_TRANS1(&cnorm, Xcoeff.data(), Xcoeff.data(), 1, Dimension::P, 1);
     std::cout << "norm 1 = " << cnorm << "\n";
 
@@ -654,12 +654,12 @@ Status& Kernel_MultiConfigCoup::impl_1(Status& stat) {
 }
 Status& Kernel_MultiConfigCoup::executeKernel_impl(Status& stat) {
     for (int iP = 0; iP < Dimension::P; ++iP) {
-        span<kids_complex> U       = this->U.subspan(iP * Dimension::FF, Dimension::FF);
-        span<kids_complex> c       = this->c.subspan(iP * Dimension::F, Dimension::F);
-        span<kids_complex> c_init  = this->c_init.subspan(iP * Dimension::F, Dimension::F);
-        span<kids_complex> rho_nuc = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);
-        span<kids_real>    T       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
-        span<kids_real>    T_init  = this->T_init.subspan(iP * Dimension::FF, Dimension::FF);
+        span<psnd_complex> U       = this->U.subspan(iP * Dimension::FF, Dimension::FF);
+        span<psnd_complex> c       = this->c.subspan(iP * Dimension::F, Dimension::F);
+        span<psnd_complex> c_init  = this->c_init.subspan(iP * Dimension::F, Dimension::F);
+        span<psnd_complex> rho_nuc = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);
+        span<psnd_real>    T       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
+        span<psnd_real>    T_init  = this->T_init.subspan(iP * Dimension::FF, Dimension::FF);
 
         /////////////////////////////////////////////////////////////////
 
@@ -687,7 +687,7 @@ Status& Kernel_MultiConfigCoup::executeKernel_impl(Status& stat) {
             break;
         }
     }
-    kids_complex scale;
+    psnd_complex scale;
     ARRAY_MATMUL3_TRANS1(&scale, Acoeff.data(), Snuc.data(), Acoeff.data(), 1, Dimension::P, Dimension::P, 1);
     std::cout << "t scale : " << scale << "\n";
     xi = 1.0e0 + Dimension::F * gamma * std::abs(scale);
@@ -695,7 +695,7 @@ Status& Kernel_MultiConfigCoup::executeKernel_impl(Status& stat) {
 
     ARRAY_CLEAR(rhored2.data(), Dimension::FF);
     for (int a = 0; a < P_used; ++a) {
-        span<kids_complex> ca = c.subspan(a * Dimension::F, Dimension::F);
+        span<psnd_complex> ca = c.subspan(a * Dimension::F, Dimension::F);
         for (int i = 0, ik = 0; i < Dimension::F; ++i) {
             for (int k = 0; k < Dimension::F; ++k, ++ik) {
                 rhored2[ik] += xi * ca[i] * std::conj(ca[k]) - ((i == k) ? gamma : 0.0e0);
@@ -723,16 +723,16 @@ int Kernel_MultiConfigCoup::cloning() {
     // PRINT_ARRAY(rhored, Dimension::F, Dimension::F);
 
     for (int iP = 0; iP < P_used; ++iP) {
-        span<kids_real>    g      = this->g.subspan(iP, 1);
-        span<kids_real>    x      = this->x.subspan(iP * Dimension::N, Dimension::N);
-        span<kids_real>    p      = this->p.subspan(iP * Dimension::N, Dimension::N);
-        span<kids_real>    f      = this->f.subspan(iP * Dimension::N, Dimension::N);
-        span<kids_real>    grad   = this->grad.subspan(iP * Dimension::N, Dimension::N);
-        span<kids_real>    V      = this->V.subspan(iP * Dimension::FF, Dimension::FF);
-        span<kids_real>    dV     = this->dV.subspan(iP * Dimension::NFF, Dimension::NFF);
-        span<kids_complex> c      = this->c.subspan(iP * Dimension::F, Dimension::F);
-        span<kids_complex> c_init = this->c_init.subspan(iP * Dimension::F, Dimension::F);
-        span<kids_complex> U      = this->U.subspan(iP * Dimension::FF, Dimension::FF);
+        span<psnd_real>    g      = this->g.subspan(iP, 1);
+        span<psnd_real>    x      = this->x.subspan(iP * Dimension::N, Dimension::N);
+        span<psnd_real>    p      = this->p.subspan(iP * Dimension::N, Dimension::N);
+        span<psnd_real>    f      = this->f.subspan(iP * Dimension::N, Dimension::N);
+        span<psnd_real>    grad   = this->grad.subspan(iP * Dimension::N, Dimension::N);
+        span<psnd_real>    V      = this->V.subspan(iP * Dimension::FF, Dimension::FF);
+        span<psnd_real>    dV     = this->dV.subspan(iP * Dimension::NFF, Dimension::NFF);
+        span<psnd_complex> c      = this->c.subspan(iP * Dimension::F, Dimension::F);
+        span<psnd_complex> c_init = this->c_init.subspan(iP * Dimension::F, Dimension::F);
+        span<psnd_complex> U      = this->U.subspan(iP * Dimension::FF, Dimension::FF);
 
         /////////////////////////////////////////////////
 
@@ -763,21 +763,21 @@ int Kernel_MultiConfigCoup::cloning() {
             int break_state = (std::abs(c[break_state_i]) > std::abs(c[break_state_k])) ? break_state_i : break_state_k;
             double       norm_b       = std::abs(c[break_state]);
             double       norm_a       = sqrt(1 - norm_b * norm_b);
-            kids_complex norm_phase_a = norm_a * (norm_a + phys::math::im * norm_b);
-            kids_complex norm_phase_b = norm_b * (norm_b - phys::math::im * norm_a);
+            psnd_complex norm_phase_a = norm_a * (norm_a + phys::math::im * norm_b);
+            psnd_complex norm_phase_b = norm_b * (norm_b - phys::math::im * norm_a);
 
             // std::cout << "norm_a, norm_b, iP, P_used, P_increase: " << norm_a << ", " << norm_b << ", " << iP << ","
             //           << P_used << ", " << P_increase << "\n";
 
-            span<kids_real>    g_new      = this->g.subspan(P_increase, 1);
-            span<kids_real>    x_new      = this->x.subspan(P_increase * Dimension::N, Dimension::N);
-            span<kids_real>    p_new      = this->p.subspan(P_increase * Dimension::N, Dimension::N);
-            span<kids_real>    f_new      = this->f.subspan(P_increase * Dimension::N, Dimension::N);
-            span<kids_real>    grad_new   = this->grad.subspan(P_increase * Dimension::N, Dimension::N);
-            span<kids_real>    dV_new     = this->dV.subspan(P_increase * Dimension::NFF, Dimension::NFF);
-            span<kids_complex> c_new      = this->c.subspan(P_increase * Dimension::F, Dimension::F);
-            span<kids_complex> c_init_new = this->c_init.subspan(P_increase * Dimension::F, Dimension::F);
-            span<kids_complex> U_new      = this->U.subspan(P_increase * Dimension::FF, Dimension::FF);
+            span<psnd_real>    g_new      = this->g.subspan(P_increase, 1);
+            span<psnd_real>    x_new      = this->x.subspan(P_increase * Dimension::N, Dimension::N);
+            span<psnd_real>    p_new      = this->p.subspan(P_increase * Dimension::N, Dimension::N);
+            span<psnd_real>    f_new      = this->f.subspan(P_increase * Dimension::N, Dimension::N);
+            span<psnd_real>    grad_new   = this->grad.subspan(P_increase * Dimension::N, Dimension::N);
+            span<psnd_real>    dV_new     = this->dV.subspan(P_increase * Dimension::NFF, Dimension::NFF);
+            span<psnd_complex> c_new      = this->c.subspan(P_increase * Dimension::F, Dimension::F);
+            span<psnd_complex> c_init_new = this->c_init.subspan(P_increase * Dimension::F, Dimension::F);
+            span<psnd_complex> U_new      = this->U.subspan(P_increase * Dimension::FF, Dimension::FF);
 
             g_new[0] = g[0];
             for (int j = 0; j < Dimension::N; ++j) x_new[j] = x[j];
@@ -826,9 +826,9 @@ int Kernel_MultiConfigCoup::cloning() {
     return 0;
 
     // for (int iP = 0; iP < Dimension::P; ++iP) {
-    //     span<kids_real> p    = this->p + iP * Dimension::N;
-    //     span<kids_real> grad = this->grad + iP * Dimension::N;
-    //     span<kids_real> dV   = this->dV + iP * Dimension::NFF;
+    //     span<psnd_real> p    = this->p + iP * Dimension::N;
+    //     span<psnd_real> grad = this->grad + iP * Dimension::N;
+    //     span<psnd_real> dV   = this->dV + iP * Dimension::NFF;
     //     bool* pf_cross = this->pf_cross + iP * Dimension::F;
 
     //     /////////////////////////////////////////////////

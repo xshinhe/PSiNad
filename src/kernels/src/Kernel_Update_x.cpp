@@ -1,11 +1,11 @@
-#include "kids/Kernel_Update_x.h"
+#include "psnd/Kernel_Update_x.h"
 
-#include "kids/Kernel_Monodromy.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Monodromy.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 

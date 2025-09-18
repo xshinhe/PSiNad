@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# KIDS SCRIPTS (adapted from COMBRAMM)
+# PSND SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -36,9 +36,9 @@ import numpy as np  # numpy library for scientific computation
 
 # imports of local objects
 
-import kids_env  # functions to handle third-party software environment
+import psnd_env  # functions to handle third-party software environment
 import constants  # values of physical constants and conversion factors
-from kids_log import Timing, Log  # keep timings of the different sections of the code
+from psnd_log import Timing, Log  # keep timings of the different sections of the code
 from QMOutput import QMOutput     # template class for the output of a QM calculation
 from drivers.adfDriver import AdfInput, AdfOutput
 from drivers.bagelDriver import BagelInput, BagelOutput
@@ -640,7 +640,7 @@ class QM:
 
             qmexe = qm.qmexe 
             if qmexe == '':
-                qmexe = kids_env.checkQMExec(qmsolver)
+                qmexe = psnd_env.checkQMExec(qmsolver)
             
             fninp = f"{qmsolver}-QM.inp"
             fnlog = f"{qmsolver}-QM.log"

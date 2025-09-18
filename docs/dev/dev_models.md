@@ -2,21 +2,21 @@
 
 User can add extensions to Kernel class with customized implementation.
 ```python
-import libpykids
+import libpypsnd
 import typing
 
-class PyKernel_Test(libpykids.Kernel):
+class PyKernel_Test(libpypsnd.Kernel):
     def __init__(self, name: str):
-        libpykids.Kernel.__init__(self, name)
+        libpypsnd.Kernel.__init__(self, name)
     
-    def read_param_impl(self, PM: libpykids.Param):
+    def read_param_impl(self, PM: libpypsnd.Param):
         self._ndof = PM.get_int('N')
         self._edof = PM.get_int('F')
         self._kcoeff = PM.get_double('k')
         # ...
         return
     
-    def init_data_impl(self, DS: libpykids.DataSet):
+    def init_data_impl(self, DS: libpypsnd.DataSet):
         self._x_init = DS.numpy('init.x')
         self._p_init = DS.numpy('init.p')
         self._x = DS.numpy('integrator.x')

@@ -216,7 +216,7 @@ def qm_job(qm_data, args):
         "directory": args.directory,
         "output": args.output,
     }
-    #print('config managed by kidsqmmm module:')
+    #print('config managed by psndqmmm module:')
     #pprint(qm_config)
 
     directory = qm_config['QM']['env']['directory']
@@ -297,18 +297,18 @@ def parse_result(qm_data, log_path):
     try:
         f = open(qm_config['QM']['env']['directory'] + '/interface.ds', 'w')
         f.write('interface.stat\n')
-        f.write(f'kids_int {1}\n')
+        f.write(f'psnd_int {1}\n')
         f.write(f'{stat}\n\n')
 
         if find0:
             f.write('interface.eig\n')
-            f.write(f'kids_real {F}\n')
+            f.write(f'psnd_real {F}\n')
             for i in range(F):
                 f.write('{: 12.8e}\n'.format(eig[i]))
             f.write('\n')
 
             f.write('interface.dE\n')
-            f.write(f'kids_real {N*F}\n')
+            f.write(f'psnd_real {N*F}\n')
             for j in range(N):
                 for i in range(F):
                     f.write('{: 12.8e} '.format(dE[j,i]))
@@ -316,7 +316,7 @@ def parse_result(qm_data, log_path):
             f.write('\n')
 
             f.write('interface.nac\n')
-            f.write(f'kids_real {N*F*F}\n')
+            f.write(f'psnd_real {N*F*F}\n')
             for j in range(N):
                 for i in range(F):
                     for k in range(F):
@@ -326,7 +326,7 @@ def parse_result(qm_data, log_path):
 
         if findf:
             f.write('interface.strength\n')
-            f.write(f'kids_real {F}\n')
+            f.write(f'psnd_real {F}\n')
             for i in range(len(fstrength)):
                 f.write('{: 12.8e} '.format(fstrength[i]))
             f.write('\n')
@@ -368,39 +368,39 @@ if __name__ == '__main__':
         fo = open(args.output, 'w')
         if 'vpes' in hess:
             fo.write('model.vpes\n');
-            fo.write(f'kids_real 1\n');
+            fo.write(f'psnd_real 1\n');
             fo.write('{: 12.8e} \n\n'.format(hess['vpes']))
         if 'hess' in hess:
             fo.write('model.hess\n');
             val = hess['hess'].flatten()
-            fo.write(f'kids_real {len(val)}\n');
+            fo.write(f'psnd_real {len(val)}\n');
             for i in range(len(val)):
                 fo.write('{: 12.8e} '.format(val[i]))
             fo.write('\n\n')
         if 'Tmod' in hess:
             fo.write('model.Tmod\n');
             val = hess['Tmod'].flatten()
-            fo.write(f'kids_real {len(val)}\n');
+            fo.write(f'psnd_real {len(val)}\n');
             for i in range(len(val)):
                 fo.write('{: 12.8e} '.format(val[i]))
             fo.write('\n\n')
         if 'w' in hess:
             fo.write('model.w\n');
             val = hess['w'].flatten() #?
-            fo.write(f'kids_real {len(val)}\n');
+            fo.write(f'psnd_real {len(val)}\n');
             for i in range(len(val)):
                 fo.write('{: 12.8e} '.format(val[i]))
             fo.write('\n\n')
         if 'x0' in hess:
             fo.write('model.x0\n');
             val = hess['x0'].flatten() #?
-            fo.write(f'kids_real {len(val)}\n');
+            fo.write(f'psnd_real {len(val)}\n');
             for i in range(len(val)):
                 fo.write('{: 12.8e} '.format(val[i]))
             fo.write('\n\n')
 
             fo.write('model.p0\n');
-            fo.write(f'kids_real {len(val)}\n');
+            fo.write(f'psnd_real {len(val)}\n');
             for i in range(len(val)):
                 fo.write('{: 12.8e} '.format(0))
             fo.write('\n\n')

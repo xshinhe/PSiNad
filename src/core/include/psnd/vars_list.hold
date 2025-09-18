@@ -1,0 +1,413 @@
+/**@file        vars_list.h
+ * @brief       declaration of variables used in the program.
+ *
+ * @author      Xin He
+ * @date        2024-03
+ * @version     1.0
+ * @copyright   GNU Lesser General Public License (LGPL)
+ *
+ *              Copyright (c) 2024 Xin He, Liu-Group
+ *
+ *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  Group at the College of Chemistry and Molecular Engineering, Peking University.
+ *  All rights are reserved by Peking University.
+ *  You should have received a copy of the GNU Lesser General Public License along
+ *  with this software. If not, see <https://www.gnu.org/licenses/lgpl-3.0.en.html>
+ **********************************************************************************
+ * @par revision:
+ * <table>
+ * <tr><th> Date        <th> Description
+ * <tr><td> 2024-03-29  <td> Initial version.
+ * </table>
+ **********************************************************************************
+ */
+
+
+#ifndef VARS_LIST_H
+#define VARS_LIST_H
+
+#include "psnd/Shape.h"
+#include "psnd/Types.h"
+#include "psnd/Variable.h"
+
+namespace PROJECT_NS {
+
+/**
+ * Dimension namespace locates read parameters for system size
+ */
+namespace Dimension {
+extern std::size_t M;  ///< Number of Monte Carlo calculations.
+extern std::size_t P;  ///< Number of parallel trajectories (swarms of trajectories) in each Monte Carlo run.
+extern std::size_t P_NOW;
+extern std::size_t N;      ///< Number of nuclear degrees of freedom.
+extern std::size_t F;      ///< Number of electronic degrees of freedom.
+extern std::size_t Nb;     ///< Number of discretized modes
+extern std::size_t nbath;  ///< Number of bathes
+extern std::size_t L;      ///< Number of nonzero elements in interaction Q
+
+extern std::size_t MP;    ///< Product of M and P (M * P).
+extern std::size_t PP;    ///< Product of P and P (P * P).
+extern std::size_t PN;    ///< Product of P and N (P * N).
+extern std::size_t PNN;   ///< Product of P, N, and N (P * N * N).
+extern std::size_t PF;    ///< Product of P and F (P * F).
+extern std::size_t PFF;   ///< Product of P, F, and F (P * F * F).
+extern std::size_t PNFF;  ///< Product of P, N, F, and F (P * N * F * F).
+extern std::size_t NF;    ///< Product of N and F (N * F).
+extern std::size_t NN;    ///< Product of N and N (N * N).
+extern std::size_t FF;    ///< Product of F and F (F * F).
+extern std::size_t NFF;   ///< Product of N, F, and F (N * F * F).
+extern std::size_t NNFF;  ///< Product of N, N, F, and F (N * N * F * F).
+extern std::size_t N4;    ///<  (N + 2* F).
+
+extern std::size_t Fadd1;  ///< F plus 1 (F + 1).
+
+extern std::size_t sstep;
+extern std::size_t nstep;
+extern std::size_t nsamp;
+
+extern Shape shape_1;      ///< Shape corresponding to a single element (1).
+extern Shape shape_2;      ///< Shape corresponding to two elements (2).
+extern Shape shape_X;      ///< Shape for an arbitrary number of elements.
+extern Shape shape_M;      ///< Shape for the number of Monte Carlo calculations (M).
+extern Shape shape_P;      ///< Shape for the number of parallel trajectories (P).
+extern Shape shape_N;      ///< Shape for the number of nuclear degrees of freedom (N).
+extern Shape shape_F;      ///< Shape for the number of electronic degrees of freedom (F).
+extern Shape shape_Fadd1;  ///< Shape for F plus 1 (F + 1).
+extern Shape shape_MP;     ///< Shape for the product of M and P (M * P).
+extern Shape shape_PP;     ///< Shape for the product of P and P (P * P).
+extern Shape shape_PN;     ///< Shape for the product of P and N (P * N).
+extern Shape shape_PNN;    ///< Shape for the product of P, N, and N (P * N * N).
+extern Shape shape_PF;     ///< Shape for the product of P and F (P * F).
+extern Shape shape_PNF;    ///< Shape for the product of P, N and F (P * N * F).
+extern Shape shape_PFF;    ///< Shape for the product of P, F, and F (P * F * F).
+extern Shape shape_PNFF;   ///< Shape for the product of P, N, F, and F (P * N * F * F).
+extern Shape shape_NF;     ///< Shape for the product of N and F (N * F).
+extern Shape shape_NN;     ///< Shape for the product of N and N (N * N).
+extern Shape shape_FF;     ///< Shape for the product of F and F (F * F).
+extern Shape shape_NFF;    ///< Shape for the product of N, F, and F (N * F * F).
+extern Shape shape_NNFF;   ///< Shape for the product of N, N, F, and F (N * N * F * F).
+extern Shape shape_PN4N4;  ///< Shape for the product of (N + 2 * F)(N + 2 * F).
+
+extern Shape shape_Nb;        ///< Shape for the number of discretized modes
+extern Shape shape_nbathFF;   ///< Shape for the product of nbath, F, and F (nbath * F * F)
+extern Shape shape_LNb;       ///< Shape for the product of L and Nb (L * Nb)
+extern Shape shape_LnbathFF;  ///< Shape for the product of L, nbath and F and F (L * nbath * F * F)
+
+extern void static_build_shapes();
+};  // namespace Dimension
+
+namespace DATA {
+
+namespace init {  // @to be removed
+extern VARIABLE<psnd_real>    Etot;
+extern VARIABLE<psnd_real>    p;
+extern VARIABLE<psnd_real>    x;
+extern VARIABLE<psnd_real>    T;
+extern VARIABLE<psnd_complex> c;
+extern VARIABLE<psnd_complex> cset;
+extern VARIABLE<psnd_complex> rho_ele;
+extern VARIABLE<psnd_complex> rho_nuc;
+extern VARIABLE<psnd_complex> rho_dual;
+};  // namespace init
+
+namespace parameter {
+extern VARIABLE<psnd_real> xi0;
+extern VARIABLE<psnd_real> xi1;
+extern VARIABLE<psnd_real> xi2;
+extern VARIABLE<psnd_real> xi3;
+extern VARIABLE<psnd_real> xiw;
+extern VARIABLE<psnd_real> xir;
+extern VARIABLE<psnd_real> gamma0;
+extern VARIABLE<psnd_real> gamma1;
+extern VARIABLE<psnd_real> gamma2;
+extern VARIABLE<psnd_real> gamma3;
+extern VARIABLE<psnd_real> gammaw;
+extern VARIABLE<psnd_real> gammar;
+extern VARIABLE<psnd_real> Is;
+};  // namespace parameter
+
+namespace integrator {
+extern VARIABLE<psnd_complex> Acoeff;
+extern VARIABLE<psnd_real>    E;
+extern VARIABLE<psnd_real>    Ekin;
+extern VARIABLE<psnd_real>    Epot;
+extern VARIABLE<psnd_real>    Etot;
+
+namespace GWP {
+extern VARIABLE<psnd_real>    L;
+extern VARIABLE<psnd_real>    L1;
+extern VARIABLE<psnd_real>    L2;
+extern VARIABLE<psnd_complex> R;
+extern VARIABLE<psnd_complex> R1;
+extern VARIABLE<psnd_complex> R2;
+extern VARIABLE<psnd_complex> S1;
+extern VARIABLE<psnd_complex> S1h;
+extern VARIABLE<psnd_complex> S2;
+extern VARIABLE<psnd_complex> S2h;
+extern VARIABLE<psnd_complex> Sx;
+extern VARIABLE<psnd_complex> invS1h;
+extern VARIABLE<psnd_complex> invS2h;
+};  // namespace GWP
+
+extern VARIABLE<psnd_complex> Hbasis;
+extern VARIABLE<psnd_complex> Hcoeff;
+extern VARIABLE<psnd_complex> K0;
+extern VARIABLE<psnd_complex> K1;
+extern VARIABLE<psnd_complex> K1DA;
+extern VARIABLE<psnd_complex> K1DD;
+extern VARIABLE<psnd_complex> K1QA;
+extern VARIABLE<psnd_complex> K1QD;
+extern VARIABLE<psnd_complex> K2;
+extern VARIABLE<psnd_complex> K2DA;
+extern VARIABLE<psnd_complex> K2DD;
+extern VARIABLE<psnd_complex> K2QA;
+extern VARIABLE<psnd_complex> K2QD;
+extern VARIABLE<psnd_complex> KSHA;
+extern VARIABLE<psnd_complex> KTWA;
+extern VARIABLE<psnd_complex> KTWD;
+extern VARIABLE<psnd_complex> OpA;
+extern VARIABLE<psnd_complex> OpB;
+extern VARIABLE<psnd_int>     P_used;
+extern VARIABLE<psnd_complex> S;
+extern VARIABLE<psnd_complex> Sele;
+extern VARIABLE<psnd_complex> Snuc;
+extern VARIABLE<psnd_complex> U;
+extern VARIABLE<psnd_complex> UXdt;
+extern VARIABLE<psnd_complex> UYdt;
+extern VARIABLE<psnd_complex> Ubranch;
+extern VARIABLE<psnd_complex> Udt;
+extern VARIABLE<psnd_complex> Ucdt;
+extern VARIABLE<psnd_complex> Xcoeff;
+extern VARIABLE<psnd_real>    alpha;
+extern VARIABLE<psnd_complex> c;
+extern VARIABLE<psnd_complex> cset;
+extern VARIABLE<psnd_real>    c1;
+extern VARIABLE<psnd_real>    c2p;
+extern VARIABLE<psnd_int>     clone_account;
+extern VARIABLE<psnd_complex> dtAcoeff;
+extern VARIABLE<psnd_complex> dtSele;
+extern VARIABLE<psnd_complex> dtlnSnuc;
+extern VARIABLE<psnd_real>    f;
+extern VARIABLE<psnd_real>    fadd;
+extern VARIABLE<psnd_real>    g;
+extern VARIABLE<psnd_complex> invS;
+extern VARIABLE<psnd_real>    m;
+extern VARIABLE<psnd_real>    minv;
+
+namespace nhc {
+extern VARIABLE<psnd_real> G;
+extern VARIABLE<psnd_real> Q;
+extern VARIABLE<psnd_real> p;
+extern VARIABLE<psnd_real> x;
+};  // namespace nhc
+
+extern VARIABLE<psnd_real>    norm;
+extern VARIABLE<psnd_int>     occ_nuc;
+extern VARIABLE<psnd_real>    ve;
+extern VARIABLE<psnd_real>    p;
+extern VARIABLE<psnd_complex> p_sign;
+
+namespace param {
+extern VARIABLE<psnd_real> c1;
+extern VARIABLE<psnd_real> c2p;
+};  // namespace param
+
+extern VARIABLE<psnd_bint>    pf_cross;
+extern VARIABLE<psnd_complex> rho_dual;
+extern VARIABLE<psnd_complex> rho_ele;
+extern VARIABLE<psnd_complex> rho_nuc;
+extern VARIABLE<psnd_complex> rhored;
+extern VARIABLE<psnd_complex> rhored2;
+extern VARIABLE<psnd_complex> rhored3;
+extern VARIABLE<psnd_real>    trKTWA;
+extern VARIABLE<psnd_real>    trKTWD;
+extern VARIABLE<psnd_real>    sqcw;
+extern VARIABLE<psnd_real>    sqcw0;
+extern VARIABLE<psnd_real>    sqcwh;
+
+namespace monodromy {
+extern VARIABLE<psnd_real>    mono;
+extern VARIABLE<psnd_real>    monodt;
+extern VARIABLE<psnd_complex> MFFtmp1;
+extern VARIABLE<psnd_complex> MFFtmp2;
+extern VARIABLE<psnd_complex> MFFtmp3;
+extern VARIABLE<psnd_complex> MFFtmp4;
+extern VARIABLE<psnd_complex> MFFtmp5;
+extern VARIABLE<psnd_complex> MFFtmp6;
+};  // namespace monodromy
+
+namespace forceeval {
+extern VARIABLE<psnd_complex> mask;
+extern VARIABLE<psnd_complex> dmask;
+};  // namespace forceeval
+
+namespace COUP {
+extern VARIABLE<psnd_real> relwgt;
+extern VARIABLE<psnd_real> gf_x;
+extern VARIABLE<psnd_real> gf_p;
+extern VARIABLE<psnd_real> gf_c;
+extern VARIABLE<psnd_real> gf_all;
+extern VARIABLE<psnd_real> avgx;
+extern VARIABLE<psnd_real> varx;
+extern VARIABLE<psnd_real> avgp;
+extern VARIABLE<psnd_real> varp;
+extern VARIABLE<psnd_real> avgxf;
+extern VARIABLE<psnd_real> varxf;
+extern VARIABLE<psnd_real> xintercept;
+extern VARIABLE<psnd_real> xinterceptf;
+extern VARIABLE<psnd_real> xslope;
+extern VARIABLE<psnd_real> term_1;
+extern VARIABLE<psnd_real> term_2;
+extern VARIABLE<psnd_real> fadiat;
+extern VARIABLE<psnd_real> pb;
+};  // namespace COUP
+
+namespace tmp {
+extern VARIABLE<psnd_complex> I_PP;
+extern VARIABLE<psnd_complex> MatC_PP;
+extern VARIABLE<psnd_real>    MatR_PP;
+extern VARIABLE<psnd_real>    TtTold;
+extern VARIABLE<psnd_real>    direction;
+extern VARIABLE<psnd_real>    fproj;
+extern VARIABLE<psnd_real>    ftmp;
+extern VARIABLE<psnd_complex> fun_diag_F;
+extern VARIABLE<psnd_complex> fun_diag_P;
+extern VARIABLE<psnd_complex> invexpidiagdt;
+extern VARIABLE<psnd_real>    ve;
+extern VARIABLE<psnd_real>    vedE;
+extern VARIABLE<psnd_complex> wrho;
+};  // namespace tmp
+
+extern VARIABLE<psnd_real>    veF;
+extern VARIABLE<psnd_complex> w;
+extern VARIABLE<psnd_complex> w_AA;
+extern VARIABLE<psnd_complex> w_AD;
+extern VARIABLE<psnd_complex> w_CC;
+extern VARIABLE<psnd_complex> w_CP;
+extern VARIABLE<psnd_complex> w_DD;
+extern VARIABLE<psnd_complex> w_PP;
+extern VARIABLE<psnd_complex> ww_A;
+extern VARIABLE<psnd_complex> ww_D;
+extern VARIABLE<psnd_complex> wz_A;
+extern VARIABLE<psnd_complex> wz_D;
+extern VARIABLE<psnd_real>    x;
+extern VARIABLE<psnd_real>    xgrid;
+};  // namespace integrator
+
+
+namespace flowcontrol {
+extern VARIABLE<psnd_int>  scheme_id;
+extern VARIABLE<psnd_int>  solver_id;
+extern VARIABLE<psnd_int>  calc_id;
+extern VARIABLE<psnd_int>  step_id;
+extern VARIABLE<psnd_bint> at_condition;
+// extern VARIABLE<psnd_bint> at_samplingstep_finally;
+// extern VARIABLE<psnd_bint> at_samplingstep_initially;
+extern VARIABLE<psnd_real> dt;
+extern VARIABLE<psnd_real> pertimeunit;
+extern VARIABLE<psnd_int>  dtsize;
+extern VARIABLE<psnd_int>  last_tried_dtsize;
+extern VARIABLE<psnd_int>  fail_type;
+extern VARIABLE<psnd_bint> frez;
+extern VARIABLE<psnd_int>  isamp;
+extern VARIABLE<psnd_int>  istep;
+extern VARIABLE<psnd_bint> last_attempt;
+extern VARIABLE<psnd_int>  msize;
+extern VARIABLE<psnd_int>  nsamp;
+extern VARIABLE<psnd_int>  nstep;
+extern VARIABLE<psnd_int>  sstep;
+extern VARIABLE<psnd_bint> succ;
+extern VARIABLE<psnd_real> t;
+extern VARIABLE<psnd_int>  tsize;
+};  // namespace flowcontrol
+
+
+namespace last {
+extern VARIABLE<psnd_real>    Etot;
+extern VARIABLE<psnd_complex> c;
+extern VARIABLE<psnd_real>    dV;
+extern VARIABLE<psnd_real>    g;
+extern VARIABLE<psnd_real>    grad;
+extern VARIABLE<psnd_real>    p;
+extern VARIABLE<psnd_real>    x;
+};  // namespace last
+
+
+namespace model {
+extern VARIABLE<psnd_real>    Hsys;
+extern VARIABLE<psnd_real>    Kmat;
+extern VARIABLE<psnd_real>    Qmat;
+extern VARIABLE<psnd_real>    Tmod;
+extern VARIABLE<psnd_real>    V;
+extern VARIABLE<psnd_complex> Vc;
+extern VARIABLE<psnd_int>     atoms;
+extern VARIABLE<psnd_int>     layer_type;
+
+namespace bath {
+extern VARIABLE<psnd_real> coeffs;
+extern VARIABLE<psnd_real> omegas;
+};  // namespace bath
+
+
+namespace coupling {
+extern VARIABLE<psnd_real> CL;
+extern VARIABLE<psnd_real> Q;
+extern VARIABLE<psnd_real> QL;
+};  // namespace coupling
+
+extern VARIABLE<psnd_real> dV;
+extern VARIABLE<psnd_real> ddV;
+extern VARIABLE<psnd_real> f_p;
+extern VARIABLE<psnd_real> f_r;
+extern VARIABLE<psnd_real> f_rp;
+extern VARIABLE<psnd_real> grad;
+extern VARIABLE<psnd_real> hess;
+extern VARIABLE<psnd_real> kcoeff;
+extern VARIABLE<psnd_real> lcoeff;
+extern VARIABLE<psnd_real> mass;
+extern VARIABLE<psnd_real> p0;
+extern VARIABLE<psnd_real> p_sigma;
+
+extern VARIABLE<psnd_complex> dVc;
+extern VARIABLE<psnd_complex> ddVc;
+
+namespace MB {
+extern VARIABLE<psnd_real>    Jpmat;
+extern VARIABLE<psnd_real>    Jzmat;
+extern VARIABLE<psnd_complex> SXred;
+extern VARIABLE<psnd_complex> SYred;
+extern VARIABLE<psnd_complex> SZred;
+extern VARIABLE<psnd_complex> H1;
+extern VARIABLE<psnd_complex> H2;
+};  // namespace MB
+
+namespace rep {
+extern VARIABLE<psnd_real>    eig;
+extern VARIABLE<psnd_real>    E;
+extern VARIABLE<psnd_complex> H;
+extern VARIABLE<psnd_real>    lam;
+extern VARIABLE<psnd_complex> R;
+extern VARIABLE<psnd_real>    T;
+extern VARIABLE<psnd_real>    Told;
+extern VARIABLE<psnd_real>    dE;
+extern VARIABLE<psnd_real>    ddE;
+extern VARIABLE<psnd_real>    nac;
+extern VARIABLE<psnd_real>    nac_prev;
+};  // namespace rep
+
+extern VARIABLE<psnd_real> vpes;
+extern VARIABLE<psnd_real> w;
+extern VARIABLE<psnd_real> x0;
+extern VARIABLE<psnd_real> x_sigma;
+};  // namespace model
+
+
+namespace random {
+extern VARIABLE<psnd_int> seed;
+};  // namespace random
+
+};  // namespace DATA
+
+};  // namespace PROJECT_NS
+
+#endif  // VARS_LIST_H

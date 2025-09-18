@@ -3,7 +3,7 @@ build
 build*
 .log
 .pyc
-wrappers/rustkids/target
+wrappers/rustpsnd/target
 docs/html
 __pycache__
 *.out

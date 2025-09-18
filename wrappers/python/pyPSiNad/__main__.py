@@ -1,21 +1,21 @@
-import pyPSiNad
+import pyPSiNaD
 
-platform = pyPSiNad.usePlatform('CPU')
-PM = pyPSiNad.Param('input.json', pyPSiNad.Param.fromFile)
+platform = pyPSiNaD.usePlatform('CPU')
+PM = pyPSiNaD.Param('input.json', pyPSiNaD.Param.fromFile)
 
-DS = pyPSiNad.DataSet() # build as null dataset
-model = pyPSiNad.testmodels.PyModel_SBtest('TEST 1')
-# pyPSiNad.modelfactory('systembath')
+DS = pyPSiNaD.DataSet() # build as null dataset
+model = pyPSiNaD.testmodels.PyModel_SBtest('TEST 1')
+# pyPSiNaD.modelfactory('systembath')
 
-# eqv. model = pyPSiNad.SpinbosonModel()
-# system = pyPSiNad.System(model, PM, DS)
-solver1 = pyPSiNad.onlySampling(model) # / from system
-solver2 = pyPSiNad.defaultSolverFactory('NAD', model)
+# eqv. model = pyPSiNaD.SpinbosonModel()
+# system = pyPSiNaD.System(model, PM, DS)
+solver1 = pyPSiNaD.onlySampling(model) # / from system
+solver2 = pyPSiNaD.defaultSolverFactory('NAD', model)
 
-# eqv. solver2 = pyPSiNad.NADSolver(model)
+# eqv. solver2 = pyPSiNaD.NADSolver(model)
 # modification for Param
-appl1 = pyPSiNad.appl.PopulationTransfer(model) # can merged in Param
-# appl2 = pyPSiNad.appl.LinearAbsoptionSpectrum(model)
+appl1 = pyPSiNaD.appl.PopulationTransfer(model) # can merged in Param
+# appl2 = pyPSiNaD.appl.LinearAbsoptionSpectrum(model)
 
 solver2.addApplication(appl1) # append to recorder
 # solver2.addApplication(appl2)
@@ -27,9 +27,9 @@ solver2.setInputParam(PM)
 solver2.setInputDataSet(DS)
 
 
-stat = pyPSiNad.Status()
+stat = pyPSiNaD.Status()
 solvers = [solver1, solver2] # sequence of solvers
-context = pyPSiNad.Context(platform, system , solvers)
+context = pyPSiNaD.Context(platform, system , solvers)
 context.run(stat)
 
 print(DS)

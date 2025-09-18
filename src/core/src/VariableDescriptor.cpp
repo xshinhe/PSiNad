@@ -1,16 +1,16 @@
-#include "kids/VariableDescriptor.h"
+#include "psnd/VariableDescriptor.h"
 
 #include <iostream>
 #include <regex>
 
-#include "kids/Types.h"
-#include "kids/debug_utils.h"
+#include "psnd/Types.h"
+#include "psnd/debug_utils.h"
 
 // if you want to debug the meta-information for the VariableDescriptor,
 // uncomment the following line
 // #define LOCAL_DEBUG
 #ifdef LOCAL_DEBUG
-#include "kids/fmt.h"
+#include "psnd/fmt.h"
 #endif  // LOCAL_DEBUG
 
 namespace PROJECT_NS {
@@ -70,7 +70,7 @@ VariableDescriptor::VariableDescriptor(const std::string& token_string, const st
         );
     } else {
         // If the token string does not match the pattern, throw an error
-        throw kids_error(utils::concat("Cannot match variable pattern: ", token_string));
+        throw psnd_error(utils::concat("Cannot match variable pattern: ", token_string));
     }
 
     // Process the 'field' to determine the namespace
@@ -98,17 +98,17 @@ VariableDescriptor::VariableDescriptor(const std::string& token_string, const st
     }
 
     // Process the 'type' to determine the data type
-    dataType = kids_void_type;  // Default data type is void
+    dataType = psnd_void_type;  // Default data type is void
     if (type == "R") {
-        dataType = kids_real_type;  // Real number type
+        dataType = psnd_real_type;  // Real number type
     }
     if (type == "C") {
-        dataType = kids_complex_type;  // Complex number type
+        dataType = psnd_complex_type;  // Complex number type
     }
     if (type == "I") {
-        dataType = kids_int_type;  // Integer number type
+        dataType = psnd_int_type;  // Integer number type
         // untested
-        throw kids_error("TODO");
+        throw psnd_error("TODO");
     }
 
     // Process the 'name' and determine if the tabular variable shoube be
@@ -165,10 +165,10 @@ VariableDescriptor::VariableDescriptor(const std::string& token_string, const st
  * order).
  * @param totalFrameNumber The total number of frames for tabular data.
  *
- * @throws kids_error If there is a conflict or loss of the variable in the
+ * @throws psnd_error If there is a conflict or loss of the variable in the
  * DataSet.
  */
-void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_type,
+void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, psnd_dtype data_type,
                                   const std::vector<std::size_t>& cxxshape, std::size_t totalFrameNumber) {
     // For the rule expression `A(B,C,D)`
     switch (vtype) {
@@ -178,7 +178,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
             // DataSet
             // uncomment for check & debug
             // if (DS->haskey(keyRec)) {
-            //     throw kids_error(utils::concat("Conflict of key: ", keyRec));
+            //     throw psnd_error(utils::concat("Conflict of key: ", keyRec));
             // }
 
             // Initialize the raw data pointer to null, because it has no
@@ -196,7 +196,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
 
             // Define the variable in the DataSet based on its data type
             switch (data_type) {
-                case kids_real_type: {
+                case psnd_real_type: {
                     // Define a real-valued variable with the given key and
                     // shape
                     DS->def_real(keyRec, cxxshape, utils::concat(name, " traced in 1 frame"));
@@ -212,7 +212,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
                     break;
                 }
 
-                case kids_complex_type: {
+                case psnd_complex_type: {
                     // Define a complex-valued variable with the given key and
                     // shape
                     DS->def_complex(keyRec, cxxshape, utils::concat(name, " traced in 1 frame"));
@@ -229,7 +229,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
 
                 default: {
                     // Handle other data types if necessary
-                    throw kids_error(utils::concat("Unsupported data type for output variable '",  //
+                    throw psnd_error(utils::concat("Unsupported data type for output variable '",  //
                                                    name, "': ", enum_t_as_str(dataType)));
                 }
             }
@@ -253,7 +253,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
 
         case VariableDescriptorPolicy::Input: {
             // Input variables must already exist in the DataSet!
-            if (!DS->haskey(keyRaw)) { throw kids_error(utils::concat("Loss of key: ", keyRaw)); }
+            if (!DS->haskey(keyRaw)) { throw psnd_error(utils::concat("Loss of key: ", keyRaw)); }
 
             // for variables not of isOutput, keyRaw [->dataPointerRaw] &
             // keyRec[->dataPointerTrace] refer to the same storage
@@ -264,14 +264,14 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
 
             // Define the trace key based on the data type
             switch (dataType) {
-                case kids_real_type: {
+                case psnd_real_type: {
                     // Define a real-valued trace key with the same shape as the
                     // raw data
                     dataPointerTrace = (void*) DS->def_real(keyRec, *shape, " traced in 1 frame");
                     break;
                 }
 
-                case kids_complex_type: {
+                case psnd_complex_type: {
                     // Define a complex-valued trace key with the same shape as
                     // the raw data
                     dataPointerTrace = (void*) DS->def_complex(keyRec, *shape, " traced in 1 frame");
@@ -280,7 +280,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
 
                 default: {
                     // Handle other data types if necessary
-                    throw kids_error(utils::concat("Unsupported data type for input variable '",  //
+                    throw psnd_error(utils::concat("Unsupported data type for input variable '",  //
                                                    name, "': ", enum_t_as_str(dataType)));
                 }
             }
@@ -334,7 +334,7 @@ void VariableDescriptor::defineIn(std::shared_ptr<DataSet> DS, kids_dtype data_t
  * @param sampleIndex The current sample index to check against the variable's
  * time index.
  *
- * @throws kids_error If the data type is unsupported or if memory access is
+ * @throws psnd_error If the data type is unsupported or if memory access is
  * invalid.
  */
 void VariableDescriptor::checkTrace(int sampleIndex, bool update) {
@@ -349,37 +349,37 @@ void VariableDescriptor::checkTrace(int sampleIndex, bool update) {
     try {
         timeIndex = std::stoi(time);
     } catch (const std::invalid_argument& e) {
-        throw kids_error(utils::concat("Invalid time index for variable '", name, "': ", time));
+        throw psnd_error(utils::concat("Invalid time index for variable '", name, "': ", time));
     } catch (const std::out_of_range& e) {
-        throw kids_error(utils::concat("Time index out of range for variable '", name, "': ", time));
+        throw psnd_error(utils::concat("Time index out of range for variable '", name, "': ", time));
     }
 
     // If the current sample index matches the variable's time index, proceed to
     // copy data
     if (timeIndex == sampleIndex && update) {
         switch (dataType) {
-            case kids_real_type: {
-                // Cast the raw data pointer to a pointer of type kids_real
-                kids_real* fromdata = static_cast<kids_real*>(dataPointerRaw);
-                // Cast the trace data pointer to a pointer of type kids_real
-                kids_real* todata = static_cast<kids_real*>(dataPointerTrace);
+            case psnd_real_type: {
+                // Cast the raw data pointer to a pointer of type psnd_real
+                psnd_real* fromdata = static_cast<psnd_real*>(dataPointerRaw);
+                // Cast the trace data pointer to a pointer of type psnd_real
+                psnd_real* todata = static_cast<psnd_real*>(dataPointerTrace);
 
                 // Check if shape is valid
-                if (!shape) { throw kids_error(utils::concat("Shape is null for variable '", name, "'")); }
+                if (!shape) { throw psnd_error(utils::concat("Shape is null for variable '", name, "'")); }
 
                 // Copy data from fromdata to todata
                 for (std::size_t i = 0; i < shape->size(); ++i) { todata[i] = fromdata[i]; }
                 break;
             }
 
-            case kids_complex_type: {
-                // Cast the raw data pointer to a pointer of type kids_complex
-                kids_complex* fromdata = static_cast<kids_complex*>(dataPointerRaw);
-                // Cast the trace data pointer to a pointer of type kids_complex
-                kids_complex* todata = static_cast<kids_complex*>(dataPointerTrace);
+            case psnd_complex_type: {
+                // Cast the raw data pointer to a pointer of type psnd_complex
+                psnd_complex* fromdata = static_cast<psnd_complex*>(dataPointerRaw);
+                // Cast the trace data pointer to a pointer of type psnd_complex
+                psnd_complex* todata = static_cast<psnd_complex*>(dataPointerTrace);
 
                 // Check if shape is valid
-                if (!shape) { throw kids_error(utils::concat("Shape is null for variable '", name, "'")); }
+                if (!shape) { throw psnd_error(utils::concat("Shape is null for variable '", name, "'")); }
 
                 // Copy data from fromdata to todata
                 for (std::size_t i = 0; i < shape->size(); ++i) { todata[i] = fromdata[i]; }
@@ -389,7 +389,7 @@ void VariableDescriptor::checkTrace(int sampleIndex, bool update) {
 
             default:
                 // If the data type is unsupported, throw an error
-                throw kids_error(utils::concat("Unsupported data type for variable '", name, "'"));
+                throw psnd_error(utils::concat("Unsupported data type for variable '", name, "'"));
         }
     }
 }

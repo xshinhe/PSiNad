@@ -1,31 +1,41 @@
 # Python APIs {#apis_python}
 
+
+## Installation
+
+```
+pip install pybind11 Cython
+cd PSiNaD/build
+make
+make PythonInstall
+```
+
 ## Construction of Param
 
 ```python
-import binder.libpykids as kids
+import binder.libpypsnd as psnd
 
-dir(kids)
-dir(kids.Param)
-print(dir(kids.DataSet))
+dir(psnd)
+dir(psnd.Param)
+print(dir(psnd.DataSet))
 
-PM = kids.Param('''
+PM = psnd.Param('''
 {
     \"model\": \"MNDO_Intef\",
 }
-''', kids.Param.fromString)
+''', psnd.Param.fromString)
 ```
 
 ## Construction of DataSet
 
 ```python
-import libpykids as kids
+import libpypsnd as psnd
 
-print(dir(kids))
-print(dir(kids.Param))
-print(dir(kids.DataSet))
+print(dir(psnd))
+print(dir(psnd.Param))
+print(dir(psnd.DataSet))
 
-DS = kids.DataSet()
+DS = psnd.DataSet()
 
 # define variables in DataSet
 DS._def('a.a', (10,), dtype='int', doc='this is int array')
@@ -50,7 +60,7 @@ print(DS.help('a.d'))
 ## Construction of Kernel
 
 
-## Embeded KIDS in Thirdpart Library
+## Embeded PSND in Thirdpart Library
 
 
 

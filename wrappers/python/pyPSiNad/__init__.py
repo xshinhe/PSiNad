@@ -7,8 +7,8 @@ import pkgutil
 import importlib
 from . import version
 
-# import pyPSiNad.libpyPSiNad_v1 as lib
-import pyPSiNad.libpyPSiNad_v2 as lib
+# import pyPSiNaD.libpyPSiNaD_v1 as lib
+import pyPSiNaD.libpyPSiNaD_v2 as lib
 
 # 合并命名空间
 for attr in dir(lib):
@@ -16,8 +16,8 @@ for attr in dir(lib):
     if not attr.startswith('_'):
         setattr(sys.modules[__name__], attr, getattr(lib, attr))
 
-# 删除对 lib 和 libpyPSiNad_v2 的引用
-modules_to_delete = ['pyPSiNad.lib', 'pyPSiNad.libpyPSiNad_v2']
+# 删除对 lib 和 libpyPSiNaD_v2 的引用
+modules_to_delete = ['pyPSiNaD.lib', 'pyPSiNaD.libpyPSiNaD_v2']
 for module_name in modules_to_delete:
     if module_name in sys.modules:
         del sys.modules[module_name]
@@ -37,8 +37,8 @@ for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
 def onlySampling(M: Model) -> Solver:
     return defaultSolverFactory('Sampling', M)
 
-# __version__ = Platform.KIDSVersion()
+# __version__ = Platform.PSNDVersion()
 
-class KIDSException(Exception): # for swig wrapper only
+class PSNDException(Exception): # for swig wrapper only
     """This is the class used for all exceptions thrown by the C++ library."""
     pass

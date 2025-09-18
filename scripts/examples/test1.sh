@@ -2,5 +2,5 @@
 
 echo "TESTING: [help information]"
 
-python ../kids_arg.py --help
+python ../psnd_arg.py --help
 

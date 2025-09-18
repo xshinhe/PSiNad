@@ -32,12 +32,12 @@ namespace std {
 
 #include <exception>
 #include <fstream>
-#include "kids/phys.h"
-#include "kids/chem.h"
-#include "kids/Param.h"
-#include "kids/DataSet.h"
-#include "kids/RuleSet.h"
-#include "kids/Kernel.h"
+#include "psnd/phys.h"
+#include "psnd/chem.h"
+#include "psnd/Param.h"
+#include "psnd/DataSet.h"
+#include "psnd/RuleSet.h"
+#include "psnd/Kernel.h"
 
 using namespace PROJECT_NS;
 
@@ -47,8 +47,8 @@ using namespace PROJECT_NS;
 %nodefaultctor;
 
 // %include features.i
-// %include KIDS_docstring.i
-// %include KIDSSwigHeaders.i
+// %include PSND_docstring.i
+// %include PSNDSwigHeaders.i
 
 %pythoncode %{
   # when we import * from the python module, we only want to import the

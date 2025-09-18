@@ -29,7 +29,7 @@ import copy  # shallow and deep copy operations
 import numpy as np  # numpy library for scientific computation
 
 # cobramm local modules
-import kids_log  # manages log file output + start/end procedures
+import psnd_log  # manages log file output + start/end procedures
 import constants  # values of physical constants and conversion factors
 import xml.etree.ElementTree as ET
 

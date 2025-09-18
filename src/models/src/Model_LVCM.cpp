@@ -1,10 +1,10 @@
-#include "kids/Model_LVCM.h"
+#include "psnd/Model_LVCM.h"
 
-#include "kids/Kernel_Random.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -22,10 +22,10 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Kmat = DS->def(DATA::model::Kmat);
     Qmat = DS->def(DATA::model::Qmat);
     Tmod = DS->def(DATA::model::Tmod);
-    memset(Hsys.data(), 0, Dimension::FF * sizeof(kids_real));
+    memset(Hsys.data(), 0, Dimension::FF * sizeof(psnd_real));
     switch (lvcm_type) {
         case LVCMPolicy::PYR3: {
-            kids_assert(Dimension::N == 3, "Dimension Error");
+            psnd_assert(Dimension::N == 3, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 2;
@@ -56,15 +56,15 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             break;
         }
         case LVCMPolicy::PYR24: {
-            kids_assert(Dimension::N == 24, "Dimension Error");
+            psnd_assert(Dimension::N == 24, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 23;
             // parameter for PYR24
             double E_data_PYR24[2]       = {-0.4617f, 0.4617f};
             double w_data_PYR24[24]      = {0.0740f, 0.1273f, 0.1568f, 0.1347f, 0.3431f, 0.1157f, 0.3242f, 0.3621f,
-                                       0.2673f, 0.3052f, 0.0968f, 0.0589f, 0.0400f, 0.1726f, 0.2863f, 0.2484f,
-                                       0.1536f, 0.2105f, 0.0778f, 0.2294f, 0.1915f, 0.4000f, 0.3810f, 0.0936f};
+                                            0.2673f, 0.3052f, 0.0968f, 0.0589f, 0.0400f, 0.1726f, 0.2863f, 0.2484f,
+                                            0.1536f, 0.2105f, 0.0778f, 0.2294f, 0.1915f, 0.4000f, 0.3810f, 0.0936f};
             double kcoeff_data_PYR24[46] = {-0.0964f, 0.1194f,  0.0470f, 0.2012f,  0.1594f, 0.0484f,  0.0308f, -0.0308f,
                                             0.0782f,  -0.0782f, 0.0261f, -0.0261f, 0.0717f, -0.0717f, 0.0780f, -0.0780f,
                                             0.0560f,  -0.0560f, 0.0625f, -0.0625f, 0.0188f, -0.0188f, 0.0112f, -0.0112f,
@@ -95,7 +95,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             break;
         }
         case LVCMPolicy::BUTA5: {
-            kids_assert(Dimension::N == 5, "Dimension Error");
+            psnd_assert(Dimension::N == 5, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 4;
@@ -103,7 +103,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             double  E_data_BUTA5[2]      = {9.41165f, 9.95575f};
             double  w_data_BUTA5[5]      = {0.1089f, 0.1773f, 0.2578f, 0.3713f, 0.0912f};
             double  kcoeff_data_BUTA5[8] = {-0.0531f, -0.0594f, 0.0115f,  0.0100f,  //
-                                           -0.1628f, 0.3422f,  -0.0403f, 0.0321f};
+                                            -0.1628f, 0.3422f,  -0.0403f, 0.0321f};
             double  lcoeff_data_BUTA5[4] = {0.000f, 0.2880f, 0.2880f, 0.000f};
             double *E_data               = E_data_BUTA5;
             double *w_data               = w_data_BUTA5;
@@ -129,7 +129,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         }
         case LVCMPolicy::CRC2:
         case LVCMPolicy::CRC5: {
-            kids_assert(Dimension::N <= 5, "Dimension Error");
+            psnd_assert(Dimension::N <= 5, "Dimension Error");
             double H_unit = phys::au_2_ev;
 
             N_mode = 0;
@@ -207,13 +207,13 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             double *mu_data;
             switch (lvcm_type) {
                 case LVCMPolicy::CED2:
-                    kids_assert(Dimension::F == 2, "Dimension Error");
+                    psnd_assert(Dimension::F == 2, "Dimension Error");
 
                     E_data  = E_data_CED2;
                     mu_data = mu_data_CED2;
                     break;
                 case LVCMPolicy::CED3:
-                    kids_assert(Dimension::F == 3, "Dimension Error");
+                    psnd_assert(Dimension::F == 3, "Dimension Error");
 
                     E_data  = E_data_CED3;
                     mu_data = mu_data_CED3;
@@ -294,13 +294,13 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             std::string flag;
             double      val;
             ifs >> flag >> dsize;
-            kids_assert(dsize == Dimension::F, "Dimension Error");
+            psnd_assert(dsize == Dimension::F, "Dimension Error");
             for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1)
                 if (ifs >> val) Hsys[ii] = val / H_unit;
 
             // read w
             ifs >> flag >> dsize;
-            kids_assert(dsize == Dimension::N, "Dimension Error");
+            psnd_assert(dsize == Dimension::N, "Dimension Error");
             for (int i = 0, ii = 0; i < Dimension::N; ++i)
                 if (ifs >> val) w[i] = val / H_unit;
 
@@ -403,7 +403,7 @@ Status &Model_LVCM::executeKernel_impl(Status &stat) {
         vpes[0] = 0.5 * term;
 
         // electronic pes
-        memset(V.data(), 0, Dimension::FF * sizeof(kids_real));
+        memset(V.data(), 0, Dimension::FF * sizeof(psnd_real));
         for (int ik = 0; ik < Dimension::FF; ++ik) V[ik] = Hsys[ik];
         // ARRAY_SHOW(V, Dimension::F, Dimension::F);
 

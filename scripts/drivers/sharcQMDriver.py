@@ -25,7 +25,7 @@ import os  # filesystem utilities
 
 # imports of local modules
 
-import kids_log  # manages log file output + start/end procedures
+import psnd_log  # manages log file output + start/end procedures
 import constants  # values of physical constants and conversion factors
 
 # import of local classes
@@ -311,8 +311,8 @@ class SharcQMOutput(QMOutput):
         can be safely removed... """
 
         # permanently remove the QM.out file
-        if not kids_log.DEBUG_RUN: os.remove(os.path.join(self.dataDict["calcdir"], self.dataDict["inpfile"]+".out"))
-        if not kids_log.DEBUG_RUN: os.remove("charge.dat")
+        if not psnd_log.DEBUG_RUN: os.remove(os.path.join(self.dataDict["calcdir"], self.dataDict["inpfile"]+".out"))
+        if not psnd_log.DEBUG_RUN: os.remove("charge.dat")
         # clean up the log
         del self.log
         # destroy the dictionary that contains the output data

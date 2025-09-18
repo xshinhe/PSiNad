@@ -8,10 +8,10 @@ from glob import glob
 from setuptools import setup
 from Cython.Build import cythonize
 
-MAJOR_VERSION_NUM='@KIDS_MAJOR_VERSION@'
-MINOR_VERSION_NUM='@KIDS_MINOR_VERSION@'
-BUILD_INFO='@KIDS_BUILD_VERSION@'
-GIT_VERSION='@KIDS_GIT_VERSION@'
+MAJOR_VERSION_NUM='@PSND_MAJOR_VERSION@'
+MINOR_VERSION_NUM='@PSND_MINOR_VERSION@'
+BUILD_INFO='@PSND_BUILD_VERSION@'
+GIT_VERSION='@PSND_GIT_VERSION@'
 IS_RELEASED=False
 
 __author__ = "Xin He"
@@ -38,7 +38,7 @@ def removePackage(mod, verbose):
         except AttributeError:
             return
         if len(pathList) > 1:
-           raise Exception("more than one item in KIDS.__path__")
+           raise Exception("more than one item in PSND.__path__")
         installPath = pathList[0]
         if os.path.exists(installPath):
             if verbose:
@@ -52,25 +52,25 @@ def uninstall(verbose=True):
         if item!='.' and item!=os.getcwd():
             sys.path.append(item)
     try:
-        import pykids
-        removePackage(pykids, verbose)
+        import pypsnd
+        removePackage(pypsnd, verbose)
     except ImportError:
         pass
     sys.path=save_path
 
 def writeVersionPy(
-    filename="pykids/version.py", # @deprecated from cmake config other than from file
+    filename="pypsnd/version.py", # @deprecated from cmake config other than from file
     major_version_num=MAJOR_VERSION_NUM,
     minor_version_num=MINOR_VERSION_NUM, 
     build_info=BUILD_INFO):
     cnt = """
-# THIS FILE IS GENERATED FROM KIDS SETUP.PY
+# THIS FILE IS GENERATED FROM PSND SETUP.PY
 short_version = '%(version)s'
 version = '%(version)s'
 full_version = '%(full_version)s'
 git_revision = '%(git_revision)s'
 release = %(isrelease)s
-KIDS_library_path = r'%(path)s'
+PSND_library_path = r'%(path)s'
 
 if not release:
     version = full_version
@@ -96,7 +96,7 @@ if not release:
                        'full_version' : full_version,
                        'git_revision' : git_revision,
                        'isrelease': str(IS_RELEASED),
-                       'path': os.getenv('KIDS_LIB_PATH')})
+                       'path': os.getenv('PSND_LIB_PATH')})
 
 def buildKeywordDictionary(major_version_num=MAJOR_VERSION_NUM,
                            minor_version_num=MINOR_VERSION_NUM,
@@ -112,33 +112,33 @@ def buildKeywordDictionary(major_version_num=MAJOR_VERSION_NUM,
         reportError("Not support now for platform %s"%platform.system())
 
     setupKeywords = {}
-    setupKeywords["name"]              = "KIDS"
+    setupKeywords["name"]              = "PSND"
     setupKeywords["version"]           = "%s.%s.%s" % (major_version_num,
                                                        minor_version_num,
                                                        build_info)
     setupKeywords["author"]            = "Xin He | Liu-group"
     setupKeywords["license"]           = "Python Software Foundation License (BSD-like)"
-    setupKeywords["url"]               = "https://github.com/xshinhe/KIDS"
+    setupKeywords["url"]               = "https://github.com/xshinhe/PSND"
     setupKeywords["packages"]          = [
-                                          "pykids",
-                                          "pykids.ext",
-                                          # "pykids.chem",
-                                          # "pykids.core",
-                                          # "pykids.models",
-                                          # "pykids.solvers",
-                                          # "pykids.app"
+                                          "pypsnd",
+                                          "pypsnd.ext",
+                                          # "pypsnd.chem",
+                                          # "pypsnd.core",
+                                          # "pypsnd.models",
+                                          # "pypsnd.solvers",
+                                          # "pypsnd.app"
                                           ]
     setupKeywords["data_files"]        = []
-    setupKeywords["package_data"]      = {"pykids" : [
-                                            "libpykids_v1.so",
+    setupKeywords["package_data"]      = {"pypsnd" : [
+                                            "libpypsnd_v1.so",
                                             ],
-                                          # "pykids.app" : ['data/*.json', 'data/*.dat', 'data/*.ds'],
+                                          # "pypsnd.app" : ['data/*.json', 'data/*.dat', 'data/*.ds'],
                                           }
     setupKeywords["platforms"]         = ["Linux"] #, "Mac OS X", "Windows"]
-    setupKeywords["description"]       = "Python wrapper for KIDS"
+    setupKeywords["description"]       = "Python wrapper for PSND"
     setupKeywords["long_description"]  = \
     """
-    KIDS (Kernel Integrated Dynamics Simulator) offers an open-source framework tailored for simulating 
+    PSND (Kernel Integrated Dynamics Simulator) offers an open-source framework tailored for simulating 
     chemical and physical dynamics, with a primary focus on atomic and molecular scales in condensed matter. 
     It is designed for (classical / qauntum) dynamics simulation of small system, few-body system, reduced 
     systems, and even large many-particle (i.e. molecules & condensed matter) systems. It provides a versatile 
@@ -149,24 +149,24 @@ def buildKeywordDictionary(major_version_num=MAJOR_VERSION_NUM,
     define_macros = [('MAJOR_VERSION', major_version_num),
                      ('MINOR_VERSION', minor_version_num)]
 
-    libraries=['KIDS'] #, 'KIDSPlugins']
+    libraries=['PSND'] #, 'PSNDPlugins']
 
-    pykids_include_path = os.getenv('KIDS_INCLUDE_PATH')
-    if not pykids_include_path:
-        reportError("Set KIDS_INCLUDE_PATH to point to the include directory for KIDS")
-    pykids_lib_path = os.getenv('KIDS_LIB_PATH')
-    if not pykids_lib_path:
-        reportError("Set KIDS_LIB_PATH to point to the lib directory for KIDS")
+    pypsnd_include_path = os.getenv('PSND_INCLUDE_PATH')
+    if not pypsnd_include_path:
+        reportError("Set PSND_INCLUDE_PATH to point to the include directory for PSND")
+    pypsnd_lib_path = os.getenv('PSND_LIB_PATH')
+    if not pypsnd_lib_path:
+        reportError("Set PSND_LIB_PATH to point to the lib directory for PSND")
 
 
     ## ADD SWIG EXTENSION
     extra_compile_args=['-std=c++11']
     extra_link_args=[] # fix for crossing platform @todo
-    library_dirs=[pykids_lib_path]
-    include_dirs=pykids_include_path.split(';')
+    library_dirs=[pypsnd_lib_path]
+    include_dirs=pypsnd_include_path.split(';')
     include_dirs.append(numpy.get_include())
-    extensionArgs = {"name": "pykids._kids", # swig library
-                    "sources": ["swig/KIDSSwig.cxx"],
+    extensionArgs = {"name": "pypsnd._psnd", # swig library
+                    "sources": ["swig/PSNDSwig.cxx"],
                     "include_dirs": include_dirs,
                     "define_macros": define_macros,
                     "library_dirs": library_dirs,
@@ -178,8 +178,8 @@ def buildKeywordDictionary(major_version_num=MAJOR_VERSION_NUM,
 
     ## ADD PYBIND11 EXTENSION # pybind11 library
     setupKeywords["ext_modules"] += [Pybind11Extension(
-                                            "pykids.libpykids_v2",
-                                            sorted(glob("pybind11/libpykids_v2.cpp")),
+                                            "pypsnd.libpypsnd_v2",
+                                            sorted(glob("pybind11/libpypsnd_v2.cpp")),
                                             # include_dirs=include_dirs,
                                             # library_dirs=library_dirs,
                                         ),
@@ -188,7 +188,7 @@ def buildKeywordDictionary(major_version_num=MAJOR_VERSION_NUM,
     ## OTHER EXTENSION                                    
     # setupKeywords["ext_modules"] += cythonize('ext/*.pyx')
     setupKeywords["ext_modules"] += cythonize(Extension(
-        "pykids.ext.examples",
+        "pypsnd.ext.examples",
         sources=[
             "ext/examples/src/test.cpp",
             "ext/examples/test.pyx",
@@ -212,7 +212,7 @@ def buildKeywordDictionary(major_version_num=MAJOR_VERSION_NUM,
 
 def main():
     if sys.version_info < (2, 7):
-        reportError("KIDS requires Python 2.7 or better.")
+        reportError("PSND requires Python 2.7 or better.")
     if platform.system() == 'Darwin' or platform.system() == 'Windows':
         reportError("Not support now for platform %s"%platform.system())
     try:

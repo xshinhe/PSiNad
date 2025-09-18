@@ -1,14 +1,14 @@
-#include "kids/Model_Interf_MNDO.h"
+#include "psnd/Model_Interf_MNDO.h"
 
 #include <algorithm>
 
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/chem.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/chem.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 #define ARRAY_SHOW(_A, _n1, _n2)                                                     \
     ({                                                                               \
@@ -891,7 +891,7 @@ int Model_Interf_MNDO::calc_samp() {
 
 int Model_Interf_MNDO::calc_scan() {
     int         istep = 0, readn;
-    kids_real   tmp;
+    psnd_real   tmp;
     std::string eachline;
     Status      stat;
 

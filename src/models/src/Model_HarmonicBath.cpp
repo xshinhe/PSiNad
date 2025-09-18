@@ -1,11 +1,11 @@
-#include "kids/Model_HarmonicBath.h"
+#include "psnd/Model_HarmonicBath.h"
 
 #include <algorithm>
 
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -31,7 +31,7 @@ double Model_HarmonicBath::J(double w, double* w_arr, double* c_arr, int Nb) {
     return Jw;
 }
 
-int Model_HarmonicBath::fun_Cw(kids_complex* Cw, double* w, int Nw, double* w_arr, double* c_arr, double beta, int Nb) {
+int Model_HarmonicBath::fun_Cw(psnd_complex* Cw, double* w, int Nw, double* w_arr, double* c_arr, double beta, int Nb) {
     double dw    = std::min({1.0e-5, w_arr[0] / 10, w_arr[Nb - 1] / 1000});
     double C0_Re = (J(dw, w_arr, c_arr, Nb) - J(-dw, w_arr, c_arr, Nb)) / (2 * beta * dw);
     for (int i = 0; i < Nw; ++i) {
@@ -60,14 +60,14 @@ void Model_HarmonicBath::setInputParam_impl(std::shared_ptr<Param> PM) {
     int N = _param->get_int({"model.N"}, LOC());
     Nb    = _param->get_int({"model.Nb", "model.bath.Nb"}, LOC());
     nbath = _param->get_int({"model.nbath", "model.bath.nbath"}, LOC());
-    kids_assert(Nb == Dimension::Nb, "Dimension Error");
-    kids_assert(N == Dimension::N, "Dimension Error");
+    psnd_assert(Nb == Dimension::Nb, "Dimension Error");
+    psnd_assert(N == Dimension::N, "Dimension Error");
 
     is_classical    = _param->get_bool({"model.bath_classical", "model.bath.classical"}, LOC(), false);
     is_correlated   = _param->get_bool({"model.bath_correlated", "model.bath.correlated"}, LOC(), false);
     is_et_transform = _param->get_bool({"model.bath_et_transform", "model.bath.et_transform"}, LOC(), false);
     bath_type       = HarmonicBathPolicy::_from(_param->get_string({"model.bath_flag", "model.bath.flag"},  //
-                                                             LOC(), "Debye"));
+                                                                   LOC(), "Debye"));
     strength_type   = StrengthPolicy::_from(_param->get_string({"model.strength_flag"}, LOC(), "Lambda"));
     omegac          = _param->get_real({"model.bath_omegac", "model.bath.omegac"}, LOC(), phys::energy_d, 1.0f);
 
@@ -117,7 +117,7 @@ void Model_HarmonicBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                     if (ifs >> tmp) Kmat[j] = tmp;
                 }
                 ifs.close();
-            } catch (std::runtime_error& e) { throw kids_error("read Kmat.dat from bath_file fails"); }
+            } catch (std::runtime_error& e) { throw psnd_error("read Kmat.dat from bath_file fails"); }
             EigenSolve(w.data(), Tmod.data(), Kmat.data(), Dimension::N);
             for (int i = 0; i < Dimension::N; ++i) w[i] = std::sqrt(w[i]);
         } else {
@@ -128,7 +128,7 @@ void Model_HarmonicBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                     if (ifs >> tmp) w[j] = tmp;
                 }
                 ifs.close();
-            } catch (std::runtime_error& e) { throw kids_error("read w.dat from bath_file fails"); }
+            } catch (std::runtime_error& e) { throw psnd_error("read w.dat from bath_file fails"); }
             for (int j = 0, jk = 0; j < Dimension::N; ++j) {
                 for (int k = 0; k < Dimension::N; ++k, ++jk) {
                     Kmat[jk] = (j == k) ? w[j] * w[j] : 0.0e0;
@@ -137,8 +137,8 @@ void Model_HarmonicBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             }
         }
     } else {  // built from spectrum function
-        kids_assert(nbath >= 1, "spectrum function need nbath");
-        kids_assert(!is_correlated, "spectrum function need diagonal un-correlated");
+        psnd_assert(nbath >= 1, "spectrum function need nbath");
+        psnd_assert(!is_correlated, "spectrum function need diagonal un-correlated");
         switch (bath_type) {
             case HarmonicBathPolicy::Debye: {
                 for (int j = 0; j < Dimension::Nb; ++j) {
@@ -195,10 +195,10 @@ void Model_HarmonicBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                             if (ifs >> val) omegas[j] = val / w_unit;  ///< omegac ~ [energy_d]
                             if (ifs >> val) coeffs[j] = 2.0f * sqrt(0.5e0 * omegas[j] * omegas[j] * omegas[j]) * val;
                         } else {
-                            throw kids_error("unknown discretization scheme");
+                            throw psnd_error("unknown discretization scheme");
                         }
                     }
-                } catch (std::runtime_error& e) { throw kids_error("read bath.dat fails"); }
+                } catch (std::runtime_error& e) { throw psnd_error("read bath.dat fails"); }
             }
         }
         if (is_et_transform) {

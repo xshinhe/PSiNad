@@ -1,14 +1,14 @@
-#include "kids/Model_SystemBath.h"
+#include "psnd/Model_SystemBath.h"
 
 #include <unistd.h>
 
-#include "kids/Kernel_NAForce.h"
-#include "kids/Kernel_Random.h"
-#include "kids/hamiltonian_data.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_NAForce.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/hamiltonian_data.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -32,7 +32,7 @@ void Model_SystemBath::setInputParam_impl(std::shared_ptr<Param> PM) {
         FORCE_OPT::nbath = 1;
         Dimension::nbath = 1;
     } else {
-        kids_assert(N == Nb * nbath, "Dimension Error");
+        psnd_assert(N == Nb * nbath, "Dimension Error");
         FORCE_OPT::Nb    = Nb;
         Dimension::Nb    = Nb;
         FORCE_OPT::nbath = nbath;
@@ -48,8 +48,8 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     L    = 1;
     switch (system_type) {
         case SystemPolicy::SB: {
-            kids_assert(nbath == 1, "Dimension Error");
-            kids_assert(Dimension::F == 2, "Dimension Error");
+            psnd_assert(nbath == 1, "Dimension Error");
+            psnd_assert(Dimension::F == 2, "Dimension Error");
             L             = 2;  // sigma_z
             double bias   = _param->get_real({"model.bias"}, LOC(), phys::energy_d, 1.0f);
             double delta  = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0f);
@@ -58,7 +58,7 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             break;
         }
         case SystemPolicy::AGG: {
-            kids_assert(Dimension::F >= 2, "Dimension Error");
+            psnd_assert(Dimension::F >= 2, "Dimension Error");
             L            = 1;  // |n><n|
             double delta = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0f);
             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
@@ -79,8 +79,8 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         case SystemPolicy::FCP: {
             L                             = 1;  // |n><n|
             auto [Fcheck, Hdata, UnitStr] = Hsys_Dict.at(_param->get_string({"model.system_flag"}, LOC()));
-            kids_assert(Dimension::nbath == Fcheck, "Dimension Error");
-            kids_assert(Dimension::F == Fcheck || Dimension::F == Fcheck + 1,
+            psnd_assert(Dimension::nbath == Fcheck, "Dimension Error");
+            psnd_assert(Dimension::F == Fcheck || Dimension::F == Fcheck + 1,
                         "Dimension Error");  // last is the ground state
             double data_unit = 1.0e0 / phys::au::as(phys::energy_d, UnitStr);
             for (int i = 0, ik = 0; i < Fcheck; ++i) {
@@ -98,11 +98,11 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                 std::stringstream sstr(firstline);
                 sstr >> data_unit_str;  ///< the firstline stores H's unit
                 double    data_unit = phys::us::conv(phys::au::unit, phys::us::parse(data_unit_str));
-                kids_real val;
+                psnd_real val;
                 for (int i = 0; i < Dimension::FF; ++i)
                     if (ifs >> val) Hsys[i] = val / data_unit;
                 ifs.close();
-            } catch (std::runtime_error& e) { throw kids_error("read system.dat fails"); }
+            } catch (std::runtime_error& e) { throw psnd_error("read system.dat fails"); }
         }
     }
     Dimension::L = L;
@@ -129,22 +129,22 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             std::string coupling_file =
                 _param->get_string({"model.coupling_file", "model.coupling.file"}, LOC(), "coupling.dat");
             std::ifstream ifs(coupling_file);
-            kids_real     tmp;
+            psnd_real     tmp;
             for (int i = 0; i < Dimension::NFF; ++i)
                 if (ifs >> tmp) Qmat[i] = tmp;
             ifs.close();
-        } catch (std::runtime_error& e) { throw kids_error("read Qmat from coupling.dat fails"); }
+        } catch (std::runtime_error& e) { throw psnd_error("read Qmat from coupling.dat fails"); }
         // keep Q as zero!
     } else {
         // initialize Q, then Qmat (assuming coeffs is prepared)
         switch (coupling_type) {
             case CouplingPolicy::SB: {
-                kids_assert(Dimension::F == 2, "Dimension Error");
+                psnd_assert(Dimension::F == 2, "Dimension Error");
                 Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
                 break;
             }
             case CouplingPolicy::SE: {
-                kids_assert(Dimension::F == Dimension::nbath || Dimension::F == Dimension::nbath + 1,
+                psnd_assert(Dimension::F == Dimension::nbath || Dimension::F == Dimension::nbath + 1,
                             "Dimension Error");
                 for (int i = 0, idx = 0; i < Dimension::nbath; ++i) {
                     for (int j = 0; j < Dimension::F; ++j) {
@@ -159,11 +159,11 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                     std::string coupling_file =
                         _param->get_string({"model.coupling_file", "model.coupling.file"}, LOC(), "coupling.dat");
                     std::ifstream ifs(coupling_file);
-                    kids_real     tmp;
+                    psnd_real     tmp;
                     for (int i = 0; i < Dimension::nbath * Dimension::FF; ++i)
                         if (ifs >> tmp) Q[i] = tmp;
                     ifs.close();
-                } catch (std::runtime_error& e) { throw kids_error("read Q from coupling.dat fails"); }
+                } catch (std::runtime_error& e) { throw psnd_error("read Q from coupling.dat fails"); }
             }
         }
         // check et transfrom
@@ -179,7 +179,7 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                         QL[iL * Dimension::nbath * Dimension::FF + ibath * Dimension::FF + ik] = 1;
                         CL[iL * Nb + j] = coeffs[j] * Qval;  // reduce this value to CL
                         iL++;
-                        if (iL > L) throw kids_error(" Q shoule be more sparsed; please enlarge L!");
+                        if (iL > L) throw psnd_error(" Q shoule be more sparsed; please enlarge L!");
                     }
                     Qmat[idx] = coeffs[j] * Q[ibath * Dimension::FF + ik];  // merge coeffs into Q to obtain Xnj
                 }

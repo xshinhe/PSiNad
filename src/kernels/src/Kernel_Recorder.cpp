@@ -1,15 +1,15 @@
-#include "kids/Kernel_Recorder.h"
+#include "psnd/Kernel_Recorder.h"
 
 #include <algorithm>
 
-#include "kids/Einsum.h"
-#include "kids/RuleEvaluator.h"
-#include "kids/RuleSet.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Einsum.h"
+#include "psnd/RuleEvaluator.h"
+#include "psnd/RuleSet.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -61,7 +61,7 @@ void Kernel_Recorder::parse() {
             if (_param->has_key(rule_key)) {
                 rule = _param->get_string({rule_key}, LOC());
             } else {
-                throw kids_error("parser rule error");
+                throw psnd_error("parser rule error");
             }
         } else if (_param->is_array(firstkey)) {
             std::string firstv0key = utils::concat(firstkey, ".", "0");
@@ -78,7 +78,7 @@ void Kernel_Recorder::parse() {
         } else if (_param->is_string(firstkey)) {
             rule = _param->get_string({firstkey}, LOC());
         } else {
-            throw kids_error("unknown type");
+            throw psnd_error("unknown type");
         }
 
         if (std::find(opened_files.begin(), opened_files.end(), save) == opened_files.end() && mode == "average") {
@@ -125,7 +125,7 @@ Status& Kernel_Recorder::executeKernel_impl(Status& stat) {
             std::ofstream ofs{utils::concat(directory, "/record-dump", stat.icalc, "-", istep_ptr[0], ".ds")};
             _dataset->dump(ofs);
             ofs.close();
-        } catch (std::runtime_error& e) { throw kids_error("bad dump in recording\n"); }
+        } catch (std::runtime_error& e) { throw psnd_error("bad dump in recording\n"); }
     }
     return stat;
 }

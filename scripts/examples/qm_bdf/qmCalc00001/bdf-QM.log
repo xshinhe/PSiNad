@@ -11,7 +11,7 @@ BDF_MPIROOT = None
 
 
 (' BDFHOME     = ', '/home/shin/soft/bdf-pkg-full/build/bdf-pkg-full/')
-(' BDF_WORKDIR = ', '/home/shin/share/KIDS/kids_scripts/examples/tmp/qmCalc00001')
+(' BDF_WORKDIR = ', '/home/shin/share/PSND/psnd_scripts/examples/tmp/qmCalc00001')
 (' BDF_TMPDIR  = ', '/tmp/bdf-QM2299')
 (' BDFTASK     = ', 'bdf-QM')
 
@@ -4301,5 +4301,5 @@ waltime    0.00E+00    0.00E+00    0.00E+00    0.00E+00    0.00E+00    0.00E+00 
 Total wall time          48.49 Seconds
 /home/shin/soft/bdf-pkg-full/build/bdf-pkg-full//sbin/bdfsummary.py\bdf_summary\\bhhlyp/DEF2-SVP\\0,1\\C,-9.5036985649,0.0216040836,-0.0398075455\H,-8.4751298383,-1.4137703373,-1.0784145599\H,-11.4087196225,-0.5142745197,0.4894652635\C,-8.1138387508,1.8161721105,1.5307665642\H,-6.0626132490,1.7576574686,1.5534923746\H,-9.0439363624,2.6713572520,3.1479640197\O,-9.2075609256,2.4811826415,-0.8963339279\\bhhlyp=-153.57665515\\
 Congratulations! BDF normal termination
-('/tmp/bdf-QM2299', '/home/shin/share/KIDS/kids_scripts/examples/tmp/qmCalc00001')
+('/tmp/bdf-QM2299', '/home/shin/share/PSND/psnd_scripts/examples/tmp/qmCalc00001')
  Warning! Removing scratch files. If you would like to keep scratch files for restaring. Please use -keeptmpdir

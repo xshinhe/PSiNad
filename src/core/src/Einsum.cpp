@@ -1,11 +1,11 @@
-#include "kids/Einsum.h"
+#include "psnd/Einsum.h"
 
 #include <algorithm>
 #include <cctype>
 #include <iostream>
 #include <sstream>
 
-#include "kids/Exception.h"
+#include "psnd/Exception.h"
 
 namespace PROJECT_NS {
 
@@ -82,10 +82,10 @@ EinsumHelper::EinsumHelper(const std::string&                    einsum_expressi
                 c          = (char) ((int) '0' + ipos);
 
                 if (!std::all_of(label_name.begin(), label_name.end(), ::isdigit))
-                    throw kids_error("fixed einsumIdx must be digits!");
+                    throw psnd_error("fixed einsumIdx must be digits!");
                 int val = std::stoi(label_name);
                 if (val < 0 || val >= shape_inputs[ishape][esshape.size()])
-                    throw kids_error("fixed einsum idx out of boundary");
+                    throw psnd_error("fixed einsum idx out of boundary");
 
                 // std::cout << "label_name = " << label_name << ", " << val << "\n";
                 // std::cout << "eidx as:" << c                                        //

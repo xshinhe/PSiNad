@@ -2,6 +2,6 @@
 
 echo "TESTING: [env information]"
 
-python ../kids_env.py
+python ../psnd_env.py
 
 

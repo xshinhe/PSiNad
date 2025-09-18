@@ -1,5 +1,5 @@
 ================================================================================
-                        EXECUTE KIDS SCRIPTS CALCULATION
+                        EXECUTE PSND SCRIPTS CALCULATION
 --------------------------------------------------------------------------------
 
 
@@ -16,7 +16,7 @@
 |          .dd:         .           ##   ##m    mm##mm    ##mmm##    #mmmmm#"  |
 |             .          lX         Kernel   Integrated   Dynamics   Simulator |
 |              ,        .,:.                                                   |
-|            l:,:c.                          KIDS SCRIPTS PART                 |
+|            l:,:c.                          PSND SCRIPTS PART                 |
 |             ;::.                           Copyright    2024                 |
 |                                                                              |
 +------------------------------------------------------------------------------+
@@ -27,10 +27,10 @@
                                   ENV CONTROL
 --------------------------------------------------------------------------------
 
-The file /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber/.kids_profile is present
+The file /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber/.psnd_profile is present
 It will be read to set the paths of third-party software
 
-Start directory is /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber
+Start directory is /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber
 Running directory is .
 ================================================================================
                           INPUT MOLECULAR DESCRIPTION
@@ -48,8 +48,8 @@ MM third party software : amber
 
 Calculation type is HM, A QM/MM calculation is then requested
 
-Changing from /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber to .
-Current directory: /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber
+Changing from /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber to .
+Current directory: /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber
 ================================================================================
                             QM or QM/MM SINGLE POINT
 --------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ Delta_tot will not be distributed
 (ck4)  {(1)-[(8)+(9)+(10)]}  =    -0.000000 ok: should be zero 
                              it differs from zero less than 1.000000e-06 
 
-current dir is: /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber
+current dir is: /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO/compare_amber
 
 Perform a single point calc. of the entire system with ZERO charge on the 
 High layer, and collect energy and gradient ... done!
