@@ -40,7 +40,7 @@ void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     t                 = DS->def(DATA::control::t);
     dt                = DS->def(DATA::control::dt);
     istep             = DS->def(DATA::control::istep);
-    isamp             = DS->def(DATA::control::isamp);
+    isamp             = DS->def(DATA::control::isamp); // 通过istep实时计算
     tsize             = DS->def(DATA::control::tsize);
     dtsize            = DS->def(DATA::control::dtsize);
     last_tried_dtsize = DS->def(DATA::control::last_tried_dtsize);
@@ -63,6 +63,7 @@ Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
         }
 
         // exactly copy from _dataset_load to _dataset
+        // load istep即可 isamp通过istep实时计算
         istep[0]             = _dataset_load->def_int("recover.istep", 1)[0];
         tsize[0]             = _dataset_load->def_int("recover.tsize", 1)[0];
         dtsize[0]            = _dataset_load->def_int("recover.dtsize", 1)[0];
@@ -344,7 +345,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         int  tsize_before_loop     = tsize[0];              ///< current time-point tick
         int  tsize_after_loop      = tsize[0] + dtsize[0];  ///< next time-point tick after loop
         bool at_fullstep_initially = tsize_before_loop % (msize) == 0;
-        bool at_fullstep_finally   = tsize_after_loop % (msize) == 0;
+        bool at_fullstep_finally   = tsize_after_loop % (msize) == 0; // 判断这一步跑完之后是不是恰好到一个整的格点
         at_condition[0]            = tsize_before_loop % (sstep * msize) == 0;
         t[0]                       = t0 + dt0 * (tsize[0] / ((double) msize));
         dt[0]                      = dt0 * (dtsize[0] / ((double) msize));
@@ -481,6 +482,13 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                
         // Dump dataset every successful step (or every N steps) 
         // 为了每一步都能有一个checkpoint, 方便重跑
+
+        // 每一步都记录一下recover字段，方便dump
+        _dataset->def_int("recover.istep", istep.data(), 1);
+        _dataset->def_int("recover.tsize", tsize.data(), 1);
+        _dataset->def_int("recover.dtsize", dtsize.data(), 1);
+        _dataset->def_int("recover.last_tried_dtsize", last_tried_dtsize.data(), 1);
+
         bool should_dump = false;
         int dump_frequency = _param->get_int({"solver.dump_frequency", "dump_frequency"}, LOC(), 0);
 
