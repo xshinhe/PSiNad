@@ -9,7 +9,7 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  This software is a product of academic research conducted by Professor Liu's
  *  Group at the College of Chemistry and Molecular Engineering, Peking University.
  *  All rights are reserved by Peking University.
  *  You should have received a copy of the GNU Lesser General Public License along
@@ -28,8 +28,8 @@
  **********************************************************************************
  */
 
-#ifndef CHEM_H
-#define CHEM_H
+#ifndef PSND_CHEM_H
+#define PSND_CHEM_H
 #include <algorithm>
 #include <array>
 #include <cstring>
@@ -40,30 +40,30 @@ namespace chem {
 /**
  * @struct ElemInfo
  * @brief  Structure to hold information about a chemical element.
- * 
+ *
  * @var ElemInfo::label
  * Member 'label' represents the symbol of the element (e.g., "H" for Hydrogen).
  * The size of the label should be less than or equal to 4 characters.
- * 
+ *
  * @var ElemInfo::Z
  * Member 'Z' represents the atomic number (number of protons) of the element.
- * 
+ *
  * @var ElemInfo::A
  * Member 'A' represents the mass number (protons + neutrons).
  * If A is -1, it indicates a mixed value or the maximum abundance value.
- * 
+ *
  * @var ElemInfo::mass
  * Member 'mass' represents the mass of the element in atomic mass units (amu).
  */
 struct ElemInfo {
     ElemInfo(const std::string& label, int Z, int A, double mass_in_amu)
         : label{label}, Z{Z}, A{A}, mass{mass_in_amu} {}
-    std::string label; // Label of the element (e.g., "H" for Hydrogen)
-    int         Z;    // Atomic number (number of protons)
-    int         A;    // Mass number (protons + neutrons)
-                      // A should be greater than Z.
-                      // If A is -1, it indicates a mixed value or the maximum abundance value.
-    double mass;      // Mass of the element in amu
+    std::string label;  // Label of the element (e.g., "H" for Hydrogen)
+    int         Z;      // Atomic number (number of protons)
+    int         A;      // Mass number (protons + neutrons)
+                        // A should be greater than Z.
+                        // If A is -1, it indicates a mixed value or the maximum abundance value.
+    double mass;        // Mass of the element in amu
 };
 
 
@@ -213,19 +213,19 @@ const std::array<ElemInfo, max_number+1> ElementList = {
 
 /**
  * @brief Get the element label for a given atomic number.
- * 
+ *
  * @param Z The atomic number of the element.
  * @return The label of the element.
  * @throws std::runtime_error If the atomic number is invalid.
  */
 static inline std::string getElemLabel(int Z) {
-    if (Z <= 0 && Z > elem::max_number) throw std::runtime_error("bad Z number");
+    if (Z <= 0 || Z > elem::max_number) throw std::runtime_error("bad Z number");
     return elem::ElementList[Z].label;
 }
 
 /**
  * @brief Get the index of an element based on its label.
- * 
+ *
  * @param label The label of the element.
  * @return The index of the element.
  * @return 0 If the label is invalid.
@@ -241,15 +241,15 @@ static inline int getElemIndex(const std::string& label) {
 
 /**
  * @brief Get the mass of an element based on its atomic number.
- * 
+ *
  * @param Z The atomic number of the element.
  * @return The mass of the element in amu.
  * @throws std::runtime_error If the atomic number is invalid.
  */
 static inline double getElemMass(int Z) {
-    if (Z <= 0 && Z > elem::max_number) throw std::runtime_error("bad Z number");
+    if (Z <= 0 || Z > elem::max_number) throw std::runtime_error("bad Z number");
     return elem::ElementList[Z].mass;
 }
 };  // namespace chem
 
-#endif  // CHEM_H
+#endif  // PSND_CHEM_H

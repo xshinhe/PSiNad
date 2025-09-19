@@ -9,7 +9,7 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  This software is a product of academic research conducted by Professor Liu's
  *  Group at the College of Chemistry and Molecular Engineering, Peking University.
  *  All rights are reserved by Peking University.
  *  You should have received a copy of the GNU Lesser General Public License along
@@ -26,15 +26,14 @@
  **********************************************************************************
  */
 
+
+#ifndef PSND_SYSTEM_H
+#define PSND_SYSTEM_H
+
 #include "psnd/DataSet.h"
 #include "psnd/Kernel.h"
 #include "psnd/Model.h"
 #include "psnd/Param.h"
-
-#ifndef PSND_System_H
-#define PSND_System_H
-
-#include "psnd/Model.h"
 
 namespace PROJECT_NS {
 
@@ -63,4 +62,4 @@ class System {
 };
 };  // namespace PROJECT_NS
 
-#endif  // PSND_System_H
+#endif  // PSND_SYSTEM_H

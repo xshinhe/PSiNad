@@ -9,7 +9,7 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is a product of Xin's PhD research conducted by Professor
+ *  This software is a product of academic research conducted by Professor
  *Liu's Group at the College of Chemistry and Molecular Engineering, Peking
  *University. All rights are reserved by Peking University. You should have
  *received a copy of the GNU Lesser General Public License along with this
@@ -26,8 +26,8 @@
  **********************************************************************************
  */
 
-#ifndef PSND_RuleEvaluator_H
-#define PSND_RuleEvaluator_H
+#ifndef PSND_RULEEVALUATOR_H
+#define PSND_RULEEVALUATOR_H
 
 #include "psnd/DataSet.h"
 #include "psnd/Einsum.h"
@@ -104,4 +104,4 @@ struct RuleEvaluator {
 
 };  // namespace PROJECT_NS
 
-#endif  // PSND_RuleEvaluator_H
+#endif  // PSND_RULEEVALUATOR_H

@@ -1,63 +1,103 @@
 # PSiNaD: Phase Space Integrated Nonadiabatic Dynamics
 
-\[TOC\]
-
 ![](docs/img/PSiNaD.png)
 
-![version](https://img.shields.io/badge/version-0.0.1-g)  ![language](https://img.shields.io/badge/language-c++-orange) ![wrapper](https://img.shields.io/badge/wrapper-python3-red) ![platform](https://img.shields.io/badge/platform-linux-lightgrey) ![platform](https://img.shields.io/badge/platform-macos-lightgrey) ![platform](https://img.shields.io/badge/platform-windows-lightgrey) ![cmake](https://img.shields.io/badge/cmake-%3E3.16-yellow) ![status](https://img.shields.io/badge/status-up-blue) ![uptime](https://img.shields.io/badge/uptime-100%25-g) ![coverage](https://img.shields.io/badge/coverage-100%25-pink) ![codecy](https://img.shields.io/badge/codecy-B-g)
+![version](https://img.shields.io/badge/version-0.0.1-green)  ![language](https://img.shields.io/badge/language-C%2B%2B%2FPython-blue)  ![license](https://img.shields.io/badge/license-Peking%20University-blue)
 
-## Introduction
+## Overview
+**PSiNaD (Phase Space Integrated Nonadiabatic Dynamics)** is an open-source computational framework specifically designed for nonadiabatic dynamics simulations, with a focus on phase space integration methodologies. It aims to provide a flexible, efficient, and extensible platform for researchers in condensed matter physics, computational chemistry, and related fields to explore complex dynamical processes involving electronic nonadiabatic effects.
 
-**PSiNaD (Phase Space Integrated Nonadiabatic Dynamics)** is an open-source framework specifically designed for simulating chemical and physical dynamics at atomic and molecular scales in condensed matter. It excels in classical and quantum dynamics simulations, accommodating small systems, few-body systems, reduced systems, and large many-particle systems such as molecules and condensed matter. PSiNaD offers a robust, versatile platform with multiple interfaces for developing advanced algorithms, ensuring ease of use and accessibility with third-party language wrappers, such as Python.
+Nonadiabatic dynamics, which describes transitions between electronic states, is crucial for understanding phenomena such as photoexcitation, charge transfer, and chemical reactions. PSiNaD integrates state-of-the-art theoretical approaches and computational tools to enable accurate and efficient simulations of these processes across diverse systems.
 
-PSiNaD features a comprehensive array of models and solvers, including harmonic models, forcefield models, and ab initio interfaces, meeting diverse simulation needs. It supports a wide range of computational approaches, from classical dynamics based on Newtonian and Hamiltonian mechanics to sophisticated quantum dynamics incorporating quantum phase space approximations, quantum trajectories, path integral techniques, influence functional methods, and semi-classical wavepackets.
 
-Continual development efforts focus on expanding the library of models and solvers, with community contributions highly encouraged. To further extend its accessibility, PSiNaD is now available as a Python package ([PyPSiNaD](docs/api/python.md)).
+## Objectives
+The primary goals of PSiNaD are:
+- To provide a unified framework for implementing and testing phase space-integrated nonadiabatic dynamics methods.
+- To bridge classical and quantum dynamics approaches, supporting a spectrum of methodologies from Newtonian/Hamiltonian mechanics to advanced quantum approximations.
+- To facilitate easy integration with external electronic structure packages and force fields, enabling multiscale simulations.
+- To offer a user-friendly interface for setting up simulations and a modular architecture for developers to extend functionality.
 
-### License
 
-Peking University @ Copyright.
+## Key Features
+- **Comprehensive Dynamics Methods**: Supports mixed quantum-classical dynamics (e.g., CMM/NaF-TW phase-space mapping methods, Ehrenfest dynamics, surface hopping), as well as quantum dynamics approaches (quantum phase space approximations).
+- **Flexible Workflow Management**: Intuitive tools for constructing and controlling simulation workflows (see [Simulation Flow Control](docs/manu/flow.md)).
+- **Extensibility for Developers**: Modular design simplifies adding new algorithms, models, and solvers. Guides for extending functionality are available in [Developing Models](docs/dev/dev_models.md) and [Adding Solvers](docs/dev/dev_solvers.md).
+- **Multi-Scale Integration**: Diverse interfaces to external force fields and ab initio quantum chemistry packages (e.g., BAGEL, BDF, Gaussian, ORCA, PySCF, MNDO; see full list in `scripts/psnd_arg.py`).
+- **Parallel Computing Support**: MPI-enabled C++ frontend for efficient parallel simulations (not available in the Python wrapper).
+- **Cross-Platform Compatibility**: Tested on Linux (Ubuntu 20.04 LTS + Intel oneAPI) and macOS (Sequoia + Open-mpi 5.0.6); Windows support is in development.
+- **Python Integration**: Available as a Python package ([PyPSiNaD](docs/api/python.md)) for enhanced accessibility and scripting capabilities.
 
-The project is maintained under Jian Liu Group, CCME, PeKing University. Email [xxx@pku.edu.cn](mailto:xxx@pku.edu.cn).
 
-~~The PSiNaD framework is free of use and integration, however some algorithms may be used with proper guarantee.~~
+## Installation
+Refer to the detailed [Installation Guide](docs/installation.md) for step-by-step instructions. Prerequisites include:
+- Unix-like OS (Linux/macOS; Windows pending)
+- CMake 3.17+
+- C++ compiler supporting C++17 (GCC, Clang, Intel C++ Compiler)
+- Optional dependencies: MPI, MKL, gflags, glog, pybind11 (for Python bindings), Catch2 (for testing)
 
-### Support
+Basic installation steps:
+```bash
+# Clone the repository with submodules
+git clone --recurse-submodules http://path_to_repository/PSiNaD.git
+cd PSiNaD
 
-Contributors:
+# Create and navigate to build directory
+mkdir build && cd build
 
-Xin He([xshinhe@pku.edu.cn](mailto:xshinhe@pku.edu.cn)), XXX ([xxx@pku.edu.cn](mailto:xxx@pku.edu.cn)) etc.
+# Configure (customize with -D options as needed)
+cmake ..
 
-## Features
+# Compile and install
+make -j$(nproc)
+make install
 
-![](docs/img/Arch_PSiNaD.png)
+# Optional: Install Python wrapper
+# pip install pybind11 Cython
+make PythonInstall
+```
 
-- Utilizes high-performance and parallelized code written in modern C++ (-std=11 or later), well compiled with C-style APIs. Parallelization with MPI ([Intel OneAPI MPI](https://www.intel.cn/content/www/cn/zh/developer/tools/oneapi/toolkits.html)), OpenMP and SIMD techniques. For some functions, a GPU acceleration is also on-going and optional. Many thirdpart matrix/tensor libraries are well compiled and integrated, such as [Eigen](https://eigen.tuxfamily.org), [Intel OneAPI MKL](https://www.intel.cn/content/www/cn/zh/developer/tools/oneapi/toolkits.html), xtensor, libtorch and python's numpy etc.
 
-- Functions are modular and separable, all of which are intepreted as Kernel, encompassing models, solvers, and more. PSiNaD offers a variety of intrinsic models for testing and exploring new dynamics approaches, such as harmonic (quadratic / quartic / Morse) PES, system-bath models (e.g. spin-boson and FMO), LCVM models, light-matter models etc. PSiNaD also involves versatile solvers, including both Born-Oppenheimer Statistics & Dynamics and Non-adiabatic Statistics & Dynamics. See list of [what PSiNaD does](#autotoc_md3), while for more detail documention, refer to [intrinsic models](docs/manu/models.md) and [intrinsic solvers](docs/manu/solvers.md), respectively.
+## Basic Usage
+The C++ frontend `psinad_mpi` supports MPI for parallel simulations. A typical parallel run command:
+```bash
+mpirun -np 32 ./psinad_mpi -w -d output_dir -dump final -p param.json
+```
+- `mpirun -np 32`: Specifies 32 MPI processes (adjust based on your queue system, e.g., `srun -N 32` for Slurm).
+- `-w`: Overwrite existing output directory.
+- `-d output_dir`: Set output directory.
+- `-dump final`: Dump final results.
+- `-p param.json`: Path to the parameter file.
 
-- Well-organized/seperate code is potential for custom use (most are head-only), please see [how to use PSiNaD code under proper LICNESE in a custom project](docs/api/libs.md).
+The full description of parameters can be found in the [introduction to input file](docs/manu/input.md)
 
-- A standalone dynamic library, such as `libPSiNaD.xxx` (e.g. xxx=so for linux OS), is seperate with C++'s Handler and provides various useful APIs, which can be integrated into other langauges like python/rust. See [Python APIs](docs/api/python.md) and [rust APIs](docs/api/rust.md), respectively.
+For Python usage, refer to the [PyPSiNaD API](docs/api/python.md).
 
-- It is clear and convenient for user to construct and manage the flow of the simulation. See more about the [control the flow of the simulation](docs/manu/flow.md).
 
-- It is friendly for developer to add more advanced algorithms and organize the different versions. For integrating more models, see [how to develop models](docs/dev/dev_models.md), while for developing methods, see [how to add new solvers](docs/dev/dev_solvers.md)
+## Documentation
+- **User Manual**: Detailed guides on [models](docs/manu/manu_models.md), [solvers](docs/manu/manu_solvers.md), [nonadiabatic dynamics](docs/manu/manu_nad.md), and more in the [Manual](docs/manual.md).
+- **Tutorials**: Get started with [tutorial.md](tutorial.md), covering model and real-system simulations.
+- **APIs**: Documentation for C++ backend ([C++ APIs](docs/api/cpp.md)) and Python frontend ([Python APIs](docs/api/python.md)).
+- **Development**: Guidelines for contributors in [Development Docs](docs/development.md) (code style, optimization, etc.).
 
-- Diverse intrinsic interfaces support external force fields and ab initio calculations (as well as QM/MM). It can be interfaced to few-bodies force fields for small molecules in Fortran90 (i.e., [potlib](https://comp.chem.umn.edu/potlib)) as well as general molecular forcefield with OpenMM. Interfaces with Gaussian16 and MNDO99 for on-the-fly calculation are supported. Additionally, PSiNaD allows user add custom interface to any other software only based python script, without modifying the c++ code!
 
-## What PSiNaD does
+## Contributors
+- Xin He (<xshinhe@pku.edu.cn>, <hexin@bjzgca.edu.cn>)
+- Haocheng Lu (<1800011742@pku.edu.cn>)
+- Members of the Jian Liu Group, CCME, Peking University
 
-- Featured: Mixed quantum-classical dynamics based on phase-space mapping methods (CMM/NaF) and its extensions. Other approximation like Ehrenfest dynamics, multiple versions of surface hopping-based method are also available.
 
-## Tested Platform
+## License
+Copyright © Peking University. Maintained by the Jian Liu Group, College of Chemistry and Molecular Engineering (CCME), Peking University. For inquiries, contact [jianliupku@pku.edu.cn](mailto:jianliupku@pku.edu.cn).
 
-- [x] Linux (Ubuntu 20.04 LTS + Intel oneAPI)
+The PSiNaD framework is free for use and integration, with specific algorithms potentially requiring proper attribution as per academic standards.
 
-- [x] macOS (Sequoia + Cellar Open-mpi 5.0.6)
 
-- [ ] Windows (Win10 + Intel oneAPI 20)
+## Support
+For questions, bug reports, or feature requests, please contact the maintainers via the group email or submit an issue on the repository.
 
-|Read Next|
-|-|
-|[Installation](docs/installation.md)|
+
+| Read Next |
+|-----------|
+| [Installation](docs/installation.md) |
+| [Tutorial](tutorial.md) |
+| [Developer Guide](docs/development.md) |

@@ -1,5 +1,5 @@
-#ifndef PHYS_H
-#define PHYS_H
+#ifndef PSND_PHYS_H
+#define PSND_PHYS_H
 
 #include <array>
 #include <cmath>
@@ -1012,4 +1012,4 @@ static CONSTTYPE real_precision au_2_angoverps = au_2_ang / au_2_ps;
 
 #undef CONSTTYPE
 #undef CONSTEXPR_DECOR
-#endif  // PHYS_H
+#endif  // PSND_PHYS_H

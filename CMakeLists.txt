@@ -394,7 +394,7 @@ endif()
 ## Perform Unit tests
 
 # Tests
-option(PSINAD_BUILD_TESTS "Build tests" OFF)
+option(PSINAD_BUILD_TESTS "Build tests" ON)
 if(PSINAD_BUILD_TESTS)
     set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
     set(CATCH_BUILD_EXAMPLES OFF CACHE INTERNAL "")
