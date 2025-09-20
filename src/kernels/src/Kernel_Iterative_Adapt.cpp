@@ -64,10 +64,23 @@ Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
 
         // exactly copy from _dataset_load to _dataset
         // load istep即可 isamp通过istep实时计算
-        istep[0]             = _dataset_load->def_int("recover.istep", 1)[0];
-        tsize[0]             = _dataset_load->def_int("recover.tsize", 1)[0];
-        dtsize[0]            = _dataset_load->def_int("recover.dtsize", 1)[0];
-        last_tried_dtsize[0] = _dataset_load->def_int("recover.last_tried_dtsize", 1)[0];
+        
+        // 方法1：直接检查recover节点是否存在
+        if (_dataset_load->haskey("recover")) {
+            std::cout << "[Kernel_Iterative_Adapt] Found recover node" << std::endl;
+            istep[0]             = _dataset_load->def_int("recover.istep", 1)[0];
+            tsize[0]             = _dataset_load->def_int("recover.tsize", 1)[0];
+            dtsize[0]            = _dataset_load->def_int("recover.dtsize", 1)[0];
+            last_tried_dtsize[0] = _dataset_load->def_int("recover.last_tried_dtsize", 1)[0];
+        } else {
+            std::cout << "[Kernel_Iterative_Adapt] No recover node found, the recover node is loaded from control node. Be careful, when the trajectory finish sucessfully, control.dt will be set to ZERO." << std::endl;
+            istep[0]             = _dataset_load->def_int("control.istep", 1)[0];
+            tsize[0]             = _dataset_load->def_int("control.tsize", 1)[0];
+            dtsize[0]            = _dataset_load->def_int("control.dtsize", 1)[0];
+            last_tried_dtsize[0] = _dataset_load->def_int("control.last_tried_dtsize", 1)[0];
+        }
+
+
         stat.succ            = true;
         stat.last_attempt    = false;
         stat.frozen          = false;
