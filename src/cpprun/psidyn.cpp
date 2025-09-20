@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<Param> PM = std::shared_ptr<Param>(new Param(FLAGS_p, Param::fromFile));
     check_and_sync_from_gflags(PM);
-    PM->set_string("load", "samp");
+    // PM->set_string("load", "samp");
 
     std::string model_name    = PM->get_string({"model.name"}, LOC());
     std::string solver_name   = PM->get_string({"solver.name"}, LOC());
@@ -59,6 +59,9 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<Solver>  solver        = defaultSolverFactory(solver_name, model);
     std::shared_ptr<Kernel>  solver_kernel = solver->getSolverKernel();
     std::shared_ptr<DataSet> DS            = std::shared_ptr<DataSet>(new DataSet());
+
+    std::cout << solver_kernel->generateInformationString(1.0) << std::flush;
+
     auto                     begin         = std::chrono::steady_clock::now();
     {
         solver_kernel->setInputParam(PM);

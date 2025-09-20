@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<DataSet> DS             = std::shared_ptr<DataSet>(new DataSet());
 
 
-    std::cout << solver1_kernel->generateInformationString(1.0);
-    std::cout << solver2_kernel->generateInformationString(1.0);
+    std::cerr << solver1_kernel->generateInformationString(1.0) << std::flush;
+    std::cerr << solver2_kernel->generateInformationString(1.0) << std::flush;
 
     auto begin = std::chrono::steady_clock::now();
     {
