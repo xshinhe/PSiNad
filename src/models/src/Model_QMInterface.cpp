@@ -14,7 +14,7 @@
 #include "psnd/macro_utils.h"
 #include "psnd/vars_list.h"
 
-std::string toLower(const std::string& input) {
+static std::string toLower(const std::string& input) {
     std::string result = input;  // 创建一个副本
     std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
     return result;
@@ -115,7 +115,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         if (ifs >> stmp) atoms[iatom] = chem::getElemIndex(stmp);
         for (int a = 0; a < 3; ++a) {
             if (ifs >> dtmp) x0[idx] = dtmp / phys::au_2_ang;
-            mass[idx] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;
+            mass[idx] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;  // 计算原子质量  提前
             idx++;
         }
     }
@@ -125,6 +125,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     while (getline(ifs, stmp, '\n')) config_content += stmp + "\n";
     ifs.close();
 
+    // 初始化读取hessian 提前
     std::string read_hess = _param->get_string({"model.read_hess", "solver.read_hess"}, LOC(), "NULL");
     if (read_hess != "NULL") {  // used for sampling
         if (!isFileExists(read_hess)) throw psnd_error("cannot open hess as .ds file");
@@ -242,10 +243,32 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
 
     // call python executation
     //     // first lower the qm_String
-    std::string qm_string_lower = toLower(qm_string);
-    std::string qm_call_str     = utils::concat("python ", pypsnd_path, "/QM.py -t ", try_level,  //
-                                                " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower);
-    int         s               = system(qm_call_str.c_str());
+    std::string  qm_string_lower = toLower(qm_string);
+    auto         occ_nuc         = _dataset->def(DATA::integrator::occ_nuc);
+    const double deltaE_thres    = 0.3e0 / phys::au_2_ev;  // 0.3 eV in atomic unit
+    // 计算上一步中其他态跟占据态 occ 之间的能量差，能量差小于0.3eV才计算这两个态的耦合，注意eig是原子单位，需要转换为eV
+    std::vector<std::pair<int, int>> occ_pairs;
+    for (int i = 0; i < Dimension::F; ++i) {
+        int j = occ_nuc[0];
+        if (i != j) {
+            double deltaE = eig[i] - eig[j];
+            if (std::abs(deltaE) < deltaE_thres) {  // 0.3 eV
+                std::cout << "[QMInterface] Coupling between state " << i << " and occupied state " << j
+                          << " is considered, ΔE = " << deltaE * 27.2114 << " eV\n";
+                occ_pairs.emplace_back(i, j);
+            }
+        }
+    }
+    // 把occ pairs 转化为字符串的形式 如(0,1), (1,2) -> "01 12"
+    // @ambiguous: Does '112' represent (11,2) or (1,12)?
+    // @hexin
+    std::string occ_pairs_str;
+    for (const auto& pair : occ_pairs) { occ_pairs_str += utils::concat(pair.first, ",", pair.second, " "); }
+
+    std::string qm_call_str = utils::concat("python ", pypsnd_path, "/QM.py -t ", try_level,  //
+                                            " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower, " -occ ",
+                                            occ_nuc[0], " -ncouple ", occ_pairs_str);
+    int         s           = system(qm_call_str.c_str());
 
     // checkout the result
     if (s == 0 && isFileExists(utils::concat(path_str, "/interface.ds"))) {

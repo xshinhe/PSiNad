@@ -34,7 +34,10 @@ import numpy as np
 from psnd_log import Timing, Log
 from Charge import Charge
 from drivers import amberDriver
-from drivers import openmmDriver
+try:
+    from drivers import openmmDriver
+except:
+    print("import error")
 from drivers import gromacsDriver
 
 # import turbo

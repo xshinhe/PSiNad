@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     std::size_t BGIDX         = PM->get_int({"BGIDX"}, LOC(), 0);
 
     // apply_scheme(PM, solver_scheme);
-    std::ofstream ofs(utils::concat(FLAGS_d, "/", "input"));
+    std::ofstream ofs(utils::concat(FLAGS_d, "/", "input.json"));
     ofs << PM->repr();
     ofs.close();
 

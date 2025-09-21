@@ -22,8 +22,9 @@
 #
 ################################################################################
 
-from argparse import ArgumentParser, RawTextHelpFormatter
+from argparse import ArgumentParser, RawTextHelpFormatter, ArgumentTypeError
 from enum import Enum, unique
+import re
 
 @unique
 class CalculationType(Enum):
@@ -243,5 +244,25 @@ parser.add_argument('-vb', '--verbosity', dest='verbosity', nargs='?', default=1
 parser.add_argument('-ds', '--datasetfn', dest='datasetfn', nargs='?', default='interface.ds', type=str,
     help='specify the dataset file to dump. (default: interface.ds)')
 
+# specify which state to compute grad and nacv (for namd)
+parser.add_argument('-occ', '--occ', dest='occ', nargs='?', default=None, type=str,
+    help='specify the occupied state(s) to compute grad and nacv, seperated by comma. If not provided, all occupied states are computed. Example: -occ 0,1,2 -> [0,1,2]')
+# 解析 ncouple tokens 成 [(int,int), ...]
+# 在add_argument中使用 type=_parse_ncouple_token 来调用该函数
+def _parse_ncouple_token(token: str):
+    token = token.strip()
+    m = re.match(r'^(\d+)[,:\-]?(\d+)$', token)
+    if not m:
+        raise ArgumentTypeError(
+            f'invalid ncouple token: "{token}". expected formats: "01", "0,1", "0-1", "0:1"'
+        )
+    return (int(m.group(1)), int(m.group(2)))
+parser.add_argument("-ncouple", "--ncouple", dest='ncouple', nargs='*', 
+    default=None, type=_parse_ncouple_token,
+    help='specify pairs of coupled states. tokens can be "01", "0,1", "0-1", "0:1". Example: -ncouple 01 12 -> [(0,1),(1,2)]')
+
+
 if __name__ == '__main__':
     args = parser.parse_args()
+    print(args.ncouple)
+    print(args.occ)

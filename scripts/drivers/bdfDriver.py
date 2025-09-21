@@ -168,12 +168,16 @@ class BdfOutput(QMOutput):
 
         # loop over the last lines of the log file
         output = self.dataDict["outfile"].splitlines()
-        if 'ERROR' in ''.join(output[-11:]).upper():
+        # if 'ERROR' in ''.join(output[-11:]).upper():
+        #     self.dataDict["termination"] = 1
+        #     self.dataDict["errormsg"] = ''.join(output[-11:])
+        #     return
+        # if 'Total wall time' not in ''.join(output[-11:]):
+        #     self.dataDict["termination"] = 1
+        #     return
+        if "Program Stop" in ''.join(output[-11:]):
             self.dataDict["termination"] = 1
             self.dataDict["errormsg"] = ''.join(output[-11:])
-            return
-        if 'Total wall time' not in ''.join(output[-11:]):
-            self.dataDict["termination"] = 1
             return
         else:
             self.dataDict["termination"] = 0

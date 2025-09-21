@@ -131,10 +131,10 @@ class MNDOInput:
                         keys_copy[i][j] = 'MMINP=2'
                     if k.upper() == 'MMCOUP':
                         keys_copy[i][j] = 'MMCOUP=2'
-                    if k.upper() == 'MPRINT':
-                        keys_copy[i][j] = 'MPRINT=5'
-                    if k.upper() == 'NPRINT':
-                        keys_copy[i][j] = 'NPRINT=5'
+                    # if k.upper() == 'MPRINT':
+                    #     keys_copy[i][j] = 'MPRINT=5'
+                    # if k.upper() == 'NPRINT':
+                    #     keys_copy[i][j] = 'NPRINT=1'
                     if k.upper() == 'IUVCD':
                         keys_copy[i][j] = 'IUVCD=2'
             else:

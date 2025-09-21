@@ -14,6 +14,12 @@
 #include "psnd/macro_utils.h"
 #include "psnd/vars_list.h"
 
+static std::string toLower(const std::string& input) {
+    std::string result = input;  // 创建一个副本
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
+    return result;
+}
+
 inline int removeFile(const std::string& filename) { return remove(filename.c_str()); }
 
 inline void clearFile(const std::string& filename) { std::ofstream clear(filename, std::ios::trunc); }
@@ -33,12 +39,15 @@ int Model_QMMMInterface::getType() const { return utils::hash(FUNCTION_NAME); }
 void Model_QMMMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
     Kernel_Representation::onthefly = true;
 
-    std::string qm_string = _param->get_string({"model.qmmm_flag"}, LOC(), "MNDO");
-    qmmm_config_in        = _param->get_string({"model.qmmm_config"}, LOC(), "QMMM.in");
-    qmmm_layer_info       = _param->get_string({"model.qmmm_layer_info"}, LOC(), "layer_real.xyz");
-    save_every_calc       = _param->get_bool({"model.qmmm_save_every_calc"}, LOC(), true);
-    save_every_step       = _param->get_bool({"model.qmmm_save_every_step"}, LOC(), false);
-    sstep_dataset         = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
+    qm_string       = _param->get_string({"model.qmmm_flag"}, LOC(), "MNDO");
+    mm_string       = _param->get_string({"model.mm_flag"}, LOC(), "amber");
+    qmmm_config_in  = _param->get_string({"model.qmmm_config"}, LOC(), "QMMM.in");
+    qmmm_layer_info = _param->get_string({"model.qmmm_layer_info"}, LOC(), "layer_real.xyz");
+    qmmm_top_file   = _param->get_string({"model.qmmm_top_file"}, LOC(), "real.top,model-H.top");
+    crd_input       = _param->get_string({"model.qmmm_crd_input"}, LOC(), "real.crd");
+    save_every_calc = _param->get_bool({"model.qmmm_save_every_calc"}, LOC(), true);
+    save_every_step = _param->get_bool({"model.qmmm_save_every_step"}, LOC(), false);
+    sstep_dataset   = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
 
     char* p = getenv("PSNDQMMM_PYTHON");
     if (p != nullptr) psndqmmm_path = p;
@@ -92,7 +101,7 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     t_ptr            = DS->def(DATA::control::t);
     istep_ptr        = DS->def(DATA::control::istep);
 
-    ARRAY_EYE(T.data(), Dimension::F);
+    ARRAY_EYE(T.data(), Dimension::F);  // 为什么要在这儿初始化T矩阵？
     // ARRAY_EYE(Tmod.data(), Dimension::N);
 
     if (!isFileExists(qmmm_layer_info)) { throw psnd_error("qmm_layer_info is needed!"); }
@@ -138,7 +147,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     if (save_every_calc) {
         path_str = utils::concat(directory, "/QMMM-", stat.icalc);
     } else {
-        path_str = directory + "/QMMM";
+        path_str = utils::concat(directory, "/QMMM");
     }
     ghc::filesystem::path path(path_str);
     if (!ghc::filesystem::is_directory(path)) { ghc::filesystem::create_directory(path); }
@@ -152,12 +161,14 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     }
 
     // prepare input run for calculation
-    std::string crd_input;
     if (save_every_step) {
         crd_input = utils::concat(path_str, "/real", istep_ptr[0], ".crd");
     } else {
         crd_input = utils::concat(path_str, "/real.crd");
     }
+    std::cout << "Current working directory: " << ghc::filesystem::current_path() << std::endl;
+    std::cout << "crd_input: " << crd_input << std::endl;
+    std::cout << "QMMM -d path_str: " << path_str << std::endl;
 
     // convert AU to Angstrom
     for (int i = 0; i < Dimension::N; ++i) x[i] *= phys::au_2_ang;
@@ -187,9 +198,14 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     }
 
     // call python executation
+    // std::string qm_call_str =
+    //     utils::concat("python ", psndqmmm_path, "/psndqmmm.py -t ", try_level,  //
+    //                   " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " > ", path_str, "/log");
+    std::string qm_string_lower = toLower(qm_string);
     std::string qm_call_str =
-        utils::concat("python ", psndqmmm_path, "/psndqmmm.py -t ", try_level,  //
-                      " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " > ", path_str, "/log");
+        utils::concat("python ", psndqmmm_path, "/psndqmmm.py -t ", try_level, " -mm ", mm_string, " -qm ",
+                      qm_string_lower, " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " -l ",
+                      qmmm_layer_info, " -top ", qmmm_top_file, " > ", path_str, "/log 2>&1");
     int s = system(qm_call_str.c_str());
 
     // checkout the result

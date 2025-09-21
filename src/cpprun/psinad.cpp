@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     std::size_t BGIDX         = PM->get_int({"BGIDX"}, LOC(), 0);
 
     // apply_scheme(PM, solver_scheme);
-    std::ofstream ofs(utils::concat(FLAGS_d, "/", "input"));
+    std::ofstream ofs(utils::concat(FLAGS_d, "/", "input.json"));
     ofs << PM->repr();
     ofs.close();
 
@@ -63,8 +63,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<DataSet> DS             = std::shared_ptr<DataSet>(new DataSet());
 
 
-    std::cout << solver1_kernel->generateInformationString(1.0);
-    std::cout << solver2_kernel->generateInformationString(1.0);
+    std::cerr << solver1_kernel->generateInformationString(1.0) << std::flush;
+    std::cerr << solver2_kernel->generateInformationString(1.0) << std::flush;
 
     auto begin = std::chrono::steady_clock::now();
     {

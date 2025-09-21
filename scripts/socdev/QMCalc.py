@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# PSND SCRIPTS (adapted from COMBRAMM)
+# KIDS SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -36,9 +36,9 @@ import numpy as np  # numpy library for scientific computation
 
 # imports of local objects
 
-import psnd_env  # functions to handle third-party software environment
+import kids_env  # functions to handle third-party software environment
 import constants  # values of physical constants and conversion factors
-from psnd_log import Timing, Log  # keep timings of the different sections of the code
+from kids_log import Timing, Log  # keep timings of the different sections of the code
 from QMOutput import QMOutput     # template class for the output of a QM calculation
 from drivers.adfDriver import AdfInput, AdfOutput
 from drivers.bagelDriver import BagelInput, BagelOutput
@@ -165,12 +165,6 @@ class QM:
         else:
             optdict["CIopt"] = False
         
-        # 设置 occ 和 ncouple 选项
-        if ks_config.args.occ is not None:
-            optdict["occ"] = ks_config.args.occ
-        if ks_config.args.ncouple is not None:
-            optdict["ncouple"] = ks_config.args.ncouple
-
         if False:
             pass
 
@@ -468,6 +462,29 @@ class QM:
 
     # =============================================================================================================
 
+
+    @property
+    def tripletenergydict(self):
+        """Return the dictionary with the energy results of triplets the QM calculation """
+        return self.outputData.get("energy_triplet")
+
+    @property
+    def tripletgradientdict(self):
+        """Return the dictionary with the gradient results of triplets of the QM calculation """
+        return self.outputData.get("gradient_triplet")
+    
+    @property
+    def tripletnacdict(self):
+        """Return the dictionary with the NAC results of triplets of the QM calculation """
+        return self.outputData.get("nac_triplet")
+    
+    @property
+    def socdict(self):
+        return self.outputData.get("soc")
+
+    # =============================================================================================================
+
+
     @staticmethod
     def _prepareQMDataStorage():
         """Function to initialize the QM_DATA_STORAGE directory, to be called at the
@@ -646,7 +663,7 @@ class QM:
 
             qmexe = qm.qmexe 
             if qmexe == '':
-                qmexe = psnd_env.checkQMExec(qmsolver)
+                qmexe = kids_env.checkQMExec(qmsolver)
             
             fninp = f"{qmsolver}-QM.inp"
             fnlog = f"{qmsolver}-QM.log"

@@ -3,6 +3,7 @@
 #include "psnd/Kernel_Dump_DataSet.h"
 #include "psnd/Kernel_Elec_Functions.h"
 #include "psnd/Kernel_Elec_Switch.h"
+#include "psnd/Kernel_ExactPropagator.h"
 #include "psnd/Kernel_Load_DataSet.h"
 #include "psnd/Kernel_NAForce.h"
 #include "psnd/Kernel_Prioritization.h"
@@ -17,7 +18,7 @@
 namespace PROJECT_NS {
 
 std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string NAD_Kernel_name) {
-    int split = 1;
+    int split = 4;
 
     // Root Kernel
     std::shared_ptr<Kernel> ker(new Kernel(NAD_Kernel_name));
@@ -30,6 +31,8 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
     std::shared_ptr<Kernel_NAForce>        knaf(new Kernel_NAForce());
     std::shared_ptr<Kernel_Elec_Functions> kfuncs(new Kernel_Elec_Functions());
 
+    std::shared_ptr<Kernel_ExactPropagator> kexact(new Kernel_ExactPropagator(1.0));  // 提供默认的 scale 参数
+
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5e0 / (double) split));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5e0));
     std::shared_ptr<Kernel_Update_U> ku_U(new Kernel_Update_U(0.5e0 / (double) split));
@@ -41,7 +44,7 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
         kinte->appendChild(ku_p);
         kinte->appendChild(krepr);
         kinte->appendChild(ku_U);
-        // kinte->appendChild(kswitch);
+        // kinte->appendChild(kswitch); //
         kinte->appendChild(knaf);
     }
 

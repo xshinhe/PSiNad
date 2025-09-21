@@ -338,14 +338,18 @@ bool DataSet::haskey(const std::string& key) {
     return true;
 }
 
-Node* DataSet::node(const std::string& key) {
+Node* DataSet::node(const std::string& key) { 
     DataSetKeyParser          kh    = DataSetKeyParser(key);
     std::shared_ptr<DataType> d_ptr = _data;
 
     DataSet* currentNode = this;
-    for (size_t i = 0; i < kh.terms.size() - 1; ++i) {
+    for (size_t i = 0; i < kh.terms.size() - 1; ++i) {   
         auto& node = (*d_ptr)[kh.terms[i]];
-        if (!node) throw std::runtime_error(std::string{key} + " : access undefined key!");
+        if (!node) {
+            std::cout << "[ERROR] node() failed at intermediate term: '" << kh.terms[i] << "' for key: '" << key << "'" << std::endl;
+            std::cout << "[ERROR] This suggests the key is being accessed (not defined) before it exists" << std::endl;
+            throw std::runtime_error(std::string{key} + " : access undefined key!");
+        }
 
         currentNode = static_cast<DataSet*>(node.get());
         d_ptr       = currentNode->_data;
@@ -475,7 +479,10 @@ void DataSet::load(std::istream& is) {
 void DataSet::load_reframe(std::istream& is, std::size_t nsamp) {
     std::string key, typeflag, eachline;
     int         size;
+    // 打印is
+    // std::cout << is .rdbuf() << std::endl;
     while (is >> key) {
+        std::cout << LOC() << "loading key = " << key << "\n";
         bool multiframe = (key[0] == '_');
         getline(is, eachline);
         getline(is, eachline);
