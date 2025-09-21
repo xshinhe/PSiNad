@@ -30,6 +30,7 @@ import re  # process output with regular expressions
 import math  # import mathematical functions
 import json
 from pprint import pformat, pprint
+import numpy as np
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
@@ -122,17 +123,36 @@ class BagelInput:
                     self.config['bagel'][0]['geometry'] += [
                         {'atom': 'Q', "xyz": [atom[1], atom[2], atom[3]], "charge": atom[0]}
                     ]
-        # import pdb; pdb.set_trace()
+
         # now the working dir is the -d directory
+        # 检查 laststep.archive 是否存在，如果存在，作为上一步初财，不存在则把 load_ref 那一节删掉
         if not os.path.exists('laststep.archive') and self.config['bagel'][1]['title'] == 'load_ref':
             del self.config['bagel'][1]
-        inputText = json.dumps(self.config)
-
+        
+        # move the laststep.archive to the BAGEL running directory
         if os.path.exists('laststep.archive'):
-            # move the laststep.archive to the BAGEL running directory
             os.popen('mv laststep.archive qmCalc00001/laststep.archive')
 
+        # 如果有occ和ncouple选项，替换掉
+        grad_config = []
+        if "occ" in self.otheropt and self.otheropt["occ"] is not None:
+            grad_config.append(
+                {"title": "force", "target": int(self.otheropt["occ"])}
+                )
+        if "ncouple" in self.otheropt and self.otheropt["ncouple"] is not None:
+            for pair in self.otheropt["ncouple"]:
+                grad_config.append(
+                    {"title": "nacme", "target": int(pair[0]), "target2": int(pair[1]), "nacmtype": "full"}
+                    )
+        if "occ" in self.otheropt or "ncouple" in self.otheropt:
+            for i in range(len(self.config['bagel'])):
+                if self.config['bagel'][i]['title'] == 'forces':
+                    self.config['bagel'][i]['grads'] = grad_config
+                    break
+
+
         # return the complete text of the input file
+        inputText = json.dumps(self.config)
         return inputText
 
 ###################################################################################################################
@@ -298,6 +318,9 @@ class BagelOutput(QMOutput):
                         gch[2].append(float(terms[3]))
                 self.dataDict['gradient'][i] = g
                 if has_emb: self.dataDict['fullgradcharge'][i] = gch
+            # if no grad file, set to zero 250920
+            else:
+                self.dataDict['gradient'][i] = np.zeros((3, qmdim))
 
         for i in range(nroots): # try read grad
             for k in range(i+1, nroots): # try read grad
@@ -328,6 +351,14 @@ class BagelOutput(QMOutput):
                     self.dataDict['nac'][k][i] = [[-x for x in y] for y in g]
                     if has_emb: self.dataDict['fullnaccharge'][i][k] = gch
                     if has_emb: self.dataDict['fullnaccharge'][k][i] = [[-x for x in y] for y in gch]
+        # if no nac file, set to zero 250920
+                else:
+                    if i not in self.dataDict['nac']:
+                        self.dataDict['nac'][i] = {}
+                    if k not in self.dataDict['nac']:
+                        self.dataDict['nac'][k] = {}
+                    self.dataDict['nac'][i][k] = np.zeros((3, qmdim))
+                    self.dataDict['nac'][k][i] = np.zeros((3, qmdim))
 
         # pprint(self.dataDict)
         # pprint({'energy':self.dataDict['energy']})

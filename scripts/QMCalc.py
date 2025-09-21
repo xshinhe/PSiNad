@@ -165,6 +165,12 @@ class QM:
         else:
             optdict["CIopt"] = False
         
+        # 设置 occ 和 ncouple 选项
+        if ks_config.args.occ is not None:
+            optdict["occ"] = ks_config.args.occ
+        if ks_config.args.ncouple is not None:
+            optdict["ncouple"] = ks_config.args.ncouple
+
         if False:
             pass
 

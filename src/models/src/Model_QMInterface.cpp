@@ -246,8 +246,28 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     // call python executation
     //     // first lower the qm_String
     std::string qm_string_lower = toLower(qm_string);
+    auto occ_nuc = _dataset->def(DATA::integrator::occ_nuc);
+    // 计算上一步中其他态跟占据态 occ 之间的能量差，能量差小于0.3eV才计算这两个态的耦合，注意eig是原子单位，需要转换为eV
+    std::vector<std::pair<int, int>> occ_pairs;
+    for (int i = 0; i < Dimension::F; ++i) {
+        int j = occ_nuc[0];
+        if (i != j) {
+            double dE = eig[i] - eig[j];
+            if (std::abs(dE) < 0.3 / 27.2114) {  // 0.3 eV
+                std::cout << "[QMInterface] Coupling between state " << i << " and occupied state " << j << " is considered, ΔE = " << dE * 27.2114 << " eV\n";
+                occ_pairs.emplace_back(i, j);
+            }
+        }
+    }
+    // 把occ pairs 转化为字符串的形式 如(0,1), (1,2) -> "01 12"
+    std::string occ_pairs_str;
+    for (const auto& pair : occ_pairs) {
+        occ_pairs_str += utils::concat(pair.first, pair.second, " ");
+    }
+
     std::string qm_call_str     = utils::concat("python ", pykids_path, "/QM.py -t ", try_level,  //
-                                                " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower);
+                                                " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower, 
+                                            " -occ ", occ_nuc[0], " -ncouple ", occ_pairs_str);
     int         s               = system(qm_call_str.c_str());
 
     // checkout the result
