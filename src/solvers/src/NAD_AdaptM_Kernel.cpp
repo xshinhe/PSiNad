@@ -44,7 +44,7 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
         kinte->appendChild(ku_p);
         kinte->appendChild(krepr);
         kinte->appendChild(ku_U);
-        kinte->appendChild(kswitch);
+        // kinte->appendChild(kswitch);
         kinte->appendChild(knaf);
     }
 
