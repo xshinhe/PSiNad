@@ -109,7 +109,7 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is a product of Xin's PhD research conducted by Professor Liu's
+ *  This software is a product of academic research conducted by Professor Liu's
  *  Group at the College of Chemistry and Molecular Engineering, Peking University.
  *  All rights are reserved by Peking University.
  *  You should have received a copy of the GNU Lesser General Public License along
@@ -219,9 +219,9 @@ class EinsumHelper {
  * @param[inout]    data_output     pointer stored data of output tensor
  */
 template <typename T>
-void einsum(EinsumHelper&          EH,           //
-            const std::vector<T*>& data_inputs,  //
-            T*                     data_output   //
+void einsum(EinsumHelper&                EH,           //
+            const std::vector<const T*>& data_inputs,  //
+            T*                           data_output   //
 ) {
     auto& einsum_dims      = EH.einsum_dims;
     auto& einsum_iposes    = EH.einsum_iposes;
@@ -269,7 +269,7 @@ void einsum(EinsumHelper&          EH,           //
  */
 template <typename T>
 void einsum(const std::string&                           einsum_expression,  //
-            std::vector<T*>                              data_inputs,        //
+            std::vector<const T*>                        data_inputs,        //
             const std::vector<std::vector<std::size_t>>& shape_inputs,       //
             T*                                           data_output,        //
             const std::vector<std::size_t>&              shape_output = {}   //

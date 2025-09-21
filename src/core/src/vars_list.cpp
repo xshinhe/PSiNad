@@ -34,35 +34,34 @@ std::size_t sstep;  ///< Number of skipped steps for each sampling.
 std::size_t nstep;  ///< Number of steps for a single simulation
 std::size_t nsamp;  ///< Number of samplings for a single simulation
                                                     
-using sh_ref = std::vector<std::size_t*>;
 Shape shape_1(1);                                  ///< Shape corresponding to a single element (1).
 Shape shape_2(2);                                  ///< Shape corresponding to two elements (2).
 Shape shape_X(1);                                  ///< Shape for an arbitrary number of elements.
 Shape shape_Nxgrid(1);                             ///< Shape for Nxgrid. @deprecated
-Shape shape_Nb(sh_ref{&Nb});                       ///< Shape for the number of discretized modes.
-Shape shape_nbathFF(sh_ref{&nbath, &F, &F});       ///< Shape for the product of nbath, F, and F (nbath * F * F).
-Shape shape_LNb(sh_ref{&L, &Nb});                  ///< Shape for the product of L and Nb (L * Nb).
-Shape shape_LnbathFF(sh_ref{&L, &nbath, &F, &F});  ///< Shape for the product of L, nbath and F and F (L * nbath * F * F)
-Shape shape_M(sh_ref{&M});                         ///< Shape for the number of Monte Carlo calculations (M).
-Shape shape_P(sh_ref{&P});                         ///< Shape for the number of parallel trajectories (P).
-Shape shape_N(sh_ref{&N});                         ///< Shape for the number of nuclear degrees of freedom (N).
-Shape shape_F(sh_ref{&F});                         ///< Shape for the number of electronic degrees of freedom (F).
-Shape shape_Fadd1(sh_ref{&Fadd1});                 ///< Shape for F plus 1 (F + 1).
-Shape shape_MP(sh_ref{&M, &P});                    ///< Shape for the product of M and P (M * P).
-Shape shape_PP(sh_ref{&P, &P});                    ///< Shape for the product of P and P (P * P).
-Shape shape_PN(sh_ref{&P, &N});                    ///< Shape for the product of P and N (P * N).
-Shape shape_PNN(sh_ref{&P, &N, &N});               ///< Shape for the product of P, N, and N (P * N * N).
-Shape shape_PF(sh_ref{&P, &F});                    ///< Shape for the product of P and F (P * F).
-Shape shape_PFF(sh_ref{&P, &F, &F});               ///< Shape for the product of P, F, and F (P * F * F).
-Shape shape_PNF(sh_ref{&P, &N, &F});               ///< Shape for the product of P, N, and F (P * N * F).
-Shape shape_PNFF(sh_ref{&P, &N, &F, &F});          ///< Shape for the product of P, N, F, and F (P * N * F * F).
-Shape shape_PN4N4(sh_ref{&P, &N4, &N4});           ///< Shape for the product of (N + 2 * F)(N + 2 * F).
-Shape shape_NF(sh_ref{&N, &F});                    ///< Shape for the product of N and F (N * F).
-Shape shape_NN(sh_ref{&N, &N});                    ///< Shape for the product of N and N (N * N).
-Shape shape_FF(sh_ref{&F, &F});                    ///< Shape for the product of F and F (F * F).
-Shape shape_NFF(sh_ref{&N, &F, &F});               ///< Shape for the product of N, F, and F (N * F * F).
-Shape shape_NNFF(sh_ref{&N, &N, &F, &F});          ///< Shape for the product of N, N, F, and F (N * N * F * F).
-Shape shape_PNNFF(sh_ref{&P, &N, &N, &F, &F});     ///< Shape for the product of P, N, N, F, and F (P* N * N * F * F).
+Shape shape_Nb(Shape::dynamic_t{&Nb});                       ///< Shape for the number of discretized modes.
+Shape shape_nbathFF(Shape::dynamic_t{&nbath, &F, &F});       ///< Shape for the product of nbath, F, and F (nbath * F * F).
+Shape shape_LNb(Shape::dynamic_t{&L, &Nb});                  ///< Shape for the product of L and Nb (L * Nb).
+Shape shape_LnbathFF(Shape::dynamic_t{&L, &nbath, &F, &F});  ///< Shape for the product of L, nbath and F and F (L * nbath * F * F)
+Shape shape_M(Shape::dynamic_t{&M});                         ///< Shape for the number of Monte Carlo calculations (M).
+Shape shape_P(Shape::dynamic_t{&P});                         ///< Shape for the number of parallel trajectories (P).
+Shape shape_N(Shape::dynamic_t{&N});                         ///< Shape for the number of nuclear degrees of freedom (N).
+Shape shape_F(Shape::dynamic_t{&F});                         ///< Shape for the number of electronic degrees of freedom (F).
+Shape shape_Fadd1(Shape::dynamic_t{&Fadd1});                 ///< Shape for F plus 1 (F + 1).
+Shape shape_MP(Shape::dynamic_t{&M, &P});                    ///< Shape for the product of M and P (M * P).
+Shape shape_PP(Shape::dynamic_t{&P, &P});                    ///< Shape for the product of P and P (P * P).
+Shape shape_PN(Shape::dynamic_t{&P, &N});                    ///< Shape for the product of P and N (P * N).
+Shape shape_PNN(Shape::dynamic_t{&P, &N, &N});               ///< Shape for the product of P, N, and N (P * N * N).
+Shape shape_PF(Shape::dynamic_t{&P, &F});                    ///< Shape for the product of P and F (P * F).
+Shape shape_PFF(Shape::dynamic_t{&P, &F, &F});               ///< Shape for the product of P, F, and F (P * F * F).
+Shape shape_PNF(Shape::dynamic_t{&P, &N, &F});               ///< Shape for the product of P, N, and F (P * N * F).
+Shape shape_PNFF(Shape::dynamic_t{&P, &N, &F, &F});          ///< Shape for the product of P, N, F, and F (P * N * F * F).
+Shape shape_PN4N4(Shape::dynamic_t{&P, &N4, &N4});           ///< Shape for the product of (N + 2 * F)(N + 2 * F).
+Shape shape_NF(Shape::dynamic_t{&N, &F});                    ///< Shape for the product of N and F (N * F).
+Shape shape_NN(Shape::dynamic_t{&N, &N});                    ///< Shape for the product of N and N (N * N).
+Shape shape_FF(Shape::dynamic_t{&F, &F});                    ///< Shape for the product of F and F (F * F).
+Shape shape_NFF(Shape::dynamic_t{&N, &F, &F});               ///< Shape for the product of N, F, and F (N * F * F).
+Shape shape_NNFF(Shape::dynamic_t{&N, &N, &F, &F});          ///< Shape for the product of N, N, F, and F (N * N * F * F).
+Shape shape_PNNFF(Shape::dynamic_t{&P, &N, &N, &F, &F});     ///< Shape for the product of P, N, N, F, and F (P* N * N * F * F).
 
 void static_build_shapes() {
     assert(M > 0 && P > 0 && N > 0 && F > 0);  //

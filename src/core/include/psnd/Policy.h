@@ -1,12 +1,50 @@
-#ifndef POLICY_H
-#define POLICY_H
+/** @file Policy.h
+ *  @brief Provides macros for defining policy namespaces with enum-to-string mapping utilities
+ *  @details This header defines a set of macros to simplify the creation of "policy" namespaces,
+ *           each containing an enumeration, a string-to-enum mapping, and utility functions for
+ *           conversion and documentation. Policies are used to encapsulate sets of valid options
+ *           (e.g., algorithm types, parameter modes) with built-in validation and user assistance.
+ *
+ *  @author Xin He
+ *  @date 2024-09
+ */
+#ifndef PSND_POLICY_H
+#define PSND_POLICY_H
 
+#include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 
+/**
+ * @brief Converts a macro argument to a string literal
+ * @param x Macro argument to convert
+ * @return String literal representation of x
+ */
 #define VAR_NAME(x) #x
+
+/**
+ * @brief Concatenates two macro arguments into a single identifier
+ * @param x First argument
+ * @param y Second argument
+ * @return Concatenated identifier x##y
+ */
 #define CAT_NAME(x, y) x##y
+
+/**
+ * @brief Selects a name by appending a number (e.g., NAME_5 for NUM=5)
+ * @param NAME Base name
+ * @param NUM Suffix number
+ * @return NAME_NUM identifier
+ */
 #define SELECT_NAME(NAME, NUM) CAT_NAME(NAME##_, NUM)
+
+/**
+ * @brief Counts the number of variable arguments (up to 50)
+ * @details Uses recursive macro expansion to determine argument count
+ * @param ... Variable arguments to count
+ * @return Number of arguments (0-50)
+ */
 #define ARG_COUNT(...)                                                  \
     ARG_COUNT_PRIVATE_IMPL(0, ##__VA_ARGS__,                       /**/ \
                            50, 49, 48, 47, 46, 45, 44, 43, 42, 41, /**/ \
@@ -16,6 +54,14 @@
                            10, 9, 8, 7, 6, 5, 4, 3, 2, 1,          /**/ \
                            0)
 
+/**
+ * @brief Private implementation helper for ARG_COUNT
+ * @details Uses variadic macro tricks to extract argument count
+ * @param _0 Dummy parameter
+ * @param ... Count values (50 down to 0)
+ * @param count Selected count value (output)
+ * @return count parameter
+ */
 #define ARG_COUNT_PRIVATE_IMPL(_0,                                               /**/ \
                                _1, _2, _3, _4, _5, _6, _7, _8, _9, _10,          /**/ \
                                _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, /**/ \
@@ -24,8 +70,21 @@
                                _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, /**/ \
                                count, ...)                                            \
     count
+
+/**
+ * @brief Selects the appropriate KV_TERMS_N macro based on argument count
+ * @param NAME Base name ("KV_TERMS")
+ * @param ... Variable arguments to process
+ * @return Expanded KV_TERMS_N macro
+ */
 #define VA_SELECT(NAME, ...) SELECT_NAME(NAME, ARG_COUNT(__VA_ARGS__))(__VA_ARGS__)
 
+/**
+ * @brief Generates key-value pairs for policy enumerators (50 arguments)
+ * @param TERM1 First enumerator
+ * @param ... Remaining enumerators
+ * @return Initializer list entries for map construction
+ */
 #define KV_TERMS_50(TERM1, ...) {VAR_NAME(TERM1), TERM1}, KV_TERMS_49(__VA_ARGS__)
 #define KV_TERMS_49(TERM1, ...) {VAR_NAME(TERM1), TERM1}, KV_TERMS_48(__VA_ARGS__)
 #define KV_TERMS_48(TERM1, ...) {VAR_NAME(TERM1), TERM1}, KV_TERMS_47(__VA_ARGS__)
@@ -75,25 +134,55 @@
 #define KV_TERMS_4(TERM1, ...) {VAR_NAME(TERM1), TERM1}, KV_TERMS_3(__VA_ARGS__)
 #define KV_TERMS_3(TERM1, ...) {VAR_NAME(TERM1), TERM1}, KV_TERMS_2(__VA_ARGS__)
 #define KV_TERMS_2(TERM1, ...) {VAR_NAME(TERM1), TERM1}, KV_TERMS_1(__VA_ARGS__)
-#define KV_TERMS_1(TERM1, ...) \
-    { VAR_NAME(TERM1), TERM1 }
+#define KV_TERMS_1(TERM1, ...) {VAR_NAME(TERM1), TERM1}
+#define KV_TERMS_0() /* Empty for 0 arguments */
 
+/**
+ * @brief Generates key-value pairs for policy enumerators
+ * @details Expands to a list of {string, enum} pairs for map initialization
+ * @param ... Policy enumerator values
+ * @return Comma-separated initializer list entries
+ */
 #define KV_TERMS(...) VA_SELECT(KV_TERMS, ##__VA_ARGS__)
 
-#define DEFINE_POLICY(Policy, ...)                                                             \
-    namespace Policy {                                                                         \
-    enum _type { __VA_ARGS__ };                                                                \
-    static const std::map<std::string, _type> _dict = {KV_TERMS(__VA_ARGS__)};                 \
-    static inline void                        _help() {                                        \
-        std::cout << "Helps for " << #Policy << ":\n";                  \
-        for (auto& i : _dict) std::cout << i.first << " [available]\n"; \
-    }                                                                                          \
-    static inline _type _from(std::string s) {                                                 \
-        try {                                                                                  \
-            return _dict.at(s);                                                                \
-        } catch (std::out_of_range & e) { _help(); }                                           \
-        return _type(0);                                                                       \
-    }                                                                                          \
+
+/**
+ * @brief Defines a policy type with enumerators and helper functions
+ * @details Generates:
+ * - An enum class with specified enumerators + INVALID
+ * - A map from string names to enum values
+ * - A help function to print available values
+ * - A conversion function from string to enum
+ * @param Policy Name of the policy type
+ * @param ... Enumerator values for the policy
+ */
+#define DEFINE_POLICY(Policy, ...)                                                    \
+    namespace Policy {                                                                \
+    /** @brief Enum type representing policy values */                                \
+    enum _type { INVALID, __VA_ARGS__ };                                              \
+                                                                                      \
+    /** @brief Map from string names to policy enum values */                         \
+    static const std::map<std::string, _type> _dict = {KV_TERMS(__VA_ARGS__)};        \
+                                                                                      \
+    /** @brief Prints available policy values to stdout */                            \
+    static inline void _help() {                                                      \
+        std::cout << "Available values for " << #Policy << ":\n";                     \
+        for (const auto& entry : _dict) { std::cout << "  " << entry.first << "\n"; } \
+    }                                                                                 \
+                                                                                      \
+    /** @brief Converts string to policy enum value                                   \
+     *  @param s String to convert                                                    \
+     *  @return Corresponding enum value, or INVALID if not found                     \
+     */                                                                               \
+    static inline _type _from(const std::string& s) {                                 \
+        try {                                                                         \
+            auto it = _dict.find(s);                                                  \
+            if (it != _dict.end()) { return it->second; }                             \
+        } catch (const std::out_of_range& e) { /* Fall through to INVALID */          \
+        }                                                                             \
+        _help(); /* Print available values for user feedback */                       \
+        return INVALID;                                                               \
+    }                                                                                 \
     };  // namespace Policy
 
-#endif  // POLICY_H
+#endif  // PSND_POLICY_H

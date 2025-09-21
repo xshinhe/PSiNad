@@ -1,5 +1,5 @@
-#ifndef PSND_KernelInfo_H
-#define PSND_KernelInfo_H
+#ifndef PSND_KERNELINFO_H
+#define PSND_KERNELINFO_H
 
 namespace PROJECT_NS {
 
@@ -9,4 +9,4 @@ class KernelInfo {
 
 };  // namespace PROJECT_NS
 
-#endif  // PSND_KernelInfo_H
+#endif  // PSND_KERNELINFO_H

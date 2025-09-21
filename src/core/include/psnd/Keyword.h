@@ -8,7 +8,7 @@
  *
  *              Copyright (c) 2024 Xin He, Liu-Group
  *
- *  This software is a product of Xin's PhD research conducted by Professor
+ *  This software is a product of academic research conducted by Professor
  *  Liu's Group at the College of Chemistry and Molecular Engineering, Peking
  *  University. All rights are reserved by Peking University. You should have
  *  received a copy of the GNU Lesser General Public License along with this
@@ -23,8 +23,8 @@
  **********************************************************************************
  */
 
-#ifndef Keyword_H
-#define Keyword_H
+#ifndef PSND_INPUTKEYWORD_H
+#define PSND_INPUTKEYWORD_H
 
 #include <functional>
 #include <iostream>
@@ -167,4 +167,4 @@ void DressingParam_func1(std::shared_ptr<Param> PM) {
 
 void appl(std::shared_ptr<Param> PM);
 
-#endif  // Keyword_H
+#endif  // PSND_INPUTKEYWORD_H
