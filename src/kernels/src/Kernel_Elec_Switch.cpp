@@ -93,6 +93,8 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
         Efrom = elec_utils::calc_ElectricalEnergy(EMat.data(), rho_nuc.data(),
                                                   occ_nuc[0]);  // occ_nuc defined in nuc_repr_type
 
+        std::cout << LOC() << "Current state: " << occ_nuc[0] << ", Efrom=" << Efrom << "\n" << std::endl;
+
         switch (hopping_choose_type) {
             case 0: {  // from the max elecment of rho_ele
                 to = elec_utils::max_choose(rho_ele.data());
@@ -148,8 +150,8 @@ Status& Kernel_Elec_Switch::executeKernel_impl(Status& stat) {
         }
         Eto = elec_utils::calc_ElectricalEnergy(EMat.data(), rho_nuc.data(), to);
 
-        // std::cout << LOC() << occ_nuc[0] << " -> " << to << ": Efrom=" << Efrom << ",  Eto=" << Eto << "\n";
-
+        std::cout << LOC() << occ_nuc[0] << " -> " << to << ": Efrom=" << Efrom << ",  Eto=" << Eto << "\n" << std::endl;
+ 
         /// step 2: determine a direction
         switch (hopping_direction_type) {
             case 0: {  // along density weighted nacv
