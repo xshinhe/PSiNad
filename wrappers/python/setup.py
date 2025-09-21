@@ -15,6 +15,7 @@ MINOR_VERSION_NUM = '@PSINAD_MINOR_VERSION@'
 BUILD_INFO = '@PSINAD_BUILD_VERSION@'
 GIT_VERSION = '@PSINAD_GIT_VERSION@'
 cmake_source_dir = "@CMAKE_SOURCE_DIR@"
+cmake_install_prefix = "@CMAKE_INSTALL_PREFIX@"
 IS_RELEASED = False
 
 def not_recommended(func):
@@ -55,15 +56,23 @@ def write_version_py():
     with open('pyPSiNaD/version.py', 'w') as f:
         f.write(f"""
 # THIS FILE IS GENERATED FROM SETUP.PY
+
+import os
+
 short_version = '{VERSION}'
 version = '{VERSION}'
 full_version = '{FULL_VERSION}'
 git_revision = '{GIT_REVISION}'
 release = {str(IS_RELEASED)}
-PSINAD_library_path = r'{os.getenv('PSINAD_LIB_PATH')}'
-
 if not release:
     version = full_version
+
+PSINAD_library_path = r'{os.getenv('PSINAD_LIB_PATH')}'
+if "LD_LIBRARY_PATH" in os.environ:
+    os.environ["LD_LIBRARY_PATH"] = f"{{PSINAD_library_path}}:{{os.environ['LD_LIBRARY_PATH']}}"
+else:
+    os.environ["LD_LIBRARY_PATH"] = version.PSINAD_library_path
+
 """)
 
 def build_setup_kwargs():

@@ -32,7 +32,7 @@ class TomlObject : public Param::DataObject {
 
 Param::Param(const std::string &input, LoadOption option) {
     if (option == fromFile) {
-        auto ipos   = input.find_first_of(".");
+        auto ipos   = input.find_last_of(".");
         auto suffix = input.substr(ipos + 1, input.size());
         if (suffix == "json") {
             impl_t = JSON;
