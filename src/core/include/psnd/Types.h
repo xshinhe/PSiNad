@@ -165,21 +165,21 @@ inline psnd_dtype as_enum() {
 template <typename T>
 inline std::string as_str() {
     if (std::is_same<T, psnd_void>::value)
-        return "psnd_void";
+        return "_void";
     else if (std::is_same<T, psnd_bool>::value)
-        return "psnd_bool";
+        return "_bool";
     else if (std::is_same<T, psnd_int>::value)
-        return "psnd_int";
+        return "_int";
     else if (std::is_same<T, psnd_real>::value)
-        return "psnd_real";
+        return "_real";
     else if (std::is_same<T, psnd_complex>::value)
-        return "psnd_complex";
+        return "_complex";
     else if (std::is_same<T, psnd_str>::value)
-        return "psnd_str";
+        return "_str";
     else if (std::is_same<T, psnd_param>::value)
-        return "psnd_param";
+        return "_param";
     else if (std::is_same<T, psnd_dataset>::value)
-        return "psnd_dataset";
+        return "_dataset";
     else
         return "unknown";
 }
@@ -192,21 +192,21 @@ inline std::string as_str() {
  */
 inline std::string enum_t_as_str(psnd_dtype type) {
     if (type == psnd_dtype::psnd_void_type)
-        return "psnd_void";
+        return "_void";
     else if (type == psnd_dtype::psnd_bool_type)
-        return "psnd_bool";
+        return "_bool";
     else if (type == psnd_dtype::psnd_int_type)
-        return "psnd_int";
+        return "_int";
     else if (type == psnd_dtype::psnd_real_type)
-        return "psnd_real";
+        return "_real";
     else if (type == psnd_dtype::psnd_complex_type)
-        return "psnd_complex";
+        return "_complex";
     else if (type == psnd_dtype::psnd_str_type)
-        return "psnd_str";
+        return "_str";
     else if (type == psnd_dtype::psnd_param_type)
-        return "psnd_param";
+        return "_param";
     else if (type == psnd_dtype::psnd_dataset_type)
-        return "psnd_dataset";
+        return "_dataset";
     else
         return "unknown";
 }
