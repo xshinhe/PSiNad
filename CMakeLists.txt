@@ -384,8 +384,8 @@ endif()
 ## Build python wrapper
 
 # Python wrappers
-option(PSINAD_BUILD_PYTHON_WRAPPERS "Build wrappers for Python" ON)
-if(PSINAD_BUILD_PYTHON_WRAPPERS)
+option(BUILD_PYTHONLIB "Build wrappers for Python" OFF)
+if(BUILD_PYTHONLIB)
     add_subdirectory(thirdpart/pybind11)
     add_subdirectory(wrappers/python)
 endif()
@@ -394,8 +394,8 @@ endif()
 ## Perform Unit tests
 
 # Tests
-option(PSINAD_BUILD_TESTS "Build tests" ON)
-if(PSINAD_BUILD_TESTS)
+option(BUILD_TESTS "Build tests" OFF)
+if(BUILD_TESTS)
     set(CATCH_BUILD_TESTING OFF CACHE INTERNAL "")
     set(CATCH_BUILD_EXAMPLES OFF CACHE INTERNAL "")
     set(CATCH_BUILD_EXTRA_TESTS OFF CACHE INTERNAL "")
@@ -409,7 +409,7 @@ endif()
 ## Run some example tests
 
 # Examples
-option(PSINAD_BUILD_EXAMPLES "Build example executables" OFF)
-if(PSINAD_BUILD_EXAMPLES)
+option(BUILD_EXAMPLES "Build example executables" OFF)
+if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()

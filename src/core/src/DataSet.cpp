@@ -463,14 +463,14 @@ void DataSet::load(std::istream& is) {
         while (ss >> idim) dims.push_back(idim);
         Shape shtmp(dims);
         if (shtmp.size() != size) throw psnd_error("load ds error");
-        if (typeflag.find(as_str<psnd_int>()) != string::npos) {
+        if (typeflag.find(as_str<psnd_int>()) != std::string::npos) {
             // nsamp should be carefully checked with Param!!! @bug
             int* ptr = def<int>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
-        } else if (typeflag.find(as_str<psnd_real>()) != string::npos) {
+        } else if (typeflag.find(as_str<psnd_real>()) != std::string::npos) {
             psnd_real* ptr = def<psnd_real>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
-        } else if (typeflag.find(as_str<psnd_complex>()) != string::npos) {
+        } else if (typeflag.find(as_str<psnd_complex>()) != std::string::npos) {
             psnd_complex* ptr = def<psnd_complex>(key, shtmp);
             for (int i = 0; i < size; ++i) is >> ptr[i];
         }
@@ -496,7 +496,7 @@ void DataSet::load_reframe(std::istream& is, std::size_t nsamp) {
         Shape shtmp(dims);
 
         int min_size = std::min(size, shtmp.size());
-        if (typeflag.find(as_str<psnd_int>()) != string::npos) {
+        if (typeflag.find(as_str<psnd_int>()) != std::string::npos) {
             int* ptr = def<int>(key, shtmp);
             int  tmpi;
             if (key == "control.nsamp") {
@@ -504,10 +504,10 @@ void DataSet::load_reframe(std::istream& is, std::size_t nsamp) {
             } else {
                 for (int i = 0; i < size; ++i) is >> ptr[i];
             }
-        } else if (typeflag.find(as_str<psnd_real>()) != string::npos) {
+        } else if (typeflag.find(as_str<psnd_real>()) != std::string::npos) {
             psnd_real* ptr = def<psnd_real>(key, shtmp);
             for (int i = 0; i < min_size; ++i) is >> ptr[i];
-        } else if (typeflag.find(as_str<psnd_complex>()) != string::npos) {
+        } else if (typeflag.find(as_str<psnd_complex>()) != std::string::npos) {
             psnd_complex* ptr = def<psnd_complex>(key, shtmp);
             for (int i = 0; i < min_size; ++i) is >> ptr[i];
         }
