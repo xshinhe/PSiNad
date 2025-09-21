@@ -1,12 +1,12 @@
-#include "kids/Kernel_Update_p.h"
+#include "psnd/Kernel_Update_p.h"
 
-#include "kids/Kernel_Monodromy.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Monodromy.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -81,12 +81,12 @@ Status& Kernel_Update_p::executeKernel_impl(Status& stat) {
             auto dmask   = this->dmask.subspan(iP * Dimension::NFF, Dimension::NFF);  //
             auto rho_nuc = this->rho_nuc.subspan(iP * Dimension::FF, Dimension::FF);  //
 
-            kids_complex im = phys::math::im;
+            psnd_complex im = phys::math::im;
             for (int i = 0, ii = 0, ik = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
                 for (int k = 0, kk = 0; k < Dimension::F; ++k, kk += Dimension::Fadd1, ++ik) {
-                    kids_real    dlam    = (eig[i] - eig[k]);
-                    kids_complex idlamdt = im * dlam * dt[0];
-                    kids_complex expterm = std::exp(idlamdt);
+                    psnd_real    dlam    = (eig[i] - eig[k]);
+                    psnd_complex idlamdt = im * dlam * dt[0];
+                    psnd_complex expterm = std::exp(idlamdt);
                     mask[ik]             = (i == k) ? 1.0e0 : (expterm - 1.0e0) / idlamdt;
                     for (int J = 0, Jik = ik, Jii = ii, Jkk = kk; J < Dimension::N;
                          ++J, Jik += Dimension::FF, Jii += Dimension::FF, Jkk += Dimension::FF) {

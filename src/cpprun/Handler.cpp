@@ -2,12 +2,12 @@
 
 #include <chrono>
 
-#include "kids/Kernel_Recorder.h"
-#include "kids/ModelFactory.h"
-#include "kids/Param.h"
-#include "kids/RuleSet.h"
-#include "kids/SolverFactory.h"
-#include "kids/debug_utils.h"
+#include "psnd/Kernel_Recorder.h"
+#include "psnd/ModelFactory.h"
+#include "psnd/Param.h"
+#include "psnd/RuleSet.h"
+#include "psnd/SolverFactory.h"
+#include "psnd/debug_utils.h"
 
 //
 #include "mpi_utils.h"

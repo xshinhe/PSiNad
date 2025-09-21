@@ -1,8 +1,8 @@
-#include "kids/Kernel_Dump_DataSet.h"
+#include "psnd/Kernel_Dump_DataSet.h"
 
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
 
 namespace PROJECT_NS {
 
@@ -28,7 +28,7 @@ Status& Kernel_Dump_DataSet::executeKernel_impl(Status& stat) {
             _dataset->dump(ofs);
         }
         ofs.close();
-    } catch (std::runtime_error& e) { throw kids_error(fn); }
+    } catch (std::runtime_error& e) { throw psnd_error(fn); }
     return stat;
 }
 

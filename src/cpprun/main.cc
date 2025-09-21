@@ -7,7 +7,7 @@
 
 #include "Handler.h"
 #include "ghc/filesystem.hpp"
-#include "kids/Param.h"
+#include "psnd/Param.h"
 #include "version.h"
 
 DEFINE_bool(w, false, "Enables rewritting the output");

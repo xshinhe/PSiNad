@@ -3,7 +3,7 @@ set(PSINAD_PYTHON_STAGING_DIR "${CMAKE_BINARY_DIR}/python"
 mark_as_advanced(PSINAD_PYTHON_STAGING_DIR)
 
 # Create package directory structure
-file(MAKE_DIRECTORY ${PSINAD_PYTHON_STAGING_DIR}/pyPSiNad)
+file(MAKE_DIRECTORY ${PSINAD_PYTHON_STAGING_DIR}/pyPSiNaD)
 file(MAKE_DIRECTORY ${PSINAD_PYTHON_STAGING_DIR}/pybind11)
 file(MAKE_DIRECTORY ${PSINAD_PYTHON_STAGING_DIR}/swig)
 file(MAKE_DIRECTORY ${PSINAD_PYTHON_STAGING_DIR}/ext)
@@ -18,7 +18,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/setup.py ${PSINAD_PYTHON_STAGING_DIR}
 
 ###########################################################
 
-set(SUBDIRS pyPSiNad pybind11 swig ext plugin tests)
+set(SUBDIRS pyPSiNaD pybind11 swig ext plugin tests)
 foreach(SUBDIR ${SUBDIRS})
     file(GLOB_RECURSE STAGING_INPUT_FILES1 RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
         "${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}/*README.txt"
@@ -122,10 +122,10 @@ install_files(/include/swig FILES
     "${SWIG_STAGING_DIR}/PSINADSwigHeaders.i" 
     "${SWIG_STAGING_DIR}/lib/typemaps.i")
 add_custom_command(
-    OUTPUT "${SWIG_STAGING_DIR}/PSINADSwig.cxx" "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNad/pyPSiNad.py"
+    OUTPUT "${SWIG_STAGING_DIR}/PSINADSwig.cxx" "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNaD/pyPSiNaD.py"
     COMMAND ${SWIG_EXECUTABLE}
         -python -c++
-        -outdir "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNad"
+        -outdir "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNaD"
         -o PSINADSwig.cxx
         PSINAD.i
     WORKING_DIRECTORY "${SWIG_STAGING_DIR}"
@@ -137,10 +137,10 @@ add_custom_command(
 )
 add_custom_target(PSINADSwig DEPENDS
     "${SWIG_STAGING_DIR}/PSINADSwig.cxx"
-    "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNad/pyPSiNad.py")
+    "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNaD/pyPSiNaD.py")
 set (STAGING_OUTPUT_FILES ${STAGING_OUTPUT_FILES}
     "${PSINAD_PYTHON_STAGING_DIR}/swig/PSINADSwig.cxx"
-    "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNad/pyPSiNad.py")
+    "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNaD/pyPSiNaD.py")
 
 ########################################################
 # PYBIND11 STANDALONE
@@ -148,20 +148,20 @@ set (STAGING_OUTPUT_FILES ${STAGING_OUTPUT_FILES}
 # add_subdirectory(pybind11)
 # set(CMAKE_CXX_FLAGS "-Os -fopenmp -march=native -fPIC")
 
-add_library(pyPSiNad_v1 SHARED pybind11/libpyPSiNad_v1.cpp)
+add_library(pyPSiNaD_v1 SHARED pybind11/libpyPSiNaD_v1.cpp)
 if(APPLE)
     set(COMPILE_FLAGS_USED "-Os -march=native -fPIC")
 else()
     set(COMPILE_FLAGS_USED "-Os -fopenmp -march=native -fPIC")
 endif()
 
-set_target_properties(pyPSiNad_v1 PROPERTIES
+set_target_properties(pyPSiNaD_v1 PROPERTIES
     LINK_FLAGS "${EXTRA_LINK_FLAGS}"
     COMPILE_FLAGS ${COMPILE_FLAGS_USED}
-    LIBRARY_OUTPUT_DIRECTORY "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNad"
+    LIBRARY_OUTPUT_DIRECTORY "${PSINAD_PYTHON_STAGING_DIR}/pyPSiNaD"
     )
 target_link_libraries(
-    pyPSiNad_v1
+    pyPSiNaD_v1
     pybind11::embed
     ${SHARED_TARGET}
 )
@@ -175,7 +175,7 @@ SET(WRAPPER_INCLUDE_DIRS)
 FOREACH(subdir ${WRAPPER_BASE_SUBDIRS})
     SET(WRAPPER_INCLUDE_DIRS ${WRAPPER_INCLUDE_DIRS}
                          ${CMAKE_SOURCE_DIR}/${subdir}/include
-                         ${CMAKE_SOURCE_DIR}/${subdir}/include/kids)
+                         ${CMAKE_SOURCE_DIR}/${subdir}/include/psnd)
 ENDFOREACH(subdir)
 SET(WRAPPER_INCLUDE_DIRS 
     ${WRAPPER_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/thirdpart

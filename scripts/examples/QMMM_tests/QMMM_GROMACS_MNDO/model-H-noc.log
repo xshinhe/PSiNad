@@ -33,7 +33,7 @@ of the License, or (at your option) any later version.
 GROMACS:      gmx mdrun, version 2021.4-Ubuntu-2021.4-2
 Executable:   /usr/bin/gmx
 Data prefix:  /usr
-Working dir:  /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO
+Working dir:  /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO
 Process ID:   12314
 Command line:
   gmx mdrun -s model-H-noc.tpr -o model-H-noc.trr -e model-H-noc.edr -g model-H-noc.log -backup no

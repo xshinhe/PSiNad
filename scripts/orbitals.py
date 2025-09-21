@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# KIDS SCRIPTS (adapted from COMBRAMM)
+# PSND SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -36,7 +36,7 @@ import numpy as np  # numpy library for scientific computation
 # import local modules and classes
 
 import constants  # values of physical constants and conversion factors
-import kids_log  # manages log file output + start/end procedures
+import psnd_log  # manages log file output + start/end procedures
 import subprocess  # run external program as child process
 
 #####################################################################################################
@@ -565,7 +565,7 @@ def dfactorial(i):
 if __name__ == '__main__':
 
     # start COBRAMM with message to log
-    kids_log.cobramstart()
+    psnd_log.cobramstart()
 
     gauOrb = Orbitals.readMOfromGaussianOutput("gaussian-QM.log")
 

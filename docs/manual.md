@@ -13,18 +13,18 @@
 
 ## Basic Usage
 
-This (cpp-)PSiNad project comprises three standalone files: `kids`, `libcppkids.so`, and `libpykids.so`. Detailed documentation for the backend functionality provided by `libcppkids.so` can be found in the [C++ APIs](api/cpp.md), while information regarding the frontend functionality of `libpykids.so` is available in the [Python APIs](api/python.md). This manual primarily focuses on the C++ executable `kids`.
+This (cpp-)PSiNaD project comprises three standalone files: `psnd`, `libcpppsnd.so`, and `libpypsnd.so`. Detailed documentation for the backend functionality provided by `libcpppsnd.so` can be found in the [C++ APIs](api/cpp.md), while information regarding the frontend functionality of `libpypsnd.so` is available in the [Python APIs](api/python.md). This manual primarily focuses on the C++ executable `psnd`.
 
-The kids C++ frontend leverages MPI for parallel processing, a feature not available in Python. Consequently, the Python APIs are implemented natively in Python to provide similar functionality. The simulation is controlled by two primary sources of parameters. The first source is command-line arguments, parsed using gflags (more details at https://github.com/gflags/gflags), which are specific to the C++ frontend. The second source is user-defined custom JSON configuration files, commonly utilized in both the C++ and Python frontends.
+The psnd C++ frontend leverages MPI for parallel processing, a feature not available in Python. Consequently, the Python APIs are implemented natively in Python to provide similar functionality. The simulation is controlled by two primary sources of parameters. The first source is command-line arguments, parsed using gflags (more details at https://github.com/gflags/gflags), which are specific to the C++ frontend. The second source is user-defined custom JSON configuration files, commonly utilized in both the C++ and Python frontends.
 
 Here's a quick(/basic) example demonstrating parallel simulation with MPI:
 ```sh
-mpirun -np 32 ./kids -handler=parallel -w -d output_dir -dump final -p param.json
+mpirun -np 32 ./psinad -w -d output_dir -dump final -p param.json
 ```
 
 In this example, `mpirun -np 32 ...` specifies arguments passed to MPI. Depending on the queue system used, this format may vary; for instance, in Slurm, you might use `srun -N 32 ...`.
 
-On the other hand, `-handler=parallel -w -d output_dir -dump final -p param.json` are gflags passed to kids, the C++ executable. Here, `param.json` serves as the user's configuration file for parsing.
+On the other hand, `-w -d output_dir -dump final -p param.json` are gflags passed to psnd, the C++ executable. Here, `param.json` serves as the user's configuration file for parsing.
 
 (Note: gflags supports four types of formats for specifying flags: `-flag=value`, `-flag value`, `--flag=value`, and `--flag value`.)
 
@@ -36,13 +36,13 @@ The task is managed by the parallel handler (it is the default handler), ensurin
 To explore the full list of available command-line arguments enabled by gflags, execute:
 
 ```sh
-./kids --help # get help (something defined with gflags)
+./psinad --help # get help (something defined with gflags)
 ```
 
 This command will display:
 
 ```
-kids: Kernel Integrated Dynamics Simulator
+psnd: Kernel Integrated Dynamics Simulator
 
   -backup_time : double
       Specifies the timestep for backup (/1h)
@@ -97,24 +97,24 @@ Among the keywords (or gflags), one of the most crucial is the `handler` for the
 |   help_dataset|   Provides guidance on accessible variables defined in the dataset                                    |
 
 
-However, you are also required to configure your parameter file like param.json, specifying models, solvers, and other settings. If you're unsure about kids capabilities and how to write param.json, you can use the following command:
+However, you are also required to configure your parameter file like param.json, specifying models, solvers, and other settings. If you're unsure about psnd capabilities and how to write param.json, you can use the following command:
 ```sh
-./kids -handler help
+./psinad -handler help
 ```
 This command displays all possible models and solvers, along with their combinations. From this list, you can select the configurations needed for your simulation. For instance, if you find the LVCM model and NaF dynamics solver compatible and suitable, you can prepare your initial parameter JSON file as shown below:
 
 ```txt
 {
-    // This is a comment line enabled by kids (not native in JSON!)
+    // This is a comment line enabled by psnd (not native in JSON!)
     "handler": "parallel",
     "model": "LVCM",
     "solver": "NaF"
 }
 ```
-Based on this file, you'll also need to add details to the model_param and solver_param fields to instruct kids on how to set up the parameters of your models and solvers. However, you can rely on an automatic way to generate default fields by running:
+Based on this file, you'll also need to add details to the model_param and solver_param fields to instruct psnd on how to set up the parameters of your models and solvers. However, you can rely on an automatic way to generate default fields by running:
 
 ```sh
-./kids -handler=help_param -p param.json
+./psinad -handler=help_param -p param.json
 ```
 This command will generate a new `param_gen.json` file in your workspace directory (specified by the `-d` flag). Finally, a full parameter file may look like this:
 
@@ -162,15 +162,15 @@ One format is the dataset file (.ds), which you can dump during or after the sim
 ```txt
 ...
 backup.1.occ_nuc 
-kids_int        1
+psnd_int        1
                 1
 
 backup.1.p 
-kids_real       1  
+psnd_real       1  
 1.26779265e+02
 
 backup.1.x 
-kids_real       1  
+psnd_real       1  
 2.22689348e+01
 ...
 ```
@@ -216,9 +216,9 @@ The intrinsically built keywords are listed as:
 
 **Advanced Usage**
 
-Keywords prefixed with "$" denote several intrinsic rules. For more advanced control over the simulation outputs, you can utilize kids's result rule syntax.
-- Without the "$" prefix, you can access any variable names defined in the DataSet. The variable names follow the name syntax `NAME{field@time}<ESSHAPE>`. In this approach, if the symbol is not in the DataSet, kids will report an error. (To view available variables in the DataSet, use the `-handler=help_dataset` flag).
-- You can use the `NAMEOUT (NAME1, NAME2, ..., NAMEk) = FORMULA` format (where each name obeys the name syntax) to output custom-defined variables. If `NAMEOUT` is not defined in the DataSet, kids will assist in defining it.
+Keywords prefixed with "$" denote several intrinsic rules. For more advanced control over the simulation outputs, you can utilize psnd's result rule syntax.
+- Without the "$" prefix, you can access any variable names defined in the DataSet. The variable names follow the name syntax `NAME{field@time}<ESSHAPE>`. In this approach, if the symbol is not in the DataSet, psnd will report an error. (To view available variables in the DataSet, use the `-handler=help_dataset` flag).
+- You can use the `NAMEOUT (NAME1, NAME2, ..., NAMEk) = FORMULA` format (where each name obeys the name syntax) to output custom-defined variables. If `NAMEOUT` is not defined in the DataSet, psnd will assist in defining it.
 - This syntax also allows for more complex rules, enabling both einsum rules and formula parsing. For examples of all possible types of rules in the result, refer to the documentation.
 
 Full examples of different rules is shown as:
@@ -257,7 +257,7 @@ Full examples of different rules is shown as:
 
 ## Restart
 
-In certain scenarios, users may encounter situations where it becomes necessary to restart a simulation due to corruption or to continue from a specific point in the computation. In such cases, the `-load` flag in kids proves invaluable. Whether it's to rectify errors or seamlessly resume an ongoing simulation, `-load=xxx.ds` empowers users to efficiently recalculate or restart their simulations with ease. This feature not only ensures data integrity but also provides a streamlined workflow, allowing users to pick up where they left off without unnecessary complications or delays.
+In certain scenarios, users may encounter situations where it becomes necessary to restart a simulation due to corruption or to continue from a specific point in the computation. In such cases, the `-load` flag in psnd proves invaluable. Whether it's to rectify errors or seamlessly resume an ongoing simulation, `-load=xxx.ds` empowers users to efficiently recalculate or restart their simulations with ease. This feature not only ensures data integrity but also provides a streamlined workflow, allowing users to pick up where they left off without unnecessary complications or delays.
 
 
 <div class="section_buttons">

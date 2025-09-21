@@ -1,14 +1,14 @@
-#include "kids/Sampling_Nucl.h"
+#include "psnd/Sampling_Nucl.h"
 
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_NAForce.h"
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_NAForce.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -54,7 +54,7 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
     // not that: all values defined by Kernel_Recorder will also be recovered later.
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) return stat;
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {
-        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
         _dataset->def(DATA::init::x, _dataset_load);
         _dataset->def(DATA::init::p, _dataset_load);
         _dataset->def(DATA::integrator::x, _dataset_load);
@@ -205,7 +205,7 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                 if (3 * NatomCheck != Dimension::N) {
                     std::cout << " 1 : " << NatomCheck * 3 << std::endl;
                     std::cout << " 2 : " << Dimension::N << std::endl;
-                    throw kids_error(utils::concat("openfiel is ", open_file, "; eachline:", eachline,
+                    throw psnd_error(utils::concat("openfiel is ", open_file, "; eachline:", eachline,
                                                    ";dimension error for rst : ", 3 * NatomCheck, "?", Dimension::N));
                 }
                 for (int i = 0; i < Dimension::N; ++i) {

@@ -32,7 +32,7 @@ import copy  # shallow and deep copy operations
 
 import CBF
 import logwrt  # manages log file output + start/end procedures
-import kids_env  # environmental variable for COBRAMM and 3rd-party software
+import psnd_env  # environmental variable for COBRAMM and 3rd-party software
 import molcas
 from tullyNEW import Tully
 
@@ -55,7 +55,7 @@ def prepare(command, step):
     """ prepare the directory for molpro calculation """
 
     # check that the environment to run molcas is properly defined
-    envDefined, errorMsg = kids_env.checkMolproEnv()
+    envDefined, errorMsg = psnd_env.checkMolproEnv()
     if not envDefined: logwrt.fatalError(errorMsg)
 
     # stuff to do at the beginning of a molpro calculation

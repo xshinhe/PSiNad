@@ -1,4 +1,4 @@
-#include "kids/Model_QMInterface.h"
+#include "psnd/Model_QMInterface.h"
 
 #include <unistd.h>
 
@@ -6,19 +6,17 @@
 #include <sstream>
 
 #include "ghc/filesystem.hpp"
-#include "kids/Kernel_Representation.h"
-#include "kids/chem.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/chem.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 static std::string toLower(const std::string& input) {
     std::string result = input;  // 创建一个副本
-    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
-        return std::tolower(c);
-    });
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
     return result;
 }
 
@@ -48,13 +46,13 @@ void Model_QMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
     save_every_step = _param->get_bool({"model.qm_save_every_step"}, LOC(), false);
     sstep_dataset   = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
 
-    char* p = getenv("KIDS_PYTHON");
-    if (p != nullptr) pykids_path = p;
-    if (pykids_path == "" || !isFileExists(utils::concat(pykids_path, "/", "QM.py")))
-        throw kids_error("please correctly setup env: KIDS_PYTHON");
+    char* p = getenv("PSND_PYTHON");
+    if (p != nullptr) pypsnd_path = p;
+    if (pypsnd_path == "" || !isFileExists(utils::concat(pypsnd_path, "/", "QM.py")))
+        throw psnd_error("please correctly setup env: PSND_PYTHON");
 
     if (!isFileExists(qm_config_in))
-        throw kids_error("QM config not found, please set model.qm_config = <your config file>");
+        throw psnd_error("QM config not found, please set model.qm_config = <your config file>");
 
     // read temperature
     double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0f);
@@ -111,13 +109,13 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     getline(ifs, stmp, '\n');
     if (std::stringstream{stmp} >> itmp) natom = itmp;
     std::cout << "number of atom: " << stmp << std::endl;
-    kids_assert(natom * 3 == Dimension::N, "Dimension Error");
+    psnd_assert(natom * 3 == Dimension::N, "Dimension Error");
     getline(ifs, stmp, '\n');
     for (int iatom = 0, idx = 0; iatom < natom; ++iatom) {
         if (ifs >> stmp) atoms[iatom] = chem::getElemIndex(stmp);
         for (int a = 0; a < 3; ++a) {
             if (ifs >> dtmp) x0[idx] = dtmp / phys::au_2_ang;
-            mass[idx] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu; // 计算原子质量  提前
+            mass[idx] = chem::getElemMass(atoms[iatom]) / phys::au_2_amu;  // 计算原子质量  提前
             idx++;
         }
     }
@@ -130,7 +128,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     // 初始化读取hessian 提前
     std::string read_hess = _param->get_string({"model.read_hess", "solver.read_hess"}, LOC(), "NULL");
     if (read_hess != "NULL") {  // used for sampling
-        if (!isFileExists(read_hess)) throw kids_error("cannot open hess as .ds file");
+        if (!isFileExists(read_hess)) throw psnd_error("cannot open hess as .ds file");
         std::ifstream ifs(read_hess);  // prepare for NMA
         bool          read_w = false;
         bool          read_H = false;
@@ -167,7 +165,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         }
         ifs.close();
         if (read_H && !read_w) { EigenSolve(w.data(), Tmod.data(), hess.data(), Dimension::N); }
-        if (!read_H && !read_w && !read_T) throw kids_error("cannot read hess from ds");
+        if (!read_H && !read_w && !read_T) throw psnd_error("cannot read hess from ds");
     } else {
         for (int j = 0; j < Dimension::N; ++j) x_sigma[j] = 0.0e0, p_sigma[j] = 0.0e0;
     }
@@ -214,7 +212,7 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
 
     // check if x has NaN
     for (int i = 0; i < Dimension::N; ++i) {
-        if (std::isnan(x[i])) { throw kids_error("x has NaN, please check your input file or QM code"); }
+        if (std::isnan(x[i])) { throw psnd_error("x has NaN, please check your input file or QM code"); }
     }
 
 
@@ -245,30 +243,32 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
 
     // call python executation
     //     // first lower the qm_String
-    std::string qm_string_lower = toLower(qm_string);
-    auto occ_nuc = _dataset->def(DATA::integrator::occ_nuc);
+    std::string  qm_string_lower = toLower(qm_string);
+    auto         occ_nuc         = _dataset->def(DATA::integrator::occ_nuc);
+    const double deltaE_thres    = 0.3e0 / phys::au_2_ev;  // 0.3 eV in atomic unit
     // 计算上一步中其他态跟占据态 occ 之间的能量差，能量差小于0.3eV才计算这两个态的耦合，注意eig是原子单位，需要转换为eV
     std::vector<std::pair<int, int>> occ_pairs;
     for (int i = 0; i < Dimension::F; ++i) {
         int j = occ_nuc[0];
         if (i != j) {
-            double dE = eig[i] - eig[j];
-            if (std::abs(dE) < 0.3 / 27.2114) {  // 0.3 eV
-                std::cout << "[QMInterface] Coupling between state " << i << " and occupied state " << j << " is considered, ΔE = " << dE * 27.2114 << " eV\n";
+            double deltaE = eig[i] - eig[j];
+            if (std::abs(deltaE) < deltaE_thres) {  // 0.3 eV
+                std::cout << "[QMInterface] Coupling between state " << i << " and occupied state " << j
+                          << " is considered, ΔE = " << deltaE * 27.2114 << " eV\n";
                 occ_pairs.emplace_back(i, j);
             }
         }
     }
     // 把occ pairs 转化为字符串的形式 如(0,1), (1,2) -> "01 12"
+    // @ambiguous: Does '112' represent (11,2) or (1,12)?
+    // @hexin
     std::string occ_pairs_str;
-    for (const auto& pair : occ_pairs) {
-        occ_pairs_str += utils::concat(pair.first, pair.second, " ");
-    }
+    for (const auto& pair : occ_pairs) { occ_pairs_str += utils::concat(pair.first, ",", pair.second, " "); }
 
-    std::string qm_call_str     = utils::concat("python ", pykids_path, "/QM.py -t ", try_level,  //
-                                                " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower, 
-                                            " -occ ", occ_nuc[0], " -ncouple ", occ_pairs_str);
-    int         s               = system(qm_call_str.c_str());
+    std::string qm_call_str = utils::concat("python ", pypsnd_path, "/QM.py -t ", try_level,  //
+                                            " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower, " -occ ",
+                                            occ_nuc[0], " -ncouple ", occ_pairs_str);
+    int         s           = system(qm_call_str.c_str());
 
     // checkout the result
     if (s == 0 && isFileExists(utils::concat(path_str, "/interface.ds"))) {
@@ -321,7 +321,7 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
             if (stat.fail_type == 1 && !stat.last_attempt) stat.fail_type = 0;
         }
     } else {
-        if (s != 0) std::cout << "kids external shell status bug\n";
+        if (s != 0) std::cout << "psnd external shell status bug\n";
         if (!isFileExists(utils::concat(path_str, "/interface.ds"))) std::cout << "interface.ds is not generated\n";
         stat.succ      = false;
         stat.fail_type = 1;

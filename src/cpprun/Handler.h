@@ -2,10 +2,10 @@
 #ifndef Handler_H
 #define Handler_H
 
-#include "kids/Kernel.h"
-#include "kids/Model.h"
-#include "kids/Param.h"
-#include "kids/Solver.h"
+#include "psnd/Kernel.h"
+#include "psnd/Model.h"
+#include "psnd/Param.h"
+#include "psnd/Solver.h"
 
 namespace PROJECT_NS {
 
@@ -16,7 +16,7 @@ class Handler final {
    public:
     Handler(const std::string& solver_name, const std::string& model_name);
 
-    virtual ~Handler(){};
+    virtual ~Handler() {};
 
     int run(std::shared_ptr<Param>& PM);
 

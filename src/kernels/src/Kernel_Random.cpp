@@ -1,15 +1,15 @@
-#include "kids/Kernel_Random.h"
+#include "psnd/Kernel_Random.h"
 
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
 Kernel_Random::rng_t                      Kernel_Random::rand_rng;
 std::uniform_int_distribution<int>        Kernel_Random::rand_uid{0, 1};     ///< catalog distribution
-std::uniform_real_distribution<kids_real> Kernel_Random::rand_udd{0, 1};     ///< uniform distribution
-std::normal_distribution<kids_real>       Kernel_Random::rand_nd{0.0, 1.0};  ///< normal distribution
+std::uniform_real_distribution<psnd_real> Kernel_Random::rand_udd{0, 1};     ///< uniform distribution
+std::normal_distribution<psnd_real>       Kernel_Random::rand_nd{0.0, 1.0};  ///< normal distribution
 std::poisson_distribution<int>            Kernel_Random::rand_pd{1.0};       ///< possion distribution
 
 const std::string Kernel_Random::getName() { return "Kernel_Random"; }
@@ -30,19 +30,19 @@ int Kernel_Random::rand_catalog(int* res_arr, int N, bool reset, int begin, int 
     return 0;
 }
 
-int Kernel_Random::rand_uniform(kids_real* res_arr, int N, kids_real sigma) {
+int Kernel_Random::rand_uniform(psnd_real* res_arr, int N, psnd_real sigma) {
     for (int i = 0; i < N; ++i) { res_arr[i] = sigma * rand_udd(rand_rng); }
     return 0;
 }
 
-int Kernel_Random::rand_gaussian(kids_real* res_arr, int N, kids_real sigma,
-                                 kids_real mu) {  // parse mu after sigma !!!
+int Kernel_Random::rand_gaussian(psnd_real* res_arr, int N, psnd_real sigma,
+                                 psnd_real mu) {  // parse mu after sigma !!!
     for (int i = 0; i < N; ++i) { res_arr[i] = mu + sigma * rand_nd(rand_rng); }
     return 0;
 }
 
-int Kernel_Random::rand_exponent(kids_real* res_arr, int N) {
-    kids_real randu;
+int Kernel_Random::rand_exponent(psnd_real* res_arr, int N) {
+    psnd_real randu;
     for (int i = 0; i < N; ++i) {
         rand_uniform(&randu);
         res_arr[i] = -std::log(1.0 - randu);
@@ -50,19 +50,19 @@ int Kernel_Random::rand_exponent(kids_real* res_arr, int N) {
     return 0;
 }
 
-int Kernel_Random::rand_poisson(int* res_arr, int N, kids_real lambda) {
+int Kernel_Random::rand_poisson(int* res_arr, int N, psnd_real lambda) {
     // when lambda > 10, it can be approximated by rand_gaussian(res_arr, N, sqrt(lambda), lambda);
     rand_pd.param(pd_range{lambda});
     for (int i = 0; i < N; ++i) res_arr[i] = rand_pd(rand_rng);
     return 0;
 }
 
-int Kernel_Random::rand_simplex(kids_real* res_arr, int N, kids_real constr) {
+int Kernel_Random::rand_simplex(psnd_real* res_arr, int N, psnd_real constr) {
     for (int i = 1; i < N; ++i) res_arr[i] = rand_udd(rand_rng);
     res_arr[0] = 0;
     std::qsort(res_arr, N, sizeof(*res_arr), [](const void* a, const void* b) {
-        kids_real arg1 = *static_cast<const kids_real*>(a);
-        kids_real arg2 = *static_cast<const kids_real*>(b);
+        psnd_real arg1 = *static_cast<const psnd_real*>(a);
+        psnd_real arg2 = *static_cast<const psnd_real*>(b);
 
         if (arg1 < arg2) return -1;
         if (arg1 > arg2) return 1;
@@ -76,8 +76,8 @@ int Kernel_Random::rand_simplex(kids_real* res_arr, int N, kids_real constr) {
     return 0;
 }
 
-int Kernel_Random::rand_sphere(kids_real* res_arr, int N, kids_real constr) {
-    kids_real norm = 0.0f;
+int Kernel_Random::rand_sphere(psnd_real* res_arr, int N, psnd_real constr) {
+    psnd_real norm = 0.0f;
     for (int i = 0; i < N; ++i) {
         res_arr[i] = rand_nd(rand_rng);
         norm += res_arr[i] * res_arr[i];

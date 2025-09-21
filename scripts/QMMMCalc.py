@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# KIDS SCRIPTS (adapted from COMBRAMM)
+# PSND SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -26,7 +26,7 @@
 import shelve
 import os           # filesystem utilities
 import numpy as np  # numpy library for scientific computation
-import kids_log       # manages log file output + start/end procedures
+import psnd_log       # manages log file output + start/end procedures
 from Layers import Layers  # object to store information on the geometry and the layers definition
 # from harmonicSampling import HarmonicSampling  # class to handle Wigner sampling
 # from cobrammDriver import CobrammOutput  

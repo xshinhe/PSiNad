@@ -1,8 +1,8 @@
-#include "kids/Kernel_Iterative.h"
+#include "psnd/Kernel_Iterative.h"
 
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -32,14 +32,14 @@ void Kernel_Iterative::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     isamp        = DS->def(DATA::control::isamp);
     at_condition = DS->def(DATA::control::at_condition);
     // save some variables
-    DS->def(VARIABLE<kids_int>("control.sstep", &Dimension::shape_1, "@"))[0] = sstep;
-    DS->def(VARIABLE<kids_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
-    DS->def(VARIABLE<kids_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
+    DS->def(VARIABLE<psnd_int>("control.sstep", &Dimension::shape_1, "@"))[0] = sstep;
+    DS->def(VARIABLE<psnd_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
+    DS->def(VARIABLE<psnd_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
 }
 
 Status& Kernel_Iterative::initializeKernel_impl(Status& stat) {
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) {  //
-        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
         // exactly copy from _dataset_load to _dataset
         // istep[0]          = _dataset_load->def_int("recover.istep", 1)[0]; // @TODO BUG
         // isamp[0]          = _dataset_load->def_int("recover.isamp", 1)[0]; // @TODO BUG
@@ -50,7 +50,7 @@ Status& Kernel_Iterative::initializeKernel_impl(Status& stat) {
         return stat;
     }
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
-        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
         t[0]              = _dataset_load->def_real("control.t", 1)[0];
         dt[0]             = dt0;
         isamp[0]          = 0;

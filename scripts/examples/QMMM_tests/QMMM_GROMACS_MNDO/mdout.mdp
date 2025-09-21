@@ -9,7 +9,7 @@
 ;	
 ;	Executable:   /usr/bin/gmx
 ;	Data prefix:  /usr
-;	Working dir:  /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO
+;	Working dir:  /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO
 ;	Command line:
 ;	  gmx grompp -f gromacs.mdp -c model-H-gen.gro -p model-H-noc.top -o model-H-noc.tpr -maxwarn 1 -backup no
 

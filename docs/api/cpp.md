@@ -12,6 +12,6 @@ How to extend DataSet Struct:
 
 How to extend Kernel Struct:
 
-## Embeded KIDS in Thirdpart Library
+## Embeded PSND in Thirdpart Library
 
 

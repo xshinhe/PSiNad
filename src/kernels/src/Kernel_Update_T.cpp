@@ -1,9 +1,9 @@
-#include "kids/Kernel_Update_T.h"
+#include "psnd/Kernel_Update_T.h"
 
-#include "kids/Kernel_Random.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 

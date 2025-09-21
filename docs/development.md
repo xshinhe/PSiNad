@@ -18,17 +18,17 @@ Developers' Responsibilities:
 
 ## Basic Types
 
-The basic types in kids are `kids_bool`, `kids_int`, `kids_real`, `kids_complex`, `kids_str`, `kids_param` and `kids_dataset`.
+The basic types in psnd are `psnd_bool`, `psnd_int`, `psnd_real`, `psnd_complex`, `psnd_str`, `psnd_param` and `psnd_dataset`.
 
 
-The PSiNad framework is divided into the following four basic components: Paramizer, Dataizer, Algorithmizer, Taskizer.
+The PSiNaD framework is divided into the following four basic components: Paramizer, Dataizer, Algorithmizer, Taskizer.
 
 1. **Paramizer**: The Paramizer can be implemented using JSON.
 
 The JSON library has good implementations in C++, and we can simply encapsulate its usage.
 ```cpp
 class Param;
-using kids_param = Param;
+using psnd_param = Param;
 ```
 
 2. **Dataizer**: We define the following classes:

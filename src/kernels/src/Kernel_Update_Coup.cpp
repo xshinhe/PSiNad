@@ -1,14 +1,14 @@
-#include "kids/Kernel_Update_Coup.h"
+#include "psnd/Kernel_Update_Coup.h"
 
 #include <algorithm>
 
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -50,7 +50,7 @@ void Kernel_Update_Coup::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     fadiat      = DS->def(DATA::integrator::COUP::fadiat);
     pb          = DS->def(DATA::integrator::COUP::pb);  // quantum momentum
 
-    // pf_cross      = DS->def<kids_bool>(DATA::integrator::pf_cross);
+    // pf_cross      = DS->def<psnd_bool>(DATA::integrator::pf_cross);
     U = DS->def(DATA::integrator::U);
     // Udt     = DS->def(DATA::integrator::Udt);
     Ucdt    = DS->def(DATA::integrator::Ucdt);
@@ -146,14 +146,14 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
     // double norm_nuc = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_nuc;
     // double norm_ele = 1.0e0 / std::sqrt(2.0e0 * phys::math::pi) / sigma_ele;
     for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-        span<kids_real>    x1 = this->x.subspan(iP1 * Dimension::N, Dimension::N);
-        span<kids_real>    p1 = this->p.subspan(iP1 * Dimension::N, Dimension::N);
-        span<kids_complex> c1 = this->c.subspan(iP1 * Dimension::F, Dimension::F);
+        span<psnd_real>    x1 = this->x.subspan(iP1 * Dimension::N, Dimension::N);
+        span<psnd_real>    p1 = this->p.subspan(iP1 * Dimension::N, Dimension::N);
+        span<psnd_complex> c1 = this->c.subspan(iP1 * Dimension::F, Dimension::F);
 
         for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
-            span<kids_real>    x2 = this->x.subspan(iP2 * Dimension::N, Dimension::N);
-            span<kids_real>    p2 = this->p.subspan(iP2 * Dimension::N, Dimension::N);
-            span<kids_complex> c2 = this->c.subspan(iP2 * Dimension::F, Dimension::F);
+            span<psnd_real>    x2 = this->x.subspan(iP2 * Dimension::N, Dimension::N);
+            span<psnd_real>    p2 = this->p.subspan(iP2 * Dimension::N, Dimension::N);
+            span<psnd_complex> c2 = this->c.subspan(iP2 * Dimension::F, Dimension::F);
 
             std::size_t P1P2 = iP1 * Dimension::P + iP2;
             gf_x[P1P2]       = 1.0e0;
@@ -304,9 +304,9 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
         }
         // CCPS EOM (better evaluated in adiabatic!)
         for (int iP1 = 0; iP1 < Dimension::P; ++iP1) {
-            span<kids_real>    Force1 = Force.subspan(iP1 * Dimension::NFF, Dimension::NFF);
-            span<kids_complex> K11    = this->K1.subspan(iP1 * Dimension::FF, Dimension::FF);
-            span<kids_complex> rhoe1  = this->rho_ele.subspan(iP1 * Dimension::FF, Dimension::FF);
+            span<psnd_real>    Force1 = Force.subspan(iP1 * Dimension::NFF, Dimension::NFF);
+            span<psnd_complex> K11    = this->K1.subspan(iP1 * Dimension::FF, Dimension::FF);
+            span<psnd_complex> rhoe1  = this->rho_ele.subspan(iP1 * Dimension::FF, Dimension::FF);
             elec_utils::ker_from_rho(K1.data(), rhoe1.data(), xi1, gamma1, Dimension::F);
             for (int j1 = 0; j1 < Dimension::N; ++j1) {
                 double fcoup = 0.0e0;
@@ -314,9 +314,9 @@ Status& Kernel_Update_Coup::executeKernel_impl(Status& stat) {
                 for (int iP2 = 0; iP2 < Dimension::P; ++iP2) {
                     double wgthere = gf_x[iP1 * Dimension::P + iP2] * gf_p[iP1 * Dimension::P + iP2];
                     norm += wgthere;
-                    span<kids_real>    Force2 = Force.subspan(iP2 * Dimension::NFF, Dimension::NFF);
-                    span<kids_complex> K22    = this->K2.subspan(iP2 * Dimension::FF, Dimension::FF);
-                    span<kids_complex> rhoe2  = this->rho_ele.subspan(iP2 * Dimension::FF, Dimension::FF);
+                    span<psnd_real>    Force2 = Force.subspan(iP2 * Dimension::NFF, Dimension::NFF);
+                    span<psnd_complex> K22    = this->K2.subspan(iP2 * Dimension::FF, Dimension::FF);
+                    span<psnd_complex> rhoe2  = this->rho_ele.subspan(iP2 * Dimension::FF, Dimension::FF);
                     elec_utils::ker_from_rho(K2.data(), rhoe2.data(), xi2, gamma2, Dimension::F);
 
                     ARRAY_MATMUL(rhored.data(), K11.data(), K22.data(),  //

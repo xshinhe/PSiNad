@@ -1,14 +1,14 @@
-#include "kids/RuleEvaluator.h"
+#include "psnd/RuleEvaluator.h"
 
 #include <iostream>
 #include <regex>
 #include <string>
 #include <vector>
 
-#include "kids/Einsum.h"
-#include "kids/Expression.h"
-#include "kids/debug_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Einsum.h"
+#include "psnd/Expression.h"
+#include "psnd/debug_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -22,7 +22,7 @@ template <typename T, typename Tout>
 void einsum_fun(EinsumHelper&                  EH,           //
                 Expression<T>&                 FP,           //
                 const std::vector<void*>&      data_inputs,  //
-                const std::vector<kids_dtype>& data_idtype,  //
+                const std::vector<psnd_dtype>& data_idtype,  //
                 Tout*                          data_output   //
 ) {
     auto& einsum_dims      = EH.einsum_dims;
@@ -49,14 +49,14 @@ void einsum_fun(EinsumHelper&                  EH,           //
 
         for (int iten = 0; iten < total_tensor; ++iten) {  //
             switch (data_idtype[iten]) {
-                case kids_int_type:
-                    holder[iten] = cast_at<T, kids_int>(data_inputs[iten], ipos_inputs[iten]);
+                case psnd_int_type:
+                    holder[iten] = cast_at<T, psnd_int>(data_inputs[iten], ipos_inputs[iten]);
                     break;
-                case kids_real_type:
-                    holder[iten] = cast_at<T, kids_real>(data_inputs[iten], ipos_inputs[iten]);
+                case psnd_real_type:
+                    holder[iten] = cast_at<T, psnd_real>(data_inputs[iten], ipos_inputs[iten]);
                     break;
-                case kids_complex_type: {
-                    holder[iten] = cast_at<T, kids_complex>(data_inputs[iten], ipos_inputs[iten]);
+                case psnd_complex_type: {
+                    holder[iten] = cast_at<T, psnd_complex>(data_inputs[iten], ipos_inputs[iten]);
                     break;
                 }
             }
@@ -125,7 +125,7 @@ RuleEvaluator::RuleEvaluator(const std::string&        rule,
 
     if (has_parameter) {
         ipos = vars_str.find(",");
-        if (ipos == std::string::npos) throw kids_error(utils::concat("bad rule format : ", rule));
+        if (ipos == std::string::npos) throw psnd_error(utils::concat("bad rule format : ", rule));
         std::string item_str = vars_str.substr(0, ipos);
         item_str.erase(0, item_str.find_first_not_of(" "));
         item_str.erase(item_str.find_last_not_of(" ") + 1);
@@ -134,7 +134,7 @@ RuleEvaluator::RuleEvaluator(const std::string&        rule,
             new VariableDescriptor(item_str, save, VariableDescriptorPolicy::Input));
 
         ipos = vars_str.find(",");
-        if (ipos == std::string::npos) throw kids_error(utils::concat("bad rule format : ", rule));
+        if (ipos == std::string::npos) throw psnd_error(utils::concat("bad rule format : ", rule));
         item_str = vars_str.substr(0, ipos);
         item_str.erase(0, item_str.find_first_not_of(" "));
         item_str.erase(item_str.find_last_not_of(" ") + 1);
@@ -143,7 +143,7 @@ RuleEvaluator::RuleEvaluator(const std::string&        rule,
             new VariableDescriptor(item_str, save, VariableDescriptorPolicy::Input));
 
         ipos = vars_str.find(",");
-        if (ipos != std::string::npos) throw kids_error(utils::concat("bad rule format : ", rule));
+        if (ipos != std::string::npos) throw psnd_error(utils::concat("bad rule format : ", rule));
         ipos     = vars_str.find(")");
         item_str = vars_str.substr(0, ipos);
         item_str.erase(0, item_str.find_first_not_of(" "));
@@ -181,13 +181,13 @@ RuleEvaluator::RuleEvaluator(const std::string&        rule,
     einsumHelper = std::shared_ptr<EinsumHelper>(new EinsumHelper(einsumString, inputShapes));
 
     // define result in dataset
-    expressionType = kids_void_type;
+    expressionType = psnd_void_type;
     for (auto& v : variables) {
-        if (v.dataType != kids_int_type && v.dataType != kids_real_type && v.dataType != kids_complex_type)
-            throw kids_error("access bad type");
+        if (v.dataType != psnd_int_type && v.dataType != psnd_real_type && v.dataType != psnd_complex_type)
+            throw psnd_error("access bad type");
         if (v.dataType > expressionType) expressionType = v.dataType;
     }
-    kids_dtype res_type = (result->dataType == kids_void_type) ? expressionType : result->dataType;
+    psnd_dtype res_type = (result->dataType == psnd_void_type) ? expressionType : result->dataType;
 
     totalTermNumber = einsumHelper->dh_output.total_size;
 
@@ -205,12 +205,12 @@ RuleEvaluator::RuleEvaluator(const std::string&        rule,
     std::vector<std::string> varslist;
     for (int i = 0; i < variables.size(); ++i) varslist.push_back(utils::concat("_", i));
     switch (expressionType) {
-        case kids_real_type: {
-            expressionId = Expression<kids_real>::registerExpression(expressionString, varslist);
+        case psnd_real_type: {
+            expressionId = Expression<psnd_real>::registerExpression(expressionString, varslist);
             break;
         }
-        case kids_complex_type: {
-            expressionId = Expression<kids_complex>::registerExpression(expressionString, varslist);
+        case psnd_complex_type: {
+            expressionId = Expression<psnd_complex>::registerExpression(expressionString, varslist);
             break;
         }
     }
@@ -223,69 +223,69 @@ void RuleEvaluator::calculateResult(int sampleIndex, bool update) {
     for (auto& var : variables) var.checkTrace(sampleIndex, update);  // update Trace
 
     switch (expressionType) {
-        case kids_real_type: {
-            auto&& eval = Expression<kids_real>::getExpressions()[expressionId];
-            if (result->dataType == kids_real_type) {
-                kids_real* tracedata = (kids_real*) (result->dataPointerTrace);
+        case psnd_real_type: {
+            auto&& eval = Expression<psnd_real>::getExpressions()[expressionId];
+            if (result->dataType == psnd_real_type) {
+                psnd_real* tracedata = (psnd_real*) (result->dataPointerTrace);
                 einsum_fun(*einsumHelper, eval, inputData, inputDataTypes, tracedata);
                 if (has_parameter) {
-                    kids_real* c1data = (kids_real*) c1->dataPointerRaw;
-                    kids_real* c2data = (kids_real*) c2->dataPointerRaw;
-                    kids_real* bldata = (kids_real*) balance->dataPointerRaw;
+                    psnd_real* c1data = (psnd_real*) c1->dataPointerRaw;
+                    psnd_real* c2data = (psnd_real*) c2->dataPointerRaw;
+                    psnd_real* bldata = (psnd_real*) balance->dataPointerRaw;
                     for (int i = 0; i < totalTermNumber; ++i)
                         tracedata[i] = c1data[0] * tracedata[i] - c2data[0] * bldata[i];
                 }
                 if (result->vtype == VariableDescriptorPolicy::TabularOutput) {
-                    kids_real* resdata = (kids_real*) (result->dataPointerRes0) + initialIndex;
+                    psnd_real* resdata = (psnd_real*) (result->dataPointerRes0) + initialIndex;
                     for (int i = 0; i < totalTermNumber; ++i) resdata[i] = tracedata[i];
                 }
             }
-            if (result->dataType == kids_complex_type) {
-                kids_complex* tracedata = (kids_complex*) (result->dataPointerTrace);
+            if (result->dataType == psnd_complex_type) {
+                psnd_complex* tracedata = (psnd_complex*) (result->dataPointerTrace);
                 einsum_fun(*einsumHelper, eval, inputData, inputDataTypes, tracedata);
                 if (has_parameter) {
-                    kids_real* c1data = (kids_real*) c1->dataPointerRaw;
-                    kids_real* c2data = (kids_real*) c2->dataPointerRaw;
-                    kids_real* bldata = (kids_real*) balance->dataPointerRaw;
+                    psnd_real* c1data = (psnd_real*) c1->dataPointerRaw;
+                    psnd_real* c2data = (psnd_real*) c2->dataPointerRaw;
+                    psnd_real* bldata = (psnd_real*) balance->dataPointerRaw;
                     for (int i = 0; i < totalTermNumber; ++i)
                         tracedata[i] = c1data[0] * tracedata[i] - c2data[0] * bldata[i];
                 }
                 if (result->vtype == VariableDescriptorPolicy::TabularOutput) {
-                    kids_complex* resdata = (kids_complex*) (result->dataPointerRes0) + initialIndex;
+                    psnd_complex* resdata = (psnd_complex*) (result->dataPointerRes0) + initialIndex;
                     for (int i = 0; i < totalTermNumber; ++i) resdata[i] = tracedata[i];
                 }
             }
             break;
         }
-        case kids_complex_type: {
-            auto&& eval = Expression<kids_complex>::getExpressions()[expressionId];
-            if (result->dataType == kids_real_type) {
-                kids_real* tracedata = (kids_real*) (result->dataPointerTrace);
+        case psnd_complex_type: {
+            auto&& eval = Expression<psnd_complex>::getExpressions()[expressionId];
+            if (result->dataType == psnd_real_type) {
+                psnd_real* tracedata = (psnd_real*) (result->dataPointerTrace);
                 einsum_fun(*einsumHelper, eval, inputData, inputDataTypes, tracedata);
                 if (has_parameter) {
-                    kids_real* c1data = (kids_real*) c1->dataPointerRaw;
-                    kids_real* c2data = (kids_real*) c2->dataPointerRaw;
-                    kids_real* bldata = (kids_real*) balance->dataPointerRaw;
+                    psnd_real* c1data = (psnd_real*) c1->dataPointerRaw;
+                    psnd_real* c2data = (psnd_real*) c2->dataPointerRaw;
+                    psnd_real* bldata = (psnd_real*) balance->dataPointerRaw;
                     for (int i = 0; i < totalTermNumber; ++i)
                         tracedata[i] = c1data[0] * tracedata[i] - c2data[0] * bldata[i];
                 }
                 if (result->vtype == VariableDescriptorPolicy::TabularOutput) {
-                    kids_real* resdata = (kids_real*) (result->dataPointerRes0) + initialIndex;
+                    psnd_real* resdata = (psnd_real*) (result->dataPointerRes0) + initialIndex;
                     for (int i = 0; i < totalTermNumber; ++i) resdata[i] = tracedata[i];
                 }
             }
-            if (result->dataType == kids_complex_type) {
-                kids_complex* tracedata = (kids_complex*) (result->dataPointerTrace);
+            if (result->dataType == psnd_complex_type) {
+                psnd_complex* tracedata = (psnd_complex*) (result->dataPointerTrace);
                 einsum_fun(*einsumHelper, eval, inputData, inputDataTypes, tracedata);
                 if (has_parameter) {
-                    kids_real* c1data = (kids_real*) c1->dataPointerRaw;
-                    kids_real* c2data = (kids_real*) c2->dataPointerRaw;
-                    kids_real* bldata = (kids_real*) balance->dataPointerRaw;
+                    psnd_real* c1data = (psnd_real*) c1->dataPointerRaw;
+                    psnd_real* c2data = (psnd_real*) c2->dataPointerRaw;
+                    psnd_real* bldata = (psnd_real*) balance->dataPointerRaw;
                     for (int i = 0; i < totalTermNumber; ++i)
                         tracedata[i] = c1data[0] * tracedata[i] - c2data[0] * bldata[i];
                 }
                 if (result->vtype == VariableDescriptorPolicy::TabularOutput) {
-                    kids_complex* resdata = (kids_complex*) (result->dataPointerRes0) + initialIndex;
+                    psnd_complex* resdata = (psnd_complex*) (result->dataPointerRes0) + initialIndex;
                     for (int i = 0; i < totalTermNumber; ++i) resdata[i] = tracedata[i];
                 }
             }
@@ -297,36 +297,36 @@ void RuleEvaluator::calculateResult(int sampleIndex, bool update) {
 void RuleEvaluator::collectResult() {
     if (result->vtype != VariableDescriptorPolicy::TabularOutput) return;
     switch (result->dataType) {
-        case kids_real_type: {
-            kids_real* fromdata = (kids_real*) result->dataPointerRes0;
-            kids_real* todata   = (kids_real*) result->dataPointerRes1;
+        case psnd_real_type: {
+            psnd_real* fromdata = (psnd_real*) result->dataPointerRes0;
+            psnd_real* todata   = (psnd_real*) result->dataPointerRes1;
             if (mode == RuleEvaluatorPolicy::copy || numCollects == 0) {
                 for (int i = 0; i < result->stackedshape->size(); ++i) todata[i] = fromdata[i];
             } else if (mode == RuleEvaluatorPolicy::sum) {
                 for (int i = 0; i < result->stackedshape->size(); ++i) todata[i] += fromdata[i];
             } else if (mode == RuleEvaluatorPolicy::average) {
-                kids_real k1 = numCollects / (kids_real) (numCollects + 1);
-                kids_real k2 = 1.0e0 - k1;
+                psnd_real k1 = numCollects / (psnd_real) (numCollects + 1);
+                psnd_real k2 = 1.0e0 - k1;
                 for (int i = 0; i < result->stackedshape->size(); ++i) todata[i] = k1 * todata[i] + k2 * fromdata[i];
             }
             break;
         }
-        case kids_complex_type: {
-            kids_complex* fromdata = (kids_complex*) result->dataPointerRes0;
-            kids_complex* todata   = (kids_complex*) result->dataPointerRes1;
+        case psnd_complex_type: {
+            psnd_complex* fromdata = (psnd_complex*) result->dataPointerRes0;
+            psnd_complex* todata   = (psnd_complex*) result->dataPointerRes1;
             if (mode == RuleEvaluatorPolicy::copy || numCollects == 0) {
                 for (int i = 0; i < result->stackedshape->size(); ++i) todata[i] = fromdata[i];
             } else if (mode == RuleEvaluatorPolicy::sum) {
                 for (int i = 0; i < result->stackedshape->size(); ++i) todata[i] += fromdata[i];
             } else if (mode == RuleEvaluatorPolicy::average) {
-                kids_real k1 = numCollects / (kids_real) (numCollects + 1);
-                kids_real k2 = 1.0e0 - k1;
+                psnd_real k1 = numCollects / (psnd_real) (numCollects + 1);
+                psnd_real k2 = 1.0e0 - k1;
                 for (int i = 0; i < result->stackedshape->size(); ++i) todata[i] = k1 * todata[i] + k2 * fromdata[i];
             }
             break;
         }
         default: {
-            throw kids_error("error type");
+            throw psnd_error("error type");
         }
     }
     numCollects++;
@@ -335,13 +335,13 @@ void RuleEvaluator::collectResult() {
 void RuleEvaluator::writeTo(std::ofstream& ofs, void* data, int sampleIndex) {
     if (result->vtype == VariableDescriptorPolicy::Input) return;
     switch (result->dataType) {
-        case kids_real_type: {
-            kids_real* resdata = (kids_real*) (data) + sampleIndex * totalTermNumber;
+        case psnd_real_type: {
+            psnd_real* resdata = (psnd_real*) (data) + sampleIndex * totalTermNumber;
             for (int i = 0; i < totalTermNumber; ++i) ofs << FMT(8) << resdata[i];
             break;
         }
-        case kids_complex_type: {
-            kids_complex* resdata = (kids_complex*) (data) + sampleIndex * totalTermNumber;
+        case psnd_complex_type: {
+            psnd_complex* resdata = (psnd_complex*) (data) + sampleIndex * totalTermNumber;
             for (int i = 0; i < totalTermNumber; ++i) ofs << FMT(8) << real(resdata[i]) << FMT(8) << imag(resdata[i]);
             break;
         }

@@ -6,7 +6,7 @@ The Paramizer is the container for parameter input, natively in JSON.  The JSON 
 
 ```cpp
 class Param;
-using kids_param = Param;
+using psnd_param = Param;
 ```
 
 There are two way for Param to load parameter list. One is from the string:

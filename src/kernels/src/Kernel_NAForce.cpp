@@ -1,18 +1,18 @@
-#include "kids/Kernel_NAForce.h"
+#include "psnd/Kernel_NAForce.h"
 
 #include <algorithm>
 
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
-double calc_alpha(kids_real* V, int i = 0, int k = 1, int F = 2) {  // acoording to mix angle
+double calc_alpha(psnd_real* V, int i = 0, int k = 1, int F = 2) {  // acoording to mix angle
     int ii = i * (F + 1), kk = k * (F + 1), ik = i * F + k;
     if (V[ii] == V[kk]) return 1.0e0;
     double res = 2.0e0 / phys::math::pi * atan(2 * V[ik] / (V[ii] - V[kk]));

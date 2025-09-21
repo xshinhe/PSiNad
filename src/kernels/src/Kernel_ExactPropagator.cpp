@@ -1,29 +1,21 @@
+#include "psnd/Kernel_ExactPropagator.h"
 
-
-
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
-#include "kids/Kernel_ExactPropagator.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_Representation.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
-const std::string Kernel_ExactPropagator::getName() { 
-    return "Kernel_ExactPropagator"; 
-}
+const std::string Kernel_ExactPropagator::getName() { return "Kernel_ExactPropagator"; }
 
-int Kernel_ExactPropagator::getType() const { 
-    return utils::hash("Kernel_ExactPropagator"); 
-}
+int Kernel_ExactPropagator::getType() const { return utils::hash("Kernel_ExactPropagator"); }
 
-void Kernel_ExactPropagator::setInputParam_impl(std::shared_ptr<Param> PM){
-    
-}
+void Kernel_ExactPropagator::setInputParam_impl(std::shared_ptr<Param> PM) {}
 
-    void Kernel_ExactPropagator::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
+void Kernel_ExactPropagator::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     f    = DS->def(DATA::integrator::f);
     fadd = DS->def(DATA::integrator::fadd);
     p    = DS->def(DATA::integrator::p);
@@ -41,24 +33,24 @@ void Kernel_ExactPropagator::setInputParam_impl(std::shared_ptr<Param> PM){
     rho_nuc = DS->def(DATA::integrator::rho_nuc);
     c       = DS->def(DATA::integrator::c);
     Ekin    = DS->def(DATA::integrator::Ekin);
-    dt      = DS->def(DATA::control::dt); 
+    dt      = DS->def(DATA::control::dt);
 
     // 分配 B_vec - Dim: [N]
-    B_vec = DS->def(VARIABLE<kids_real>("integrator.B_vec", &Dimension::shape_N, "@"));
-    
+    B_vec = DS->def(VARIABLE<psnd_real>("integrator.B_vec", &Dimension::shape_N, "@"));
+
     // 分配其他必需的变量
     alpha = DS->def(DATA::integrator::alpha);
     fproj = DS->def(DATA::integrator::tmp::fproj);
     ftmp  = DS->def(DATA::integrator::tmp::ftmp);
     wrho  = DS->def(DATA::integrator::tmp::wrho);
-    
+
     // 分配缺少的变量
     occ_nuc = DS->def(DATA::integrator::occ_nuc);
     rho_ele = DS->def(DATA::integrator::rho_ele);
-    m = DS->def(DATA::integrator::m);
-    V = DS->def(DATA::model::V);
-    vpes = DS->def(DATA::model::vpes);
-    Epot = DS->def(DATA::integrator::Epot);
+    m       = DS->def(DATA::integrator::m);
+    V       = DS->def(DATA::model::V);
+    vpes    = DS->def(DATA::model::vpes);
+    Epot    = DS->def(DATA::integrator::Epot);
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:
@@ -70,12 +62,9 @@ void Kernel_ExactPropagator::setInputParam_impl(std::shared_ptr<Param> PM){
             ForceMat = DS->def(DATA::model::rep::dE);
             break;
     }
-
 }
 
-Status& Kernel_ExactPropagator::initializeKernel_impl(Status& stat) {
-    return stat;
-}
+Status& Kernel_ExactPropagator::initializeKernel_impl(Status& stat) { return stat; }
 
 Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
     if (stat.frozen) return stat;
@@ -96,22 +85,20 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
         auto V        = this->V.subspan(iP * Dimension::FF, Dimension::FF);
         auto vpes     = this->vpes.subspan(iP, 1);
         auto alpha    = this->alpha.subspan(iP, 1);
-        
+
         Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
-                                    Kernel_Representation::inp_repr_type,    //
-                                    Kernel_Representation::nuc_repr_type,    //
-                                    SpacePolicy::L);
+                                         Kernel_Representation::inp_repr_type,    //
+                                         Kernel_Representation::nuc_repr_type,    //
+                                         SpacePolicy::L);
 
         for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
             auto dVj = ForceMat.subspan(jFF, Dimension::FF);
             f[j]     = dVj[(occ_nuc[0]) * Dimension::Fadd1];
             fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_nuc.data(), dVj.data(), Dimension::F, Dimension::F));
-            
         }
-
     }
 
     return stat;
 }
 
-}
+}  // namespace PROJECT_NS

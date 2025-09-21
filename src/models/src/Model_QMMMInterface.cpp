@@ -1,4 +1,4 @@
-#include "kids/Model_QMMMInterface.h"
+#include "psnd/Model_QMMMInterface.h"
 
 #include <unistd.h>
 
@@ -6,19 +6,17 @@
 #include <sstream>
 
 #include "ghc/filesystem.hpp"
-#include "kids/Kernel_Representation.h"
-#include "kids/chem.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/chem.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 static std::string toLower(const std::string& input) {
     std::string result = input;  // 创建一个副本
-    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
-        return std::tolower(c);
-    });
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) { return std::tolower(c); });
     return result;
 }
 
@@ -41,23 +39,23 @@ int Model_QMMMInterface::getType() const { return utils::hash(FUNCTION_NAME); }
 void Model_QMMMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
     Kernel_Representation::onthefly = true;
 
-    qm_string = _param->get_string({"model.qmmm_flag"}, LOC(), "MNDO");
-    mm_string = _param->get_string({"model.mm_flag"}, LOC(), "amber");
-    qmmm_config_in        = _param->get_string({"model.qmmm_config"}, LOC(), "QMMM.in");
-    qmmm_layer_info       = _param->get_string({"model.qmmm_layer_info"}, LOC(), "layer_real.xyz");
-    qmmm_top_file         = _param->get_string({"model.qmmm_top_file"}, LOC(), "real.top,model-H.top");
-    crd_input            = _param->get_string({"model.qmmm_crd_input"}, LOC(), "real.crd");
-    save_every_calc       = _param->get_bool({"model.qmmm_save_every_calc"}, LOC(), true);
-    save_every_step       = _param->get_bool({"model.qmmm_save_every_step"}, LOC(), false);
-    sstep_dataset         = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
+    qm_string       = _param->get_string({"model.qmmm_flag"}, LOC(), "MNDO");
+    mm_string       = _param->get_string({"model.mm_flag"}, LOC(), "amber");
+    qmmm_config_in  = _param->get_string({"model.qmmm_config"}, LOC(), "QMMM.in");
+    qmmm_layer_info = _param->get_string({"model.qmmm_layer_info"}, LOC(), "layer_real.xyz");
+    qmmm_top_file   = _param->get_string({"model.qmmm_top_file"}, LOC(), "real.top,model-H.top");
+    crd_input       = _param->get_string({"model.qmmm_crd_input"}, LOC(), "real.crd");
+    save_every_calc = _param->get_bool({"model.qmmm_save_every_calc"}, LOC(), true);
+    save_every_step = _param->get_bool({"model.qmmm_save_every_step"}, LOC(), false);
+    sstep_dataset   = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
 
-    char* p = getenv("KIDSQMMM_PYTHON");
-    if (p != nullptr) kidsqmmm_path = p;
-    if (kidsqmmm_path == "" || !isFileExists(utils::concat(kidsqmmm_path, "/", "kidsqmmm.py")))
-        throw kids_error("please correctly setup env: KIDSQMMM_PYTHON");
+    char* p = getenv("PSNDQMMM_PYTHON");
+    if (p != nullptr) psndqmmm_path = p;
+    if (psndqmmm_path == "" || !isFileExists(utils::concat(psndqmmm_path, "/", "psndqmmm.py")))
+        throw psnd_error("please correctly setup env: PSNDQMMM_PYTHON");
 
     if (!isFileExists(qmmm_config_in))
-        throw kids_error("QMMM config not found, please set model.qm_config = <your config file>");
+        throw psnd_error("QMMM config not found, please set model.qm_config = <your config file>");
 
     // read temperature
     double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0f);
@@ -103,10 +101,10 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     t_ptr            = DS->def(DATA::control::t);
     istep_ptr        = DS->def(DATA::control::istep);
 
-    ARRAY_EYE(T.data(), Dimension::F); // 为什么要在这儿初始化T矩阵？
+    ARRAY_EYE(T.data(), Dimension::F);  // 为什么要在这儿初始化T矩阵？
     // ARRAY_EYE(Tmod.data(), Dimension::N);
 
-    if (!isFileExists(qmmm_layer_info)) { throw kids_error("qmm_layer_info is needed!"); }
+    if (!isFileExists(qmmm_layer_info)) { throw psnd_error("qmm_layer_info is needed!"); }
 
     double        dtmp;
     int           itmp;
@@ -131,7 +129,7 @@ void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     // PRINT_ARRAY(mass, 1, 12);
     ifs.close();
     natom = iatom;
-    if (Dimension::N != 3 * natom) throw kids_error("mismatch real_layers size with N");
+    if (Dimension::N != 3 * natom) throw psnd_error("mismatch real_layers size with N");
     for (int j = 0; j < Dimension::N; ++j) x_sigma[j] = 0.0e0, p_sigma[j] = 0.0e0;
 }
 
@@ -201,13 +199,13 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
 
     // call python executation
     // std::string qm_call_str =
-    //     utils::concat("python ", kidsqmmm_path, "/kidsqmmm.py -t ", try_level,  //
+    //     utils::concat("python ", psndqmmm_path, "/psndqmmm.py -t ", try_level,  //
     //                   " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " > ", path_str, "/log");
     std::string qm_string_lower = toLower(qm_string);
     std::string qm_call_str =
-        utils::concat("python ", kidsqmmm_path, "/kidsqmmm.py -t ", try_level,  " -mm ", mm_string, " -qm ", qm_string_lower,
-                      " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " -l ", qmmm_layer_info,  " -top ", qmmm_top_file,
-                      " > ", path_str, "/log 2>&1");
+        utils::concat("python ", psndqmmm_path, "/psndqmmm.py -t ", try_level, " -mm ", mm_string, " -qm ",
+                      qm_string_lower, " -d ", path_str, " -i ", qmmm_config_in, " -c ", crd_input, " -l ",
+                      qmmm_layer_info, " -top ", qmmm_top_file, " > ", path_str, "/log 2>&1");
     int s = system(qm_call_str.c_str());
 
     // checkout the result
@@ -263,7 +261,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
             if (stat.fail_type == 1 && !stat.last_attempt) stat.fail_type = 0;
         }
     } else {
-        if (s != 0) std::cout << "kids external shell status bug\n";
+        if (s != 0) std::cout << "psnd external shell status bug\n";
         if (!isFileExists(utils::concat(path_str, "/interface.ds"))) std::cout << "interface.ds is not generated\n";
         stat.succ      = false;
         stat.fail_type = 1;

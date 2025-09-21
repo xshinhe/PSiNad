@@ -13,7 +13,7 @@ mkdir samp
 ```
 Sampling initial conditions:
 ```bash
-mpirun -np 8 ./kids -w -handler=sampling -d=winger_samp_50K -p param_wiger_sampling_50K.json
+mpirun -np 8 ./psnd -w -handler=sampling -d=winger_samp_50K -p param_wiger_sampling_50K.json
 ```
 In the provided `param_wiger_sampling_50K.json` file, the parameters are specified as follows:
 
@@ -239,7 +239,7 @@ An illustrative file represents a simulation conducted using NaF-TW:
 
 One can perform the simulation by:
 ```txt
-./kids -w -handler=parallel -d init_from_0 -p param_nad.json
+./psnd -w -handler=parallel -d init_from_0 -p param_nad.json
 ```
 
 then each run will generate a `res.dat` file. And then can be treated with pandas.

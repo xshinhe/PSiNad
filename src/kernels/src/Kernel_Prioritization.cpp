@@ -1,7 +1,7 @@
-#include "kids/Kernel_Prioritization.h"
+#include "psnd/Kernel_Prioritization.h"
 
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
 
 namespace PROJECT_NS {
 

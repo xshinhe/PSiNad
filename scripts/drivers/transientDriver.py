@@ -32,7 +32,7 @@ import time  # provides various time-related functions
 
 import logwrt  # write messages and output to log (std out or cobramm.log)
 import constants  # physical and mathematical constants
-import kids_env  # function to check if executables are available
+import psnd_env  # function to check if executables are available
 from gaussianDriver import GaussianOutput
 from cobrammDriver import CobrammDriver, CobrammInput, CobrammOutput
 
@@ -782,7 +782,7 @@ class SpectronDriver:
 
             # check if COBRAMM executables are available
             for exe in ["spectron2", "iSPECTRONa.py", "iSPECTRONb.py"]:
-                if not kids_env.which(exe):
+                if not psnd_env.which(exe):
                     raise SpectronError(exe + " executable is not available")
             SpectronDriver._spectrumCheck = True
 
@@ -1112,7 +1112,7 @@ class MultiwfnDriver:
             except KeyError:
                 raise MultiwfnError("environment variable $Multiwfnpath is not defined")
 
-            if not kids_env.which("Multiwfn"):
+            if not psnd_env.which("Multiwfn"):
                 raise MultiwfnError("Multiwfn executable is not available")
             MultiwfnDriver._multiwfnCheck = True
 

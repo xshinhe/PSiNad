@@ -1,12 +1,12 @@
-#include "kids/Model.h"
+#include "psnd/Model.h"
 
 namespace PROJECT_NS {
 
-Model::Model(const std::string& customized_name) : Kernel(customized_name){};
+Model::Model(const std::string& customized_name) : Kernel(customized_name) {};
 
-void Model::setInputParam_impl(std::shared_ptr<Param> PM){};
+void Model::setInputParam_impl(std::shared_ptr<Param> PM) {};
 
-void Model::setInputDataSet_impl(std::shared_ptr<DataSet> DS){};
+void Model::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {};
 
 Status& Model::initializeKernel_impl(Status& stat) { return stat; }
 

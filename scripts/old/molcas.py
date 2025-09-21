@@ -37,7 +37,7 @@ from tullyNEW import Tully
 import parallel_numerics
 import product
 import logwrt  # manages log file output + start/end procedures
-import kids_env  # environmental variable for COBRAMM and 3rd-party software
+import psnd_env  # environmental variable for COBRAMM and 3rd-party software
 import constants  # values of common physical constants
 from Timer import Timer  # keep timings of the different sections of the code
 
@@ -57,7 +57,7 @@ SINGLEPOINT_DIR = "single_points"
 
 def prepare(command, step):
     # check that the environment to run molcas is properly defined
-    envDefined, errorMsg = kids_env.checkMolcasEnv()
+    envDefined, errorMsg = psnd_env.checkMolcasEnv()
     if not envDefined: logwrt.fatalError(errorMsg)
 
     if step == 0:

@@ -1,6 +1,6 @@
 from __future__ import absolute_import
-from pyPSiNad import Kernel, Param, DataSet, Status
-from pyPSiNad import version
+from pyPSiNaD import Kernel, Param, DataSet, Status
+from pyPSiNaD import version
 
 if __name__ == '__main__':
 	# THIS FILE IS GENERATED FROM SETUP.PY

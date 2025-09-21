@@ -1,14 +1,14 @@
-#include "kids/Sampling_MC.h"
+#include "psnd/Sampling_MC.h"
 
 #include <algorithm>
 
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -69,7 +69,7 @@ void Sampling_MC::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Ekin          = DS->def(DATA::integrator::Ekin);
     g             = DS->def(DATA::integrator::g);
     clone_account = DS->def(DATA::integrator::clone_account);
-    // pf_cross      = DS->def<kids_bool>(DATA::integrator::pf_cross);
+    // pf_cross      = DS->def<psnd_bool>(DATA::integrator::pf_cross);
 
     //
     Udt     = DS->def(DATA::integrator::Udt);
@@ -177,7 +177,7 @@ Status& Sampling_MC::executeKernel_impl(Status& stat) {
             auto T_now       = this->T.subspan(iP * Dimension::FF, Dimension::FF);
             auto Udt_now     = this->Udt.subspan(iP * Dimension::FF, Dimension::FF);
 
-            kids_real signdt = (iP % 2 == 0) ? dt : -dt;
+            psnd_real signdt = (iP % 2 == 0) ? dt : -dt;
 
             for (int j = 0; j < Dimension::N; ++j) {  //
                 x_now[j] = x_prev[j], p_now[j] = p_prev[j], f_now[j] = f_prev[j];

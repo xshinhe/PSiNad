@@ -2,7 +2,7 @@
 
 // #include <string>
 
-#define @PROJECT_NAME@ kids
+#define @PROJECT_NAME@ psnd
 
 constexpr char repo_name[] = "@PROJECT_NAME@";
 constexpr char repo_version[] = "@GIT_BRANCH@-(@GIT_DATE@)-@GIT_HASH@";

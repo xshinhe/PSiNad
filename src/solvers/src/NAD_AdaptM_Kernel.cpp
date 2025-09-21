@@ -1,19 +1,19 @@
-#include "kids/Kernel.h"
-#include "kids/Kernel_Conserve.h"
-#include "kids/Kernel_Dump_DataSet.h"
-#include "kids/Kernel_Elec_Functions.h"
-#include "kids/Kernel_Elec_Switch.h"
-#include "kids/Kernel_Load_DataSet.h"
-#include "kids/Kernel_NAForce.h"
-#include "kids/Kernel_Prioritization.h"
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Read_Dimensions.h"
-#include "kids/Kernel_Recorder.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/Kernel_Update.h"
-#include "kids/Model.h"
-#include "kids/Solver.h"
-#include "kids/Kernel_ExactPropagator.h"
+#include "psnd/Kernel.h"
+#include "psnd/Kernel_Conserve.h"
+#include "psnd/Kernel_Dump_DataSet.h"
+#include "psnd/Kernel_Elec_Functions.h"
+#include "psnd/Kernel_Elec_Switch.h"
+#include "psnd/Kernel_ExactPropagator.h"
+#include "psnd/Kernel_Load_DataSet.h"
+#include "psnd/Kernel_NAForce.h"
+#include "psnd/Kernel_Prioritization.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Read_Dimensions.h"
+#include "psnd/Kernel_Recorder.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/Kernel_Update.h"
+#include "psnd/Model.h"
+#include "psnd/Solver.h"
 
 namespace PROJECT_NS {
 
@@ -31,7 +31,7 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
     std::shared_ptr<Kernel_NAForce>        knaf(new Kernel_NAForce());
     std::shared_ptr<Kernel_Elec_Functions> kfuncs(new Kernel_Elec_Functions());
 
-    std::shared_ptr<Kernel_ExactPropagator> kexact(new Kernel_ExactPropagator(1.0)); // 提供默认的 scale 参数
+    std::shared_ptr<Kernel_ExactPropagator> kexact(new Kernel_ExactPropagator(1.0));  // 提供默认的 scale 参数
 
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5e0 / (double) split));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5e0));
@@ -44,7 +44,7 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
         kinte->appendChild(ku_p);
         kinte->appendChild(krepr);
         kinte->appendChild(ku_U);
-        // kinte->appendChild(kswitch);
+        // // kinte->appendChild(kswitch); //
         kinte->appendChild(knaf);
     }
 
@@ -55,6 +55,7 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
 
     for (int i = 0; i < split; ++i) {
         kinte->appendChild(ku_U);
+        // kinte->appendChild(kswitch);
         kinte->appendChild(knaf);  // @bug, add scale
         kinte->appendChild(ku_p);
         kinte->appendChild(krepr);

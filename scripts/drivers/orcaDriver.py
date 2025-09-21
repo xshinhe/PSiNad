@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# KIDS SCRIPTS (adapted from COMBRAMM)
+# PSND SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -37,8 +37,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
-from kids_env import which
-import kids_log  # manages log file output + start/end procedures
+from psnd_env import which
+import psnd_log  # manages log file output + start/end procedures
 import constants  # values of physical constants and conversion factors
 from QMOutput import QMOutput
 
@@ -446,7 +446,7 @@ class OrcaOutput(QMOutput):
 
         # permanently remove directory and orca files
         # try:
-            # if not kids_log.DEBUG_RUN:
+            # if not psnd_log.DEBUG_RUN:
                 # if self.dataDict["termination"] == 1:
                     # source=self.dataDict["calcdir"]+"/orca-QM.log"
                     # shutil.move(source,"orca-QM_err.log")
@@ -459,7 +459,7 @@ class OrcaOutput(QMOutput):
         del self.dataDict    
 
 if __name__ == "__main__":
-    from kids_log import Log
+    from psnd_log import Log
     from pprint import pformat
 
     Log.startSection(f'[TEST] {__file__}')

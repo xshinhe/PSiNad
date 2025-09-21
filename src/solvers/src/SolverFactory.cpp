@@ -1,4 +1,4 @@
-#include "kids/SolverFactory.h"
+#include "psnd/SolverFactory.h"
 
 namespace PROJECT_NS {
 

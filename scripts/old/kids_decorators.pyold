@@ -187,7 +187,7 @@ def source(profilefile):
 
 # ================================================================================
 
-def setKIDSProfile():
+def setPSNDProfile():
     # define the path of the available PROFILE_FILENAME file, first check PWD, then HOME
     filenameconf = None
     for d in [os.getenv('PWD'), os.getenv('HOME')]:
@@ -232,7 +232,7 @@ def setGaussianProfile(gversion, gpath):
 
 # ================================================================================
 
-def checkKIDSProfile(filenameconf):
+def checkPSNDProfile(filenameconf):
     """ Returns log message about the environment configuration
 
     Keyword arguments:
@@ -253,7 +253,7 @@ It is assumed that the environment has been already set\n"""
 
 # ================================================================================
 
-def checkKIDSEnv():
+def checkPSNDEnv():
     """ the function checks if the environment for AMBER execution is properly
         defined and if all the necessary executables are available """
 

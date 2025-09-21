@@ -41,7 +41,7 @@ Analysing residues not classified as Protein/DNA/RNA/Water and splitting into gr
 
 This run will generate roughly 0 Mb of data
 ================================================================================
-                        EXECUTE KIDS SCRIPTS CALCULATION
+                        EXECUTE PSND SCRIPTS CALCULATION
 --------------------------------------------------------------------------------
 
 
@@ -58,7 +58,7 @@ This run will generate roughly 0 Mb of data
 |          .dd:         .           ##   ##m    mm##mm    ##mmm##    #mmmmm#"  |
 |             .          lX         Kernel   Integrated   Dynamics   Simulator |
 |              ,        .,:.                                                   |
-|            l:,:c.                          KIDS SCRIPTS PART                 |
+|            l:,:c.                          PSND SCRIPTS PART                 |
 |             ;::.                           Copyright    2024                 |
 |                                                                              |
 +------------------------------------------------------------------------------+
@@ -69,10 +69,10 @@ This run will generate roughly 0 Mb of data
                                   ENV CONTROL
 --------------------------------------------------------------------------------
 
-The file /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO/.kids_profile is present
+The file /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO/.psnd_profile is present
 It will be read to set the paths of third-party software
 
-Start directory is /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO
+Start directory is /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO
 Running directory is .
 ================================================================================
                           INPUT MOLECULAR DESCRIPTION
@@ -90,8 +90,8 @@ MM third party software : gromacs
 
 Calculation type is HM, A QM/MM calculation is then requested
 
-Changing from /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO to .
-Current directory: /home/shin/share/KIDS/kids_scripts/examples/QMMM/QMMM_GROMACS_MNDO
+Changing from /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO to .
+Current directory: /home/shin/share/PSND/psnd_scripts/examples/QMMM/QMMM_GROMACS_MNDO
 ================================================================================
                             QM or QM/MM SINGLE POINT
 --------------------------------------------------------------------------------

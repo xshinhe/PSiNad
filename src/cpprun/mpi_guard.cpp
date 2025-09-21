@@ -19,25 +19,25 @@ int MPI_Guard::range(const size_t& idx1, const size_t& idx2, size_t& ista, size_
     return 0;
 }
 
-int MPI_Guard::reduce(const std::vector<std::tuple<kids_dtype, void*, void*, std::size_t>>& info_list) {
-    kids_dtype  dtype;
+int MPI_Guard::reduce(const std::vector<std::tuple<psnd_dtype, void*, void*, std::size_t>>& info_list) {
+    psnd_dtype  dtype;
     void *      from_data, *to_data;
     std::size_t ndata;
     for (auto&& info : info_list) {
         std::tie(dtype, from_data, to_data, ndata) = info;
         switch (dtype) {
-            case kids_int_type: {
-                MPI_Reduce((kids_int*) from_data, (kids_int*) to_data,  //
+            case psnd_int_type: {
+                MPI_Reduce((psnd_int*) from_data, (psnd_int*) to_data,  //
                            ndata, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
                 break;
             }
-            case kids_real_type: {
-                MPI_Reduce((kids_real*) from_data, (kids_real*) to_data,  //
+            case psnd_real_type: {
+                MPI_Reduce((psnd_real*) from_data, (psnd_real*) to_data,  //
                            ndata, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD);
                 break;
             }
-            case kids_complex_type: {
-                MPI_Reduce((kids_complex*) from_data, (kids_complex*) to_data,  //
+            case psnd_complex_type: {
+                MPI_Reduce((psnd_complex*) from_data, (psnd_complex*) to_data,  //
                            ndata, MPI_DOUBLE_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
                 break;
             }
@@ -46,29 +46,29 @@ int MPI_Guard::reduce(const std::vector<std::tuple<kids_dtype, void*, void*, std
     return 0;
 }
 
-int MPI_Guard::reduce(const std::tuple<kids_dtype, void*, void*, std::size_t>& info) {
-    // kids_dtype  dtype;
+int MPI_Guard::reduce(const std::tuple<psnd_dtype, void*, void*, std::size_t>& info) {
+    // psnd_dtype  dtype;
     // void *      from_data, *to_data;
     // std::size_t ndata;
     // std::tie(dtype, from_data, to_data, ndata) = info;
     auto [dtype, from_data, to_data, ndata] = info;
     switch (dtype) {
-        case kids_int_type: {
-            MPI_Reduce((kids_int*) from_data, (kids_int*) to_data,  //
+        case psnd_int_type: {
+            MPI_Reduce((psnd_int*) from_data, (psnd_int*) to_data,  //
                        ndata, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-            for (int i = 0; i < ndata; ++i) ((kids_int*) to_data)[i] /= MPI_Guard::nprocs;
+            for (int i = 0; i < ndata; ++i) ((psnd_int*) to_data)[i] /= MPI_Guard::nprocs;
             break;
         }
-        case kids_real_type: {
-            MPI_Reduce((kids_real*) from_data, (kids_real*) to_data,  //
+        case psnd_real_type: {
+            MPI_Reduce((psnd_real*) from_data, (psnd_real*) to_data,  //
                        ndata, MPI_DOUBLE_PRECISION, MPI_SUM, 0, MPI_COMM_WORLD);
-            for (int i = 0; i < ndata; ++i) ((kids_real*) to_data)[i] /= MPI_Guard::nprocs;
+            for (int i = 0; i < ndata; ++i) ((psnd_real*) to_data)[i] /= MPI_Guard::nprocs;
             break;
         }
-        case kids_complex_type: {
-            MPI_Reduce((kids_complex*) from_data, (kids_complex*) to_data,  //
+        case psnd_complex_type: {
+            MPI_Reduce((psnd_complex*) from_data, (psnd_complex*) to_data,  //
                        ndata, MPI_DOUBLE_COMPLEX, MPI_SUM, 0, MPI_COMM_WORLD);
-            for (int i = 0; i < ndata; ++i) ((kids_complex*) to_data)[i] /= MPI_Guard::nprocs;
+            for (int i = 0; i < ndata; ++i) ((psnd_complex*) to_data)[i] /= MPI_Guard::nprocs;
             break;
         }
     }

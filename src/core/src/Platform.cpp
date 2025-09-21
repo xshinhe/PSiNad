@@ -1,4 +1,4 @@
-#include "kids/Platform.h"
+#include "psnd/Platform.h"
 
 #include "version.h"
 

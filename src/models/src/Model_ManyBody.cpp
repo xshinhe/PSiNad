@@ -1,9 +1,9 @@
-#include "kids/Model_ManyBody.h"
+#include "psnd/Model_ManyBody.h"
 
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -63,12 +63,12 @@ void Model_ManyBody::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     }
 }
 
-kids_complex PauliX[4] = {phys::math::iz, phys::math::iu, phys::math::iu, phys::math::iz};
-kids_complex PauliY[4] = {phys::math::iz, -phys::math::im, phys::math::im, phys::math::iz};
-kids_complex PauliZ[4] = {phys::math::iu, phys::math::iz, phys::math::iz, -phys::math::iu};
+psnd_complex PauliX[4] = {phys::math::iz, phys::math::iu, phys::math::iu, phys::math::iz};
+psnd_complex PauliY[4] = {phys::math::iz, -phys::math::im, phys::math::im, phys::math::iz};
+psnd_complex PauliZ[4] = {phys::math::iu, phys::math::iz, phys::math::iz, -phys::math::iu};
 
 Status& Model_ManyBody::execute_Heisenberg(Status& stat) {
-    memset(H.data(), 0, Dimension::PFF * sizeof(kids_complex));
+    memset(H.data(), 0, Dimension::PFF * sizeof(psnd_complex));
     // for (int i = 0; i < Dimension::PFF; ++i) H[i] = H0[i];  // constant Hamiltonian
     // reduce X/Y/Z in temporary array redX, redY, redZ (saving time)
     for (int i = 0; i < Dimension::P; ++i) {

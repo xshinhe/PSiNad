@@ -10,20 +10,7 @@
 
 ## 用法
 
-首先配置 `.kids_profile` 中相关电子结构的环境变量，在调用脚本前，首先加载环境变量
-```bash
-source .kids_profile   # 电子结构软件相关环境变量
-export KIDS_PYTHON=/path/to/psinad/scripts     # PsiNad需要通过这个环境变量来调用python
-export KIDS_SCRIPTS_PATH=/path/to/psinad/scripts  # Psinad/scripts中脚本运行需要通过该环境变量知道scripts的路径
-```
-在 `.kids_profile` 中配置 `QM` 相关的环境变量
-
-```bash
-export MNDO_EXE_QM=mndo2020 # MNDO可执行文件名称
-export MNDO_DIR_QM=/where/you/install/mndo # MNDO可执行文件所在目录
-```
-
-其余量子化学软件所需要的环境变量见. `.kids_profile` 中的注释
+首先配置 `.psnd_profile` 中相关电子结构的环境变量
 
 然后使用如下方式调用
 
@@ -42,7 +29,6 @@ python QM.py -d <output_dir> -i <input_file> -qm <QM_type> -t <try_level>
 python QM.py -d qm_mndo -i QM.in.MNDO -qm mndo -t 0 
 ```
 
-其中分子构型可以通过指定.xyz文件来实现。level0的输入字段是QM软件的输入字段，具体的输入字段可以参考相应的QM软件的手册。其构型通过$COORD_XYZ替换为[GEOM]中指定的xyz文件。
 
 `QM.in.MNDO`
 ```
@@ -57,8 +43,8 @@ use_mpi = false # if nenessary
 
 [QM.MNDO]
 path = "/usr/local/bin/mndo2020"  #指定mndo可执行文件的path
-N = 21 # 一共多少个自由度
-F = 3 #计算多少个态
+N = 21 
+F = 3
 
 level0 = """JOP=-2 IOP=-6 IGEOM=1 IFORM=1 ICUTS=-1 ICUTG=-1  +
 ISCF=9 IPLSCF=9 DPREC=1D-8 DSTEP=1D-5 IPRINT=1 +
@@ -84,17 +70,17 @@ $COORD_XYZ
 输出文件为interface.ds
 ```
 interface.stat
-kids_int 1
+psnd_int 1
 0
 
 interface.eig #各个态能量
-kids_real 3
+psnd_real 3
  1.77288624e-01
  2.29903622e-01
  2.46598876e-01
 
-interface.dE  #各个态梯度， 这里计算了3个态的梯度，所以一共是21*3 
-kids_real 63
+interface.dE  #各个态梯度， 这里计算了3个态的梯度，所以一共是3*7=21行
+psnd_real 63
  1.54018518e-02  3.67794103e-02  2.28955007e-02 
  1.40574539e-02  2.30018711e-02  3.60711741e-02 
  1.92376646e-02  2.37613327e-02  1.65916058e-02 
@@ -118,7 +104,7 @@ kids_real 63
 -1.56743374e-02 -2.25069096e-02 -4.31733345e-02 
 
 interface.nac #非绝热耦合，一共是3*3*7*3=189个数
-kids_real 189
+psnd_real 189
  0.00000000e+00  3.37152473e-01 -1.90972541e-01 -3.37152473e-01  0.00000000e+00 -5.43943482e-01  1.90972541e-01  5.43943482e-01  0.00000000e+00 
  0.00000000e+00  2.79577052e-01  4.88479892e-01 -2.79577052e-01  0.00000000e+00  2.52409595e-01 -4.88479892e-01 -2.52409595e-01  0.00000000e+00 
  0.00000000e+00  1.14901121e-01 -4.60535772e-01 -1.14901121e-01  0.00000000e+00  2.36456148e-01  4.60535772e-01 -2.36456148e-01  0.00000000e+00 
@@ -142,7 +128,7 @@ kids_real 189
  0.00000000e+00 -4.50230033e-02  5.38373003e-01  4.50230033e-02  0.00000000e+00 -1.03409973e+00 -5.38373003e-01  1.03409973e+00  0.00000000e+00 
 
 interface.strength
-kids_real 3
+psnd_real 3
  0.00000000e+00
  5.78000000e-04
  2.26910000e-02

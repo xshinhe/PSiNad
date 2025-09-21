@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# KIDS SCRIPTS (adapted from COMBRAMM)
+# PSND SCRIPTS (adapted from COMBRAMM)
 # Author: xshinhe
 #
 # Copyright (c) 2024 Peking Univ. - GNUv3 License
@@ -33,7 +33,7 @@ import copy                     # deep copy utility
 import numpy as np              # numpy library for scientific computation
 # cobramm local modules
 from Layers import Layers       # Layers class to manage geometries
-import kids_log
+import psnd_log
 
 
 class Output:

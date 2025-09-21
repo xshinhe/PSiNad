@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from pyPSiNad import Kernel, Model, Param, DataSet, Status, data
+from pyPSiNaD import Kernel, Model, Param, DataSet, Status, data
 import typing
 import numpy as np
 

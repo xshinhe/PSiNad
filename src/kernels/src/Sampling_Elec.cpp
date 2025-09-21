@@ -1,14 +1,14 @@
-#include "kids/Sampling_Elec.h"
+#include "psnd/Sampling_Elec.h"
 
-#include "kids/Kernel_Elec_Utils.h"
-#include "kids/Kernel_NAForce.h"
-#include "kids/Kernel_Random.h"
-#include "kids/Kernel_Representation.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/linalg.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Elec_Utils.h"
+#include "psnd/Kernel_NAForce.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/Kernel_Representation.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/linalg.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -57,7 +57,7 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
     // not that: all values defined by Kernel_Recorder will also be recovered later.
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) return stat;
     if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
-        if (_dataset_load == nullptr) throw kids_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
         _dataset->def(DATA::init::c, _dataset_load);
         _dataset->def(DATA::init::rho_ele, _dataset_load);
         _dataset->def(DATA::init::rho_nuc, _dataset_load);
@@ -83,7 +83,7 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
         int iocc;
         Kernel_Random::rand_catalog(&iocc, 1, true, 0, Dimension::F - 1);
         iocc = ((use_sum) ? iocc : occ0);
-        w[0] = (use_sum) ? kids_complex(Dimension::F) : phys::math::iu;
+        w[0] = (use_sum) ? psnd_complex(Dimension::F) : phys::math::iu;
 
         switch (sampling_type) {
             case ElectronicSamplingPolicy::Focus: {
@@ -141,7 +141,7 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                 for (int i = 0; i < Dimension::F; ++i) c[i] = std::abs(c[i] * c[i]);
                 c[iocc] += 1.0e0;
                 for (int i = 0; i < Dimension::F; ++i) {
-                    kids_real randu;
+                    psnd_real randu;
                     Kernel_Random::rand_uniform(&randu);
                     randu *= phys::math::twopi;
                     c[i] = sqrt(c[i]) * (cos(randu) + phys::math::im * sin(randu));
@@ -178,14 +178,14 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                 // elec_utils::c_gaussian(c, Dimension::F); /// @debug
                 elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
                 elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
-                w[0] = kids_complex(Dimension::F);
+                w[0] = psnd_complex(Dimension::F);
                 break;
             }
             case ElectronicSamplingPolicy::Constraint: {
                 elec_utils::c_sphere(c.data(), Dimension::F);
                 elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
                 elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
-                w[0] = kids_complex(Dimension::F);
+                w[0] = psnd_complex(Dimension::F);
                 break;
             }
             default: {  // @NOTE: or read from _dataset_load?
@@ -229,10 +229,10 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
     _dataset->def(DATA::init::rho_ele, rho_ele);
     _dataset->def(DATA::init::rho_nuc, rho_nuc);
     _dataset->def(DATA::init::T, T);
-    // _dataset->def(VARIABLE<kids_complex>("init.c", &Dimension::shape_PF, "@"), c);
-    // _dataset->def(VARIABLE<kids_complex>("init.rho_ele", &Dimension::shape_PFF, "@"), rho_ele);
-    // _dataset->def(VARIABLE<kids_complex>("init.rho_nuc", &Dimension::shape_PFF, "@"), rho_nuc);
-    // _dataset->def(VARIABLE<kids_real>("init.T", &Dimension::shape_PFF, "@"), T);
+    // _dataset->def(VARIABLE<psnd_complex>("init.c", &Dimension::shape_PF, "@"), c);
+    // _dataset->def(VARIABLE<psnd_complex>("init.rho_ele", &Dimension::shape_PFF, "@"), rho_ele);
+    // _dataset->def(VARIABLE<psnd_complex>("init.rho_nuc", &Dimension::shape_PFF, "@"), rho_nuc);
+    // _dataset->def(VARIABLE<psnd_real>("init.T", &Dimension::shape_PFF, "@"), T);
     return stat;
 }
 

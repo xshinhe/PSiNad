@@ -31,7 +31,7 @@ import shlex       # simple lexical analysis for unix syntax
 # imports of local modules
 
 import logwrt  # write messages and output to log (std out or cobramm.log)
-import kids_env  # general purpose functions in use in COBRAMM
+import psnd_env  # general purpose functions in use in COBRAMM
 import constants  # value of physical constants of common use
 
 # imports of local objects
@@ -81,14 +81,14 @@ class CobrammDriver:
 
             # check if COBRAMM executables are available
             for exe in ["cobram.py", "cobramext", "freqext"]:
-                if not kids_env.which(exe):
+                if not psnd_env.which(exe):
                     raise CobrammError(exe + " executable is not available")
 
             # prepare execution of AMBER tools by creating an AmberDriver instance
             AmberDriver()
 
             # write message about the AMBER version currently in use
-            logwrt.writeLog("Running COBRAMM {0} from {1}\n".format(kids_env.getVersion(), cobramm_path))
+            logwrt.writeLog("Running COBRAMM {0} from {1}\n".format(psnd_env.getVersion(), cobramm_path))
 
             # set class variable to true, to skip this check at next initialization
             CobrammDriver._cobrammCheck = True
@@ -629,9 +629,9 @@ class CobrammOutput:
         if self.xmloutput.normal_modes:
 
             # to use the tools from gaussian to read the chk file, we need to have the gaussian environment set
-            kids_env.findKIDSProfile()
+            psnd_env.findPSNDProfile()
             # check that the environment for gaussian is actually defined
-            env_defined, error_msg = kids_env.checkGaussianOptEnv()
+            env_defined, error_msg = psnd_env.checkGaussianOptEnv()
             if not env_defined:
                 logwrt.fatalError(error_msg)
 

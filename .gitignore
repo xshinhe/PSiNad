@@ -4,13 +4,14 @@ build*
 .log
 .DS_Store
 .pyc
-wrappers/rustkids/target
+wrappers/rustpsnd/target
 docs/html
 __pycache__
 *.out
 *.err
 scripts/examples/*_tmp
 _scripts
-examples
+# don't include scripts/examples in repository!!!
+examples 
 # thirdpart
 

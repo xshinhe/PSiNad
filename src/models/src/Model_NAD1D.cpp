@@ -1,10 +1,10 @@
-#include "kids/Model_NAD1D.h"
+#include "psnd/Model_NAD1D.h"
 
-#include "kids/Kernel_Random.h"
-#include "kids/debug_utils.h"
-#include "kids/hash_fnv1a.h"
-#include "kids/macro_utils.h"
-#include "kids/vars_list.h"
+#include "psnd/Kernel_Random.h"
+#include "psnd/debug_utils.h"
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
 
 namespace PROJECT_NS {
 
@@ -937,7 +937,7 @@ void Model_NAD1D::setInputParam_impl(std::shared_ptr<Param> PM) {
 
 void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     Hsys = DS->def(DATA::model::Hsys);
-    memset(Hsys.data(), 0, Dimension::FF * sizeof(kids_real));
+    memset(Hsys.data(), 0, Dimension::FF * sizeof(psnd_real));
 
     if (nad1d_type == NAD1DPolicy::PURE) {
         std::ifstream ifs("Hsys.dat");
@@ -947,7 +947,7 @@ void Model_NAD1D::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         std::stringstream sstr(firstline);
         sstr >> H_unit_str;
         double    H_unit = phys::us::conv(phys::au::unit, phys::us::parse(H_unit_str));
-        kids_real val;
+        psnd_real val;
         for (int i = 0; i < Dimension::FF; ++i)
             if (ifs >> val) Hsys[i] = val / H_unit;
         ifs.close();

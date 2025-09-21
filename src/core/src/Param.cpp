@@ -1,4 +1,4 @@
-#include "kids/Param.h"
+#include "psnd/Param.h"
 
 #include <cstring>
 #include <fstream>
@@ -9,8 +9,8 @@
 #include <string>
 
 #include "configor/json.hpp"
-#include "kids/Exception.h"
-#include "kids/Types.h"
+#include "psnd/Exception.h"
+#include "psnd/Types.h"
 #include "toml11/include/toml.hpp"
 
 namespace PROJECT_NS {
@@ -32,7 +32,7 @@ class TomlObject : public Param::DataObject {
 
 Param::Param(const std::string &input, LoadOption option) {
     if (option == fromFile) {
-        auto ipos   = input.find_first_of(".");
+        auto ipos   = input.find_last_of(".");
         auto suffix = input.substr(ipos + 1, input.size());
         if (suffix == "json") {
             impl_t = JSON;
@@ -40,16 +40,16 @@ Param::Param(const std::string &input, LoadOption option) {
             std::ifstream ifs(input);
             try {
                 ifs >> std::dynamic_pointer_cast<JsonObject>(obj)->data;
-            } catch (const configor::configor_exception &e) { throw kids_error("Invalid Json File Format"); }
+            } catch (const configor::configor_exception &e) { throw psnd_error("Invalid Json File Format"); }
             ifs.close();
         } else if (suffix == "toml") {
             impl_t = TOML;
             obj    = std::shared_ptr<DataObject>(new TomlObject());
             try {
                 std::dynamic_pointer_cast<TomlObject>(obj)->data = toml::parse(input);
-            } catch (const toml::exception &e) { throw kids_error("Invalid Toml File Format"); }
+            } catch (const toml::exception &e) { throw psnd_error("Invalid Toml File Format"); }
         } else {
-            throw kids_error("unknown suffix of input! only json & toml are supported.");
+            throw psnd_error("unknown suffix of input! only json & toml are supported.");
         }
     } else if (option == fromString) {
         impl_t = (input[0] == '{') ? JSON : TOML;
@@ -58,17 +58,17 @@ Param::Param(const std::string &input, LoadOption option) {
             std::stringstream sstr(input);
             try {
                 sstr >> std::dynamic_pointer_cast<JsonObject>(obj)->data;
-            } catch (const configor::configor_exception &e) { throw kids_error("Invalid Json String Format"); }
+            } catch (const configor::configor_exception &e) { throw psnd_error("Invalid Json String Format"); }
         } else if (impl_t == TOML) {
             obj = std::shared_ptr<DataObject>(new TomlObject());
             try {
                 std::dynamic_pointer_cast<TomlObject>(obj)->data = toml::parse_str(input);
-            } catch (const toml::exception &e) { throw kids_error("Invalid Toml String Format"); }
+            } catch (const toml::exception &e) { throw psnd_error("Invalid Toml String Format"); }
         } else {
-            throw kids_error("unknown string format.");
+            throw psnd_error("unknown string format.");
         }
     } else {
-        throw kids_error("unknown option for Param");
+        throw psnd_error("unknown option for Param");
     }
 }
 
@@ -91,7 +91,7 @@ bool contains(const JsonObject::DataType &data, const std::string &key) {
 JsonObject::DataType &child(JsonObject::DataType &data, const std::string &key) {
     if (is_object(data)) return data[key];
     if (is_array(data)) return data[stoi(key)];
-    throw kids_error("bad child");
+    throw psnd_error("bad child");
     return data;
 }
 template <class T>
@@ -122,7 +122,7 @@ bool contains(const TomlObject::DataType &data, const std::string &key) {
 TomlObject::DataType &child(TomlObject::DataType &data, const std::string &key) {
     if (is_object(data)) return data[key];
     if (is_array(data)) return data[stoi(key)];
-    throw kids_error("bad child");
+    throw psnd_error("bad child");
     return data;
 }
 template <class T>
@@ -253,7 +253,7 @@ void Param::set_int(const std::string &key, int val) {
     if (impl_t == TOML) set_internal(std::dynamic_pointer_cast<TomlObject>(obj)->data, key, val);
 }
 
-void Param::set_real(const std::string &key, kids_real val) {
+void Param::set_real(const std::string &key, psnd_real val) {
     if (impl_t == JSON) set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val);
     if (impl_t == TOML) set_internal(std::dynamic_pointer_cast<TomlObject>(obj)->data, key, val);
 }
@@ -281,7 +281,7 @@ void Param::set_int_ifndef(const std::string &key, int val) {
     }
 }
 
-void Param::set_real_ifndef(const std::string &key, kids_real val) {
+void Param::set_real_ifndef(const std::string &key, psnd_real val) {
     if (impl_t == JSON) {
         if (!has_key(key)) { set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val); }
     }
@@ -317,7 +317,7 @@ static T get_internal(DType &data, const std::string &key, const std::string &lo
     bool        key1_exist = apply_internal<DType>(data, key1, (bool (*)(const DType &)) internal::is_true);
 
     if (!key1_exist && Required) {
-        throw kids_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ : Required"));
+        throw psnd_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ : Required"));
         return T();
     }
     if (!key1_exist && !Required) {
@@ -333,7 +333,7 @@ static T get_internal(DType &data, const std::string &key, const std::string &lo
             if (idx1 >= 0 && idx1 < data.size())
                 return get_internal<DType, T, Required>(data[idx1], key2, loc, qdim, default_value);
         } else {
-            throw kids_error("type error");
+            throw psnd_error("type error");
         }
     }
 
@@ -366,7 +366,7 @@ static T get_internal(DType &data, const std::string &key, const std::string &lo
         return q;
     }
     // cannot be adapted to existing conversions
-    throw kids_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ Data{", internal::dump(finaldata), "}",
+    throw psnd_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ Data{", internal::dump(finaldata), "}",
                                    " : Converting fatal"));
     return T();
 }
@@ -379,48 +379,48 @@ T get(DType &data, const std::vector<std::string> &keys, const std::string &loc,
             return get_internal<DType, T, Required>(data, key, loc, qdim, default_value);
     }
     if (!Required) return default_value;
-    throw kids_error(utils::concat(loc, ": Cannot get parameter for! key = ", keys[0]));
+    throw psnd_error(utils::concat(loc, ": Cannot get parameter for! key = ", keys[0]));
     return T();
 }
 
 /// new implementation
 /// @{
-kids_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc,
-                          const kids_bool &default_value) {
+psnd_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc,
+                          const psnd_bool &default_value) {
     if (impl_t == JSON)
-        return get<JsonObject::DataType, kids_bool, false>(  //
+        return get<JsonObject::DataType, psnd_bool, false>(  //
             std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, default_value);
     if (impl_t == TOML)
-        return get<TomlObject::DataType, kids_bool, false>(  //
+        return get<TomlObject::DataType, psnd_bool, false>(  //
             std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, default_value);
-    return kids_bool{};
+    return psnd_bool{};
 }
-kids_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc) {
+psnd_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc) {
     if (impl_t == JSON)
-        return get<JsonObject::DataType, kids_bool, true>(  //
-            std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, kids_bool());
+        return get<JsonObject::DataType, psnd_bool, true>(  //
+            std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, psnd_bool());
     if (impl_t == TOML)
-        return get<TomlObject::DataType, kids_bool, true>(  //
-            std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, kids_bool());
-    return kids_bool{};
+        return get<TomlObject::DataType, psnd_bool, true>(  //
+            std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, psnd_bool());
+    return psnd_bool{};
 }
-kids_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc, const kids_int &default_value) {
+psnd_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc, const psnd_int &default_value) {
     if (impl_t == JSON)
-        return get<JsonObject::DataType, kids_int, false>(  //
+        return get<JsonObject::DataType, psnd_int, false>(  //
             std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, default_value);
     if (impl_t == TOML)
-        return get<TomlObject::DataType, kids_int, false>(  //
+        return get<TomlObject::DataType, psnd_int, false>(  //
             std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, default_value);
-    return kids_int{};
+    return psnd_int{};
 }
-kids_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc) {
+psnd_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc) {
     if (impl_t == JSON)
-        return get<JsonObject::DataType, kids_int, true>(  //
-            std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, kids_int());
+        return get<JsonObject::DataType, psnd_int, true>(  //
+            std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, psnd_int());
     if (impl_t == TOML)
-        return get<TomlObject::DataType, kids_int, true>(  //
-            std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, kids_int());
-    return kids_int{};
+        return get<TomlObject::DataType, psnd_int, true>(  //
+            std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, psnd_int());
+    return psnd_int{};
 }
 std::string Param::get_string(const std::vector<std::string> &keys, const std::string &loc,
                               const std::string &default_value) {
@@ -442,34 +442,34 @@ std::string Param::get_string(const std::vector<std::string> &keys, const std::s
     return std::string{};
 }
 
-kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
-                          const kids_real &default_value) {
+psnd_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
+                          const psnd_real &default_value) {
     if (impl_t == JSON)
-        return get<JsonObject::DataType, kids_real, false>(  //
+        return get<JsonObject::DataType, psnd_real, false>(  //
             std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, qdim, default_value);
     if (impl_t == TOML)
-        return get<TomlObject::DataType, kids_real, false>(  //
+        return get<TomlObject::DataType, psnd_real, false>(  //
             std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, qdim, default_value);
-    return kids_real{};
+    return psnd_real{};
 }
-kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc,
-                          const kids_real &default_value) {
+psnd_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc,
+                          const psnd_real &default_value) {
     if (impl_t == JSON)
-        return get<JsonObject::DataType, kids_real, false>(  //
+        return get<JsonObject::DataType, psnd_real, false>(  //
             std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, default_value);
     if (impl_t == TOML)
-        return get<TomlObject::DataType, kids_real, false>(  //
+        return get<TomlObject::DataType, psnd_real, false>(  //
             std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, default_value);
-    return kids_real{};
+    return psnd_real{};
 }
-kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc) {
+psnd_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc) {
     if (impl_t == JSON)
-        return get<JsonObject::DataType, kids_real, true>(  //
-            std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, kids_real());
+        return get<JsonObject::DataType, psnd_real, true>(  //
+            std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d, psnd_real());
     if (impl_t == TOML)
-        return get<TomlObject::DataType, kids_real, true>(  //
-            std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, kids_real());
-    return kids_real{};
+        return get<TomlObject::DataType, psnd_real, true>(  //
+            std::dynamic_pointer_cast<TomlObject>(obj)->data, keys, loc, phys::none_d, psnd_real());
+    return psnd_real{};
 }
 /// @}
 
@@ -565,7 +565,7 @@ std::string Param::repr() {
 //     set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val);
 // }
 
-// void Param::set_real(const std::string &key, kids_real val) {
+// void Param::set_real(const std::string &key, psnd_real val) {
 //     set_internal(std::dynamic_pointer_cast<JsonObject>(obj)->data, key, val);
 // }
 
@@ -591,7 +591,7 @@ std::string Param::repr() {
 //         apply_internal(data, key1, [](const JsonObject::DataType &data) -> bool { return true; });
 
 //     if (!key1_exist && Required) {
-//         throw kids_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ : Required"));
+//         throw psnd_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ : Required"));
 //         return T();
 //     }
 //     if (!key1_exist && !Required) {
@@ -607,7 +607,7 @@ std::string Param::repr() {
 //             if (idx1 >= 0 && idx1 < data.size())
 //                 return get_internal<T, Required>(data[idx1], key2, loc, qdim, default_value);
 //         } else {
-//             throw kids_error("type error");
+//             throw psnd_error("type error");
 //         }
 //     }
 
@@ -648,7 +648,7 @@ std::string Param::repr() {
 //         }
 //     }
 //     // cannot be adapted to existing conversions
-//     throw kids_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ Data{", data[key].dump(4, ' '), "}",
+//     throw psnd_error(utils::concat(loc, " Type<", as_str<T>(), "> Key/", key, "/ Data{", data[key].dump(4, ' '), "}",
 //                                    " : Converting fatal"));
 //     return T();
 // }
@@ -661,30 +661,30 @@ std::string Param::repr() {
 //             return get_internal<T, Required>(data, key, loc, qdim, default_value);
 //     }
 //     if (!Required) return default_value;
-//     throw kids_error(utils::concat(loc, ": Cannot get parameter for! key = ", keys[0]));
+//     throw psnd_error(utils::concat(loc, ": Cannot get parameter for! key = ", keys[0]));
 //     return T();
 // }
 
 // /// new implementation
 // /// @{
-// kids_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc,
-//                           const kids_bool &default_value) {
-//     return get<kids_bool, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
+// psnd_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc,
+//                           const psnd_bool &default_value) {
+//     return get<psnd_bool, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
 //                                  default_value);
 // }
-// kids_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc) {
-//     return get<kids_bool, true>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
-//     kids_bool());
+// psnd_bool Param::get_bool(const std::vector<std::string> &keys, const std::string &loc) {
+//     return get<psnd_bool, true>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
+//     psnd_bool());
 // }
 
-// kids_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc, const kids_int &default_value)
+// psnd_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc, const psnd_int &default_value)
 // {
-//     return get<kids_int, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
+//     return get<psnd_int, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
 //                                 default_value);
 // }
-// kids_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc) {
-//     return get<kids_int, true>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
-//     kids_int());
+// psnd_int Param::get_int(const std::vector<std::string> &keys, const std::string &loc) {
+//     return get<psnd_int, true>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
+//     psnd_int());
 // }
 
 // std::string Param::get_string(const std::vector<std::string> &keys, const std::string &loc,
@@ -697,18 +697,18 @@ std::string Param::repr() {
 //                                   std::string());
 // }
 
-// kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
-//                           const kids_real &default_value) {
-//     return get<kids_real, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, qdim, default_value);
+// psnd_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc, const phys::dimension7 &qdim,
+//                           const psnd_real &default_value) {
+//     return get<psnd_real, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, qdim, default_value);
 // }
-// kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc,
-//                           const kids_real &default_value) {
-//     return get<kids_real, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
+// psnd_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc,
+//                           const psnd_real &default_value) {
+//     return get<psnd_real, false>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
 //                                  default_value);
 // }
-// kids_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc) {
-//     return get<kids_real, true>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
-//     kids_real());
+// psnd_real Param::get_real(const std::vector<std::string> &keys, const std::string &loc) {
+//     return get<psnd_real, true>(std::dynamic_pointer_cast<JsonObject>(obj)->data, keys, loc, phys::none_d,
+//     psnd_real());
 // }
 // /// @}
 
