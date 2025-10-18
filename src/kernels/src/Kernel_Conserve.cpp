@@ -16,6 +16,7 @@ int Kernel_Conserve::getType() const { return utils::hash(FUNCTION_NAME); }
 void Kernel_Conserve::setInputParam_impl(std::shared_ptr<Param> PM) {
     conserve_scale   = _param->get_bool({"solver.conserve_scale"}, LOC(), false);  // default as false
     thres_kcalpermol = _param->get_real({"solver.thres_kcalpermol"}, LOC(), 0.02);
+    use_energy_conserve = _param->get_bool({"solver.use_conserve"}, LOC(), true);
 }
 
 void Kernel_Conserve::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -66,14 +67,20 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
         for (int j = 0; j < Dimension::N; ++j) Ekin[0] += 0.5e0 * p[j] * p[j] / m[j];
 
         if (Kernel_Representation::onthefly) {
+            if (!use_energy_conserve) {
+                Etot[0] = Ekin[0] + Epot[0];
+                return stat;
+            }
+
             double thres = thres_kcalpermol;
 
             // if try last QM calculation. we totally loose energy conservation in it's first several steps
+            // this part is for setting threshold for each attempt
             const int nstep_loose = 5;
             if (stat.last_attempt && stat.fail_type == 1) { cnt_loose = nstep_loose; }
             if (stat.fail_type != 2 && cnt_loose > 0) {
                 thres = (cnt_loose * 5.0e0 + (nstep_loose - cnt_loose) * thres_kcalpermol) / nstep_loose;
-                std::cout << "try loose thres = " << thres << " because failure of QM\n";
+                std::cout << "[Kernel_Conserve] try loose thres = " << thres << " because failure of QM\n";
                 cnt_loose--;
             }
 
@@ -81,33 +88,38 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
             if (stat.last_attempt && stat.fail_type == 2) {
                 loose_10 = true;
                 thres    = 10.0 * thres_kcalpermol;  // loose threshold
-                std::cout << "try loose thres = " << thres << " because of failure of CONSERVATION\n";
+                std::cout << "[Kernel_Conserve] try loose thres = " << thres << " because of failure of CONSERVATION\n";
             }
 
             double deltaE = fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea;
+            // this part is for checking energy conservation according to previous settled threshold
             if (deltaE > thres) {
-                std::cout << "fail in conserve ERROR: "  //
+                std::cout << "[Kernel_Conserve] fail in conserve ERROR: "  //
                           << deltaE                      //
                           << " > " << thres << "\n";
                 stat.succ      = false;
                 stat.fail_type = 2;
                 if (stat.first_step) {
                     // the first step fail in energy conversation, so kinematic energy to too large for dt suggested
-                    std::cout << "warning: the conservation for the first step fails! but we continue to run with "
+                    std::cout << "[Kernel_Conserve] warning: the conservation for the first step fails! but we continue to run with "
                                  "loose of threshold\n";
-                    std::cout << "but you'd better kill job and check the initial condition\n";
+                    std::cout << "but you'd better kill job and check the initial condition\n" << std::endl;
                     thres_kcalpermol = deltaE * 1.01;
                 }
                 if (loose_10 && Etot_prev[0] > Epot[0]) {
-                    std::cout << "force scale the energy and recover the trajectory! it should be carefull!!!"
+                    // std::cout << "force scale the energy and recover the trajectory! it should be carefull!!!"
+                    //           << std::endl;
+                    // double scale = std::sqrt(std::max({Etot_prev[0] - Epot[0], 0.0e0}) / Ekin[0]);
+                    // for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
+
+                    std::cout << "[Kernel_Conserve] **Warning** the conservation finally fails but we continue to run"
                               << std::endl;
-                    double scale = std::sqrt(std::max({Etot_prev[0] - Epot[0], 0.0e0}) / Ekin[0]);
-                    for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
                     stat.succ      = true;
+                    Etot_prev[0] = Ekin[0] + Epot[0]; // make sure next step start from current energy
                     stat.fail_type = 0;
                 }
             } else {
-                std::cout << "now deltaE: "  //
+                std::cout << "[Kernel_Conserve] now deltaE: "  //
                           << deltaE          //
                           << " <= " << thres << "\n";
                 Etot_prev[0]   = Ekin[0] + Epot[0];

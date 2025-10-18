@@ -63,7 +63,7 @@ class Kernel_ExactPropagator : public Kernel {
 
     span<psnd_complex> MFFtmp1, MFFtmp2, MFFtmp3, MFFtmp4, MFFtmp5, MFFtmp6;
 
-    span<psnd_real> B_vec;
+    // span<psnd_real> B_vec;
 
     virtual void setInputParam_impl(std::shared_ptr<Param> PM);
 

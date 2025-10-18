@@ -23,6 +23,8 @@ void Sampling_Elec::setInputParam_impl(std::shared_ptr<Param> PM) {
     sampling_type = ElectronicSamplingPolicy::_from(
         _param->get_string({"solver.sampling_ele_flag", "solver.sampling.ele_flag"}, LOC(), "Constraint"));
 
+    sampling_file      = _param->get_string({"solver.sampling_file", "solver.sampling.file"}, LOC(), "init");
+
     occ0 = _param->get_int({"model.occ", "solver.occ"}, LOC(), -1);
     if (occ0 < 0) throw std::runtime_error("occ < 0");
     if (occ0 >= Dimension::F) throw std::runtime_error("occ >= F");

@@ -53,6 +53,7 @@ class Kernel_Conserve final : public Kernel {
     int conserve_direction;
 
     psnd_bint conserve_scale;
+    bool use_energy_conserve;
 
     span<psnd_bint> succ_ptr;  // @deprecated
     span<psnd_bint> frez_ptr;

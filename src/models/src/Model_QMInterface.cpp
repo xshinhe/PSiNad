@@ -45,6 +45,7 @@ void Model_QMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
     save_every_calc = _param->get_bool({"model.qm_save_every_calc"}, LOC(), true);
     save_every_step = _param->get_bool({"model.qm_save_every_step"}, LOC(), false);
     sstep_dataset   = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
+    use_state_detection = _param->get_bool({"model.use_state_detection"}, LOC(), false); // 动力学减小计算量
 
     char* p = getenv("PSND_PYTHON");
     if (p != nullptr) pypsnd_path = p;
@@ -265,9 +266,16 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     std::string occ_pairs_str;
     for (const auto& pair : occ_pairs) { occ_pairs_str += utils::concat(pair.first, ",", pair.second, " "); }
 
-    std::string qm_call_str = utils::concat("python ", pypsnd_path, "/QM.py -t ", try_level,  //
+    std::string qm_call_str;
+    if (use_state_detection){
+        qm_call_str = utils::concat("python ", pypsnd_path, "/QM.py -t ", try_level,  //
                                             " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower, " -occ ",
                                             occ_nuc[0], " -ncouple ", occ_pairs_str);
+    } else {
+        qm_call_str = utils::concat("python ", pypsnd_path, "/QM.py -t ", try_level,  //
+                                            " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower);
+    }
+
     int         s           = system(qm_call_str.c_str());
 
     // checkout the result

@@ -36,7 +36,7 @@ void Kernel_ExactPropagator::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     dt      = DS->def(DATA::control::dt);
 
     // 分配 B_vec - Dim: [N]
-    B_vec = DS->def(VARIABLE<psnd_real>("integrator.B_vec", &Dimension::shape_N, "@"));
+    // B_vec = DS->def(VARIABLE<psnd_real>("integrator.B_vec", &Dimension::shape_N, "@"));
 
     // 分配其他必需的变量
     alpha = DS->def(DATA::integrator::alpha);
@@ -95,6 +95,10 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
             auto dVj = ForceMat.subspan(jFF, Dimension::FF);
             f[j]     = dVj[(occ_nuc[0]) * Dimension::Fadd1];
             fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_nuc.data(), dVj.data(), Dimension::F, Dimension::F));
+            
+            psnd_real B_vec[Dimension::N]; // 局部变量 B_vec
+            
+
         }
     }
 

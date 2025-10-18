@@ -460,6 +460,7 @@ class mol_class:
                 self.zmat_ref[2,0] = 1; self.zmat_ref[2,1] = 0;
                 self.zmat[2,0] = self.dist[2,1]
                 self.zmat[2,1] = vec3d_angle(self.cart[2,:], self.cart[1,:], self.cart[0,:])
+        # 对于第i个原子，寻找三个参考原子，三个原子的序号都要比i小，寻找距离之和最小的三个原子
         for i in range(3, self.natom):
             bone = [0,0,0,0]; rcdtmp = 999
             for s2 in self.blist[i]:
