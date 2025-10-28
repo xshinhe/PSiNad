@@ -90,6 +90,17 @@ class DataSet final : public Node {
     using DataType = std::map<std::string, std::shared_ptr<Node>>;
     std::shared_ptr<DataType> _data;
 
+    
+    /**
+     * @brief some new feature
+     * @details have not been totally reviewed and tested yet,
+     *         using binary for saving and loading datasets could be implemented here for efficiency. hclu 251027
+     */
+    void save_binary(const std::string& path) const;
+    void save_binary_filter(const std::string& path) const;
+    void load_binary(const std::string& path);
+    std::size_t estimate_binary_size() const;
+
     /**
      * Constructor for DataSet.
      */

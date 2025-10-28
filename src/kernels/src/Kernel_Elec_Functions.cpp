@@ -346,9 +346,11 @@ Status& Kernel_Elec_Functions::executeKernel_impl(Status& stat) {
 
         elec_utils::ker_binning(KTWD.data(), rho_ele.data(), ElectronicSamplingPolicy::SQCtri);
         if (count_exec <= 0) {  // only count at the beginning
-            for (int k = 0; k < Dimension::F; ++k) {
-                double radius = std::abs(2.0e0 - rho_ele[occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
-                sqcw[k]       = pow(radius, 3 - Dimension::F);
+            if (Dimension::F == 2) { // TODO: only for F=2，sqcw只有在两态下是精确的，多态请直接回到cotton-TW采样 by hclu
+                for (int k = 0; k < Dimension::F; ++k) {
+                    double radius = std::abs(2.0e0 - rho_ele[occ0 * Dimension::Fadd1] - rho_ele[k * Dimension::Fadd1]);
+                    sqcw[k]       = pow(radius, 3 - Dimension::F);
+                }
             }
         }
         if (sqc_init == 2) {  // overload for KTWD by shangyouhao

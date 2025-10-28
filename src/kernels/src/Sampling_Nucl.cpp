@@ -41,7 +41,7 @@ void Sampling_Nucl::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     w          = DS->def(DATA::model::w);
     mass       = DS->def(DATA::model::mass);
     layer_type = DS->def(DATA::model::layer_type);
-    if (sampling_type != NuclearSamplingPolicy::ReadAmberRST) {
+    if (sampling_type != NuclearSamplingPolicy::ReadAmberRST && sampling_type != NuclearSamplingPolicy::ReadDataSet) {
         Tmod = DS->def(DATA::model::Tmod);  // too big
     }
 }

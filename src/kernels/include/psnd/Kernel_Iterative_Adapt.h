@@ -60,6 +60,9 @@ class Kernel_Iterative_Adapt final : public Kernel {
     double                                             exchange_fulltime;
     std::chrono::time_point<std::chrono::steady_clock> ex_begin;
 
+    // add by hclu251026
+    bool dump_in_string;
+
     Status& exchange(Status& stat);
 
     const std::vector<std::string> backup_fields = {"x", "p", "U", "occ_nuc", "f", "Ekin", "Epot", "rho_ele", "c"};

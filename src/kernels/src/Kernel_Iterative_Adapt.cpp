@@ -35,6 +35,9 @@ void Kernel_Iterative_Adapt::setInputParam_impl(std::shared_ptr<Param> PM) {
     exchange_time = _param->get_real({"solver.exchange_time", "exchange_time"}, LOC(), 600.0);  // in second
     nstep         = sstep * (int((tend - t0) / (sstep * dt0)));  // @bug? (try new algo for nstep)
     nsamp         = nstep / sstep + 1;
+
+    // add by hclu251026
+    dump_in_string = _param->get_bool({"solver.dump_in_string"}, LOC(), false);
 }
 
 void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -52,6 +55,9 @@ void Kernel_Iterative_Adapt::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     DS->def(VARIABLE<psnd_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
     DS->def(VARIABLE<psnd_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
     DS->def(VARIABLE<psnd_int>("control.msize", &Dimension::shape_1, "@"))[0] = msize;
+
+    // backup for dt, used for recover
+    DS->def(VARIABLE<psnd_real>("control.dt_backup", &Dimension::shape_1, "@"))[0] = dt0;
 }
 
 Status& Kernel_Iterative_Adapt::initializeKernel_impl(Status& stat) {
@@ -352,6 +358,9 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
 
     int count_fail_type1 = 0;
 
+    // tsize 是一直累加的 一直到结束
+    // dtsize 是每一步的步长大小，初始为msize，每一步根据情况调整
+
     isamp[0]          = istep[0] / sstep;
     int backup_dtsize = 0;
     while (istep[0] <= nstep) {
@@ -366,11 +375,13 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         t[0]                       = t0 + dt0 * (tsize[0] / ((double) msize));
         dt[0]                      = dt0 * (dtsize[0] / ((double) msize));
 
+        // 当轨线结束时，dtsize和dt都被设为0， stat.frozen被设为true
+        // 当stat.frozen被设为true时，里面的每个子kernel都会跳过计算
         if (istep[0] == nstep) {
             at_condition[0] = true;
             backup_dtsize   = dtsize[0];
             dtsize[0]       = 0;  // frozen dynamics
-            dt[0]           = dt0 * (dtsize[0] / ((double) msize));
+            dt[0]           = 0; //dt0 * (dtsize[0] / ((double) msize));
             stat.frozen     = true;
         }
 
@@ -513,16 +524,23 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
         std::string dump_filename = "dump";
 
         if (should_dump) {
-            try {
-                std::ofstream ofs{utils::concat(directory, "/", dump_filename, "-calc", stat.icalc, ".ds")};
-                _dataset->dump(ofs);
-                ofs.close();
-                std::cout << "Dumped step " << istep[0] << " to " << dump_filename << "-calc" << stat.icalc << ".ds"
-                          << std::endl;
+            if (dump_in_string){
+                try {
+                    std::ofstream ofs{utils::concat(directory, "/", dump_filename, "-calc", stat.icalc, ".ds")};
+                    _dataset->dump(ofs);
+                    ofs.close();
+                    std::cout << "Dumped step " << istep[0] << " to " << dump_filename << "-calc" << stat.icalc << ".ds"
+                            << std::endl;
 
-            } catch (std::runtime_error& e) {
-                std::cerr << "Warning: Failed to dump at step " << istep[0] << ": " << e.what() << std::endl;
-            }
+                } catch (std::runtime_error& e) {
+                    std::cerr << "Warning: Failed to dump at step " << istep[0] << ": " << e.what() << std::endl;
+                }
+            } 
+
+            try{
+                _dataset->save_binary_filter(utils::concat(directory, "/", dump_filename, "-calc", stat.icalc, ".bin.ds"));
+            } catch (std::runtime_error& e) { throw psnd_error(utils::concat(directory, "/", dump_filename, "-calc", stat.icalc, ".bin.ds")); }
+
         }
     }
     dtsize[0] = backup_dtsize;  // frozen dynamics

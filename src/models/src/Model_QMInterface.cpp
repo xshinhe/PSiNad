@@ -78,11 +78,11 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     mass             = DS->def(DATA::model::mass);
     vpes             = DS->def(DATA::model::vpes);
     grad             = DS->def(DATA::model::grad);
-    hess             = DS->def(DATA::model::hess);
-    Tmod             = DS->def(DATA::model::Tmod);
-    f_r              = DS->def(DATA::model::f_r);
-    f_p              = DS->def(DATA::model::f_p);
-    f_rp             = DS->def(DATA::model::f_rp);
+    // hess             = DS->def(DATA::model::hess);
+    // Tmod             = DS->def(DATA::model::Tmod);
+    // f_r              = DS->def(DATA::model::f_r);
+    // f_p              = DS->def(DATA::model::f_p);
+    // f_rp             = DS->def(DATA::model::f_rp);
     V                = DS->def(DATA::model::V);
     dV               = DS->def(DATA::model::dV);
     eig              = DS->def(DATA::model::rep::eig);
@@ -99,8 +99,8 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     istep_ptr        = DS->def(DATA::control::istep);
 
     ARRAY_EYE(T.data(), Dimension::F);
-    ARRAY_EYE(Tmod.data(), Dimension::N);
 
+    
     double        dtmp;
     int           itmp;
     std::string   stmp;
@@ -130,6 +130,12 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     std::string read_hess = _param->get_string({"model.read_hess", "solver.read_hess"}, LOC(), "NULL");
     if (read_hess != "NULL") {  // used for sampling
         if (!isFileExists(read_hess)) throw psnd_error("cannot open hess as .ds file");
+        hess             = DS->def(DATA::model::hess);
+        Tmod             = DS->def(DATA::model::Tmod);
+        ARRAY_EYE(Tmod.data(), Dimension::N);
+        f_r              = DS->def(DATA::model::f_r);
+        f_p              = DS->def(DATA::model::f_p);
+        f_rp             = DS->def(DATA::model::f_rp);
         std::ifstream ifs(read_hess);  // prepare for NMA
         bool          read_w = false;
         bool          read_H = false;

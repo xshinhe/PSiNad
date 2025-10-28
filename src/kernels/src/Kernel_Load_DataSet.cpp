@@ -29,12 +29,21 @@ Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
             if (!std::filesystem::exists(load_fn_file)) {
                 throw psnd_error(utils::concat("File does not exist: ", load_fn_file));
             }
-            std::ifstream ifs{load_fn_file};
 
-            if (!ifs.is_open()) { throw psnd_error(utils::concat("Cannot open file: ", load_fn_file)); }
-            _dataset_load = std::shared_ptr<DataSet>(new DataSet());
-            _dataset_load->load(ifs);
-            ifs.close();
+            if (load_fn_file.find(".bin.ds") != std::string::npos) {
+                std::cout << "Loading dataset in binary format" << "\n";
+                _dataset_load = std::shared_ptr<DataSet>(new DataSet());
+                _dataset_load->load_binary(load_fn_file);
+            } else {
+                std::ifstream ifs{load_fn_file};
+
+                if (!ifs.is_open()) { throw psnd_error(utils::concat("Cannot open file: ", load_fn_file)); }
+                _dataset_load = std::shared_ptr<DataSet>(new DataSet());
+                _dataset_load->load(ifs);
+                // std::cout << _dataset_load->repr() << "\n";
+                ifs.close();
+            }
+
         } else {
             std::cout << "Loading DataSet from directory: "
                       << utils::concat(directory, "/", load_fn_file, stat.icalc, ".ds") << "\n";
@@ -93,6 +102,8 @@ Status& Kernel_Load_DataSet::initializeKernel_impl(Status& stat) {
     } catch (const std::exception& e) {
         throw psnd_error(utils::concat("❌ 未知错误: ", e.what(),
             "\n如果问题持续出现，请联系开发团队并提供完整的错误信息"));
+    } catch (...) {
+        throw psnd_error("❌ 未知严重错误发生，程序终止。\n请联系开发团队并提供尽可能多的上下文信息以协助排查问题。");
     }
     return stat;
 }

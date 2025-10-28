@@ -22,7 +22,7 @@ void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     f    = DS->def(DATA::integrator::f);
     fadd = DS->def(DATA::integrator::fadd);
     p    = DS->def(DATA::integrator::p);
-    ve   = DS->def(DATA::integrator::ve);
+    // ve   = DS->def(DATA::integrator::ve);
     minv = DS->def(DATA::integrator::minv);
     if (Kernel_Monodromy::enable) {
         mono    = DS->def(DATA::integrator::monodromy::mono);
@@ -36,8 +36,11 @@ void Kernel_Update_p::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         hess    = DS->def(DATA::model::hess);
         ddV     = DS->def(DATA::model::ddV);
     }
-    mask    = DS->def(DATA::integrator::forceeval::mask);
-    dmask   = DS->def(DATA::integrator::forceeval::dmask);
+
+    if (use_smooth){
+        mask    = DS->def(DATA::integrator::forceeval::mask);
+        dmask   = DS->def(DATA::integrator::forceeval::dmask);
+    }
     T       = DS->def(DATA::model::rep::T);
     grad    = DS->def(DATA::model::grad);
     dV      = DS->def(DATA::model::dV);
@@ -70,7 +73,7 @@ Status& Kernel_Update_p::executeKernel_impl(Status& stat) {
             auto p = this->p.subspan(iP * Dimension::N, Dimension::N);
             for (int i = 0; i < Dimension::N; ++i) { p[i] -= f[i] * scale * dt[0]; }
         }
-    } else {
+    } else { // not useful for real sys
         for (int iP = 0; iP < Dimension::P; ++iP) {
             auto f       = this->f.subspan(iP * Dimension::N, Dimension::N);
             auto p       = this->p.subspan(iP * Dimension::N, Dimension::N);

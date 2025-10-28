@@ -12,6 +12,9 @@
 #include <type_traits>
 #include <vector>
 
+#include <cstdint>
+#include <type_traits>
+
 #include "psnd/Exception.h"
 #include "psnd/Shape.h"
 #include "psnd/Types.h"
@@ -466,13 +469,68 @@ void DataSet::load(std::istream& is) {
         if (typeflag.find(as_str<psnd_int>()) != std::string::npos) {
             // nsamp should be carefully checked with Param!!! @bug
             int* ptr = def<int>(key, shtmp);
-            for (int i = 0; i < size; ++i) is >> ptr[i];
+            for (int i = 0; i < size; ++i) {
+                std::string tok;
+                is >> tok;
+                try {
+                    ptr[i] = std::stoi(tok);
+                } catch (const std::invalid_argument& e) {
+                    throw psnd_error("Invalid input for key: " + key + ", value: " + tok + ", index: " + std::to_string(i));
+                }
+            }
+            // check isnan and isinf
+            bool has_nan = std::any_of(ptr, ptr + size, [](psnd_int v) { return false; });
+            bool has_inf = std::any_of(ptr, ptr + size, [](psnd_int v) { return false; });
+            if (has_nan || has_inf) {
+                throw psnd_error("NaN or Inf value encountered in input for key: " + key);
+            }
         } else if (typeflag.find(as_str<psnd_real>()) != std::string::npos) {
             psnd_real* ptr = def<psnd_real>(key, shtmp);
-            for (int i = 0; i < size; ++i) is >> ptr[i];
+            // std::cout << LOC() << is.rdbuf() << std::endl;
+            for (int i = 0; i < size; ++i) {
+                // is >> ptr[i]; 
+                std::string tok;
+                is >> tok;
+                try {
+                    ptr[i] = std::stod(tok);
+                } catch (const std::invalid_argument& e) {
+                    throw psnd_error("Invalid input for key: " + key + ", value: " + tok + ", index: " + std::to_string(i));
+                } 
+            }
+            // check isnan
+            bool has_nan = std::any_of(ptr, ptr + size, [](psnd_real v) { return std::isnan(v); });
+            bool has_inf = std::any_of(ptr, ptr + size, [](psnd_real v) { return std::isinf(v); });
+            if (has_nan || has_inf) {
+                throw psnd_error("NaN or Inf value encountered in input for key: " + key);
+            }
         } else if (typeflag.find(as_str<psnd_complex>()) != std::string::npos) {
             psnd_complex* ptr = def<psnd_complex>(key, shtmp);
-            for (int i = 0; i < size; ++i) is >> ptr[i];
+            for (int i = 0; i < size; ++i) {
+                std::string tok;
+                is >> tok;
+                // string to complex
+                // 假设 tok 为 "(1.472428460107e-01,9.891003711953e-01)"
+                size_t pos1 = tok.find('(');
+                size_t pos2 = tok.find(',');
+                size_t pos3 = tok.find(')');
+                try{
+                    psnd_real real = std::stod(tok.substr(pos1 + 1, pos2 - pos1 - 1));
+                    psnd_real imag = std::stod(tok.substr(pos2 + 1, pos3 - pos2 - 1));
+                    ptr[i] = std::complex<psnd_real>{real, imag};
+                } catch (const std::invalid_argument& e) {
+                    throw psnd_error("Invalid input for key: " + key + ", value: " + tok + ", index: " + std::to_string(i));
+                } 
+            }
+            // check isnan and inf
+            bool has_nan = std::any_of(ptr, ptr + size, [](psnd_complex v) {
+                return std::isnan(v.real()) || std::isnan(v.imag());
+            });
+            bool has_inf = std::any_of(ptr, ptr + size, [](psnd_complex v) {
+                return std::isinf(v.real()) || std::isinf(v.imag());
+            });
+            if (has_nan || has_inf) {
+                throw psnd_error("NaN or Inf value encountered in input for key: " + key);
+            }
         }
     }
 }
@@ -480,13 +538,13 @@ void DataSet::load(std::istream& is) {
 void DataSet::load_reframe(std::istream& is, std::size_t nsamp) {
     std::string key, typeflag, eachline;
     int         size;
-    // 打印is
-    // std::cout << is .rdbuf() << std::endl;
+    
     while (is >> key) {
         std::cout << LOC() << "loading key = " << key << "\n";
         bool multiframe = (key[0] == '_');
         getline(is, eachline);
         getline(is, eachline);
+        std::cout << LOC() << "header line = " << eachline << "\n";
         std::stringstream ss(eachline);
         ss >> typeflag >> size;
         std::size_t              idim;
@@ -495,24 +553,367 @@ void DataSet::load_reframe(std::istream& is, std::size_t nsamp) {
         if (multiframe) dims[0] = nsamp;  // update shape with nsamp
         Shape shtmp(dims);
 
+        std::cout << LOC() << "expected size = " << shtmp.size() << " actual size = " << size << "\n";
+
         int min_size = std::min(size, shtmp.size());
         if (typeflag.find(as_str<psnd_int>()) != std::string::npos) {
             int* ptr = def<int>(key, shtmp);
-            int  tmpi;
+            int tmpi;
             if (key == "control.nsamp") {
                 for (int i = 0; i < size; ++i) is >> tmpi;
             } else {
-                for (int i = 0; i < size; ++i) is >> ptr[i];
+                for (int i = 0; i < min_size; ++i) {
+                    std::string tok;
+                    if (!(is >> tok)) {
+                        throw psnd_error(utils::concat("load_reframe: unexpected EOF while reading values for ", key));
+                    }
+                    try {
+                        ptr[i] = std::stoi(tok);
+                    } catch (const std::invalid_argument& e) {
+                        throw psnd_error("Invalid input for key: " + key + ", value: " + tok + ", index: " + std::to_string(i));
+                    }
+                }
+            }
+            // check isnan and isinf (for int, usually not needed, but keep for consistency)
+            bool has_nan = std::any_of(ptr, ptr + min_size, [](psnd_int v) { return false; });
+            bool has_inf = std::any_of(ptr, ptr + min_size, [](psnd_int v) { return false; });
+            if (has_nan || has_inf) {
+                throw psnd_error("NaN or Inf value encountered in input for key: " + key);
             }
         } else if (typeflag.find(as_str<psnd_real>()) != std::string::npos) {
             psnd_real* ptr = def<psnd_real>(key, shtmp);
-            for (int i = 0; i < min_size; ++i) is >> ptr[i];
+            for (int i = 0; i < min_size; ++i) {
+                std::string tok;
+                if (!(is >> tok)) {
+                    throw psnd_error(utils::concat("load_reframe: unexpected EOF while reading values for ", key));
+                }
+                try {
+                    ptr[i] = std::stod(tok);
+                } catch (const std::invalid_argument& e) {
+                    throw psnd_error("Invalid input for key: " + key + ", value: " + tok + ", index: " + std::to_string(i));
+                }
+            }
+            bool has_nan = std::any_of(ptr, ptr + min_size, [](psnd_real v) { return std::isnan(v); });
+            bool has_inf = std::any_of(ptr, ptr + min_size, [](psnd_real v) { return std::isinf(v); });
+            if (has_nan || has_inf) {
+                throw psnd_error("NaN or Inf value encountered in input for key: " + key);
+            }
         } else if (typeflag.find(as_str<psnd_complex>()) != std::string::npos) {
             psnd_complex* ptr = def<psnd_complex>(key, shtmp);
-            for (int i = 0; i < min_size; ++i) is >> ptr[i];
+            for (int i = 0; i < min_size; ++i) {
+                std::string tok;
+                if (!(is >> tok)) {
+                    throw psnd_error(utils::concat("load_reframe: unexpected EOF while reading values for ", key));
+                }
+                // string to complex, e.g. "(1.472428460107e-01,9.891003711953e-01)"
+                size_t pos1 = tok.find('(');
+                size_t pos2 = tok.find(',');
+                size_t pos3 = tok.find(')');
+                try {
+                    if (pos1 == std::string::npos || pos2 == std::string::npos || pos3 == std::string::npos) {
+                        throw std::invalid_argument("bad complex format");
+                    }
+                    psnd_real real = std::stod(tok.substr(pos1 + 1, pos2 - pos1 - 1));
+                    psnd_real imag = std::stod(tok.substr(pos2 + 1, pos3 - pos2 - 1));
+                    if (std::isinf(real) || std::isinf(imag)) {
+                        throw std::runtime_error("Infinite value encountered in input for key: " + key);
+                    }
+                    ptr[i] = std::complex<psnd_real>{real, imag};
+                } catch (const std::invalid_argument& e) {
+                    throw psnd_error("Invalid input for key: " + key + ", value: " + tok + ", index: " + std::to_string(i));
+                }
+            }
+            bool has_nan = std::any_of(ptr, ptr + min_size, [](psnd_complex v) {
+                return std::isnan(v.real()) || std::isnan(v.imag());
+            });
+            bool has_inf = std::any_of(ptr, ptr + min_size, [](psnd_complex v) {
+                return std::isinf(v.real()) || std::isinf(v.imag());
+            });
+            if (has_nan || has_inf) {
+                throw psnd_error("NaN or Inf value encountered in input for key: " + key);
+            }
         }
     }
+    std::cout << LOC() << "load_reframe done\n";
 }
+
+
+/*
+----------------------------------------------NEW FEATURE----------------------------------------------------
+have not been totally reviewed and tested yet,
+
+using binary for saving and loading datasets could be implemented here for efficiency. hclu 251027
+*/
+
+// Estimate binary size (bytes) if dataset serialized with the format below.
+std::size_t DataSet::estimate_binary_size() const {
+    std::size_t total = 0;
+    // 4 bytes header: number of entries (uint32_t)
+    total += sizeof(uint32_t);
+    std::vector<std::tuple<std::string, Node*>> stack;
+    stack.push_back(std::make_tuple(std::string(""), const_cast<DataSet*>(this)));
+    while (!stack.empty()) {
+        auto [parent, currentNode] = stack.back();
+        stack.pop_back();
+        std::shared_ptr<DataType> d_ptr = static_cast<DataSet*>(currentNode)->_data;
+        for (auto &i : (*d_ptr)) {
+            if (!i.second) continue;
+            std::string key = (parent == "") ? i.first : parent + "." + i.first;
+            Node* inode = i.second.get();
+            if (inode->type() == psnd_dataset_type) {
+                stack.push_back(std::make_tuple(key, inode));
+            } else {
+                // key length(4) + key bytes + type(1) + rank(4) + dims(uint64_t * rank) + data bytes
+                total += sizeof(uint32_t) + key.size() + sizeof(uint8_t) + sizeof(uint32_t);
+                // shape
+                Shape *sh = nullptr;
+                switch (inode->type()) {
+                    case psnd_int_type: sh = &(static_cast<Tensor<psnd_int>*>(inode)->shape()); break;
+                    case psnd_real_type: sh = &(static_cast<Tensor<psnd_real>*>(inode)->shape()); break;
+                    case psnd_complex_type: sh = &(static_cast<Tensor<psnd_complex>*>(inode)->shape()); break;
+                    default: break;
+                }
+                if (sh) {
+                    total += sizeof(uint64_t) * sh->rank();
+                    std::size_t cnt = sh->size();
+                    switch (inode->type()) {
+                        case psnd_int_type: total += cnt * sizeof(psnd_int); break;
+                        case psnd_real_type: total += cnt * sizeof(psnd_real); break;
+                        case psnd_complex_type: total += cnt * sizeof(psnd_complex); break;
+                        default: break;
+                    }
+                }
+            }
+        }
+    }
+    return total;
+}
+
+// Save dataset in compact binary format:
+// [uint32_t] n_entries
+// for each entry:
+// [uint32_t] key_len
+// [key_len bytes] key (no null)
+// [uint8_t] dtype (0=int,1=real,2=complex)
+// [uint32_t] rank
+// [uint64_t]*rank dims
+// [data bytes] raw elements (row-major)
+void DataSet::save_binary(const std::string &path) const {
+    std::ofstream ofs(path, std::ios::binary);
+    if (!ofs) throw psnd_error(utils::concat("cannot open binary file for write: ", path));
+    // first pass: count entries
+    uint32_t count = 0;
+    {
+        std::vector<std::tuple<std::string, Node*>> stack;
+        stack.push_back(std::make_tuple(std::string(""), const_cast<DataSet*>(this)));
+        while (!stack.empty()) {
+            auto [parent, currentNode] = stack.back(); stack.pop_back();
+            std::shared_ptr<DataType> d_ptr = static_cast<DataSet*>(currentNode)->_data;
+            for (auto &i : (*d_ptr)) {
+                if (!i.second) continue;
+                std::string key = (parent == "") ? i.first : parent + "." + i.first;
+                Node* inode = i.second.get();
+                if (inode->type() == psnd_dataset_type) {
+                    stack.push_back(std::make_tuple(key, inode));
+                } else {
+                    ++count;
+                }
+            }
+        }
+    }
+    ofs.write(reinterpret_cast<const char*>(&count), sizeof(count));
+    // second pass: write entries
+    std::vector<std::tuple<std::string, Node*>> stack;
+    stack.push_back(std::make_tuple(std::string(""), const_cast<DataSet*>(this)));
+    while (!stack.empty()) {
+        auto [parent, currentNode] = stack.back(); stack.pop_back();
+        std::shared_ptr<DataType> d_ptr = static_cast<DataSet*>(currentNode)->_data;
+        for (auto &i : (*d_ptr)) {
+            if (!i.second) continue;
+            std::string key = (parent == "") ? i.first : parent + "." + i.first;
+            Node* inode = i.second.get();
+            if (inode->type() == psnd_dataset_type) {
+                stack.push_back(std::make_tuple(key, inode));
+            } else {
+                // key
+                uint32_t klen = static_cast<uint32_t>(key.size());
+                ofs.write(reinterpret_cast<const char*>(&klen), sizeof(klen));
+                ofs.write(key.data(), klen);
+                // dtype
+                uint8_t dtype = 0;
+                if (inode->type() == psnd_real_type) dtype = 1;
+                else if (inode->type() == psnd_complex_type) dtype = 2;
+                ofs.write(reinterpret_cast<const char*>(&dtype), sizeof(dtype));
+                // shape
+                Shape *sh = nullptr;
+                if (inode->type() == psnd_int_type) sh = &(static_cast<Tensor<psnd_int>*>(inode)->shape());
+                else if (inode->type() == psnd_real_type) sh = &(static_cast<Tensor<psnd_real>*>(inode)->shape());
+                else if (inode->type() == psnd_complex_type) sh = &(static_cast<Tensor<psnd_complex>*>(inode)->shape());
+                uint32_t rank = static_cast<uint32_t>(sh->rank());
+                ofs.write(reinterpret_cast<const char*>(&rank), sizeof(rank));
+                for (auto d : sh->dims()) {
+                    uint64_t ud = static_cast<uint64_t>(d);
+                    ofs.write(reinterpret_cast<const char*>(&ud), sizeof(ud));
+                }
+                // data
+                std::size_t cnt = sh->size();
+                if (inode->type() == psnd_int_type) {
+                    auto ptr = static_cast<Tensor<psnd_int>*>(inode)->data();
+                    ofs.write(reinterpret_cast<const char*>(ptr), cnt * sizeof(psnd_int));
+                } else if (inode->type() == psnd_real_type) {
+                    auto ptr = static_cast<Tensor<psnd_real>*>(inode)->data();
+                    ofs.write(reinterpret_cast<const char*>(ptr), cnt * sizeof(psnd_real));
+                } else if (inode->type() == psnd_complex_type) {
+                    auto ptr = static_cast<Tensor<psnd_complex>*>(inode)->data();
+                    static_assert(std::is_trivially_copyable<psnd_complex>::value, "complex must be trivially copyable");
+                    ofs.write(reinterpret_cast<const char*>(ptr), cnt * sizeof(psnd_complex));
+                }
+            }
+        }
+    }
+    ofs.close();
+}
+
+void DataSet::save_binary_filter(const std::string &path) const {
+    std::ofstream ofs(path, std::ios::binary);
+    if (!ofs)
+        throw psnd_error(utils::concat("cannot open binary file for write: ", path));
+
+    // ---------- First pass: count entries ----------
+    uint32_t count = 0;
+    {
+        std::vector<std::tuple<std::string, Node*>> stack;
+        stack.push_back(std::make_tuple(std::string(""), const_cast<DataSet*>(this)));
+        while (!stack.empty()) {
+            auto [parent, currentNode] = stack.back(); stack.pop_back();
+            std::shared_ptr<DataType> d_ptr = static_cast<DataSet*>(currentNode)->_data;
+            for (auto &i : (*d_ptr)) {
+                if (!i.second) continue;
+                std::string key = (parent.empty()) ? i.first : parent + "." + i.first;
+                Node* inode = i.second.get();
+                if (inode->type() == psnd_dataset_type) {
+                    stack.push_back(std::make_tuple(key, inode));
+                } else {
+                    // 🔹 忽略以 "_.1" 或 "_.2" 开头的 key
+                    if (key.rfind("_.1", 0) == 0 || key.rfind("_.2", 0) == 0)
+                        continue;
+                    ++count;
+                }
+            }
+        }
+    }
+
+    ofs.write(reinterpret_cast<const char*>(&count), sizeof(count));
+
+    // ---------- Second pass: write entries ----------
+    std::vector<std::tuple<std::string, Node*>> stack;
+    stack.push_back(std::make_tuple(std::string(""), const_cast<DataSet*>(this)));
+    while (!stack.empty()) {
+        auto [parent, currentNode] = stack.back(); stack.pop_back();
+        std::shared_ptr<DataType> d_ptr = static_cast<DataSet*>(currentNode)->_data;
+        for (auto &i : (*d_ptr)) {
+            if (!i.second) continue;
+            std::string key = (parent.empty()) ? i.first : parent + "." + i.first;
+            Node* inode = i.second.get();
+            if (inode->type() == psnd_dataset_type) {
+                stack.push_back(std::make_tuple(key, inode));
+            } else {
+                // 🔹 忽略以 "_.1" 或 "_.2" 开头的 key
+                if (key.rfind("_.1", 0) == 0 || key.rfind("_.2", 0) == 0)
+                    continue;
+
+                // ---------- 写 key ----------
+                uint32_t klen = static_cast<uint32_t>(key.size());
+                ofs.write(reinterpret_cast<const char*>(&klen), sizeof(klen));
+                ofs.write(key.data(), klen);
+
+                // ---------- 写 dtype ----------
+                uint8_t dtype = 0;
+                if (inode->type() == psnd_real_type)
+                    dtype = 1;
+                else if (inode->type() == psnd_complex_type)
+                    dtype = 2;
+                ofs.write(reinterpret_cast<const char*>(&dtype), sizeof(dtype));
+
+                // ---------- 写 shape ----------
+                Shape* sh = nullptr;
+                if (inode->type() == psnd_int_type)
+                    sh = &(static_cast<Tensor<psnd_int>*>(inode)->shape());
+                else if (inode->type() == psnd_real_type)
+                    sh = &(static_cast<Tensor<psnd_real>*>(inode)->shape());
+                else if (inode->type() == psnd_complex_type)
+                    sh = &(static_cast<Tensor<psnd_complex>*>(inode)->shape());
+
+                uint32_t rank = static_cast<uint32_t>(sh->rank());
+                ofs.write(reinterpret_cast<const char*>(&rank), sizeof(rank));
+                for (auto d : sh->dims()) {
+                    uint64_t ud = static_cast<uint64_t>(d);
+                    ofs.write(reinterpret_cast<const char*>(&ud), sizeof(ud));
+                }
+
+                // ---------- 写数据 ----------
+                std::size_t cnt = sh->size();
+                if (inode->type() == psnd_int_type) {
+                    auto ptr = static_cast<Tensor<psnd_int>*>(inode)->data();
+                    ofs.write(reinterpret_cast<const char*>(ptr), cnt * sizeof(psnd_int));
+                } else if (inode->type() == psnd_real_type) {
+                    auto ptr = static_cast<Tensor<psnd_real>*>(inode)->data();
+                    ofs.write(reinterpret_cast<const char*>(ptr), cnt * sizeof(psnd_real));
+                } else if (inode->type() == psnd_complex_type) {
+                    auto ptr = static_cast<Tensor<psnd_complex>*>(inode)->data();
+                    static_assert(std::is_trivially_copyable<psnd_complex>::value, "complex must be trivially copyable");
+                    ofs.write(reinterpret_cast<const char*>(ptr), cnt * sizeof(psnd_complex));
+                }
+            }
+        }
+    }
+
+    ofs.close();
+}
+
+
+
+// Load dataset from the binary format above. Existing keys will be overwritten/defined via def<>().
+void DataSet::load_binary(const std::string &path) {
+    std::ifstream ifs(path, std::ios::binary);
+    if (!ifs) throw psnd_error(utils::concat("cannot open binary file for read: ", path));
+    uint32_t count = 0;
+    ifs.read(reinterpret_cast<char*>(&count), sizeof(count));
+    for (uint32_t e = 0; e < count; ++e) {
+        uint32_t klen = 0;
+        ifs.read(reinterpret_cast<char*>(&klen), sizeof(klen));
+        std::string key(klen, '\0');
+        ifs.read(&key[0], klen);
+        uint8_t dtype = 0;
+        ifs.read(reinterpret_cast<char*>(&dtype), sizeof(dtype));
+        uint32_t rank = 0;
+        ifs.read(reinterpret_cast<char*>(&rank), sizeof(rank));
+        std::vector<std::size_t> dims(rank);
+        for (uint32_t r = 0; r < rank; ++r) {
+            uint64_t ud = 0;
+            ifs.read(reinterpret_cast<char*>(&ud), sizeof(ud));
+            dims[r] = static_cast<std::size_t>(ud);
+        }
+        Shape shtmp(dims);
+        std::size_t cnt = shtmp.size();
+        if (dtype == 0) {
+            psnd_int* ptr = def<psnd_int>(key, shtmp);
+            ifs.read(reinterpret_cast<char*>(ptr), cnt * sizeof(psnd_int));
+        } else if (dtype == 1) {
+            psnd_real* ptr = def<psnd_real>(key, shtmp);
+            ifs.read(reinterpret_cast<char*>(ptr), cnt * sizeof(psnd_real));
+        } else if (dtype == 2) {
+            psnd_complex* ptr = def<psnd_complex>(key, shtmp);
+            ifs.read(reinterpret_cast<char*>(ptr), cnt * sizeof(psnd_complex));
+        } else {
+            throw psnd_error("unknown dtype in binary file");
+        }
+        if (!ifs) throw psnd_error(utils::concat("unexpected EOF or IO error while reading ", path));
+    }
+    ifs.close();
+}
+
+
 };  // namespace PROJECT_NS
 
 /**
