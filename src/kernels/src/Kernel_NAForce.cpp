@@ -139,6 +139,7 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
         }
 
         switch (NAForce_type) {
+            case NAForcePolicy::NAFEXACT:
             case NAForcePolicy::BO: {
                 for (int j = 0, idxdV0 = 0; j < Dimension::N; ++j, idxdV0 += Dimension::FF)
                     f[j] = ForceMat[j * Dimension::FF + (occ_nuc[0]) * Dimension::Fadd1];
@@ -215,6 +216,43 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                                                  Kernel_Representation::inp_repr_type,    //
                                                  SpacePolicy::L);
                 break;
+            }
+            case NAForcePolicy::NAF2: {
+                // inp repr : diabatic
+                // nuc repr : adiabatic
+
+                if (Kernel_Representation::inp_repr_type != RepresentationPolicy::Diabatic) {
+                    throw std::runtime_error("NAF2 force requires inp_repr_type = Diabatic");
+                }
+
+                Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                    Kernel_Representation::inp_repr_type,    //
+                                    RepresentationPolicy::Adiabatic,    //
+                                    SpacePolicy::L);
+                psnd_complex rho_Q1[Dimension::FF]; psnd_complex rho_Q2[Dimension::FF];
+                // ... 直接获取occ_nuc[0]
+                Kernel_Representation::transform(rho_Q1, T.data(), Dimension::F,  //
+                                                 Kernel_Representation::nuc_repr_type,    //
+                                                 Kernel_Representation::inp_repr_type,    //
+                                                 SpacePolicy::L);
+                Kernel_Representation::transform(rho_Q2, T.data(), Dimension::F,  //
+                                                 Kernel_Representation::nuc_repr_type,    //
+                                                 Kernel_Representation::inp_repr_type,    //
+                                                 SpacePolicy::L);
+                Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                                 RepresentationPolicy::Adiabatic,    //
+                                                 Kernel_Representation::inp_repr_type,    //
+                                                 SpacePolicy::L);
+                
+                // set trace Force_mat 
+                // ARRAY_TRANSPOSE ForceMat
+                for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
+                    auto dVj = ForceMat.subspan(jFF, Dimension::FF);
+                    f[j]     = std::real(ARRAY_TRACE2_DIAG(rho_Q1, dVj.data(), Dimension::F, Dimension::F));
+                    fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_Q2, dVj.data(), Dimension::F, Dimension::F));
+                } // to be reviewed
+
+                
             }
             case NAForcePolicy::BOSD:
             case NAForcePolicy::NAFSD: {                                                  // smooth dynamics

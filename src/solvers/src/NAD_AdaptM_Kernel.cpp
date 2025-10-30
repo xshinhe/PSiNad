@@ -31,7 +31,7 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
     std::shared_ptr<Kernel_NAForce>        knaf(new Kernel_NAForce());
     std::shared_ptr<Kernel_Elec_Functions> kfuncs(new Kernel_Elec_Functions());
 
-    std::shared_ptr<Kernel_ExactPropagator> kexact(new Kernel_ExactPropagator(1.0));  // 提供默认的 scale 参数
+    std::shared_ptr<Kernel_ExactPropagator> kexact(new Kernel_ExactPropagator(0.5e0 / (double) split));  // 提供默认的 scale 参数
 
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5e0 / (double) split));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5e0));
@@ -42,9 +42,10 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
 
     for (int i = 0; i < split; ++i) {
         kinte->appendChild(ku_p);
+        kinte->appendChild(kexact); // hclu added
         kinte->appendChild(krepr);
         kinte->appendChild(ku_U);
-        // // kinte->appendChild(kswitch); //
+        // kinte->appendChild(kswitch); //
         kinte->appendChild(knaf);
     }
 
@@ -57,6 +58,7 @@ std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::st
         kinte->appendChild(ku_U);
         // kinte->appendChild(kswitch);
         kinte->appendChild(knaf);  // @bug, add scale
+        kinte->appendChild(kexact); // hclu added
         kinte->appendChild(ku_p);
         kinte->appendChild(krepr);
     }

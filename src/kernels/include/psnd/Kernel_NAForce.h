@@ -39,6 +39,8 @@ DEFINE_POLICY(NAForcePolicy,  //
               NAF,            //
               BOSD,           //
               NAFSD,          //
+              NAFEXACT,       //
+              NAF2,           //
               ELSE);          //
 
 namespace FORCE_OPT {

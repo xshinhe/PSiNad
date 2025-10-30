@@ -377,6 +377,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
 
         // 当轨线结束时，dtsize和dt都被设为0， stat.frozen被设为true
         // 当stat.frozen被设为true时，里面的每个子kernel都会跳过计算
+        // 跳出while循环之后，会把最后的dtsize和dt恢复回来
         if (istep[0] == nstep) {
             at_condition[0] = true;
             backup_dtsize   = dtsize[0];
@@ -543,6 +544,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
 
         }
     }
+    // 由于最后一步运行完了dt被设为0，所以需要恢复最后的dt
     dtsize[0] = backup_dtsize;  // frozen dynamics
     dt[0]     = dt0 * (dtsize[0] / ((double) msize));
     return stat;

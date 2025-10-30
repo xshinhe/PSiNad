@@ -1,3 +1,10 @@
+/*
+Exact propagator of effective nonadiabatic force for NaF simulations
+Author: Baihua Wu, Haocheng Lu
+Date: 2025-10-29
+Wu, Li, He, Cheng, Ren, Liu, J. Chem. Theory Comput. 2025, 21, 8, 3775-3813.
+*/
+
 #include "psnd/Kernel_ExactPropagator.h"
 
 #include "psnd/Kernel_Elec_Utils.h"
@@ -13,17 +20,20 @@ const std::string Kernel_ExactPropagator::getName() { return "Kernel_ExactPropag
 
 int Kernel_ExactPropagator::getType() const { return utils::hash("Kernel_ExactPropagator"); }
 
-void Kernel_ExactPropagator::setInputParam_impl(std::shared_ptr<Param> PM) {}
+void Kernel_ExactPropagator::setInputParam_impl(std::shared_ptr<Param> PM) {
+    NAForce_type                   = NAForcePolicy::_dict.at(  //
+        _param->get_string({"solver.naforce"}, LOC(), "EHR"));
+}
 
 void Kernel_ExactPropagator::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     f    = DS->def(DATA::integrator::f);
     fadd = DS->def(DATA::integrator::fadd);
     p    = DS->def(DATA::integrator::p);
-    ve   = DS->def(DATA::integrator::ve);
+    // ve   = DS->def(DATA::integrator::ve);
     minv = DS->def(DATA::integrator::minv);
 
-    mask    = DS->def(DATA::integrator::forceeval::mask);
-    dmask   = DS->def(DATA::integrator::forceeval::dmask);
+    // mask    = DS->def(DATA::integrator::forceeval::mask);
+    // dmask   = DS->def(DATA::integrator::forceeval::dmask);
     T       = DS->def(DATA::model::rep::T);
     grad    = DS->def(DATA::model::grad);
     dV      = DS->def(DATA::model::dV);
@@ -68,6 +78,8 @@ Status& Kernel_ExactPropagator::initializeKernel_impl(Status& stat) { return sta
 
 Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
     if (stat.frozen) return stat;
+    if (Kernel_ExactPropagator::NAForce_type != NAForcePolicy::NAFEXACT) return stat;
+    if (Dimension::N == 1) return stat; // 仅适用于多维情况
 
     for (int iP = 0; iP < Dimension::P; ++iP) {
         auto occ_nuc  = this->occ_nuc.subspan(iP, 1);
@@ -93,13 +105,73 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
 
         for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
             auto dVj = ForceMat.subspan(jFF, Dimension::FF);
-            f[j]     = dVj[(occ_nuc[0]) * Dimension::Fadd1];
+            // f[j]     = dVj[(occ_nuc[0]) * Dimension::Fadd1];
             fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_nuc.data(), dVj.data(), Dimension::F, Dimension::F));
-            
-            psnd_real B_vec[Dimension::N]; // 局部变量 B_vec
-            
-
         }
+        psnd_real B_vec[Dimension::N]; // 局部变量 B_vec
+        for (int j = 0; j < Dimension::N; ++j) {
+            B_vec[j] = 1.0 / sqrt(m[j]) * fproj[j];
+        }
+
+        psnd_real norm_B;
+        norm_B = 0.0;
+        for (int j = 0; j < Dimension::N; ++j) {
+            norm_B += B_vec[j] * B_vec[j];
+        }
+        norm_B = sqrt(norm_B);
+
+        // e_pall: unit vector along B
+        psnd_real e_pall[Dimension::N];
+        for (int j = 0; j < Dimension::N; ++j) {
+            e_pall[j] =  B_vec[j] / norm_B;
+        }
+
+        psnd_real alpha_pall;
+        alpha_pall = 0.0;
+        for (int j = 0; j < Dimension::N; ++j) {
+            alpha_pall += 1.0/sqrt(m[j]) * p[j] * e_pall[j];
+        }
+
+        psnd_real pi_vert_vec[Dimension::N];
+        for (int j = 0; j < Dimension::N; ++j) {
+            pi_vert_vec[j] =1.0/sqrt(m[j]) * p[j] - alpha_pall * e_pall[j];
+        }
+
+        psnd_real Ekin;
+        Ekin = 0.0;
+        for (int j = 0; j < Dimension::N; ++j) {
+            Ekin += 0.5 * (1.0/m[j]) * p[j] * p[j];
+        }
+
+        if ( norm_B * dt[0] * scale / sqrt(2.0 * Ekin) < 1e-20 ) { 
+            // B is too small, use Taylor expansion
+            psnd_real temp_a;
+            temp_a = 0;
+            for (int j = 0; j < Dimension::N; ++j) {
+                temp_a += B_vec[j] * p[j] / sqrt(m[j]);
+            }
+            for (int j = 0; j < Dimension::N; ++j) {
+                p[j] = (1.0 + dt[0] * scale * temp_a / (2.0 * Ekin)) * p[j] - dt[0] * scale * sqrt(m[j]) * B_vec[j];
+            }
+        } else if ( norm_B * dt[0] * scale / sqrt(2.0 * Ekin) > 100 && abs(1.0 - alpha_pall/sqrt(2 * Ekin)) < 1e-15 ) {
+            // B and M^{-1/2}P are nearly parallel or Ekin is too small, skip exact propagation
+            // self-adaptive time-step strategy will be implemented later
+            return stat; 
+        } else {
+            // normal case, use exact propagation formula
+            psnd_real c1, c2;
+            c1 = (sqrt(2.0 * Ekin) * (alpha_pall - sqrt(2.0 * Ekin)) + (alpha_pall + sqrt(2.0 * Ekin)) * exp(- 2.0 * norm_B * dt[0] * scale / sqrt(2.0 * Ekin)))
+                / (sqrt(2.0 * Ekin) - alpha_pall  + (alpha_pall + sqrt(2.0 * Ekin)) * exp(- 2.0 * norm_B * dt[0] * scale / sqrt(2.0 * Ekin)));
+
+            c2 = (sqrt(2.0 * Ekin) * 2.0 * exp(- norm_B * dt[0] * scale / sqrt(2.0 * Ekin)))
+                / (sqrt(2.0 * Ekin) - alpha_pall  + (alpha_pall + sqrt(2.0 * Ekin)) * exp(- 2.0 * norm_B * dt[0] * scale / sqrt(2.0 * Ekin)));
+
+            
+            for (int j = 0; j < Dimension::N; ++j) {
+                p[j] = c1 * sqrt(m[j]) * e_pall[j] + c2 * sqrt(m[j]) * pi_vert_vec[j];
+            }
+        }
+
     }
 
     return stat;

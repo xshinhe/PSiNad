@@ -2,7 +2,7 @@
  * @brief       this file provides Kernel_NAForce class enabling force weighting
  *              from electronic properties.
  *
- * @author      Haocheng Lu
+ * @author      Baihua Wu, Haocheng Lu
  * @date        2025-08
  * @version     1.0
  * @copyright   GNU Lesser General Public License (LGPL)
@@ -19,7 +19,7 @@
  * <table>
  * <tr><th> Date        <th> Description
  * <tr><td> 2025-08-01  <td> Initial version.
- * <tr><td> 2025-08-01  <td> Updated version.
+ * <tr><td> 2025-10-29  <td> Updated version.
  * </table>
  **********************************************************************************
  */
@@ -29,6 +29,7 @@
 #define Kernel_ExactPropagator_H
 
 #include "psnd/Kernel.h"
+#include "psnd/Kernel_NAForce.h"
 
 namespace PROJECT_NS {
 
@@ -57,6 +58,9 @@ class Kernel_ExactPropagator : public Kernel {
     span<psnd_real>    ftmp, fproj;
     span<psnd_real>    alpha;
     span<psnd_complex> wrho;
+
+    NAForcePolicy::_type NAForce_type;
+
 
     span<psnd_real> Epot, vpes;
     span<psnd_real> dt_ptr;
