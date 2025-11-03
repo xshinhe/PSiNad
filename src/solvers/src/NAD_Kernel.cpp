@@ -13,6 +13,7 @@
 #include "psnd/Kernel_Update.h"
 #include "psnd/Model.h"
 #include "psnd/Solver.h"
+#include "psnd/Kernel_ExactPropagator.h"
 
 namespace PROJECT_NS {
 
@@ -34,11 +35,14 @@ std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string NA
     std::shared_ptr<Kernel_Update_p> ku_p(new Kernel_Update_p(0.5));
     std::shared_ptr<Kernel_Update_x> ku_x(new Kernel_Update_x(0.5));
     std::shared_ptr<Kernel_Update_U> ku_U(new Kernel_Update_U(1.0));
+    std::shared_ptr<Kernel_ExactPropagator> kexact(new Kernel_ExactPropagator(0.5));  // 提供默认的 scale 参数
 
     /// Result & Sampling & TCF
     std::shared_ptr<Kernel_Recorder> krecd(new Kernel_Recorder());
 
     kinte->appendChild(ku_p);
+    kinte->appendChild(kexact); // hclu added
+    //
     kinte->appendChild(ku_x);
     kinte->appendChild(ku_x);
     kinte->appendChild(kmodel);
@@ -50,6 +54,7 @@ std::shared_ptr<Solver> NAD_Kernel(std::shared_ptr<Model> kmodel, std::string NA
     /// kinte->appendChild(kswarm);
 
     kinte->appendChild(knaf);
+    kinte->appendChild(kexact);
     kinte->appendChild(ku_p);
     kinte->appendChild(std::shared_ptr<Kernel_Conserve>(new Kernel_Conserve()));
 

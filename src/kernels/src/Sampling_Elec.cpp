@@ -157,7 +157,7 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                 elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
                 double norm = 0.0;
                 for (int i = 0; i < Dimension::F; ++i) norm += std::abs(rho_ele[i * Dimension::Fadd1]);
-                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1 / norm, gamma1, Dimension::F, use_cv,
+                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1 / norm, gamma1, Dimension::F, use_cv, // rho_nuc在SQCtest01中是归一化的。
                                          iocc);
                 break;
             }

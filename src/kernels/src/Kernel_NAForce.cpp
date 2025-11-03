@@ -139,7 +139,6 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
         }
 
         switch (NAForce_type) {
-            case NAForcePolicy::NAFEXACT:
             case NAForcePolicy::BO: {
                 for (int j = 0, idxdV0 = 0; j < Dimension::N; ++j, idxdV0 += Dimension::FF)
                     f[j] = ForceMat[j * Dimension::FF + (occ_nuc[0]) * Dimension::Fadd1];
@@ -215,6 +214,25 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                                                  Kernel_Representation::nuc_repr_type,    //
                                                  Kernel_Representation::inp_repr_type,    //
                                                  SpacePolicy::L);
+                break;
+            }
+            case NAForcePolicy::NAFEXACT:{
+                // 在exact propagator中，核先在绝热的BO下演化
+                // 然后在exact propagator算子中调整动量方向
+                // 此处只给出bo force，然后给update p 做演化
+                // hclu 251031
+                // Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                //                                     Kernel_Representation::inp_repr_type,    //
+                //                                     Kernel_Representation::nuc_repr_type,    //
+                //                                     SpacePolicy::L);    
+                for (int j = 0, idxdV0 = 0; j < Dimension::N; ++j, idxdV0 += Dimension::FF)
+                    f[j] = ForceMat[j * Dimension::FF + (occ_nuc[0]) * Dimension::Fadd1];
+                
+                // Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                //                                     Kernel_Representation::nuc_repr_type,    //
+                //                                     Kernel_Representation::inp_repr_type,    //
+                //                                     SpacePolicy::L);    
+                
                 break;
             }
             case NAForcePolicy::NAF2: {

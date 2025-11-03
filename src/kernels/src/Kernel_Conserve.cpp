@@ -135,6 +135,9 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
             for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
         }
         Etot[0] = Epot[0] + Ekin[0];
+    //     std::cout << "[Kernel_Conserve] After conserve: Ekin = " << Ekin[0]
+    //               << ", Epot = " << Epot[0]
+    //               << ", Etot = " << Etot[0] << "\n";
     }
     return stat;
 }

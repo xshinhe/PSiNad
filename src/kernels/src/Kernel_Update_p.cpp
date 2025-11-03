@@ -71,7 +71,7 @@ Status& Kernel_Update_p::executeKernel_impl(Status& stat) {
         for (int iP = 0; iP < Dimension::P; ++iP) {
             auto f = this->f.subspan(iP * Dimension::N, Dimension::N);
             auto p = this->p.subspan(iP * Dimension::N, Dimension::N);
-            for (int i = 0; i < Dimension::N; ++i) { p[i] -= f[i] * scale * dt[0]; }
+            for (int i = 0; i < Dimension::N; ++i) { p[i] -= f[i] * scale * dt[0]; } // update momentum
         }
     } else { // not useful for real sys
         for (int iP = 0; iP < Dimension::P; ++iP) {

@@ -98,6 +98,9 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
         auto vpes     = this->vpes.subspan(iP, 1);
         auto alpha    = this->alpha.subspan(iP, 1);
 
+        // std::cout << "[Kernel_ExactPropagator] Before exact propagator: rho_nuc: " <<
+        //     rho_nuc[0] << ", " << rho_nuc[1] << ", " << rho_nuc[2] << ", " << rho_nuc[3] << "\n";
+
         Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
                                          Kernel_Representation::inp_repr_type,    //
                                          Kernel_Representation::nuc_repr_type,    //
@@ -110,7 +113,7 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
         }
         psnd_real B_vec[Dimension::N]; // 局部变量 B_vec
         for (int j = 0; j < Dimension::N; ++j) {
-            B_vec[j] = 1.0 / sqrt(m[j]) * fproj[j];
+            B_vec[j] = fproj[j] / sqrt(m[j]);
         }
 
         psnd_real norm_B;
@@ -129,18 +132,18 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
         psnd_real alpha_pall;
         alpha_pall = 0.0;
         for (int j = 0; j < Dimension::N; ++j) {
-            alpha_pall += 1.0/sqrt(m[j]) * p[j] * e_pall[j];
+            alpha_pall += p[j] * e_pall[j] / sqrt(m[j]) ;
         }
 
         psnd_real pi_vert_vec[Dimension::N];
         for (int j = 0; j < Dimension::N; ++j) {
-            pi_vert_vec[j] =1.0/sqrt(m[j]) * p[j] - alpha_pall * e_pall[j];
+            pi_vert_vec[j] = p[j] / sqrt(m[j]) - alpha_pall * e_pall[j];
         }
 
         psnd_real Ekin;
         Ekin = 0.0;
         for (int j = 0; j < Dimension::N; ++j) {
-            Ekin += 0.5 * (1.0/m[j]) * p[j] * p[j];
+            Ekin += 0.5 * p[j] * p[j] / m[j];
         }
 
         if ( norm_B * dt[0] * scale / sqrt(2.0 * Ekin) < 1e-20 ) { 
@@ -160,7 +163,7 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
         } else {
             // normal case, use exact propagation formula
             psnd_real c1, c2;
-            c1 = (sqrt(2.0 * Ekin) * (alpha_pall - sqrt(2.0 * Ekin)) + (alpha_pall + sqrt(2.0 * Ekin)) * exp(- 2.0 * norm_B * dt[0] * scale / sqrt(2.0 * Ekin)))
+            c1 = (sqrt(2.0 * Ekin) * ( (alpha_pall - sqrt(2.0 * Ekin)) + (alpha_pall + sqrt(2.0 * Ekin)) * exp(- 2.0 * norm_B * dt[0] * scale / sqrt(2.0 * Ekin))))
                 / (sqrt(2.0 * Ekin) - alpha_pall  + (alpha_pall + sqrt(2.0 * Ekin)) * exp(- 2.0 * norm_B * dt[0] * scale / sqrt(2.0 * Ekin)));
 
             c2 = (sqrt(2.0 * Ekin) * 2.0 * exp(- norm_B * dt[0] * scale / sqrt(2.0 * Ekin)))
@@ -170,8 +173,23 @@ Status& Kernel_ExactPropagator::executeKernel_impl(Status& stat) {
             for (int j = 0; j < Dimension::N; ++j) {
                 p[j] = c1 * sqrt(m[j]) * e_pall[j] + c2 * sqrt(m[j]) * pi_vert_vec[j];
             }
-        }
+        };
 
+        Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
+                                    Kernel_Representation::nuc_repr_type,    //
+                                    Kernel_Representation::inp_repr_type,    //
+                                    SpacePolicy::L);
+        // std::cout << "[Kernel_ExactPropagator] scale: " << scale << "\n";
+        // std::cout << "occ_nuc after exact propagator: " << occ_nuc[0] << std::endl;
+
+        // std::cout << "[Kernel_ExactPropagator] After exact propagator: rho_nuc: " <<
+        //     rho_nuc[0] << ", " << rho_nuc[1] << ", " << rho_nuc[2] << ", " << rho_nuc[3] << "\n";
+        // // check if Ekin conserved
+        // psnd_real Ekin2 = 0.0;
+        // for (int j = 0; j < Dimension::N; ++j) {
+        //     Ekin2 += 0.5 * p[j] * p[j] / m[j];    
+        // }
+        // std::cout << "Ekin before and after exact propagator: " << Ekin << " , " << Ekin2 << std::endl;
     }
 
     return stat;

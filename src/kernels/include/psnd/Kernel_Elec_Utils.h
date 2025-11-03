@@ -52,7 +52,7 @@ class elec_utils {
 
 
     /**
-     * @brief convert kernel to kernel (affine map of the density)
+     * @brief convert kernel to kernel (affine map of the density), from ele_rho to nuc_rho
      */
     static int ker_from_rho(psnd_complex* ker, psnd_complex* rho, psnd_real xi, psnd_real gamma, int fdim,
                             bool quantize = false, int occ = -1) {
@@ -126,6 +126,7 @@ class elec_utils {
         double Ecalc = 0.0e0;
         switch (Kernel_NAForce::NAForce_type) {
             case NAForcePolicy::BO:
+            case NAForcePolicy::NAFEXACT:
             case NAForcePolicy::NAF: {
                 Ecalc = E[occ * Dimension::Fadd1];
                 break;
