@@ -127,6 +127,7 @@ class elec_utils {
         switch (Kernel_NAForce::NAForce_type) {
             case NAForcePolicy::BO:
             case NAForcePolicy::NAFEXACT:
+            case NAForcePolicy::NAF2: 
             case NAForcePolicy::NAF: {
                 Ecalc = E[occ * Dimension::Fadd1];
                 break;

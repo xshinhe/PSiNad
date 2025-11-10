@@ -236,11 +236,16 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                 break;
             }
             case NAForcePolicy::NAF2: {
-                // inp repr : diabatic
-                // nuc repr : adiabatic
+                // repr flag : adiabatic / still apply representation transformation, 
+                // inp repr : diabatic  // init ele in diabatic
+                // ele repr : diabatic  // ele evolve in diabatic
+                // nuc repr : adiabatic // tracking occ in adiabatic representation, but not doing explicit transformation with FroceMat
+                // rho_Q1_adia = |occ><occ| , rho_Q2_adia = sum_{i!=j} rho_ij * |i><j|
+                // TET^t = H, rho_Q1 = T * rho_Q1_adia * T^t, rho_Q2 = T * rho_Q2_adia * T^t
 
-                if (Kernel_Representation::inp_repr_type != RepresentationPolicy::Diabatic) {
-                    throw std::runtime_error("NAF2 force requires inp_repr_type = Diabatic");
+                if (Kernel_Representation::inp_repr_type != RepresentationPolicy::Diabatic ||
+                    Kernel_Representation::nuc_repr_type != RepresentationPolicy::Adiabatic) {
+                    throw std::runtime_error("NAF2 force requires inp repr = diabatic and nuc repr = adiabatic.");
                 }
 
                 Kernel_Representation::transform(rho_nuc.data(), T.data(), Dimension::F,  //
@@ -248,7 +253,22 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                                     RepresentationPolicy::Adiabatic,    //
                                     SpacePolicy::L);
                 psnd_complex rho_Q1[Dimension::FF]; psnd_complex rho_Q2[Dimension::FF];
-                // ... 直接获取occ_nuc[0]
+                // ... 直接获取occ_nuc[0]? 
+                // 如果设置inp 和 nuc都是diabatic，occ得重新拿
+                for (int ik = 0; ik < Dimension::F; ++ik) {
+                    for (int jk = 0; jk < Dimension::F; ++jk) {
+                        int index = ik * Dimension::F + jk;
+                        if (ik == jk) {
+                            rho_Q1[index] = 0.0e0;
+                            rho_Q2[index] = 0.0e0;
+                        } else {
+                            rho_Q1[index] = 0.0e0;
+                            rho_Q2[index] = rho_nuc[index];
+                        }
+                    }
+                }
+                rho_Q1[(occ_nuc[0]) * Dimension::F + (occ_nuc[0])] = 1.0e0;
+
                 Kernel_Representation::transform(rho_Q1, T.data(), Dimension::F,  //
                                                  Kernel_Representation::nuc_repr_type,    //
                                                  Kernel_Representation::inp_repr_type,    //
@@ -267,7 +287,8 @@ Status& Kernel_NAForce::executeKernel_impl(Status& stat) {
                 for (int j = 0, jFF = 0; j < Dimension::N; ++j, jFF += Dimension::FF) {
                     auto dVj = ForceMat.subspan(jFF, Dimension::FF);
                     f[j]     = std::real(ARRAY_TRACE2_DIAG(rho_Q1, dVj.data(), Dimension::F, Dimension::F));
-                    fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_Q2, dVj.data(), Dimension::F, Dimension::F));
+                    // using exact propagator
+                    // fproj[j] = std::real(ARRAY_TRACE2_OFFD(rho_Q2, dVj.data(), Dimension::F, Dimension::F)); // 
                 } // to be reviewed
 
                 
