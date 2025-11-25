@@ -15,7 +15,7 @@
         "F": 7,
         "occ": 5,
         "dt": "0.1 fs",
-        "tend": "150.0 fs"
+        "tend": "500.0 fs"
     },
     "solver": {
         "name": "NAD",
