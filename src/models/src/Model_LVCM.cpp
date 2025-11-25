@@ -282,6 +282,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         case LVCMPolicy::Read: {
             std::string   lvcm_file = _param->get_string({"model.lvcm_file"}, LOC(), "lvcm.dat");
             std::ifstream ifs(lvcm_file);
+            psnd_assert(ifs.is_open(), "File not found: " + lvcm_file);   // check if file exists
             std::string   H_unit_str;
             std::string   firstline;
             getline(ifs, firstline);

@@ -830,7 +830,9 @@ class unitsys {
                 value_type v = uval_prefix.at(str.substr(0, 1));
                 u            = uval_names.at(str.substr(1));
                 u            = u * v;
-            } catch (std::out_of_range& e) { throw unit_error(str + ": parse_error in uval"); }
+            } catch (std::out_of_range& e) { 
+                throw unit_error(str + ": parse_error in uval"); 
+            }
         }
         return u;
     };

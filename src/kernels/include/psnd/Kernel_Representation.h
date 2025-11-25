@@ -10,7 +10,9 @@ DEFINE_POLICY(RepresentationPolicy,
               Diabatic,   // diabatic representation
               Adiabatic,  // adiabtic representation
               Force,      // @developing in future
-              Density     // @developing in future
+              Density,    // @developing in future
+              Diabatic_NAF2  // using diabatic rep to calculate adiabatic nonadiabatic-field by bhwu & hclu 251106
+
 );
 
 DEFINE_POLICY(SpacePolicy,
@@ -37,6 +39,10 @@ class Kernel_Representation final : public Kernel {
 
     static int transform(psnd_complex* A, psnd_real* T, int fdim,  //
                          RepresentationPolicy::_type from, RepresentationPolicy::_type to, SpacePolicy::_type Stype);
+    
+    static int transform(psnd_complex* A, psnd_complex* T, int fdim,  //
+                         RepresentationPolicy::_type from, RepresentationPolicy::_type to, 
+SpacePolicy::_type Stype);
 
    private:
     bool do_refer;
@@ -45,6 +51,7 @@ class Kernel_Representation final : public Kernel {
 
     span<psnd_real>    V, dV, ddV;
     span<psnd_real>    eig, E, T, Told, dE, ddE;
+   //  span<psnd_complex> T;
     span<psnd_real>    lam;
     span<psnd_complex> R, dL, ddL;
     span<psnd_complex> H, dH, ddH;

@@ -47,6 +47,8 @@ void Model_QMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
     sstep_dataset   = _param->get_int({"model.sstep_dataset"}, LOC(), 0);
     use_state_detection = _param->get_bool({"model.use_state_detection"}, LOC(), false); // 动力学减小计算量
 
+    nac_threshold = _param->get_real({"model.nac_threshold"}, LOC(), 1.0);
+
     char* p = getenv("PSND_PYTHON");
     if (p != nullptr) pypsnd_path = p;
     if (pypsnd_path == "" || !isFileExists(utils::concat(pypsnd_path, "/", "QM.py")))
@@ -252,8 +254,8 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     //     // first lower the qm_String
     std::string  qm_string_lower = toLower(qm_string);
     auto         occ_nuc         = _dataset->def(DATA::integrator::occ_nuc);
-    const double deltaE_thres    = 0.3e0 / phys::au_2_ev;  // 0.3 eV in atomic unit
-    // 计算上一步中其他态跟占据态 occ 之间的能量差，能量差小于0.3eV才计算这两个态的耦合，注意eig是原子单位，需要转换为eV
+    const double deltaE_thres    = nac_threshold / phys::au_2_ev;  // default in 1.0 eV in atomic unit
+    // 计算上一步中其他态跟占据态 occ 之间的能量差，能量差小于nac_threshold eV才计算这两个态的耦合，注意eig是原子单位，需要转换为eV 
     std::vector<std::pair<int, int>> occ_pairs;
     for (int i = 0; i < Dimension::F; ++i) {
         int j = occ_nuc[0];
