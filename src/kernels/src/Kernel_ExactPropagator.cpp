@@ -59,8 +59,8 @@ void Kernel_ExactPropagator::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     rho_ele = DS->def(DATA::integrator::rho_ele);
     m       = DS->def(DATA::integrator::m);
     V       = DS->def(DATA::model::V);
-    vpes    = DS->def(DATA::model::vpes);
-    Epot    = DS->def(DATA::integrator::Epot);
+    // vpes    = DS->def(DATA::model::vpes);
+    // Epot    = DS->def(DATA::integrator::Epot);
 
     switch (Kernel_Representation::nuc_repr_type) {
         case RepresentationPolicy::Diabatic:

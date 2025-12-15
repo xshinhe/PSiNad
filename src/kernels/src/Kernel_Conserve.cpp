@@ -92,8 +92,13 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
             }
 
             double deltaE = fabs(Ekin[0] + Epot[0] - Etot_prev[0]) * phys::au_2_kcal_1mea;
+            // double deltaE = std::abs(Ekin[0] +  Epot[0] - Etot_prev[0]) * 627.5094740631e0;  // in kcal/mol
+            // std::cout << "in time step " << stat.istep << std::endl;
+            // std::cout << "[Kernel_Conserve] [DEBUG] deltaE = " << deltaE << " " << thres << "\n" << Ekin[0] +  Epot[0]
+            //           << " " << Etot_prev[0] << "  "  <<  vpes[0] << "\n" << std::endl;
+            
             // this part is for checking energy conservation according to previous settled threshold
-            if (deltaE > thres) {
+            if (deltaE > thres and !stat.first_step) {
                 std::cout << "[Kernel_Conserve] fail in conserve ERROR: "  //
                           << deltaE                      //
                           << " > " << thres << "\n";
@@ -135,9 +140,10 @@ Status& Kernel_Conserve::executeKernel_impl(Status& stat) {
             for (int j = 0; j < Dimension::N; ++j) p[j] *= scale;
         }
         Etot[0] = Epot[0] + Ekin[0];
-    //     std::cout << "[Kernel_Conserve] After conserve: Ekin = " << Ekin[0]
-    //               << ", Epot = " << Epot[0]
-    //               << ", Etot = " << Etot[0] << "\n";
+        // std::cout << "[Kernel_Conserve] After conserve: Ekin = " << Ekin[0]
+        //           << ", Epot = " << Epot[0]
+        //           << ", Etot = " << Etot[0] 
+        //           << ", Etot_prev = " << Etot_prev[0] << "\n";
     }
     return stat;
 }

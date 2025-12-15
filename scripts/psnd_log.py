@@ -118,7 +118,7 @@ class Log:
     # Class variables
     DEBUG_RUN = False
     VERBOSITY_LEVEL: int = 0
-    writeLogToStdOut: bool = True
+    writeLogToStdOut: bool = False
 
     @staticmethod
     def setVerbosityLevel(levelnumber: Optional[int] = None) -> None:

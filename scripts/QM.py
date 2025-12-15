@@ -325,6 +325,7 @@ if __name__ == "__main__":
         ##########################################################
 
         stat_number = 0
+        inputF = int(ks_config.get_nested('QM.F', 2)) # only act on dE and NAC
         with open('interface.ds', 'w') as f:
             # write status 
             f.write('interface.stat\n')
@@ -340,19 +341,22 @@ if __name__ == "__main__":
 
             # write energy
             f.write('interface.dE\n')
-            f.write('psnd_real %d\n'%(len(qmmm_results.gradient) * geometry.atomNum*3))
+            # f.write('psnd_real %d\n'%(len(qmmm_results.gradient) * geometry.atomNum*3))
+            f.write('psnd_real %d\n'%(inputF * geometry.atomNum*3)) # fix F as output state number 251126
             jHM = 0 # count for H & M atoms
             # print(qmmm_results.gradient)
             for i in range(geometry.atomNum): # sorted order
                 if i+1 in geometry.list_MEDIUM_HIGH:
                     for ix in [0,1,2]:
-                        for k in range(len(qmmm_results.gradient.keys())):
+                        # for k in range(len(qmmm_results.gradient.keys())):
+                        for k in range(inputF): # fix F as output state number 251126
                             f.write('{: 12.8e} '.format(qmmm_results.gradient[k][ix][jHM]))
                         f.write('\n')
                     jHM += 1
                 if i+1 in geometry.list_LOW:
                     for ix in [0,1,2]:
-                        for k in range(len(qmmm_results.gradient.keys())):
+                        # for k in range(len(qmmm_results.gradient.keys())):
+                        for k in range(inputF): # fix F as output state number 251126
                             f.write('{: 12.8e} '.format(0))
                         f.write('\n')
             f.write('\n')
@@ -360,13 +364,14 @@ if __name__ == "__main__":
             # write nac
             # print("nac:  ", qmmm_results.nac)
             f.write('interface.nac\n')
-            f.write('psnd_real %d\n'%(len(qmmm_results.nac)*len(qmmm_results.nac)*geometry.atomNum*3) )
+            # f.write('psnd_real %d\n'%(len(qmmm_results.nac)*len(qmmm_results.nac)*geometry.atomNum*3) )
+            f.write('psnd_real %d\n'%(len(qmmm_results.nac)*len(qmmm_results.nac)*inputF*3) ) # fix F as output state number 251126
             jHM = 0 # count for H & M atoms
             for i in range(geometry.atomNum): # sorted order
                 if i+1 in geometry.list_MEDIUM_HIGH:
                     for ix in [0,1,2]:
-                        for k1 in range(len(qmmm_results.nac)):
-                            for k2 in range(len(qmmm_results.nac)):
+                        for k1 in range(inputF): # fix F as output state number 251126
+                            for k2 in range(inputF): # fix F as output state number 251126
                                 if k2 == k1:
                                     f.write('{: 12.8e} '.format(0))
                                 else:
@@ -375,8 +380,8 @@ if __name__ == "__main__":
                     jHM += 1
                 if i+1 in geometry.list_LOW:
                     for ix in [0,1,2]:
-                        for k1 in range(len(qmmm_results.nac)):
-                            for k2 in range(len(qmmm_results.nac)):
+                        for k1 in range(inputF): # fix F as output state number 251126
+                            for k2 in range(inputF): # fix F as output state number 251126
                                 f.write('{: 12.8e} '.format(0))
                         f.write('\n')
             f.write('\n')

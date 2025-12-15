@@ -182,7 +182,7 @@ Status& Model_QMMMInterface::executeKernel_impl(Status& stat) {
     for (int iatom = 0, idx = 0; iatom < natom; ++iatom) {
         // ofs << chem::getElemLabel(atoms[iatom]);  //
         for (int a = 0; a < 3; ++a) {
-            ofs << std::fixed << std::setprecision(7) << std::setw(12) << x[idx];
+            ofs << std::fixed << std::setprecision(7) << std::setw(12) << x[idx] << " ";
             idx++;
         }
         if (iatom % 2 == 1) ofs << "\n";

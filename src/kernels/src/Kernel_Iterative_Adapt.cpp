@@ -444,6 +444,8 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
                 _dataset->dump(ofs2);
                 ofs2.close();
                 stat.frozen = true;
+
+                return stat;
             }
             case 'T':
             case 'R':
