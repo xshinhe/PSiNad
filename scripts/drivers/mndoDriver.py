@@ -396,7 +396,7 @@ class MNDOOutput(QMOutput):
                 while output[k].strip() != '':
                     terms = output[k].strip().split()
                     to_state = int(terms[0]) - 1
-                    read_pos = -2 # read f_rp only
+                    read_pos = -4 # read f_r only
                     self.dataDict["osc_strength"][to_state] = float(terms[read_pos])
                     k += 1
 

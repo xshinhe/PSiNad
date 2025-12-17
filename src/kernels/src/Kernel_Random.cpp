@@ -98,8 +98,14 @@ void Kernel_Random::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             seed[0] = _param->get_int({"seed"}, LOC());
         } 
     }else{
+        // 如果指定seed 就用指定的，否则用随机设备生成一个随机seed
+        bool user_provided_seed = _param->has_key("seed");
+        if (user_provided_seed) {
+            seed[0] = _param->get_int({"seed"}, LOC());
+        } else {
             std::random_device source;
             seed[0] = source();
+        }
     }
     Kernel_Random::setSeed(seed.data());
 }

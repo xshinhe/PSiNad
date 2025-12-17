@@ -14,6 +14,7 @@ void Kernel_Dump_DataSet::setInputParam_impl(std::shared_ptr<Param> PM) {
     fn             = _param->get_string({"dump", "solver.dump"}, LOC(), "null");
     hdlr_str       = _param->get_string({"solver.handler", "handler"}, LOC(), "");
     dump_only_init = _param->get_bool({"solver.dump_only_init"}, LOC(), false);
+    dump_filename  = _param->get_string({"solver.dump_filename", "dump.filename"}, LOC(), "dump");
 }
 
 Status& Kernel_Dump_DataSet::initializeKernel_impl(Status& stat) { return stat; }
@@ -25,7 +26,8 @@ Status& Kernel_Dump_DataSet::executeKernel_impl(Status& stat) {
         if (dump_only_init) {
             _dataset->dump_match(ofs, "init");
         } else {
-            _dataset->dump(ofs);
+            // _dataset->dump(ofs);
+            _dataset->save_binary_filter(utils::concat(directory, "/", dump_filename, "-calc", stat.icalc, ".bin.ds"));
         }
         ofs.close();
     } catch (std::runtime_error& e) { throw psnd_error(fn); }

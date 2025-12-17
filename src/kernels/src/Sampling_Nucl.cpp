@@ -108,7 +108,7 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                     bool        find_in_squeez = squeez_nma.find(findflag) != std::string::npos;
                     if (find_in_ignore) { std::cout << "here ignore nma of " << j << "-th frequency\n"; }
                     if (find_in_squeez) { std::cout << "here squeez nma of " << j << "-th frequency\n"; }
-                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-8) { x[j] = 0.0f, p[j] = 0.0f; }
+                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-6) { x[j] = 0.0f, p[j] = 0.0f; }
                     if (find_in_ignore) {
                         x[j] = 0.0f;  // , p[j] = 0.0f; // just keep sampling of p
                     }

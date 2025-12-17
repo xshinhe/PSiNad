@@ -198,7 +198,7 @@ def checkPSNDEnv() -> Tuple[bool, str]:
         message = "Environment variable $PSND_SCRIPTS_PATH is not defined"
         return False, message
 
-    print(psnd_scripts_path)
+    # print(psnd_scripts_path)
 
     # Check if <PSND SCRIPTS> executables are available
     '''

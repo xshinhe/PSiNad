@@ -85,6 +85,7 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     // f_r              = DS->def(DATA::model::f_r);
     // f_p              = DS->def(DATA::model::f_p);
     // f_rp             = DS->def(DATA::model::f_rp);
+    osc_strength = DS->def_real("model.osc_strength", Dimension::F, "Oscillator strengths for transitions");
     V                = DS->def(DATA::model::V);
     dV               = DS->def(DATA::model::dV);
     eig              = DS->def(DATA::model::rep::eig);
@@ -312,6 +313,12 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
             if (eachline.find("interface.nac") != eachline.npos) {
                 getline(ifs, eachline);
                 for (int jik = 0; jik < Dimension::NFF; ++jik) ifs >> nac[jik];
+            } else {
+                for (int jik = 0; jik < Dimension::NFF; ++jik) nac[jik] = 0;
+            }
+            if (eachline.find("interface.strength") != eachline.npos) {
+                getline(ifs, eachline);
+                for (int i = 0; i < Dimension::F; ++i) ifs >> osc_strength[i];
             }
         }
         std::string command;

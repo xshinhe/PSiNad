@@ -1,0 +1,320 @@
+#include "psnd_lhc/Kernel_Iterative_Adapt_custom.h"
+
+#include <unistd.h>
+
+#include <algorithm>
+#include <chrono>
+#include <limits>
+
+#include "psnd/hash_fnv1a.h"
+#include "psnd/macro_utils.h"
+#include "psnd/vars_list.h"
+
+#define FMTF(X)                                                      \
+    " " << std::setiosflags(std::ios::fixed) /*scientific notation*/ \
+        << std::setprecision(X)              /*precision*/           \
+        << std::setw(X + 4)                  /*precision*/
+
+namespace PROJECT_NS {
+
+const std::string Kernel_Iterative_Adapt_custom::getName() { return "Kernel_Iterative_Adapt_custom"; }
+
+int Kernel_Iterative_Adapt_custom::getType() const { return utils::hash(FUNCTION_NAME); }
+
+void Kernel_Iterative_Adapt_custom::setInputParam_impl(std::shared_ptr<Param> PM) {
+    t0            = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
+    tend          = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0f);
+    dt0           = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1f);
+    time_unit     = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
+    sstep         = _param->get_int({"solver.sstep"}, LOC(), 1);
+    msize         = _param->get_int({"solver.msize"}, LOC(), 128);
+    nbackup       = _param->get_int({"solver.nbackup"}, LOC(), 1);
+    use_exchange  = _param->get_bool({"solver.use_exchange", "use_exchange"}, LOC(), false);
+    exchange_root = _param->get_int({"solver.exchange_root", "exchange_root"}, LOC(), -1);
+    exchange_num  = _param->get_int({"solver.exchange_num", "exchange_num"}, LOC(), 100);
+    exchange_time = _param->get_real({"solver.exchange_time", "exchange_time"}, LOC(), 600.0);  // in second
+    // adaptive parameters (custom)
+    adapt_gap_threshold = _param->get_real({"adaptive.dt.gap_threshold", "adaptive.gap_threshold"}, LOC(), phys::energy_d, 0.0);
+    adapt_dt_factor     = _param->get_real({"adaptive.dt.factor", "adaptive.dt_factor"}, LOC(), phys::time_d, 0.5);
+
+    nstep         = sstep * (int((tend - t0) / (sstep * dt0)));  // keep original logic
+    nsamp         = nstep / sstep + 1;
+}
+
+void Kernel_Iterative_Adapt_custom::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
+    // reuse original control bindings
+    t                 = DS->def(DATA::control::t);
+    dt                = DS->def(DATA::control::dt);
+    istep             = DS->def(DATA::control::istep);
+    isamp             = DS->def(DATA::control::isamp);
+    tsize             = DS->def(DATA::control::tsize);
+    dtsize            = DS->def(DATA::control::dtsize);
+    last_tried_dtsize = DS->def(DATA::control::last_tried_dtsize);
+    at_condition      = DS->def(DATA::control::at_condition);
+
+    // bind electronic eigenvalues if present (non-invasive: optional)
+    try {
+        eig = DS->def(DATA::model::rep::eig);
+    } catch (...) {
+        // ignore: eig may not exist for all models
+    }
+    try {
+        dE = DS->def(DATA::model::rep::dE);
+    } catch (...) {
+    }
+
+    // initializarion
+    DS->def(VARIABLE<psnd_int>("control.sstep", &Dimension::shape_1, "@"))[0] = sstep;
+    DS->def(VARIABLE<psnd_int>("control.nstep", &Dimension::shape_1, "@"))[0] = nstep;
+    DS->def(VARIABLE<psnd_int>("control.nsamp", &Dimension::shape_1, "@"))[0] = nsamp;
+    DS->def(VARIABLE<psnd_int>("control.msize", &Dimension::shape_1, "@"))[0] = msize;
+}
+
+Status& Kernel_Iterative_Adapt_custom::initializeKernel_impl(Status& stat) {
+    // identical to original initialize
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":continue") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
+        if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
+            std::string rmfile = utils::concat("X_STAT", stat.icalc);
+            remove(rmfile.c_str());
+        }
+
+        // exactly copy from _dataset_load to _dataset
+        istep[0]             = _dataset_load->def_int("recover.istep", 1)[0];
+        tsize[0]             = _dataset_load->def_int("recover.tsize", 1)[0];
+        dtsize[0]            = _dataset_load->def_int("recover.dtsize", 1)[0];
+        last_tried_dtsize[0] = _dataset_load->def_int("recover.last_tried_dtsize", 1)[0];
+        stat.succ            = true;
+        stat.last_attempt    = false;
+        stat.frozen          = false;
+        stat.fail_type       = 0;
+        return stat;
+    }
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {  //
+        if (_dataset_load == nullptr) throw psnd_error(utils::concat(LOC(), ": DataSet Load error"));
+        if (std::ifstream{"X_STAT"}.good()) remove("X_STAT");
+        if (std::ifstream{utils::concat("X_STAT", stat.icalc)}.good()) {
+            std::string rmfile = utils::concat("X_STAT", stat.icalc);
+            remove(rmfile.c_str());
+        }
+
+        // exactly copy from _dataset_load to _dataset
+        t[0]  = _dataset_load->def_real("control.t", 1)[0];
+        dt[0] = dt0;
+
+        isamp[0]             = 0;
+        istep[0]             = 0;
+        tsize[0]             = _dataset_load->def_int("control.tsize", 1)[0];
+        dtsize[0]            = msize;
+        last_tried_dtsize[0] = msize;
+        stat.succ            = true;
+        stat.last_attempt    = false;
+        stat.frozen          = false;
+        stat.fail_type       = 0;
+        return stat;
+    }
+
+    // 普通初始化
+    t[0]                 = t0;
+    dt[0]                = dt0;
+    isamp[0]             = 0;
+    istep[0]             = 0;
+    tsize[0]             = 0;
+    dtsize[0]            = msize;
+    last_tried_dtsize[0] = msize;
+
+    stat.succ         = true;
+    stat.last_attempt = false;
+    stat.frozen       = false;
+    stat.fail_type    = 0;
+
+    return stat;
+}
+
+
+Status& Kernel_Iterative_Adapt_custom::executeKernel_impl(Status& stat) {
+    if (_param->get_bool({"verbose"}, LOC(), false)) {
+        std::cout << "S|: "                       // Status of Adaptive Integrator
+                  << std::setw(10) << "Progress"  // Progress before one step
+                  << std::setw(10) << "Time"      // Time before one step
+                  << std::setw(10) << "tsize"     // tsize before one step
+                  << std::setw(10) << "dtsize"    // stepsize before this step
+                  << std::setw(10) << "try"       // stepsize after this step
+                  << std::endl;
+    }
+    if (_param->get_string({"load", "solver.load"}, LOC(), "").find(":restart") != std::string::npos) {
+        stat.first_step = false;
+    } else {
+        stat.first_step = true;
+    }
+
+    int count_fail_type1 = 0;
+
+    isamp[0]          = istep[0] / sstep;
+    int backup_dtsize = 0;
+    while (istep[0] <= nstep) {
+        stat.istep = istep[0];  // @TODO CAUTION!!!
+
+        int  tsize_before_loop     = tsize[0];              ///< current time-point tick
+        int  tsize_after_loop      = tsize[0] + dtsize[0];  ///< next time-point tick after loop
+        bool at_fullstep_initially = tsize_before_loop % (msize) == 0;
+        bool at_fullstep_finally   = tsize_after_loop % (msize) == 0;
+        at_condition[0]            = tsize_before_loop % (sstep * msize) == 0;
+        t[0]                       = t0 + dt0 * (tsize[0] / ((double) msize));
+        dt[0]                      = dt0 * (dtsize[0] / ((double) msize));
+
+        // Adaptive: compute minimum gap from available fields and adjust dt for this step
+        if (adapt_gap_threshold > 0.0) {
+            double min_gap = std::numeric_limits<double>::infinity();
+   
+            // compute pairwise min |Ei - Ej|
+            for (size_t i = 0; i < eig.size(); ++i) {
+                for (size_t j = i + 1; j < eig.size(); ++j) {
+                    double gap = std::abs(static_cast<double>(eig[i]) - static_cast<double>(eig[j]));
+                    if (gap < min_gap) min_gap = gap;
+                }
+            }
+            
+            if (min_gap != std::numeric_limits<double>::infinity() && min_gap <= adapt_gap_threshold) {
+                // shrink dtsize for this step by adapt_dt_factor
+                int new_dtsize = std::max(1, static_cast<int>(std::floor(dtsize[0] * adapt_dt_factor)));
+                if (new_dtsize < dtsize[0]) {
+                    if (_param->get_bool({"verbose"}, LOC(), false)) {
+                        std::cout << LOC() << " adapt: min_gap=" << min_gap << " <= " << adapt_gap_threshold
+                                  << " shrink dtsize " << dtsize[0] << " -> " << new_dtsize << "\n";
+                    }
+                    dtsize[0] = new_dtsize;
+                    dt[0]     = dt0 * (dtsize[0] / ((double) msize));
+                }
+            }
+        }
+
+        if (istep[0] == nstep) {
+            at_condition[0] = true;
+            backup_dtsize   = dtsize[0];
+            dtsize[0]       = 0;  // frozen dynamics
+            dt[0]           = dt0 * (dtsize[0] / ((double) msize));
+            stat.frozen     = true;
+        }
+
+        // backup before loop
+        for (auto& fname : backup_fields) {
+            for (int bto = nbackup, bfrom = bto - 1; bto > 1; --bto, --bfrom) {
+                _dataset->_def(utils::concat("backup.", bto, ".", fname), utils::concat("backup.", bfrom, ".", fname));
+            }
+            _dataset->_def(utils::concat("backup.", 1, ".", fname),  //
+                           utils::concat("integrator.", fname));
+        }
+
+        // for each loop, we always previously set succ as true
+        stat.succ = true;
+        for (auto& pkernel : _child_kernels) { pkernel->executeKernel(stat); }
+
+        char statc = '?';
+        if (stat.succ && !stat.last_attempt) statc = 'T';                     // SUCC=True
+        if (stat.succ && stat.last_attempt) statc = 'R';                      // Recovered
+        if (!stat.succ && !stat.last_attempt && dtsize[0] > 1) statc = 'F';   // FAILED
+        if (!stat.succ && !stat.last_attempt && dtsize[0] == 1) statc = 'L';  // FAILED and TODO TRY LAST
+        if (!stat.succ && stat.last_attempt) statc = 'X';                     // END HERE
+        if (!stat.succ && stat.fail_type == 1) {
+            if (count_fail_type1 >= 2) {
+                statc = 'X';
+            } else {
+                count_fail_type1++;  // don't change statc
+            }
+        }
+        if (stat.fail_type != 1) count_fail_type1 = 0;  // reset to zero
+        if (stat.frozen) statc = 'Z';                   // FROZEN THEN
+
+        if (std::ifstream{"X_STAT"}.good() && !stat.frozen) statc = 'X';
+        if (std::ifstream{utils::concat("X_STAT_", stat.icalc)}.good() && !stat.frozen) statc = 'X';
+
+        switch (statc) {
+            case 'X': {
+                for (auto& fname : backup_fields) {
+                    _dataset->_def(utils::concat("integrator.", fname),     //
+                                   utils::concat("backup.", 1, ".", fname)  //
+                    );
+                    for (int bto = nbackup, bfrom = bto - 1; bto > 1; --bto, --bfrom) {
+                        _dataset->_def(utils::concat("backup.", bfrom, ".", fname),
+                                       utils::concat("backup.", bto, ".", fname));
+                    }
+                }
+
+                _dataset->def_int("recover.istep", istep.data(), 1);
+                _dataset->def_int("recover.tsize", tsize.data(), 1);
+                _dataset->def_int("recover.dtsize", dtsize.data(), 1);
+                _dataset->def_int("recover.last_tried_dtsize", last_tried_dtsize.data(), 1);
+
+                std::ofstream ofs{utils::concat(directory, "/frozen", stat.icalc, "-", tsize[0], ".ds")};
+                _dataset->dump(ofs);
+                ofs.close();
+                std::ofstream ofs2{utils::concat(directory, "/frozen_last.ds")};
+                _dataset->dump(ofs2);
+                ofs2.close();
+                stat.frozen = true;
+            }
+            case 'T':
+            case 'R':
+            case 'Z': {
+                stat.last_attempt = false;
+                stat.first_step   = false;
+
+                if (at_fullstep_finally) istep[0]++;
+                tsize[0] += dtsize[0];
+
+                int extend_dtsize = (at_fullstep_finally) ? 2 * last_tried_dtsize[0] : 2 * dtsize[0];
+
+                int remain_dtsize    = msize - (tsize[0] % msize);
+                int new_dtsize       = std::min({msize, extend_dtsize, remain_dtsize});
+                last_tried_dtsize[0] = dtsize[0];
+                dtsize[0]            = new_dtsize;
+                break;
+            }
+            case 'L':
+            case 'F': {
+                if (!stat.succ) {
+                    if (stat.fail_type == 1) {
+                        count_fail_type1++;
+                    } else {
+                        count_fail_type1 = 0;
+                    }
+                }
+                stat.last_attempt    = (dtsize[0] == 1);
+                last_tried_dtsize[0] = dtsize[0];
+
+                dtsize[0] = (stat.last_attempt || stat.fail_type == 1) ? dtsize[0] : dtsize[0] / 2;
+                tsize[0] += 0;
+
+                for (auto& fname : backup_fields) {
+                    _dataset->_def(utils::concat("integrator.", fname),     //
+                                   utils::concat("backup.", 1, ".", fname)  //
+                    );
+                    for (int bto = nbackup, bfrom = bto - 1; bto > 1; --bto, --bfrom) {
+                        _dataset->_def(utils::concat("backup.", bfrom, ".", fname),
+                                       utils::concat("backup.", bto, ".", fname));
+                    }
+                }
+                break;
+            }
+        }
+        if (_param->get_bool({"verbose"}, LOC(), false)) {
+            std::cout << statc << "|:"  //
+                      << std::resetiosflags(std::ios::scientific) << std::setiosflags(std::ios::fixed)
+                      << std::setprecision(2) << std::setw(10) << 100 * t[0] / tend << "%"  //
+                      << std::resetiosflags(std::ios::fixed) << std::setiosflags(std::ios::scientific)
+                      << std::setprecision(2) << std::setw(10) << t[0] / time_unit  //
+                      << std::setw(10) << tsize_before_loop                         
+                      << std::setw(10) << last_tried_dtsize[0]                      
+                      << std::setw(10) << dtsize[0] << std::endl;                   // flush into log
+        }
+        
+        isamp[0] = istep[0] / sstep;
+    }
+    dtsize[0] = backup_dtsize;  // frozen dynamics
+    dt[0]     = dt0 * (dtsize[0] / ((double) msize));
+    return stat;
+}
+
+};  // namespace PROJECT_NS

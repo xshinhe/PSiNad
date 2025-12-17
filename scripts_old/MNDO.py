@@ -84,7 +84,7 @@ def _get_gradient_from_lines(lines: list[str]):
     find = False
     gradient = {}
     istate_force = 0
-    i = 0;
+    i = 0
     while i < len(lines):
         if "CI CALCULATION FOR STATE:" in lines[i]:
             istate_force = int(lines[i].split()[-1]) - 1

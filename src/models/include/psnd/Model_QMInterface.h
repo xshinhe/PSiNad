@@ -64,6 +64,8 @@ class Model_QMInterface final : public Model {
     span<psnd_real> dt_ptr, t_ptr;
     span<psnd_int>  istep_ptr;
 
+    psnd_real* osc_strength;
+
     int  natom;
     int  read_flag;
     int  nciref;
