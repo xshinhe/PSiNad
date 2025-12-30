@@ -12,6 +12,8 @@ extern std::shared_ptr<Solver> NAD_Adapt_Kernel(std::shared_ptr<Model> kmodel, s
 
 extern std::shared_ptr<Solver> NAD_AdaptM_Kernel(std::shared_ptr<Model> kmodel, std::string Kernel_name);
 
+extern std::shared_ptr<Solver> NAD_AdaptM_Kernel_split20(std::shared_ptr<Model> kmodel, std::string Kernel_name);
+
 std::shared_ptr<Solver> defaultSolverFactory(const std::string& name, std::shared_ptr<Model> kmodel) {
     if (false) {
     } else if (name == "Hello") {
@@ -26,6 +28,8 @@ std::shared_ptr<Solver> defaultSolverFactory(const std::string& name, std::share
         return NAD_Adapt_Kernel(kmodel, "NAD");
     } else if (name == "NAD-adaptM") {
         return NAD_AdaptM_Kernel(kmodel, "NAD");
+    } else if (name == "NAD-adaptM-split20") {
+        return NAD_AdaptM_Kernel_split20(kmodel, "NAD");
     } else {
         throw std::runtime_error("unknown solver name");
     }

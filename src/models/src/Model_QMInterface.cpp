@@ -313,9 +313,7 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
             if (eachline.find("interface.nac") != eachline.npos) {
                 getline(ifs, eachline);
                 for (int jik = 0; jik < Dimension::NFF; ++jik) ifs >> nac[jik];
-            } else {
-                for (int jik = 0; jik < Dimension::NFF; ++jik) nac[jik] = 0;
-            }
+            } 
             if (eachline.find("interface.strength") != eachline.npos) {
                 getline(ifs, eachline);
                 for (int i = 0; i < Dimension::F; ++i) ifs >> osc_strength[i];
@@ -346,8 +344,20 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     } else {
         if (s != 0) std::cout << "psnd external shell status bug\n";
         if (!isFileExists(utils::concat(path_str, "/interface.ds"))) std::cout << "interface.ds is not generated\n";
-        stat.succ      = false;
-        stat.fail_type = 1;
+
+        span<psnd_int> dtsize = _dataset->def(DATA::control::dtsize);
+        bool last_try = (dtsize[0] == 1);
+
+        // 如果没有生成interface.ds文件，开启force_run模式则使用上一步的结果继续运行 hclu 251218
+        if (_param->get_bool({"model.force_run"}, LOC(), false) && last_try) {
+            std::cout << "[QMInterface] Warning: interface.ds not generated, but force_run is ON, use previous step results.\n";
+            std::cout << "[QMInterface] Note: This is a very dangerous operation, please make sure you know what you are doing and do enough test!\n";
+            stat.fail_type = 0; // reset fail_type, use previous results
+
+        } else {
+            stat.succ      = false;
+            stat.fail_type = 1;
+        }
     }
 
     if (stat.succ) {

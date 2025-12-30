@@ -153,6 +153,8 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                 break;
             }
             case ElectronicSamplingPolicy::SQCtest01: {
+                // xi1 = 1 + F * gamma
+                // 
                 elec_utils::c_window(c.data(), iocc, ElectronicSamplingPolicy::SQCtri, Dimension::F);
                 elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);
                 double norm = 0.0;
@@ -190,28 +192,33 @@ Status& Sampling_Elec::executeKernel_impl(Status& stat) {
                 w[0] = psnd_complex(Dimension::F);
                 break;
             }
-            default: {  // @NOTE: or read from _dataset_load?
+            case ElectronicSamplingPolicy::ReadDataSet: {  // @NOTE: or read from _dataset_load?
                 std::string open_file = sampling_file;
                 if (!isFileExists(sampling_file)) open_file = utils::concat(sampling_file, stat.icalc, ".ds");
                 std::string   stmp, eachline;
                 std::ifstream ifs(open_file);
                 while (getline(ifs, eachline)) {
-                    if (eachline.find("init.c") != eachline.npos) {
+                    if (eachline == "init.c") {
                         getline(ifs, eachline);
                         for (int i = 0; i < Dimension::F; ++i) ifs >> c[i];
                     }
-                    // if (eachline.find("init.rho_ele") != eachline.npos) {
-                    //     getline(ifs, eachline);
-                    //     for (int i = 0; i < Dimension::FF; ++i) ifs >> rho_ele[i];
-                    // }
-                    // if (eachline.find("init.rho_nuc") != eachline.npos) {
-                    //     getline(ifs, eachline);
-                    //     for (int i = 0; i < Dimension::FF; ++i) ifs >> rho_nuc[i];
-                    // }
+                    if (eachline == "init.rho_ele") {
+                        getline(ifs, eachline);
+                        for (int i = 0; i < Dimension::FF; ++i) ifs >> rho_ele[i];
+                    }
+                    if (eachline == "init.rho_nuc") {
+                        getline(ifs, eachline);
+                        for (int i = 0; i < Dimension::FF; ++i) ifs >> rho_nuc[i];
+                    }
+                    if (eachline == "init.w") {
+                        getline(ifs, eachline);
+                        ifs >> w[0];
+                    }
                 }
-                elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);  ///< initial rho_ele
-                elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
-                w[0] = phys::math::iu;
+                // elec_utils::ker_from_c(rho_ele.data(), c.data(), 1, 0, Dimension::F);  ///< initial rho_ele
+                // elec_utils::ker_from_rho(rho_nuc.data(), rho_ele.data(), xi1, gamma1, Dimension::F, use_cv, iocc);
+                // w[0] = phys::math::iu;
+                break;
             }
         }
 

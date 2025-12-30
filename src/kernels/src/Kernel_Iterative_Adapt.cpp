@@ -483,7 +483,7 @@ Status& Kernel_Iterative_Adapt::executeKernel_impl(Status& stat) {
 
                 // suggest new dt (don't minimize dt for fail_type==1)
                 dtsize[0] = (stat.last_attempt || stat.fail_type == 1) ? dtsize[0] : dtsize[0] / 2;
-                tsize[0] += 0;
+                // tsize[0] += 0;
 
                 for (auto& fname : backup_fields) {
                     _dataset->_def(utils::concat("integrator.", fname),     //
