@@ -25,8 +25,8 @@ Kernel_Recorder::~Kernel_Recorder() {};
 
 void Kernel_Recorder::setInputParam_impl(std::shared_ptr<Param> PM) {
     dt              = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);
-    t0              = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
-    time_unit       = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
+    t0              = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0);
+    time_unit       = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0);
     occ0            = _param->get_int({"model.occ", "solver.occ"}, LOC(), -1);
     record_dumpstep = _param->get_int({"solver.record_dumpstep"}, LOC(), 0);
     record_tmp      = _param->get_bool({"solver.record_tmp"}, LOC(), false);

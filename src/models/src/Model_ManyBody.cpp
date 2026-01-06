@@ -21,7 +21,7 @@ void Model_ManyBody::setInputParam_impl(std::shared_ptr<Param> PM) {
 
 void Model_ManyBody::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     mass = DS->def(DATA::model::mass);
-    for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
+    for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0;
     vpes = DS->def(DATA::model::vpes);
     grad = DS->def(DATA::model::grad);
     hess = DS->def(DATA::model::hess);
@@ -53,7 +53,7 @@ void Model_ManyBody::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     for (int i = 0, ik = 0; i < Dimension::P; ++i) {
         for (int k = 0; k < Dimension::P; ++k, ++ik) {
             if (i == k) {
-                Jpmat[ik] = 0.0f, Jzmat[ik] = 0.0f;
+                Jpmat[ik] = 0.0, Jzmat[ik] = 0.0;
                 continue;
             }
             int dist  = i > k ? i - k : k - i;  // or not? @data-202407

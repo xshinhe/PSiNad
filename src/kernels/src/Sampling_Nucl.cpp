@@ -27,8 +27,8 @@ void Sampling_Nucl::setInputParam_impl(std::shared_ptr<Param> PM) {
     squeez_nma         = _param->get_string({"solver.squeez_nma"}, LOC(), ",");
     double temperature = _param->get_real({"model.bath_temperature", "model.bath.temperature",  //
                                            "model.temperature", "solver.temperature"},
-                                          LOC(), phys::temperature_d, 1.0f);
-    beta               = 1.0f / (phys::au::k * temperature);  // please don't forget k_Boltzman
+                                          LOC(), phys::temperature_d, 1.0);
+    beta               = 1.0 / (phys::au::k * temperature);  // please don't forget k_Boltzman
 }
 
 void Sampling_Nucl::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -82,8 +82,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                 Kernel_Random::rand_gaussian(p.data(), Dimension::N);
                 for (int j = 0; j < Dimension::N; ++j) {
                     double Qoverbeta = (sampling_type == NuclearSamplingPolicy::ClassicalHO)
-                                           ? ((beta > 0) ? 1.0f / beta : 0.0f)
-                                           : (0.5e0 * w[j] / (beta > 0 ? std::tanh(0.5e0 * beta * w[j]) : 1.0f));
+                                           ? ((beta > 0) ? 1.0 / beta : 0.0)
+                                           : (0.5e0 * w[j] / (beta > 0 ? std::tanh(0.5e0 * beta * w[j]) : 1.0));
                     x_sigma[j]       = std::sqrt(Qoverbeta / (w[j] * w[j]));
                     p_sigma[j]       = std::sqrt(Qoverbeta);
                     x[j]             = x[j] * x_sigma[j];
@@ -108,9 +108,9 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                     bool        find_in_squeez = squeez_nma.find(findflag) != std::string::npos;
                     if (find_in_ignore) { std::cout << "here ignore nma of " << j << "-th frequency\n"; }
                     if (find_in_squeez) { std::cout << "here squeez nma of " << j << "-th frequency\n"; }
-                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-6) { x[j] = 0.0f, p[j] = 0.0f; }
+                    if (w[j] <= 0.0 || std::fabs(w[j]) < 1.0e-6) { x[j] = 0.0, p[j] = 0.0; }
                     if (find_in_ignore) {
-                        x[j] = 0.0f;  // , p[j] = 0.0f; // just keep sampling of p
+                        x[j] = 0.0;  // , p[j] = 0.0; // just keep sampling of p
                     }
                     if (find_in_squeez) {
                         double act = x[j] * x[j] + p[j] * p[j];
@@ -122,8 +122,8 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                         if (mass[k] < 2000.0) Hratio += Tmod[k * Dimension::N + j] * Tmod[k * Dimension::N + j];
                     }
                     double Qoverbeta = (sampling_type == NuclearSamplingPolicy::ClassicalNMA)
-                                           ? ((beta > 0) ? 1.0f / beta : 0.0f)
-                                           : (0.5e0 * w[j] / (beta > 0 ? std::tanh(0.5e0 * beta * w[j]) : 1.0f));
+                                           ? ((beta > 0) ? 1.0 / beta : 0.0)
+                                           : (0.5e0 * w[j] / (beta > 0 ? std::tanh(0.5e0 * beta * w[j]) : 1.0));
 
                     double wincm = w[j] * phys::au_2_wn;
                     if (Hratio > 0.8 && wincm > 2500 && screen_hfreq_type > 0) {
@@ -131,7 +131,7 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                         if (screen_hfreq_type == 1) { x[j] = 0.0e0, p[j] = 0.0e0; }
                         if (screen_hfreq_type == 2) { x[j] *= 0.1, p[j] *= 0.1; }
                         if (screen_hfreq_type == 3) {
-                            Qoverbeta = ((beta > 0) ? 1.0f / beta : 0.0f);
+                            Qoverbeta = ((beta > 0) ? 1.0 / beta : 0.0);
                             x[j] *= 0.1, p[j] *= 0.1;
                         }
                     }
@@ -227,6 +227,44 @@ Status& Sampling_Nucl::executeKernel_impl(Status& stat) {
                 break;
             }
         }
+
+        if (_param->get_bool({"solver.fix_momentum"}, LOC(), false)) {
+            for (int j = 0; j < Dimension::N; ++j){
+                p[j] = 0.0e0;
+            }
+        } else if (_param->get_bool({"solver.classical_momentum"}, LOC(), false)) { 
+            // using classical momentum for trajectory initilization
+            Kernel_Random::rand_gaussian(p.data(), Dimension::N, 1.0, 0.0);
+            double one_over_beta = 1.0 / beta; 
+
+            for (int j = 0; j < Dimension::N; ++j){
+                double p_sigma_classical = std::sqrt(one_over_beta * mass[j]);
+                p[j] = p[j] * p_sigma_classical;
+            }
+            // check energy conservation
+            double kinetic_energy = 0.0e0;
+            for (int j = 0; j < Dimension::N; ++j) {
+                kinetic_energy += p[j] * p[j] / (2.0e0 * mass[j]);
+            }
+            std::cout << "[Sampling_Nucl] Using classical momentum for trajectory initialization, kinetic energy = "
+                      << kinetic_energy << " a.u. (" << kinetic_energy * phys::au_2_ev << " eV)\n";
+            std::cout << "[Sampling_Nucl] Target kinetic energy from temperature " << (0.5e0 * Dimension::N / beta)
+                      << " a.u. (" << (0.5e0 * Dimension::N / beta * phys::au_2_ev) << " eV)\n";
+
+        }
+
+        // std::cout << "beta" << beta << std::endl;
+
+        // // check energy conservation
+        // double kinetic_energy = 0.0e0;
+        // for (int j = 0; j < Dimension::N; ++j) {
+        //     kinetic_energy += p[j] * p[j] / (2.0e0 * mass[j]);
+        // }
+        // std::cout << "[Sampling_Nucl] Using classical momentum for trajectory initialization, kinetic energy = "
+        //             << kinetic_energy << " a.u. (" << kinetic_energy * phys::au_2_ev << " eV)\n";
+        // std::cout << "[Sampling_Nucl] Target kinetic energy from temperature " << (0.5e0 * Dimension::N / beta)
+        //             << " a.u. (" << (0.5e0 * Dimension::N / beta * phys::au_2_ev) << " eV)\n";
+
     }
     _dataset->def(DATA::init::x, x);
     _dataset->def(DATA::init::p, p);

@@ -107,7 +107,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                         if (!basis_switch) {
                             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
                                 for (int k = 0; k < Dimension::F; ++k, ++ik) {
-                                    TtTold[ik] = (i == k) ? copysign(1.0f, TtTold[ik]) : 0;
+                                    TtTold[ik] = (i == k) ? copysign(1.0, TtTold[ik]) : 0;
                                 }
                             }
                         } else {
@@ -124,7 +124,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                                         }
                                     }
                                 }
-                                double vsign = copysign(1.0f, TtTold[csr12]);
+                                double vsign = copysign(1.0, TtTold[csr12]);
                                 for (int k2 = 0, k1k2 = csr1 * Dimension::F;  //
                                      k2 < Dimension::F;                       //
                                      ++k2, ++k1k2) {
@@ -187,7 +187,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                 if (phase_correction) {
                     psnd_real Ekin = 0;
                     for (int j = 0; j < Dimension::N; ++j) Ekin += 0.5f * p[j] * p[j] / m[j];
-                    double Epes = 0.0f;
+                    double Epes = 0.0;
                     if (Kernel_NAForce::NAForce_type == NAForcePolicy::BO) {
                         Epes = eig[occ_nuc[0]];
                     } else {
@@ -196,7 +196,7 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                         }
                     }
                     for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
-                        H[ii] = -2 * Ekin * sqrt(std::max<double>(1.0 + (Epes - eig[i]) / Ekin, 0.0f));
+                        H[ii] = -2 * Ekin * sqrt(std::max<double>(1.0 + (Epes - eig[i]) / Ekin, 0.0));
                     }
                 }
                 EigenSolve(lam.data(), R.data(), H.data(), Dimension::F);  // R*L*R^ = H

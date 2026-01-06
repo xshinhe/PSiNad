@@ -61,11 +61,11 @@ class Kernel_Random : public Kernel {
 
     static int rand_exponent(psnd_real* res_arr, int N = 1);
 
-    static int rand_poisson(int* res_arr, int N = 1, psnd_real lambda = 1.0f);
+    static int rand_poisson(int* res_arr, int N = 1, psnd_real lambda = 1.0);
 
-    static int rand_simplex(psnd_real* res_arr, int N = 1, psnd_real constr = 1.0f);
+    static int rand_simplex(psnd_real* res_arr, int N = 1, psnd_real constr = 1.0);
 
-    static int rand_sphere(psnd_real* res_arr, int N = 1, psnd_real constr = 1.0f);
+    static int rand_sphere(psnd_real* res_arr, int N = 1, psnd_real constr = 1.0);
 
    private:
     span<psnd_int> seed;

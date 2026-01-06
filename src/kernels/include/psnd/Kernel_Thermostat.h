@@ -8,8 +8,8 @@
 
 /// Suzuki-Yoshida decomposition framework
 const int       ndofs_sy         = 7;
-const psnd_real wgt_sy[ndofs_sy] = {0.784513610477560f, 0.235573213359357f, -1.17767998417887f, 1.3151863206839063f,
-                                    -1.17767998417887f, 0.235573213359357f, 0.784513610477560f};
+const psnd_real wgt_sy[ndofs_sy] = {0.784513610477560, 0.235573213359357, -1.17767998417887, 1.3151863206839063,
+                                    -1.17767998417887, 0.235573213359357, 0.784513610477560};
 namespace thermo_policy {
 enum _enum { None, Langevin, Andersen, NHC };
 const std::map<std::string, _enum> _dict = {{"#none", None}, {"#lang", Langevin}, {"#and", Andersen}, {"#nhc", NHC}};
@@ -48,8 +48,8 @@ class Kernel_Update_T final : public Kernel {
         thermo_option.type = thermo_policy::_dict.at(thermo_option.flag);
 
         // read temperature
-        double temp = _param->get_real({"solver.temp"}, LOC(), phys::temperature_d, 1.0f);
-        beta        = 1.0f / (phys::au::k * temp);  // never ignore k_Boltzman
+        double temp = _param->get_real({"solver.temp"}, LOC(), phys::temperature_d, 1.0);
+        beta        = 1.0 / (phys::au::k * temp);  // never ignore k_Boltzman
 
         nthstp = _param->get_int({"solver.nthstp"}, LOC(), 0);
         nchain = _param->get_int({"solver.nchain"}, LOC(), 1);
@@ -101,9 +101,9 @@ class Kernel_Update_T final : public Kernel {
                 break;
             case thermo_policy::NHC: {
                 num_real  smalldt  = dt / nrespa;
-                num_real  hsmalldt = 0.5f * smalldt;
-                num_real  qsmalldt = 0.25f * smalldt;
-                num_real  Te       = 1.0f / (phys::au::k * beta);
+                num_real  hsmalldt = 0.5 * smalldt;
+                num_real  qsmalldt = 0.25 * smalldt;
+                num_real  Te       = 1.0 / (phys::au::k * beta);
                 num_real* rx       = nhc_r + start;  // thermostat with (start, start + N) DOFs
                 num_real* px       = nhc_p + start;  // thermostat with (start, start + N) DOFs
                 for (int i = 0, ix = 0; i < N; ++i, rx += nchain, px += nchain) {

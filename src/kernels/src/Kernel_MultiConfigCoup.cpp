@@ -242,12 +242,12 @@ int Kernel_MultiConfigCoup::calc_Hbasis_adia(span<psnd_complex> Hbasis,  // [P,P
 
 void Kernel_MultiConfigCoup::setInputParam_impl(std::shared_ptr<Param> PM) {
     dt            = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d);  //
-    alpha0        = _param->get_real({"solver.alpha0"}, LOC(), 1.0f);                  //
-    width_scaling = _param->get_real({"solver.width_scaling"}, LOC(), 1.0f);           //
-    break_thres   = _param->get_real({"solver.break_thres"}, LOC(), 1.0f);             //
+    alpha0        = _param->get_real({"solver.alpha0"}, LOC(), 1.0);                  //
+    width_scaling = _param->get_real({"solver.width_scaling"}, LOC(), 1.0);           //
+    break_thres   = _param->get_real({"solver.break_thres"}, LOC(), 1.0);             //
     P_used0       = _param->get_int({"solver.P_initial"}, LOC(), 1);                   //
     max_clone     = _param->get_int({"solver.max_clone"}, LOC(), 0);                   //
-    gamma         = _param->get_real({"solver.gamma"}, LOC(), 0.0f);                   //
+    gamma         = _param->get_real({"solver.gamma"}, LOC(), 0.0);                   //
     xi            = 1 + Dimension::F * gamma;
 
     impl_type          = _param->get_int({"solver.impl_type"}, LOC(), 0);           //

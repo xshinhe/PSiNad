@@ -30,10 +30,10 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
             N_mode = 2;
             // parameter for PYR3
-            double  E_data_PYR3[2]      = {3.94f, 4.84f};
-            double  w_data_PYR3[3]      = {0.074f, 0.126f, 0.118f};
-            double  kcoeff_data_PYR3[4] = {-0.105f, 0.149f, 0.037f, -0.254f};
-            double  lcoeff_data_PYR3[4] = {0.000f, 0.262f, 0.262f, 0.000f};
+            double  E_data_PYR3[2]      = {3.94, 4.84};
+            double  w_data_PYR3[3]      = {0.074, 0.126, 0.118};
+            double  kcoeff_data_PYR3[4] = {-0.105, 0.149, 0.037, -0.254};
+            double  lcoeff_data_PYR3[4] = {0.000, 0.262, 0.262, 0.000};
             double *E_data              = E_data_PYR3;
             double *w_data              = w_data_PYR3;
             double *kcoeff_data         = kcoeff_data_PYR3;
@@ -61,17 +61,17 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
             N_mode = 23;
             // parameter for PYR24
-            double E_data_PYR24[2]       = {-0.4617f, 0.4617f};
-            double w_data_PYR24[24]      = {0.0740f, 0.1273f, 0.1568f, 0.1347f, 0.3431f, 0.1157f, 0.3242f, 0.3621f,
-                                            0.2673f, 0.3052f, 0.0968f, 0.0589f, 0.0400f, 0.1726f, 0.2863f, 0.2484f,
-                                            0.1536f, 0.2105f, 0.0778f, 0.2294f, 0.1915f, 0.4000f, 0.3810f, 0.0936f};
-            double kcoeff_data_PYR24[46] = {-0.0964f, 0.1194f,  0.0470f, 0.2012f,  0.1594f, 0.0484f,  0.0308f, -0.0308f,
-                                            0.0782f,  -0.0782f, 0.0261f, -0.0261f, 0.0717f, -0.0717f, 0.0780f, -0.0780f,
-                                            0.0560f,  -0.0560f, 0.0625f, -0.0625f, 0.0188f, -0.0188f, 0.0112f, -0.0112f,
-                                            0.0069f,  -0.0069f, 0.0265f, -0.0265f, 0.0433f, -0.0433f, 0.0361f, -0.0361f,
-                                            0.0210f,  -0.0210f, 0.0281f, -0.0281f, 0.0102f, -0.0102f, 0.0284f, -0.0284f,
-                                            0.0196f,  -0.0196f, 0.0306f, -0.0306f, 0.0269f, -0.0269f};
-            double lcoeff_data_PYR24[4]  = {0.000f, 0.1825f, 0.1825f, 0.000f};
+            double E_data_PYR24[2]       = {-0.4617, 0.4617};
+            double w_data_PYR24[24]      = {0.0740, 0.1273, 0.1568, 0.1347, 0.3431, 0.1157, 0.3242, 0.3621,
+                                            0.2673, 0.3052, 0.0968, 0.0589, 0.0400, 0.1726, 0.2863, 0.2484,
+                                            0.1536, 0.2105, 0.0778, 0.2294, 0.1915, 0.4000, 0.3810, 0.0936};
+            double kcoeff_data_PYR24[46] = {-0.0964, 0.1194,  0.0470, 0.2012,  0.1594, 0.0484,  0.0308, -0.0308,
+                                            0.0782,  -0.0782, 0.0261, -0.0261, 0.0717, -0.0717, 0.0780, -0.0780,
+                                            0.0560,  -0.0560, 0.0625, -0.0625, 0.0188, -0.0188, 0.0112, -0.0112,
+                                            0.0069,  -0.0069, 0.0265, -0.0265, 0.0433, -0.0433, 0.0361, -0.0361,
+                                            0.0210,  -0.0210, 0.0281, -0.0281, 0.0102, -0.0102, 0.0284, -0.0284,
+                                            0.0196,  -0.0196, 0.0306, -0.0306, 0.0269, -0.0269};
+            double lcoeff_data_PYR24[4]  = {0.000, 0.1825, 0.1825, 0.000};
             double *E_data               = E_data_PYR24;
             double *w_data               = w_data_PYR24;
             double *kcoeff_data          = kcoeff_data_PYR24;
@@ -100,11 +100,11 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
             N_mode = 4;
             // parameter for BUTA5
-            double  E_data_BUTA5[2]      = {9.41165f, 9.95575f};
-            double  w_data_BUTA5[5]      = {0.1089f, 0.1773f, 0.2578f, 0.3713f, 0.0912f};
-            double  kcoeff_data_BUTA5[8] = {-0.0531f, -0.0594f, 0.0115f,  0.0100f,  //
-                                            -0.1628f, 0.3422f,  -0.0403f, 0.0321f};
-            double  lcoeff_data_BUTA5[4] = {0.000f, 0.2880f, 0.2880f, 0.000f};
+            double  E_data_BUTA5[2]      = {9.41165, 9.95575};
+            double  w_data_BUTA5[5]      = {0.1089, 0.1773, 0.2578, 0.3713, 0.0912};
+            double  kcoeff_data_BUTA5[8] = {-0.0531, -0.0594, 0.0115,  0.0100,  //
+                                            -0.1628, 0.3422,  -0.0403, 0.0321};
+            double  lcoeff_data_BUTA5[4] = {0.000, 0.2880, 0.2880, 0.000};
             double *E_data               = E_data_BUTA5;
             double *w_data               = w_data_BUTA5;
             double *kcoeff_data          = kcoeff_data_BUTA5;
@@ -134,33 +134,33 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
             N_mode = 0;
 
-            const double kappa1   = -0.0169f;
-            const double kappa3   = -0.0272f;
-            const double lambda1a = 0.0328f;
-            const double lambda1b = -0.0978f;
-            const double lambda2a = 0.0095f;
-            const double lambda2b = 0.1014f;
+            const double kappa1   = -0.0169;
+            const double kappa3   = -0.0272;
+            const double lambda1a = 0.0328;
+            const double lambda1b = -0.0978;
+            const double lambda2a = 0.0095;
+            const double lambda2b = 0.1014;
 
-            double E_data_CRC5[3]       = {0.0424f, 0.0424f, 0.4344f};
-            double w_data_CRC5[5]       = {0.0129f, 0.0129f, 0.0342f, 0.0561f, 0.0561f};
-            double kcoeff_data_CRC5[1]  = {0.0f};
+            double E_data_CRC5[3]       = {0.0424, 0.0424, 0.4344};
+            double w_data_CRC5[5]       = {0.0129, 0.0129, 0.0342, 0.0561, 0.0561};
+            double kcoeff_data_CRC5[1]  = {0.0};
             double lcoeff_data_CRC5[45] = {
                 // data
-                0.0f,      lambda1a, 0.0f,      // x0
-                lambda1a,  0.0f,     lambda1b,  //
-                0.0f,      lambda1b, 0.0f,      //
-                -lambda1a, 0.0f,     lambda1b,  // x1
-                0.0f,      lambda1a, 0.0f,      //
-                lambda1b,  0.0f,     0.0f,      //
-                kappa1,    0.0f,     0.0f,      // x2
-                0.0f,      kappa1,   0.0f,      //
-                0.0f,      0.0f,     kappa3,    //
-                -lambda2a, 0.0f,     lambda2b,  // x3
-                0.0f,      lambda2a, 0.0f,      //
-                lambda2b,  0.0f,     0.0f,      //
-                0.0f,      lambda2a, 0.0f,      // x4
-                lambda2a,  0.0f,     lambda2b,  //
-                0.0f,      lambda2b, 0.0f       //
+                0.0,      lambda1a, 0.0,      // x0
+                lambda1a,  0.0,     lambda1b,  //
+                0.0,      lambda1b, 0.0,      //
+                -lambda1a, 0.0,     lambda1b,  // x1
+                0.0,      lambda1a, 0.0,      //
+                lambda1b,  0.0,     0.0,      //
+                kappa1,    0.0,     0.0,      // x2
+                0.0,      kappa1,   0.0,      //
+                0.0,      0.0,     kappa3,    //
+                -lambda2a, 0.0,     lambda2b,  // x3
+                0.0,      lambda2a, 0.0,      //
+                lambda2b,  0.0,     0.0,      //
+                0.0,      lambda2a, 0.0,      // x4
+                lambda2a,  0.0,     lambda2b,  //
+                0.0,      lambda2b, 0.0       //
             };
 
             double *E_data      = E_data_CRC5;
@@ -188,17 +188,17 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         case LVCMPolicy::CED2:
         case LVCMPolicy::CED3: {
             N_mode                  = 0;
-            const double lightspeed = 137.03599907444f;
-            const double epsilon0   = 0.25f / phys::math::pi;
+            const double lightspeed = 137.03599907444;
+            const double epsilon0   = 0.25 / phys::math::pi;
 
-            double E_data_CED2[2]  = {-0.6738f, -0.2798f};
-            double mu_data_CED2[4] = {0.000f, +1.034f,  //
-                                      +1.034f, 0.000f};
+            double E_data_CED2[2]  = {-0.6738, -0.2798};
+            double mu_data_CED2[4] = {0.000, +1.034,  //
+                                      +1.034, 0.000};
 
-            double E_data_CED3[3]  = {-0.6738f, -0.2798f, -0.1547f};
-            double mu_data_CED3[9] = {0.000f,  +1.034f, 0.000f,   //
-                                      +1.034f, 0.000f,  -2.536f,  //
-                                      0.000f,  -2.536f, 0.000f};
+            double E_data_CED3[3]  = {-0.6738, -0.2798, -0.1547};
+            double mu_data_CED3[9] = {0.000,  +1.034, 0.000,   //
+                                      +1.034, 0.000,  -2.536,  //
+                                      0.000,  -2.536, 0.000};
 
             double Lcav = 2.362e5;
             double Rcav = Lcav / 2;
@@ -224,7 +224,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             for (int j = 0, jik = 0; j < Dimension::N; ++j) {
                 w[j] = (2 * j + 1) * lightspeed * phys::math::pi / Lcav;
                 for (int ik = 0; ik < Dimension::FF; ++ik, ++jik) {
-                    Qmat[jik] = sqrt(2.0f / (epsilon0 * Lcav)) * sin((2 * j + 1) * phys::math::pi * Rcav / Lcav) *
+                    Qmat[jik] = sqrt(2.0 / (epsilon0 * Lcav)) * sin((2 * j + 1) * phys::math::pi * Rcav / Lcav) *
                                 w[j] * mu_data[ik];
                 }
             }
@@ -238,10 +238,10 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             double wcav  = _param->get_real({"model.wcav"}, LOC(), phys::energy_d, 0.62f / H_unit);
 
             // parameter for PYR2
-            double  E_data_PYR2[2]      = {3.94f, 4.84f};
-            double  w_data_PYR2[3]      = {0.074f, 0.118f};
-            double  kcoeff_data_PYR2[4] = {-0.105f, 0.149f};
-            double  lcoeff_data_PYR2[4] = {0.000f, 0.262f, 0.262f, 0.000f};
+            double  E_data_PYR2[2]      = {3.94, 4.84};
+            double  w_data_PYR2[3]      = {0.074, 0.118};
+            double  kcoeff_data_PYR2[4] = {-0.105, 0.149};
+            double  lcoeff_data_PYR2[4] = {0.000, 0.262, 0.262, 0.000};
             double *E_data              = E_data_PYR2;
             double *w_data              = w_data_PYR2;
             double *kcoeff_data         = kcoeff_data_PYR2;
@@ -342,22 +342,22 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     switch (lvcm_type) {
         case LVCMPolicy::CRC2:
         case LVCMPolicy::CRC5: {
-            double reqb[5] = {0.0f, 14.3514f, -9.9699f, -7.0189f, 0.0f};
-            double alpw[5] = {0.4501f, 0.4286f, 0.6204f, 0.4535f, 0.5539f};
+            double reqb[5] = {0.0, 14.3514, -9.9699, -7.0189, 0.0};
+            double alpw[5] = {0.4501, 0.4286, 0.6204, 0.4535, 0.5539};
             for (int j = 0; j < Dimension::N; ++j) {
                 x0[j]      = reqb[j] / sqrt(w[j]);
-                p0[j]      = 0.0f;
+                p0[j]      = 0.0;
                 x_sigma[j] = alpw[j] / sqrt(w[j]);
-                p_sigma[j] = 0.5f * sqrt(w[j]) / alpw[j];
+                p_sigma[j] = 0.5 * sqrt(w[j]) / alpw[j];
             }
             break;
         }
         default: {
             for (int j = 0; j < Dimension::N; ++j) {
-                x0[j]      = 0.0f;
-                p0[j]      = 0.0f;
-                x_sigma[j] = sqrt(0.5f / w[j]);
-                p_sigma[j] = sqrt(0.5f * w[j]);
+                x0[j]      = 0.0;
+                p0[j]      = 0.0;
+                x_sigma[j] = sqrt(0.5 / w[j]);
+                p_sigma[j] = sqrt(0.5 * w[j]);
             }
             break;
         }
@@ -372,7 +372,7 @@ void Model_LVCM::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
     // model field
     mass = DS->def(DATA::model::mass);
-    for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
+    for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0;
     vpes = DS->def(DATA::model::vpes);
     grad = DS->def(DATA::model::grad);
     hess = DS->def(DATA::model::hess);
@@ -396,7 +396,7 @@ Status &Model_LVCM::executeKernel_impl(Status &stat) {
         auto dV   = this->dV.subspan(iP * Dimension::NFF, Dimension::NFF);
 
         // calculate nuclear vpes and grad
-        double term = 0.0f;
+        double term = 0.0;
         for (int j = 0; j < Dimension::N; ++j) {
             term += w[j] * w[j] * x[j] * x[j];
             grad[j] = w[j] * w[j] * x[j];

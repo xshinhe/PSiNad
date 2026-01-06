@@ -98,8 +98,8 @@ void Model_Interf_MNDO::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     }
 
     // read temperature
-    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0f);
-    beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
+    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0);
+    beta               = 1.0 / (phys::au::k * temperature);  // don't ignore k_Boltzman
 
     // read task
     init_nuclinp = _param->get_string({"model.init_nuclinp"}, LOC(), "#hess");

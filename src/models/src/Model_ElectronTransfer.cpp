@@ -41,9 +41,9 @@ void Model_ElectronTransfer::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     omega0             = _param->get_real({"model.omega0"}, LOC(), 3.5e-4);
     lambda0            = _param->get_real({"model.lambda0"}, LOC(), 2.39e-2);
     coeff0             = _param->get_real({"model.coeff0"}, LOC(), std::sqrt(0.5 * lambda0) * omega0);
-    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0f);
-    beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
-    double fullbias    = _param->get_real({"model.fullbias"}, LOC(), phys::energy_d, 0.0f);
+    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0);
+    beta               = 1.0 / (phys::au::k * temperature);  // don't ignore k_Boltzman
+    double fullbias    = _param->get_real({"model.fullbias"}, LOC(), phys::energy_d, 0.0);
     double delta       = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 5.0e-5);
     // double eta         = 1.49e-5; // eta has different relation with alpha!!!
 
@@ -79,12 +79,11 @@ void Model_ElectronTransfer::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
 
     /// 3) bilinear Coupling (saving order: L, nbath, Nb, FF)
     Q    = DS->def(DATA::model::coupling::Q);
-    Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
+    Q[0] = 1.0, Q[1] = 0.0, Q[2] = 0.0, Q[3] = -1.0;
 
     // model field
     mass = DS->def(DATA::model::mass);
-    for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0f;
-
+    for (int j = 0; j < Dimension::N; ++j) mass[j] = 1.0;
     vpes = DS->def(DATA::model::vpes);
     grad = DS->def(DATA::model::grad);
     hess = DS->def(DATA::model::hess);

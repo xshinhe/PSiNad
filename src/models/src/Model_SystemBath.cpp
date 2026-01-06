@@ -51,8 +51,8 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
             psnd_assert(nbath == 1, "Dimension Error");
             psnd_assert(Dimension::F == 2, "Dimension Error");
             L             = 2;  // sigma_z
-            double bias   = _param->get_real({"model.bias"}, LOC(), phys::energy_d, 1.0f);
-            double delta  = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0f);
+            double bias   = _param->get_real({"model.bias"}, LOC(), phys::energy_d, 1.0);
+            double delta  = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0);
             double HSB[4] = {bias, delta, delta, -bias};
             for (int i = 0; i < Dimension::FF; ++i) Hsys[i] = HSB[i];
             break;
@@ -60,9 +60,9 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         case SystemPolicy::AGG: {
             psnd_assert(Dimension::F >= 2, "Dimension Error");
             L            = 1;  // |n><n|
-            double delta = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0f);
+            double delta = _param->get_real({"model.delta"}, LOC(), phys::energy_d, 1.0);
             for (int i = 0, ik = 0; i < Dimension::F; ++i) {
-                for (int k = 0; k < Dimension::F; ++k, ++ik) Hsys[ik] = (i - k == 1 || k - i == 1) ? delta : 0.0f;
+                for (int k = 0; k < Dimension::F; ++k, ++ik) Hsys[ik] = (i - k == 1 || k - i == 1) ? delta : 0.0;
             }
             bool cyclic = _param->get_bool({"model.agg_cyclic"}, LOC(), false);
             if (cyclic) {
@@ -140,7 +140,7 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
         switch (coupling_type) {
             case CouplingPolicy::SB: {
                 psnd_assert(Dimension::F == 2, "Dimension Error");
-                Q[0] = 1.0f, Q[1] = 0.0f, Q[2] = 0.0f, Q[3] = -1.0f;
+                Q[0] = 1.0, Q[1] = 0.0, Q[2] = 0.0, Q[3] = -1.0;
                 break;
             }
             case CouplingPolicy::SE: {
@@ -148,7 +148,7 @@ void Model_SystemBath::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                             "Dimension Error");
                 for (int i = 0, idx = 0; i < Dimension::nbath; ++i) {
                     for (int j = 0; j < Dimension::F; ++j) {
-                        for (int k = 0; k < Dimension::F; ++k, ++idx) Q[idx] = (i == j && i == k) ? 1.0f : 0.0f;
+                        for (int k = 0; k < Dimension::F; ++k, ++idx) Q[idx] = (i == j && i == k) ? 1.0 : 0.0;
                     }
                 }
                 break;
@@ -220,7 +220,7 @@ Status& Model_SystemBath::executeKernel_impl(Status& stat) {
             vpes[0] *= 0.5e0;
             ARRAY_MATMUL(grad.data(), Kmat.data(), x.data(), Dimension::N, Dimension::N, 1);
         } else {
-            double term = 0.0f;
+            double term = 0.0;
             for (int ibath = 0, idxR = 0; ibath < Dimension::nbath; ++ibath) {
                 for (int j = 0; j < Dimension::Nb; ++j, ++idxR) {
                     term += omegas[j] * omegas[j] * x[idxR] * x[idxR];

@@ -25,7 +25,7 @@ void Kernel_Update_Coup::setInputParam_impl(std::shared_ptr<Param> PM) {
     gamma1 = _param->get_real({"solver.gamma"}, LOC(), elec_utils::gamma_wigner(Dimension::F));
     if (gamma1 < -1.5) gamma1 = elec_utils::gamma_opt(Dimension::F);
     if (gamma1 < -0.5) gamma1 = elec_utils::gamma_wigner(Dimension::F);
-    gamma2 = (1 - gamma1) / (1.0f + Dimension::F * gamma1);
+    gamma2 = (1 - gamma1) / (1.0 + Dimension::F * gamma1);
     xi1    = (1 + Dimension::F * gamma1);
     xi2    = (1 + Dimension::F * gamma2);
 }

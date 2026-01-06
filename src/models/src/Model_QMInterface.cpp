@@ -153,10 +153,10 @@ void Model_QMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
                 getline(ifs, eachline);
                 for (int i = 0; i < Dimension::N; ++i) ifs >> x0[i];
             }
-            if (eachline.find("model.p0") != eachline.npos) {
-                getline(ifs, eachline);
-                for (int i = 0; i < Dimension::N; ++i) ifs >> p0[i];
-            }
+            // if (eachline.find("model.p0") != eachline.npos) {
+            //     getline(ifs, eachline);
+            //     for (int i = 0; i < Dimension::N; ++i) ifs >> p0[i];
+            // }
             if (eachline.find("model.hess") != eachline.npos) {
                 read_H = true;
                 getline(ifs, eachline);

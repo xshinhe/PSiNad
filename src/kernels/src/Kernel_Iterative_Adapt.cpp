@@ -22,10 +22,10 @@ const std::string Kernel_Iterative_Adapt::getName() { return "Kernel_Iterative_A
 int Kernel_Iterative_Adapt::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Iterative_Adapt::setInputParam_impl(std::shared_ptr<Param> PM) {
-    t0            = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
-    tend          = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0f);
-    dt0           = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1f);
-    time_unit     = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
+    t0            = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0);
+    tend          = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0);
+    dt0           = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1);
+    time_unit     = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0);
     sstep         = _param->get_int({"solver.sstep"}, LOC(), 1);
     msize         = _param->get_int({"solver.msize"}, LOC(), 128);
     nbackup       = _param->get_int({"solver.nbackup"}, LOC(), 1);

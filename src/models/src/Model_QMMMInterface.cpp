@@ -58,11 +58,11 @@ void Model_QMMMInterface::setInputParam_impl(std::shared_ptr<Param> PM) {
         throw psnd_error("QMMM config not found, please set model.qm_config = <your config file>");
 
     // read temperature
-    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0f);
-    beta               = 1.0f / (phys::au::k * temperature);  // don't ignore k_Boltzman
+    double temperature = _param->get_real({"model.temperature"}, LOC(), phys::temperature_d, 1.0);
+    beta               = 1.0 / (phys::au::k * temperature);  // don't ignore k_Boltzman
     // read task
     init_nuclinp = _param->get_string({"model.init_nuclinp"}, LOC(), "#hess");
-    time_unit    = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0f);
+    time_unit    = _param->get_real({"model.time_unit", "solver.time_unit"}, LOC(), phys::time_d, 1.0);
 }
 
 void Model_QMMMInterface::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
@@ -288,9 +288,9 @@ int Model_QMMMInterface::track_nac_sign() {
             if (i == j) continue;
 
             const double norm_eps = 10e-14;
-            double       norm_old = 0.0f;
-            double       norm_new = 0.0f;
-            double       cosangle = 0.0f;
+            double       norm_old = 0.0;
+            double       norm_new = 0.0;
+            double       cosangle = 0.0;
             int          IJ       = i * Dimension::F + j;
             for (int k = 0, idx = IJ; k < Dimension::N; ++k, idx += Dimension::FF) {
                 norm_old += nac_prev[idx] * nac_prev[idx];
@@ -300,7 +300,7 @@ int Model_QMMMInterface::track_nac_sign() {
             norm_old = sqrt(norm_old);
             norm_new = sqrt(norm_new);
             if (norm_old < norm_eps || norm_new < norm_eps) {
-                cosangle = 1.0f;
+                cosangle = 1.0;
             } else {
                 cosangle = cosangle / (norm_old * norm_new);
             }

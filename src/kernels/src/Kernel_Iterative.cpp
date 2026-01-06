@@ -11,9 +11,9 @@ const std::string Kernel_Iterative::getName() { return "Kernel_Iterative"; }
 int Kernel_Iterative::getType() const { return utils::hash(FUNCTION_NAME); }
 
 void Kernel_Iterative::setInputParam_impl(std::shared_ptr<Param> PM) {
-    t0    = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
-    tend  = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0f);
-    dt0   = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1f);
+    t0    = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0);
+    tend  = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0);
+    dt0   = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1);
     sstep = _param->get_int({"solver.sstep"}, LOC(), 1);
 
     // set time grids

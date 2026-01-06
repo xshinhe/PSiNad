@@ -67,7 +67,7 @@ class elec_utils {
 
     static int max_choose(psnd_complex* rho) {
         int       imax = 0;
-        psnd_real vmax = 0.0f;
+        psnd_real vmax = 0.0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
             if (std::real(rho[ii]) > vmax) {
                 vmax = std::real(rho[ii]);
@@ -79,7 +79,7 @@ class elec_utils {
 
     static int pop_choose(psnd_complex* rho) {
         psnd_real rand_tmp;
-        psnd_real sum = 0.0f;
+        psnd_real sum = 0.0;
         Kernel_Random::rand_uniform(&rand_tmp);
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
             sum += std::min({std::max({std::real(rho[ii]), 0.0e0}), 1.0e0});
@@ -90,7 +90,7 @@ class elec_utils {
 
     static int pop_neg_choose(psnd_complex* rho) {
         psnd_real rand_tmp;
-        psnd_real sum = 0.0f;
+        psnd_real sum = 0.0;
         for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) sum += std::abs(rho[ii]);
         Kernel_Random::rand_uniform(&rand_tmp);
         rand_tmp *= sum;
@@ -104,15 +104,15 @@ class elec_utils {
 
     static int hopping_choose(psnd_complex* rho, psnd_complex* H, int from, psnd_real dt) {
         int       to = from;
-        psnd_real rand_tmp, sumprob = 0.0f;
+        psnd_real rand_tmp, sumprob = 0.0;
         psnd_real rhoii = std::real(rho[from * Dimension::Fadd1]);
         Kernel_Random::rand_uniform(&rand_tmp);
 
         for (int n = 0; n < Dimension::F; ++n) {
             psnd_real prob =
-                (n == from) ? 0.0f
-                            : -2.0f * std::imag(rho[n * Dimension::F + from] * H[from * Dimension::F + n]) / rhoii * dt;
-            prob = (prob > 1.0f) ? 1.0f : ((prob < 0.0f) ? 0.0f : prob);  // hopping cut-off
+                (n == from) ? 0.0
+                            : -2.0 * std::imag(rho[n * Dimension::F + from] * H[from * Dimension::F + n]) / rhoii * dt;
+            prob = (prob > 1.0) ? 1.0 : ((prob < 0.0) ? 0.0 : prob);  // hopping cut-off
             sumprob += prob;
             if (rand_tmp < sumprob) {
                 to = n;
@@ -202,7 +202,7 @@ class elec_utils {
         if (to == from) return;
 
         for (int i = 0; i < Dimension::N; ++i) {
-            direction[i] = 0.0f;
+            direction[i] = 0.0;
             for (int k = 0; k < Dimension::F; ++k)
                 if (k != from)
                     direction[i] +=
@@ -239,7 +239,7 @@ class elec_utils {
         // solve x: Ef + P**2 / (2*M) = Et + (P + direction*x)**2 / (2*M)
         psnd_real coeffa = 0.0e0, coeffb = 0.0e0, coeffc = Eto - Efrom;
         for (int i = 0; i < Dimension::N; ++i) {
-            coeffa += 0.5f * direction[i] * direction[i] / nm[i];
+            coeffa += 0.5 * direction[i] * direction[i] / nm[i];
             coeffb += np[i] / nm[i] * direction[i];
         }
         coeffb /= coeffa, coeffc /= coeffa;  // normalization for safety
@@ -341,9 +341,9 @@ class elec_utils {
             case ElectronicSamplingPolicy::SQCtri: {
                 psnd_real tmp2[2];
                 Kernel_Random::rand_uniform(tmp2, 2);
-                while (tmp2[0] + tmp2[1] > 1.0f) Kernel_Random::rand_uniform(tmp2, 2);
+                while (tmp2[0] + tmp2[1] > 1.0) Kernel_Random::rand_uniform(tmp2, 2);
                 c[iocc] = tmp2[0];
-                tmp2[1] = 1.0f - std::real(c[iocc]);
+                tmp2[1] = 1.0 - std::real(c[iocc]);
                 for (int i = 0; i < fdim; ++i) {
                     if (i != iocc) {
                         Kernel_Random::rand_uniform(tmp2, 1);
@@ -354,7 +354,7 @@ class elec_utils {
                 break;
             }
             case ElectronicSamplingPolicy::SQCsqr: {
-                const psnd_real gm0 = gamma_wigner(2.0f);
+                const psnd_real gm0 = gamma_wigner(2.0);
                 for (int i = 0; i < fdim; ++i) {
                     psnd_real randu;
                     Kernel_Random::rand_uniform(&randu);
@@ -392,7 +392,7 @@ class elec_utils {
     };
 
     static int ker_binning(psnd_complex* ker, psnd_complex* rho, int sqc_type) {
-        const psnd_real gm0 = gamma_wigner(2.0f), gm1 = 1 + gm0, gmh = 0.5f + gm0;
+        const psnd_real gm0 = gamma_wigner(2.0), gm1 = 1 + gm0, gmh = 0.5 + gm0;
 
         // set all elements to 1
         for (int i = 0; i < Dimension::FF; ++i) ker[i] = rho[i] / std::abs(rho[i]);
@@ -408,7 +408,7 @@ class elec_utils {
                         case ElectronicSamplingPolicy::SQCspx:
                         case ElectronicSamplingPolicy::SQCspx2:
                             Outlier = (i == j) ? ((k != i && vk > 1) || (k == i && vk < 1))
-                                               : ((k != i && k != j && vk > 1) || ((k == i || k == j) && vk < 0.5f));
+                                               : ((k != i && k != j && vk > 1) || ((k == i || k == j) && vk < 0.5));
 
                             if (i != j) Outlier = false;
                             break;

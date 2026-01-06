@@ -17,9 +17,9 @@ void Kernel_Read_Dimensions::setInputParam_impl(std::shared_ptr<Param> PM) {
     Dimension::N = _param->get_int({"model.N"}, LOC(), 1);
     Dimension::F = _param->get_int({"model.F"}, LOC(), 1);
 
-    // t0    = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0f);
-    // tend  = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0f);
-    // dt0    = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1f);
+    // t0    = _param->get_real({"model.t0", "solver.t0"}, LOC(), phys::time_d, 0.0);
+    // tend  = _param->get_real({"model.tend", "solver.tend"}, LOC(), phys::time_d, 1.0);
+    // dt0    = _param->get_real({"model.dt", "solver.dt"}, LOC(), phys::time_d, 0.1);
     // sstep = _param->get_int({"solver.sstep"}, LOC(), 1);
     // nstep = sstep * (int((tend - t0) / (sstep * dt0)) + 1);  // @bug?
     // nsamp = nstep / sstep + 1;

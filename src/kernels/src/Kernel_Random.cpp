@@ -69,15 +69,15 @@ int Kernel_Random::rand_simplex(psnd_real* res_arr, int N, psnd_real constr) {
         return 0;
     });
     for (int i = 0; i < N - 1; ++i) { res_arr[i] = res_arr[i + 1] - res_arr[i]; }
-    res_arr[N - 1] = 1.0f - res_arr[N - 1];
+    res_arr[N - 1] = 1.0 - res_arr[N - 1];
 
-    if (constr != 1.0f)
+    if (constr != 1.0)
         for (int i = 1; i < N; ++i) res_arr[i] *= constr;
     return 0;
 }
 
 int Kernel_Random::rand_sphere(psnd_real* res_arr, int N, psnd_real constr) {
-    psnd_real norm = 0.0f;
+    psnd_real norm = 0.0;
     for (int i = 0; i < N; ++i) {
         res_arr[i] = rand_nd(rand_rng);
         norm += res_arr[i] * res_arr[i];
@@ -85,7 +85,7 @@ int Kernel_Random::rand_sphere(psnd_real* res_arr, int N, psnd_real constr) {
     norm = std::sqrt(norm);
     for (int i = 0; i < N; ++i) { res_arr[i] /= norm; }
 
-    if (constr != 1.0f)
+    if (constr != 1.0)
         for (int i = 0; i < N; ++i) res_arr[i] *= constr;
     return 0;
 }
