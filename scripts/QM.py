@@ -288,7 +288,7 @@ if __name__ == "__main__":
             charges.rallyCharges(qmcalc.charges)
             f = open('laststep.charge', 'w')
             for i in range(len(qmcalc.charges)):
-                f.write('{: 12.8e}\n'.format(qmcalc.charges[i]))
+                f.write('{: 24.16e}\n'.format(qmcalc.charges[i]))
             f.flush()
             f.close()
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
             f.write('interface.eig\n')
             f.write('psnd_real %d\n'%len(qmmm_results.energies))
             for i in range(len(qmmm_results.energies)): # sorted order
-                f.write('{: 12.8e}\n'.format(qmmm_results.energies[i]))
+                f.write('{: 24.16e}\n'.format(qmmm_results.energies[i]))
             f.write('\n')
 
             # write energy
@@ -350,14 +350,14 @@ if __name__ == "__main__":
                     for ix in [0,1,2]:
                         # for k in range(len(qmmm_results.gradient.keys())):
                         for k in range(inputF): # fix F as output state number 251126
-                            f.write('{: 12.8e} '.format(qmmm_results.gradient[k][ix][jHM]))
+                            f.write('{: 24.16e} '.format(qmmm_results.gradient[k][ix][jHM]))
                         f.write('\n')
                     jHM += 1
                 if i+1 in geometry.list_LOW:
                     for ix in [0,1,2]:
                         # for k in range(len(qmmm_results.gradient.keys())):
                         for k in range(inputF): # fix F as output state number 251126
-                            f.write('{: 12.8e} '.format(0))
+                            f.write('{: 24.16e} '.format(0))
                         f.write('\n')
             f.write('\n')
 
@@ -374,27 +374,27 @@ if __name__ == "__main__":
                             for k1 in range(inputF): # fix F as output state number 251126
                                 for k2 in range(inputF): # fix F as output state number 251126
                                     if k2 == k1:
-                                        f.write('{: 12.8e} '.format(0))
+                                        f.write('{: 24.16e} '.format(0))
                                     else:
-                                        f.write('{: 12.8e} '.format(qmmm_results.nac[k1][k2][ix][jHM]))
+                                        f.write('{: 24.16e} '.format(qmmm_results.nac[k1][k2][ix][jHM]))
                             f.write('\n')
                         jHM += 1
                     if i+1 in geometry.list_LOW:
                         for ix in [0,1,2]:
                             for k1 in range(inputF): # fix F as output state number 251126
                                 for k2 in range(inputF): # fix F as output state number 251126
-                                    f.write('{: 12.8e} '.format(0))
+                                    f.write('{: 24.16e} '.format(0))
                             f.write('\n')
                 f.write('\n')
 
             # write ocillation strength
             f.write('interface.strength\n')
-            f.write('psnd_real %d\n'%len(qmcalc.outputData.dataDict["osc_strength"]))
-            for i in range(len(qmcalc.outputData.dataDict["osc_strength"])): # sorted order
-                if i==0:
-                    f.write('{: 12.8e}\n'.format(0))
+            f.write('psnd_real %d\n'%inputF)  # 应该是 inputF，不是字典长度
+            for i in range(inputF):  # 遍历所有需要的态
+                if i == 0:
+                    f.write('{: 24.16e}\n'.format(0))
                 else:
-                    f.write('{: 12.8e}\n'.format(qmcalc.outputData.dataDict["osc_strength"][i]))
+                    f.write('{: 24.16e}\n'.format(qmcalc.outputData.dataDict["osc_strength"].get(i, 0)))  # 没有key就返回0
             f.write('\n')
 
             f.flush()

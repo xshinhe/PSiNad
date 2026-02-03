@@ -63,6 +63,8 @@ void Kernel_Representation::setInputDataSet_impl(std::shared_ptr<DataSet> DS) {
     TtTold = DS->def(DATA::integrator::tmp::TtTold);
     ve     = DS->def(DATA::integrator::tmp::ve);
     vedE   = DS->def(DATA::integrator::tmp::vedE);
+
+    nac = DS->def(DATA::model::rep::nac);
 }
 
 Status& Kernel_Representation::initializeKernel_impl(Status& stat) { return stat; }
@@ -178,9 +180,28 @@ Status& Kernel_Representation::executeKernel_impl(Status& stat) {
                 for (int i = 0; i < Dimension::F; ++i) Emean += eig[i];
                 Emean /= Dimension::F;
 
-                for (int i = 0, ij = 0; i < Dimension::F; ++i) {
-                    for (int j = 0; j < Dimension::F; ++j, ++ij) {  //
-                        H[ij] = ((i == j) ? eig[i] - Emean : -phys::math::im * vedE[ij] / (eig[j] - eig[i]));
+                if (!onthefly){
+                    for (int i = 0, ij = 0; i < Dimension::F; ++i) {
+                        for (int j = 0; j < Dimension::F; ++j, ++ij) {  //
+                            H[ij] = ((i == j) ? eig[i] - Emean : -phys::math::im * vedE[ij] / (eig[j] - eig[i]));
+                        }
+                    }
+                } else {
+                    // 先全部计算，然后修正对角线
+                    for (int ij = 0; ij < Dimension::FF; ++ij) {
+                        H[ij] = 0.0e0;
+                    }
+
+                    for (int k = 0; k < Dimension::N; ++k) {
+                        psnd_complex factor = -phys::math::im * ve[k];
+                        for (int ij = 0; ij < Dimension::FF; ++ij) {
+                            H[ij] += factor * nac[k * Dimension::FF + ij];
+                        }
+                    }
+
+                    // 修正对角线
+                    for (int i = 0, ii = 0; i < Dimension::F; ++i, ii += Dimension::Fadd1) {
+                        H[ii] = eig[i] - Emean;
                     }
                 }
 

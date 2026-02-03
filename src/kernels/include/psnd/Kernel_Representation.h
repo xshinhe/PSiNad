@@ -50,7 +50,7 @@ SpacePolicy::_type Stype);
     bool basis_switch;
 
     span<psnd_real>    V, dV, ddV;
-    span<psnd_real>    eig, E, T, Told, dE, ddE;
+    span<psnd_real>    eig, E, T, Told, dE, ddE, nac;
    //  span<psnd_complex> T;
     span<psnd_real>    lam;
     span<psnd_complex> R, dL, ddL;

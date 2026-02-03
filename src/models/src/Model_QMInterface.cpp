@@ -257,18 +257,32 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
     auto         occ_nuc         = _dataset->def(DATA::integrator::occ_nuc);
     const double deltaE_thres    = nac_threshold / phys::au_2_ev;  // default in 1.0 eV in atomic unit
     // 计算上一步中其他态跟占据态 occ 之间的能量差，能量差小于nac_threshold eV才计算这两个态的耦合，注意eig是原子单位，需要转换为eV 
+    // std::vector<std::pair<int, int>> occ_pairs;
+    // for (int i = 0; i < Dimension::F; ++i) {
+    //     int j = occ_nuc[0];
+    //     if (i != j) {
+    //         double deltaE = eig[i] - eig[j];
+    //         if (std::abs(deltaE) < deltaE_thres) {  // 0.3 eV
+    //             std::cout << "[QMInterface] Coupling between state " << i << " and occupied state " << j
+    //                       << " is considered, ΔE = " << deltaE * 27.2114 << " eV\n";
+    //             occ_pairs.emplace_back(i, j);
+    //         }
+    //     }
+    // }
+
+    // 计算所有态对之间的能量差，能量差小于nac_threshold eV才计算这两个态的耦合
     std::vector<std::pair<int, int>> occ_pairs;
     for (int i = 0; i < Dimension::F; ++i) {
-        int j = occ_nuc[0];
-        if (i != j) {
-            double deltaE = eig[i] - eig[j];
-            if (std::abs(deltaE) < deltaE_thres) {  // 0.3 eV
-                std::cout << "[QMInterface] Coupling between state " << i << " and occupied state " << j
-                          << " is considered, ΔE = " << deltaE * 27.2114 << " eV\n";
+        for (int j = i + 1; j < Dimension::F; ++j) {  // 只遍历上三角，避免重复
+            double deltaE = std::abs(eig[i] - eig[j]);
+            if (deltaE < deltaE_thres) {
+                std::cout << "[QMInterface] Coupling between state " << i << " and state " << j
+                        << " is considered, ΔE = " << deltaE * phys::au_2_ev << " eV\n";
                 occ_pairs.emplace_back(i, j);
             }
         }
     }
+
     // 把occ pairs 转化为字符串的形式 如(0,1), (1,2) -> "01 12"
     // @ambiguous: Does '112' represent (11,2) or (1,12)?
     // @hexin
@@ -277,6 +291,7 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
 
     std::string qm_call_str;
     if (use_state_detection){
+        std::cout << "[QMInterface] Using state detection to reduce computational cost.\n";
         qm_call_str = utils::concat("python ", pypsnd_path, "/QM.py -t ", try_level,  //
                                             " -d ", path_str, " -i ", tmp_input, " -qm ", qm_string_lower, " -occ ",
                                             occ_nuc[0], " -ncouple ", occ_pairs_str);
