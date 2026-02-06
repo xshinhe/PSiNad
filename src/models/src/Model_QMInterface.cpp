@@ -377,6 +377,10 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
 
     if (stat.succ) {
         if (!stat.first_step) track_nac_sign();  // @note track_nac_sign is important
+        else {
+            // in the first step, just copy nac to nac_prev
+            for (int i = 0; i < Dimension::NFF; ++i) nac_prev[i] = nac[i];
+        }
         for (int i = 0, idx = 0; i < Dimension::N; ++i) {
             for (int j = 0; j < Dimension::F; ++j) {
                 for (int k = 0; k < Dimension::F; ++k, ++idx) {
@@ -391,6 +395,7 @@ Status& Model_QMInterface::executeKernel_impl(Status& stat) {
 }
 
 int Model_QMInterface::track_nac_sign() {
+    std::cout << "[QMInterface] Tracking NAC sign to ensure continuity.\n";
     for (int i = 0; i < Dimension::F; ++i) {
         for (int j = 0; j < Dimension::F; ++j) {  // check if NAC(:,i,j) should flip its sign
             if (i == j) continue;
